@@ -1,4 +1,7 @@
-name: C/C++ CI
+name: Build
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   push:
@@ -7,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  Build:
 
     runs-on: ubuntu-20.04
 
