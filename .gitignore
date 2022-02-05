@@ -36,3 +36,4 @@ gcc-*
 
 # Build artefacts
 kernel*
+MiniDexed*
