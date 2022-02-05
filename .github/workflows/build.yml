@@ -45,12 +45,12 @@ jobs:
            make
            make armstub64
            cd -
-           mkdir -p MiniDexed
-           cp -r ./circle-stdlib/libs/circle/boot/* MiniDexed
-           mv MiniDexed/config64.txt MiniDexed/config.txt
-           rm MiniDexed/config32.txt MiniDexed/README MiniDexed/Makefile
-           cp ./src/*img MiniDexed/
-           zip -r MiniDexed.zip MiniDexed/
+           mkdir -p sdcard
+           cp -r ./circle-stdlib/libs/circle/boot/* sdcard
+           mv sdcard/config64.txt sdcard/config.txt
+           rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+           cp ./src/*img sdcard/
+           zip -r MiniDexed.zip sdcard/*
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
