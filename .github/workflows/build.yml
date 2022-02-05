@@ -31,6 +31,7 @@ jobs:
            cd ..
     - name: Build MiniDexed
       run: |
+           export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            cd src
            make -j$(nproc)
            ls *.img
