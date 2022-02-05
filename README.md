@@ -73,8 +73,6 @@ zip -r MiniDexed_Raspberry_Pi_4.zip sdcard/*
 
 ## Acknowledgements
 
-* [dcoredump](https://github.com/dcoredump)
-* [rsta2](https://github.com/rsta2)
-* https://github.com/rsta2/circle, the library to run code on bare betal Raspberry Pi (without a Linux kernel or operating system)
-* https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ Library Support
-* https://codeberg.org/dcoredump/MicroDexed, a Dexed port to a microcontroller
+* [dcoredump](https://github.com/dcoredump) for https://codeberg.org/dcoredump/MicroDexed, a Dexed port to a microcontroller
+* [rsta2](https://github.com/rsta2) for https://github.com/rsta2/circle, the library to run code on bare betal Raspberry Pi (without a Linux kernel or operating system)
+* [smuehlst](https://github.com/smuehlst) for https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ library support
