@@ -39,4 +39,4 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
            wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-           bash ./upload.sh ./*img
+           bash ./upload.sh ./src/*img
