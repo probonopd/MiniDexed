@@ -43,7 +43,7 @@ jobs:
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            cd ./circle-stdlib/libs/circle/boot
            make
-           make armstub
+           make armstub64
            cd -
            mkdir -p MiniDexed
            cp -r ./circle-stdlib/libs/circle/boot/* MiniDexed
