@@ -31,5 +31,11 @@ jobs:
            cd ..
     - name: Build MiniDexed
       run: |
+           cd src
            make -j$(nproc)
            ls *.img
+    - name: Upload to GitHub Releases (only when building from main branch)
+      if: ${{ github.ref == 'refs/heads/main' }}
+      run: |
+           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+           bash ./upload.sh ./*img
