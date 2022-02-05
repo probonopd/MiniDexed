@@ -40,6 +40,7 @@ jobs:
            ls *.img
     - name: Get Raspberry Pi boot files
       run: |
+           export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            cd ./circle-stdlib/libs/circle/boot
            make
            make armstub
