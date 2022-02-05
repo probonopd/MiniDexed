@@ -50,9 +50,9 @@ jobs:
            mv sdcard/config64.txt sdcard/config.txt
            rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/*img sdcard/
-           zip -r MiniDexed.zip sdcard/*
+           zip -r MiniDexed_Raspberry_Pi_4.zip sdcard/*
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
            wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-           bash ./upload.sh ./MiniDexed.zip
+           bash ./upload.sh ./MiniDexed*.zip
