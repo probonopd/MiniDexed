@@ -13,6 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Recursively pull git submodules
+      run: |
+           git submodule update --init --recursive
     - name: Install toolchain
       run: |
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
@@ -21,9 +24,9 @@ jobs:
       run: |
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            cd circle-stdlib/
-           git submodule update --init
+           # git submodule update --init --recursive
            ./configure -r 4 --prefix "aarch64-none-elf-"
-           ( cd libs/circle ; git submodule update --init ) # FIXME: Find a way without the need for this
+           # ( cd libs/circle ; git submodule update --init --recursive ) # FIXME: Find a way without the need for this
            make -j$(nproc)
            cd ..
     - name: Build MiniDexed
