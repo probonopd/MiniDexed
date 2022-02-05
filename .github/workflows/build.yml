@@ -38,8 +38,20 @@ jobs:
            cd src
            make -j$(nproc)
            ls *.img
+    - name: Get Raspberry Pi boot files
+      run: |
+           cd ./circle-stdlib/libs/circle/boot
+           make
+           make armstub
+           cd -
+           mkdir -p MiniDexed
+           cp -r ./circle-stdlib/libs/circle/boot/* MiniDexed
+           mv MiniDexed/config64.txt MiniDexed/config.txt
+           rm MiniDexed/config32.txt MiniDexed/README MiniDexed/Makefile
+           cp ./src/*img MiniDexed/
+           zip -r MiniDexed.zip MiniDexed/
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
            wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-           bash ./upload.sh ./src/*img
+           bash ./upload.sh ./MiniDexed.zip
