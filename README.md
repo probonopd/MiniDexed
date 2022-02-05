@@ -20,6 +20,57 @@
 
 I am wondering whether Dexed could be ported to Circle, in order to recreate basically an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
 
+## Usage
+
+* Download from [GitHub Releases](../../releases)
+* Unzip
+* Put the files into the root directory of a FAT32 formatted partition on microSD card
+* Boot in Raspberry Pi 4
+
+## Building locally
+
+E.g., on Ubuntu 20.04:
+
+```
+git clone https://github.com/probonopd/MiniDexed
+cd MiniDexed
+
+# Recursively pull git submodules
+git submodule update --init --recursive
+
+# Install toolchain
+wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+tar xf gcc-arm-*-*.tar.xz 
+export PATH=$(readlink -f ./gcc-*/bin/):$PATH
+
+# Build circle-stdlib library
+cd circle-stdlib/
+./configure -r 4 --prefix "aarch64-none-elf-"
+make -j$(nproc)
+cd ..
+
+# Build MiniDexed
+export PATH=$(readlink -f ./gcc-*/bin/):$PATH
+cd src
+make -j$(nproc)
+ls *.img
+cd ..
+
+# Get Raspberry Pi boot files
+cd ./circle-stdlib/libs/circle/boot
+make
+make armstub64
+cd -
+
+# Make zip that contains Raspberry Pi 4 boot files
+mkdir -p sdcard
+cp -r ./circle-stdlib/libs/circle/boot/* sdcard
+mv sdcard/config64.txt sdcard/config.txt
+rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+cp ./src/*img sdcard/
+zip -r MiniDexed_Raspberry_Pi_4.zip sdcard/*
+```
+
 ## Acknowledgements
 
 * [dcoredump](https://github.com/dcoredump)
