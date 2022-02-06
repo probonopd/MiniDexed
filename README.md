@@ -8,7 +8,7 @@
 
 - [x] Get Dexed to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] Upload SD card contents to [GitHub Releases](../../releases)
-- [ ] Get it to run on a Raspberry Pi 4 without crashing
+- [x] Get it to boot on a Raspberry Pi 4
 - [ ] Get it to produce some sound on the headphone jack
 - [ ] Get it to react to USB MIDI
 - [ ] Get it to react to MIDI via Raspberry Pi 4 GPIO
