@@ -9,9 +9,10 @@
 - [x] Get Dexed to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] Upload SD card contents to [GitHub Releases](../../releases)
 - [x] Get it to boot on a Raspberry Pi 4
-- [ ] Get it to react to USB MIDI (e.g., by porting [miniorgan](https://github.com/rsta2/circle/tree/master/sample/29-miniorgan))
-- [ ] Get it to react to MIDI via Raspberry Pi 4 GPIO (dito)
-- [ ] Get it to produce some sound on the headphone jack
+- [x] Get it to react to USB MIDI
+- [x] Get it to react to MIDI via Raspberry Pi 4 GPIO
+- [x] Get it to produce some sound on the headphone jack
+- [ ] Get it to produce some sound produced by Dexed
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Add a way to configure each Dexed instance
