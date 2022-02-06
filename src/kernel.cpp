@@ -18,12 +18,31 @@ CKernel::~CKernel(void)
 
 bool CKernel::Initialize (void)
 {
-	return CStdlibAppStdio::Initialize ();
+	if (!CStdlibAppStdio::Initialize ())
+	{
+		return FALSE;
+	}
+
+	if (!m_MiniOrgan.Initialize ())
+	{
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 CStdlibApp::TShutdownMode CKernel::Run (void)
 {
 	std::cout << "Hello MiniDexed!\n";
+
+	m_MiniOrgan.Start ();
+
+	while (m_MiniOrgan.IsActive ())
+	{
+		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
+
+		m_MiniOrgan.Process (bUpdated);
+	}
 
 	return ShutdownHalt;
 }
