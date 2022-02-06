@@ -76,7 +76,7 @@ CMiniOrgan::CMiniOrgan (CInterruptSystem *pInterrupt, CI2CMaster *pI2CMaster)
 	),
 	m_pMIDIDevice (0),
 	m_pKeyboard (0),
-	m_Serial (pInterrupt, TRUE),
+	m_Serial (pInterrupt, TRUE, 5),
 	m_bUseSerial (FALSE),
 	m_nSerialState (0),
 	m_nSampleCount (0),
