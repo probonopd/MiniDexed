@@ -1,3 +1,6 @@
 [submodule "circle-stdlib"]
 	path = circle-stdlib
 	url = https://github.com/smuehlst/circle-stdlib
+[submodule "Synth_Dexed"]
+	path = Synth_Dexed
+	url = https://codeberg.org/dcoredump/Synth_Dexed.git
