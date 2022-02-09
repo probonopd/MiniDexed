@@ -6,7 +6,7 @@
 
  Contributions are highly welcome.
 
-- [x] Get Dexed to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
+- [x] Get [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] Upload SD card contents to [GitHub Releases](../../releases)
 - [x] Get it to boot on a Raspberry Pi 4
 - [x] Get it to react to USB MIDI
@@ -74,6 +74,7 @@ zip -r MiniDexed_Raspberry_Pi_4.zip sdcard/*
 
 ## Acknowledgements
 
-* [dcoredump](https://github.com/dcoredump) for https://codeberg.org/dcoredump/MicroDexed, a Dexed port to a microcontroller
-* [rsta2](https://github.com/rsta2) for the initial code and for https://github.com/rsta2/circle, the library to run code on bare betal Raspberry Pi (without a Linux kernel or operating system)
+* [asb2m10](https://github.com/asb2m10/dexed) for the [Dexed](https://github.com/asb2m10/dexed) sound engine
+* [dcoredump](https://github.com/dcoredump) for https://codeberg.org/dcoredump/Synth_Dexed, a port of Dexed for embedded systems
+* [rsta2](https://github.com/rsta2) for https://github.com/rsta2/circle, the library to run code on bare betal Raspberry Pi (without a Linux kernel or operating system) and for the initial MiniDexed code 
 * [smuehlst](https://github.com/smuehlst) for https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ library support
