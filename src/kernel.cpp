@@ -33,6 +33,8 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 {
 	std::cout << "Hello MiniDexed!\n";
 
+	m_Dexed.Start ();
+
 	while(42==42)
 	{
 		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
