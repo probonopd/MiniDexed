@@ -16,7 +16,7 @@
 #include <circle/types.h>
 #include <circle/i2cmaster.h>
 #include <circle/usb/usbhcidevice.h>
-#include "miniorgan.h"
+#include "synth_dexed.h"
 
 enum TShutdownMode
 {
@@ -38,7 +38,7 @@ public:
 private:
 	// do not change this order
 	CI2CMaster		m_I2CMaster;
-	CMiniOrgan		m_MiniOrgan;
+	AudioSynthDexed		m_Dexed;
 };
 
 #endif
