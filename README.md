@@ -51,7 +51,6 @@ make -j$(nproc)
 cd ..
 
 # Build MiniDexed
-export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 cd src
 make -j$(nproc)
 ls *.img
