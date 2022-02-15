@@ -12,9 +12,9 @@
 - [x] Get it to react to USB MIDI
 - [x] Get it to react to MIDI via Raspberry Pi 4 GPIO
 - [x] Get it to produce some sound on the headphone jack
-- [ ] Get it to produce some sound produced by Dexed
-- [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
+- [x] Get it to produce some sound produced by Dexed
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
+- [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add a way to configure each Dexed instance
 - [ ] Allow for each Dexed instance to be stereo shifted
 - [ ] Add reverb effect
