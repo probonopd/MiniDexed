@@ -86,6 +86,7 @@ sudo cp sdcard/* boot
 sudo umount boot
 sudo losetup -d "${DEV}"
 rm -r boot
+# Now you can write the image to a SD card.
 ```
 
 ## Acknowledgements
