@@ -79,7 +79,7 @@ dd of="${IMG}" seek=50MiB bs=1 count=0
 parted "${IMG}" mktable msdos
 parted "${IMG}" mkpart primary fat32 2048s 49MiB
 DEV=`sudo losetup --find --partscan --show "${IMG}"`
-sudo mkfs.vfat -F 32 -n BOOT "${DEV}p1"
+sudo mkfs.vfat -F 32 -n BOOT "${DEV}p0"
 mkdir boot
 sudo mount "${DEV}p1" boot
 sudo cp sdcard/* boot
