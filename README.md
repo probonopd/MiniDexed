@@ -33,6 +33,8 @@ I am wondering whether Dexed could be ported to Circle, in order to recreate bas
 E.g., on Ubuntu 20.04:
 
 ```
+RPI=4
+
 git clone https://github.com/probonopd/MiniDexed
 cd MiniDexed
 
@@ -46,7 +48,7 @@ export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
 # Build circle-stdlib library
 cd circle-stdlib/
-./configure -r 4 --prefix "aarch64-none-elf-"
+./configure -r ${RPI} --prefix "aarch64-none-elf-"
 make -j$(nproc)
 cd ..
 
@@ -68,7 +70,22 @@ cp -r ./circle-stdlib/libs/circle/boot/* sdcard
 mv sdcard/config64.txt sdcard/config.txt
 rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
 cp ./src/*img sdcard/
-zip -r MiniDexed_Raspberry_Pi_4.zip sdcard/*
+zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
+
+# Create a RPi image
+sudo apt install --yes  mount parted
+IMG="`date +%Y-%m-%d`_minidexed-RPi${RPI}.img"
+dd of="${IMG}" seek=50MiB bs=1 count=0
+parted "${IMG}" mktable msdos
+parted "${IMG}" mkpart primary fat32 2048s 49MiB
+DEV=`sudo losetup --find --partscan --show "${IMG}"`
+sudo mkfs.vfat -F 32 -n BOOT "${DEV}p1"
+mkdir boot
+sudo mount "${DEV}p1" boot
+sudo cp sdcard/* boot
+sudo umount boot
+sudo losetup -d "${DEV}"
+rm -r boot
 ```
 
 ## Acknowledgements
