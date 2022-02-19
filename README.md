@@ -64,7 +64,7 @@ make
 make armstub64
 cd -
 
-# Make zip that contains Raspberry Pi 4 boot files
+# Make zip that contains Raspberry Pi 4 boot files. The contents can be copied to a FAT32 formatted partition on a microSD card
 mkdir -p sdcard
 cp -r ./circle-stdlib/libs/circle/boot/* sdcard
 mv sdcard/config64.txt sdcard/config.txt
@@ -72,7 +72,7 @@ rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/C
 cp ./src/*img sdcard/
 zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
 
-# Create a RPi image
+# Optionally, create a RPi image. This can be written to a microSD card using tools like Etcher or dd
 sudo apt install --yes  mount parted
 IMG="`date +%Y-%m-%d`_minidexed-RPi${RPI}.img"
 dd of="${IMG}" seek=50MiB bs=1 count=0
@@ -86,7 +86,6 @@ sudo cp sdcard/* boot
 sudo umount boot
 sudo losetup -d "${DEV}"
 rm -r boot
-# Now you can write the image to a SD card.
 ```
 
 ## Acknowledgements
