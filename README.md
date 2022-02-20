@@ -14,6 +14,7 @@
 - [x] Get it to produce some sound on the headphone jack
 - [x] Get it to produce some sound produced by Dexed
 - [x] Load a default (hardcoded) sysex
+- [x] Get it to boot on a Raspberry Pi 3
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add a way to configure each Dexed instance
