@@ -3,7 +3,7 @@
 set -e 
 set -x
 
-[ -z "${RPI}" ] ; then
+if [ -z "${RPI}" ] ; do
   echo "${RPI} missing, exting"
   exit 1
 fi
