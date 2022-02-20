@@ -51,7 +51,7 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 
 	std::cout << "Loading hardcoded fmpiano_sysex...\n";
 	m_Dexed.loadVoiceParameters(fmpiano_sysex);
-    m_Dexed.setTranspose(36);
+        m_Dexed.setTranspose(24);
 
 	while(42==42)
 	{
