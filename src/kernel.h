@@ -4,7 +4,7 @@
 #ifndef _kernel_h
 #define _kernel_h
 
-#include <circle_stdlib_app.h>
+#include "circle_stdlib_app.h"
 #include <circle/actled.h>
 #include <circle/koptions.h>
 #include <circle/devicenameservice.h>
