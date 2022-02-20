@@ -23,10 +23,14 @@ jobs:
       run: |
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
            tar xf gcc-arm-*-*.tar.xz 
-    - name: Build circle-stdlib library
+    - name: Build for Raspberry Pi 4
       run: |
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            RPI=4 bash -ex build.sh
+           ls src/*.img
+    - name: Build for Raspberry Pi 3
+      run: |
+           export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            RPI=3 bash -ex build.sh
            ls src/*.img
     - name: Get Raspberry Pi boot files
