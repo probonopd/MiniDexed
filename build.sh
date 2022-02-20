@@ -8,6 +8,12 @@ if [ -z "${RPI}" ] ; then
   exit 1
 fi
 
+if [ "${RPI}" -gt "2" ]; then
+    export TOOLCHAIN_PREFIX="aarch64-none-elf-"
+else
+    export TOOLCHAIN_PREFIX="arm-none-eabi-"
+fi
+
 # Build circle-stdlib library
 cd circle-stdlib/
 make clean || true
