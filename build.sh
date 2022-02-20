@@ -10,6 +10,7 @@ fi
 
 # Build circle-stdlib library
 cd circle-stdlib/
+make clean
 ./configure -r ${RPI} --prefix "aarch64-none-elf-"
 make -j$(nproc)
 cd ..
