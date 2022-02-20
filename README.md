@@ -21,7 +21,7 @@
 - [ ] Allow for each Dexed instance to be stereo shifted
 - [ ] Add reverb effect
 
-I am wondering whether Dexed could be ported to Circle, in order to recreate basically an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
+I am wondering whether we can run multiple Dexed instances, in order to recreate basically an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
 
 ## Usage
 
