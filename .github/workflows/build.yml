@@ -26,18 +26,9 @@ jobs:
     - name: Build circle-stdlib library
       run: |
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
-           cd circle-stdlib/
-           # git submodule update --init --recursive
-           ./configure -r 4 --prefix "aarch64-none-elf-"
-           # ( cd libs/circle ; git submodule update --init --recursive ) # FIXME: Find a way without the need for this
-           make -j$(nproc)
-           cd ..
-    - name: Build MiniDexed
-      run: |
-           export PATH=$(readlink -f ./gcc-*/bin/):$PATH
-           cd src
-           make -j$(nproc)
-           ls *.img
+           RPI=4 bash -ex build.sh
+           RPI=3 bash -ex build.sh
+           ls src/*.img
     - name: Get Raspberry Pi boot files
       run: |
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
