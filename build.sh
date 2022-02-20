@@ -11,7 +11,7 @@ fi
 # Build circle-stdlib library
 cd circle-stdlib/
 make clean || true
-rm ./config.cache || true
+( cd build/circle-newlib/aarch64-none-circle/newlib ; rm ./config.cache ) || true
 ./configure -r ${RPI} --prefix "aarch64-none-elf-"
 make -j$(nproc)
 cd ..
