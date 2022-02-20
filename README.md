@@ -27,7 +27,7 @@ I am wondering whether Dexed could be ported to Circle, in order to recreate bas
 * Download from [GitHub Releases](../../releases)
 * Unzip
 * Put the files into the root directory of a FAT32 formatted partition on microSD card
-* Boot in Raspberry Pi 4
+* Boot in Raspberry Pi 3 or 4
 
 ## Building locally
 
