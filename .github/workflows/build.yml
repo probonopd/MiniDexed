@@ -46,7 +46,7 @@ jobs:
            rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/*img sdcard/
            cd sdcard
-           zip -r ../MiniDexed_Raspberry_Pi_4.zip *
+           zip -r ../MiniDexed_arm64_$(date +%Y-%m-%d).zip *
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
