@@ -38,7 +38,10 @@ bool CKernel::Initialize (void)
 		return FALSE;
 	}
 
-	m_Dexed.activate();
+	if (!m_Dexed.Initialize ())
+	{
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -46,8 +49,6 @@ bool CKernel::Initialize (void)
 CStdlibApp::TShutdownMode CKernel::Run (void)
 {
 	std::cout << "Hello MiniDexed!\n";
-
-	m_Dexed.Start ();
 
 	std::cout << "Loading hardcoded fmpiano_sysex...\n";
 	m_Dexed.loadVoiceParameters(fmpiano_sysex);
