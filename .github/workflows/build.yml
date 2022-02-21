@@ -30,17 +30,17 @@ jobs:
       run: |
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
            RPI=4 bash -ex build.sh
-           cp ./circle-stdlib/libs/circle/kernel*.img ./kernels/
+           cp ./src/kernel*.img ./kernels/
     - name: Build for Raspberry Pi 3
       run: |
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
            RPI=3 bash -ex build.sh
-           cp ./circle-stdlib/libs/circle/kernel*.img ./kernels/
+           cp ./src/kernel*.img ./kernels/
     - name: Build for Raspberry Pi 2
       run: |
            export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
            RPI=2 bash -ex build.sh
-           lcp ./circle-stdlib/libs/circle/kernel*.img ./kernels/
+           cp ./src/kernel*.img ./kernels/
     - name: Get Raspberry Pi boot files
       run: |
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
@@ -55,7 +55,7 @@ jobs:
            rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/*img sdcard/
            cd sdcard
-           zip -r ../MiniDexed_arm64_$(date +%Y-%m-%d).zip *
+           zip -r ../MiniDexed_$(date +%Y-%m-%d).zip *
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
