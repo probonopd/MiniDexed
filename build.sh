@@ -16,7 +16,7 @@ fi
 
 # Build circle-stdlib library
 cd circle-stdlib/
-make clean || true
+make mrproper || true
 ( cd build/circle-newlib/ ; make mrproper ) || true
 ( cd build/circle-newlib/aarch64-none-circle/newlib ; rm ./config.cache ; make clean ) || true
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}"
