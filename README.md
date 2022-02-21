@@ -15,8 +15,8 @@
 - [x] Get it to produce some sound produced by Dexed
 - [x] Load a default (hardcoded) sysex
 - [x] Get it to build for and boot on a Raspberry Pi 3
-- [ ] Get it to build for and boot on a Raspberry Pi 2 (untested)
-- [ ] Get it to build for and boot on a Raspberry Pi 1 (untested)
+- [x] Get it to build for and boot on a Raspberry Pi 2 (untested; need to rename `config32.txt` to `config.txt`)
+- [x] Get it to build for and boot on a Raspberry Pi 1 (need to rename `config32.txt` to `config.txt`)
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add a way to configure each Dexed instance
