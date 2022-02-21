@@ -46,6 +46,12 @@ jobs:
            export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
            RPI=2 bash -ex build.sh
            cp ./src/kernel*.img ./kernels/
+    - name: Build for Raspberry Pi 1
+      run: |
+           set -ex
+           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
+           RPI=1 bash -ex build.sh
+           cp ./src/kernel*.img ./kernels/
     - name: Get Raspberry Pi boot files
       run: |
            set -ex
