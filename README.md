@@ -8,13 +8,15 @@
 
 - [x] Get [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] Upload SD card contents to [GitHub Releases](../../releases)
-- [x] Get it to boot on a Raspberry Pi 4
+- [x] Get it to build for and boot on a Raspberry Pi 4
 - [x] Get it to react to USB MIDI
 - [x] Get it to react to MIDI via Raspberry Pi 4 GPIO
 - [x] Get it to produce some sound on the headphone jack
 - [x] Get it to produce some sound produced by Dexed
 - [x] Load a default (hardcoded) sysex
-- [x] Get it to boot on a Raspberry Pi 3
+- [x] Get it to build for and boot on a Raspberry Pi 3
+- [ ] Get it to build for and boot on a Raspberry Pi 2 (untested)
+- [ ] Get it to build for and boot on a Raspberry Pi 1 (untested)
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add a way to configure each Dexed instance
