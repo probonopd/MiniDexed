@@ -23,8 +23,8 @@ jobs:
       run: |
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
            tar xf *-aarch64-none-elf.tar.xz
- #         wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
- #         tar xf *-arm-none-eabi.tar.xz
+           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+           tar xf *-arm-none-eabi.tar.xz
     - name: Build for Raspberry Pi 4
       run: |
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
@@ -35,11 +35,11 @@ jobs:
            export PATH=$(readlink -f ./gcc-*/bin/):$PATH
            RPI=3 bash -ex build.sh
            ls src/*.img
-#   - name: Build for Raspberry Pi 2
-#     run: |
-#          export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
-#          RPI=2 bash -ex build.sh
-#          ls src/*.img
+    - name: Build for Raspberry Pi 2
+      run: |
+           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
+           RPI=2 bash -ex build.sh
+           ls src/*.img
     - name: Get Raspberry Pi boot files
       run: |
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
