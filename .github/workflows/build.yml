@@ -63,7 +63,7 @@ jobs:
            mkdir -p sdcard
            cp -r ./circle-stdlib/libs/circle/boot/* sdcard
            mv sdcard/config64.txt sdcard/config.txt
-           rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+           rm -rf sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/*img sdcard/
            cd sdcard
            cp ../kernels/* . || true
