@@ -18,6 +18,3 @@ kernel=kernel8.img
 arm_64bit=1
 armstub=armstub8-rpi4.bin
 kernel=kernel8-rpi4.img
-
-[all]
-sounddev=sndpwm
