@@ -62,9 +62,8 @@ jobs:
            cd -
            mkdir -p sdcard
            cp -r ./circle-stdlib/libs/circle/boot/* sdcard
-           mv sdcard/config64.txt sdcard/config.txt
-           rm -rf sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-           cp ./src/*img sdcard/
+           rm -f sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+           cp ./src/config.txt ./src/*img sdcard/
            cd sdcard
            cp ../kernels/* . || true
            zip -r ../MiniDexed_$(date +%Y-%m-%d).zip *
