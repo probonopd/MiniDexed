@@ -4,6 +4,8 @@
 #include "kernel.h"
 #include <iostream>
 #include <synth_dexed.h>
+#include <string.h>
+#include <circle/logger.h>
 
 uint8_t fmpiano_sysex[156] = {
   95, 29, 20, 50, 99, 95, 00, 00, 41, 00, 19, 00, 00, 03, 00, 06, 79, 00, 01, 00, 14, // OP6 eg_rate_1-4, level_1-4, kbd_lev_scl_brk_pt, kbd_lev_scl_lft_depth, kbd_lev_scl_rht_depth, kbd_lev_scl_lft_curve, kbd_lev_scl_rht_curve, kbd_rate_scaling, amp_mod_sensitivity, key_vel_sensitivity, operator_output_level, osc_mode, osc_freq_coarse, osc_freq_fine, osc_detune
@@ -19,10 +21,12 @@ uint8_t fmpiano_sysex[156] = {
   70, 77, 45, 80, 73, 65, 78, 79, 00, 00                                              // 10 * char for name ("DEFAULT   ")
 }; // FM-Piano
 
+LOGMODULE ("kernel");
+
 CKernel::CKernel (void)
 :	CStdlibAppStdio ("minidexed"),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
-	m_Dexed(16,SAMPLE_RATE,&mInterrupt, &m_I2CMaster)
+	m_pDexed (0)
 {
 	mActLED.Blink (5);	// show we are alive
 }
@@ -38,7 +42,28 @@ bool CKernel::Initialize (void)
 		return FALSE;
 	}
 
-	if (!m_Dexed.Initialize ())
+	// select the sound device
+	const char *pSoundDevice = mOptions.GetSoundDevice ();
+	if (strcmp (pSoundDevice, "sndi2s") == 0)
+	{
+		LOGNOTE ("I2S mode");
+
+		m_pDexed = new AudioSynthDexedI2S (16, SAMPLE_RATE, &mInterrupt, &m_I2CMaster);
+	}
+	else if (strcmp (pSoundDevice, "sndhdmi") == 0)
+	{
+		LOGNOTE ("HDMI mode");
+
+		m_pDexed = new AudioSynthDexedHDMI (16, SAMPLE_RATE, &mInterrupt);
+	}
+	else
+	{
+		LOGNOTE ("PWM mode");
+
+		m_pDexed = new AudioSynthDexedPWM (16, SAMPLE_RATE, &mInterrupt);
+	}
+
+	if (!m_pDexed->Initialize ())
 	{
 		return FALSE;
 	}
@@ -51,14 +76,14 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 	std::cout << "Hello MiniDexed!\n";
 
 	std::cout << "Loading hardcoded fmpiano_sysex...\n";
-	m_Dexed.loadVoiceParameters(fmpiano_sysex);
-        m_Dexed.setTranspose(24);
+	m_pDexed->loadVoiceParameters(fmpiano_sysex);
+        m_pDexed->setTranspose(24);
 
 	while(42==42)
 	{
 		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
 
-		m_Dexed.Process(bUpdated);
+		m_pDexed->Process(bUpdated);
 	}
 
 	return ShutdownHalt;
