@@ -31,9 +31,9 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 * Unzip
 * Put the files into the root directory of a FAT32 formatted partition on SD/microSD card
 * Put SD/microSD card into Raspberry Pi 1, 2, 3 or 4 (Zero and Zero 2 can probably be used but need HDMI or a supported i2c DAC for audio out)
-* Attach headphones to the headphone jack using `sounddev=sndpwm` in `config.txt`
-* Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `sounddev=sndi2s | sndhdmi` in `config.txt`
-* Alternatively, attach a HDMI display with sound and select HDMI sound output using `sounddev=sndhdmi` in `config.txt` (this may introduce slight latency)
+* Attach headphones to the headphone jack using `sounddev=sndpwm` in `cmdline.txt` (default)
+* Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `sounddev=sndi2s | sndhdmi` in `cmdline.txt`
+* Alternatively, attach a HDMI display with sound and select HDMI sound output using `sounddev=sndhdmi` in `cmdline.txt` (this may introduce slight latency)
 * Attach a MIDI keyboard via USB
 * Boot
 * Stat playing
