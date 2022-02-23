@@ -64,7 +64,7 @@ jobs:
            cp -r ./circle-stdlib/libs/circle/boot/* sdcard
            rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/config.txt ./src/*img sdcard/
-           echo "sounddev=sndpwm" > sdcard/cmdline.txt
+           echo "usbspeed=full sounddev=sndpwm" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
            zip -r ../MiniDexed_$(date +%Y-%m-%d).zip *
