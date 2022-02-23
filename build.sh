@@ -19,6 +19,7 @@ cd circle-stdlib/
 make mrproper || true
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}"
 echo "DEFINE += -DSAVE_VFP_REGS_ON_IRQ" >> libs/circle/Config.mk
+echo "DEFINE += -DREALTIME" >> libs/circle/Config.mk
 make -j$(nproc)
 cd ..
 
