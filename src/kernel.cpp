@@ -3,7 +3,6 @@
 //
 #include "kernel.h"
 #include <iostream>
-#include <synth_dexed.h>
 #include <string.h>
 #include <circle/logger.h>
 
@@ -48,19 +47,19 @@ bool CKernel::Initialize (void)
 	{
 		LOGNOTE ("I2S mode");
 
-		m_pDexed = new AudioSynthDexedI2S (16, SAMPLE_RATE, &mInterrupt, &m_I2CMaster);
+		m_pDexed = new CMiniDexedI2S (16, SAMPLE_RATE, &mInterrupt, &m_I2CMaster);
 	}
 	else if (strcmp (pSoundDevice, "sndhdmi") == 0)
 	{
 		LOGNOTE ("HDMI mode");
 
-		m_pDexed = new AudioSynthDexedHDMI (16, SAMPLE_RATE, &mInterrupt);
+		m_pDexed = new CMiniDexedHDMI (16, SAMPLE_RATE, &mInterrupt);
 	}
 	else
 	{
 		LOGNOTE ("PWM mode");
 
-		m_pDexed = new AudioSynthDexedPWM (16, SAMPLE_RATE, &mInterrupt);
+		m_pDexed = new CMiniDexedPWM (16, SAMPLE_RATE, &mInterrupt);
 	}
 
 	if (!m_pDexed->Initialize ())

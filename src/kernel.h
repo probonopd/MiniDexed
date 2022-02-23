@@ -6,7 +6,7 @@
 
 #include "circle_stdlib_app.h"
 #include <circle/i2cmaster.h>
-#include "synth_dexed.h"
+#include "minidexed.h"
 
 enum TShutdownMode
 {
@@ -28,7 +28,7 @@ public:
 private:
 	// do not change this order
 	CI2CMaster		m_I2CMaster;
-	AudioSynthDexed		*m_pDexed;
+	CMiniDexed		*m_pDexed;
 };
 
 #endif
