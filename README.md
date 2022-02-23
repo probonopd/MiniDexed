@@ -86,10 +86,10 @@ zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
 sudo apt install --yes  mount parted
 IMG="`date +%Y-%m-%d`_minidexed-RPi${RPI}.img"
 dd of="${IMG}" seek=50MiB bs=1 count=0
-parted "${IMG}" mktable msdos
-parted "${IMG}" mkpart primary fat32 2048s 49MiB
+sudo parted "${IMG}" mktable msdos
+sudo parted "${IMG}" mkpart primary fat32 2048s 100%
 DEV=`sudo losetup --find --partscan --show "${IMG}"`
-sudo mkfs.vfat -F 32 -n BOOT "${DEV}p0"
+sudo mkfs.vfat -F 32 -n BOOT "${DEV}p1"
 mkdir boot
 sudo mount "${DEV}p1" boot
 sudo cp sdcard/* boot
