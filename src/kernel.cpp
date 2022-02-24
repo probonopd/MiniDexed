@@ -83,6 +83,8 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
 
 		m_pDexed->Process(bUpdated);
+
+		mScreen.Update ();
 	}
 
 	return ShutdownHalt;

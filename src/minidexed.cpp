@@ -3,6 +3,9 @@
 //
 #include "minidexed.h"
 #include <circle/devicenameservice.h>
+#include <stdio.h>
+
+#define MIDI_DUMP
 
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
@@ -106,6 +109,25 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+
+#ifdef MIDI_DUMP
+	switch (nLength)
+	{
+	case 1:
+		printf ("MIDI %u: %02X\n", nCable, (unsigned) pPacket[0]);
+		break;
+
+	case 2:
+		printf ("MIDI %u: %02X %02X\n", nCable,
+			(unsigned) pPacket[0], (unsigned) pPacket[1]);
+		break;
+
+	case 3:
+		printf ("MIDI %u: %02X %02X %02X\n", nCable,
+			(unsigned) pPacket[0], (unsigned) pPacket[1], (unsigned) pPacket[2]);
+		break;
+	}
+#endif
 
 	if (nLength < 3)
 	{

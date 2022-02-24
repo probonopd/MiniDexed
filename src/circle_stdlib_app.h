@@ -22,6 +22,7 @@
 #include <circle/interrupt.h>
 #include <circle/screen.h>
 #include <circle/serial.h>
+#include <circle/writebuffer.h>
 #include <circle/timer.h>
 #include <circle/logger.h>
 #include <circle/usb/usbhcidevice.h>
@@ -94,7 +95,8 @@ class CStdlibAppScreen : public CStdlibApp
 public:
         CStdlibAppScreen(const char *kernel)
                 : CStdlibApp (kernel),
-                  mScreen (mOptions.GetWidth (), mOptions.GetHeight ()),
+                  mScreenUnbuffered (mOptions.GetWidth (), mOptions.GetHeight ()),
+                  mScreen (&mScreenUnbuffered),
                   mTimer (&mInterrupt),
                   mLogger (mOptions.GetLogLevel (), &mTimer)
         {
@@ -107,7 +109,7 @@ public:
                         return false;
                 }
 
-                if (!mScreen.Initialize ())
+                if (!mScreenUnbuffered.Initialize ())
                 {
                         return false;
                 }
@@ -133,8 +135,9 @@ public:
         }
 
 protected:
-        CScreenDevice   mScreen;
+        CScreenDevice   mScreenUnbuffered;
         //CSerialDevice   mSerial;
+        CWriteBufferDevice mScreen;
         CTimer          mTimer;
         CLogger         mLogger;
 };
@@ -161,7 +164,7 @@ public:
                   mUSBHCI (&mInterrupt, &mTimer, TRUE),
                   mEMMC (&mInterrupt, &mTimer, &mActLED),
 #if !defined(__aarch64__) || !defined(LEAVE_QEMU_ON_HALT)
-                  mConsole (0, TRUE)
+                  mConsole (&mScreen, TRUE)
 #else
                   mConsole (&mScreen)
 #endif
