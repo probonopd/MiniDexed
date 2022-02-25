@@ -10,12 +10,12 @@
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
 #define MIDI_AFTERTOUCH		0xA0
-#define MIDI_PATCH_CHANGE	0xC0
+#define MIDI_PROGRAM_CHANGE	0xC0
 #define MIDI_PITCH_BEND		0xE0
 
 CMiniDexed *CMiniDexed::s_pThis = 0;
 
-extern uint8_t voices_bank[1][128][128];
+extern uint8_t voices_bank[1][32][156];
 
 bool CMiniDexed::Initialize (void)
 {
@@ -134,10 +134,14 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	}
 #endif
 
-	if (pPacket[0] == MIDI_PATCH_CHANGE)
+	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
 		printf ("Loading voice %d\n", (unsigned) pPacket[1]);
 		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1]]);
+		// FIXME: The following 3 lines do not work yet
+		char* buf_name = new char[11];
+		s_pThis->getName(buf_name);
+		printf ("%s\n", buf_name);
 		return;
 	}
 
