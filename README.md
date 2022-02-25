@@ -17,6 +17,7 @@
 - [x] Get it to build for and boot on a Raspberry Pi 3
 - [x] Get it to build for and boot on a Raspberry Pi 2
 - [x] Get it to build for and boot on a Raspberry Pi 1
+- [x] Support multiple voices through Program Change MIDI messages
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
 - [ ] Add a way to configure each Dexed instance
@@ -40,7 +41,7 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 
 ## Building locally
 
-E.g., on Ubuntu 20.04:
+E.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system, you can use the following example. See [`build.yml`](../../.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
 
 ```
 RPI=4
