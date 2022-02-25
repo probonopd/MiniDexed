@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string.h>
 #include <circle/logger.h>
+#include "voices.c"
 
 uint8_t fmpiano_sysex[156] = {
   95, 29, 20, 50, 99, 95, 00, 00, 41, 00, 19, 00, 00, 03, 00, 06, 79, 00, 01, 00, 14, // OP6 eg_rate_1-4, level_1-4, kbd_lev_scl_brk_pt, kbd_lev_scl_lft_depth, kbd_lev_scl_rht_depth, kbd_lev_scl_lft_curve, kbd_lev_scl_rht_curve, kbd_rate_scaling, amp_mod_sensitivity, key_vel_sensitivity, operator_output_level, osc_mode, osc_freq_coarse, osc_freq_fine, osc_detune
@@ -20,6 +21,7 @@ uint8_t fmpiano_sysex[156] = {
   70, 77, 45, 80, 73, 65, 78, 79, 00, 00                                              // 10 * char for name ("DEFAULT   ")
 }; // FM-Piano
 
+
 LOGMODULE ("kernel");
 
 CKernel::CKernel (void)
@@ -27,7 +29,7 @@ CKernel::CKernel (void)
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
 	m_pDexed (0)
 {
-	mActLED.Blink (5);	// show we are alive
+	// mActLED.Blink (5);	// show we are alive
 }
 
 CKernel::~CKernel(void)
@@ -74,9 +76,9 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 {
 	std::cout << "Hello MiniDexed!\n";
 
-	std::cout << "Loading hardcoded fmpiano_sysex...\n";
+	// m_pDexed->loadVoiceParameters(voices_banks[0][0]);
 	m_pDexed->loadVoiceParameters(fmpiano_sysex);
-        m_pDexed->setTranspose(24);
+	m_pDexed->setTranspose(24);
 
 	while(42==42)
 	{

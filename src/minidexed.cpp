@@ -9,8 +9,13 @@
 
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
+#define MIDI_AFTERTOUCH		0xA0
+#define MIDI_PATCH_CHANGE	0xC0
+#define MIDI_PITCH_BEND		0xE0
 
 CMiniDexed *CMiniDexed::s_pThis = 0;
+
+extern uint8_t voices_bank[1][128][128];
 
 bool CMiniDexed::Initialize (void)
 {
@@ -128,6 +133,20 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		break;
 	}
 #endif
+
+	if (pPacket[0] == MIDI_PATCH_CHANGE)
+	{
+		printf ("Loading voice %d\n", (unsigned) pPacket[1]);
+		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1]]);
+		return;
+	}
+
+	if (pPacket[0] == MIDI_PITCH_BEND)
+	{
+		s_pThis->setPitchbend((unsigned) pPacket[1]);
+		
+		return;
+	}
 
 	if (nLength < 3)
 	{
