@@ -2,10 +2,12 @@
 // minidexed.cpp
 //
 #include "minidexed.h"
+#include "perftimer.h"
 #include <circle/devicenameservice.h>
 #include <stdio.h>
 
 #define MIDI_DUMP
+#define PROFILE
 
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
@@ -16,6 +18,10 @@
 CMiniDexed *CMiniDexed::s_pThis = 0;
 
 extern uint8_t voices_bank[1][32][156];
+
+#ifdef PROFILE
+CPerformanceTimer GetChunkTimer ("GetChunk", 1000000U * CHUNK_SIZE/2 / SAMPLE_RATE);
+#endif
 
 bool CMiniDexed::Initialize (void)
 {
@@ -33,6 +39,10 @@ bool CMiniDexed::Initialize (void)
 
 void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
 {
+#ifdef PROFILE
+	GetChunkTimer.Dump ();
+#endif
+
 	if (m_pMIDIDevice != 0)
 	{
 		return;
@@ -193,6 +203,10 @@ bool CMiniDexedPWM::Initialize (void)
 
 unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
+#ifdef PROFILE
+  GetChunkTimer.Start();
+#endif
+
   unsigned nResult = nChunkSize;
 
   int16_t int16_buf[nChunkSize/2];
@@ -209,6 +223,11 @@ unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;		// 2 stereo channels
     *pBuffer++ = nSample;
   }
+
+#ifdef PROFILE
+  GetChunkTimer.Stop();
+#endif
+
   return(nResult);
 };
 
@@ -224,6 +243,10 @@ bool CMiniDexedI2S::Initialize (void)
 
 unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
+#ifdef PROFILE
+  GetChunkTimer.Start();
+#endif
+
   unsigned nResult = nChunkSize;
 
   int16_t int16_buf[nChunkSize/2];
@@ -238,6 +261,11 @@ unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;		// 2 stereo channels
     *pBuffer++ = nSample;
   }
+
+#ifdef PROFILE
+  GetChunkTimer.Stop();
+#endif
+
   return(nResult);
 };
 
@@ -253,6 +281,10 @@ bool CMiniDexedHDMI::Initialize (void)
 
 unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
+#ifdef PROFILE
+  GetChunkTimer.Start();
+#endif
+
   unsigned nResult = nChunkSize;
 
   int16_t int16_buf[nChunkSize/2];
@@ -273,5 +305,10 @@ unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;		// 2 stereo channels
     *pBuffer++ = nSample;
   }
+
+#ifdef PROFILE
+  GetChunkTimer.Stop();
+#endif
+
   return(nResult);
 };
