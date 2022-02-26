@@ -139,8 +139,8 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		printf ("Loading voice %d\n", (unsigned) pPacket[1]);
 		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1]]);
 		// FIXME: The following 3 lines do not work yet
-		char* buf_name = new char[11];
-		s_pThis->getName(buf_name);
+		char buf_name[11];
+		s_pThis->setName(buf_name);
 		printf ("%s\n", buf_name);
 		return;
 	}
