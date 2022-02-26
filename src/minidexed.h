@@ -15,6 +15,7 @@
 #include <circle/pwmsoundbasedevice.h>
 #include <circle/i2ssoundbasedevice.h>
 #include <circle/hdmisoundbasedevice.h>
+#include "sysexfileloader.h"
 #include "pckeyboard.h"
 
 #define SAMPLE_RATE	48000
@@ -51,6 +52,7 @@ class CMiniDexed : public Dexed
     boolean m_bUseSerial;
     unsigned m_nSerialState;
     u8 m_SerialMessage[3];
+    CSysExFileLoader m_SysExFileLoader;
 
     static CMiniDexed *s_pThis;
 };

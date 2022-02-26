@@ -12,6 +12,9 @@
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
 #define MIDI_AFTERTOUCH		0xA0
+#define MIDI_CONTROL_CHANGE	0xB0
+	#define MIDI_CC_BANK_SELECT_MSB	0		// TODO: not supported
+	#define MIDI_CC_BANK_SELECT_LSB	32
 #define MIDI_PROGRAM_CHANGE	0xC0
 #define MIDI_PITCH_BEND		0xE0
 
@@ -25,6 +28,8 @@ CPerformanceTimer GetChunkTimer ("GetChunk", 1000000U * CHUNK_SIZE/2 / SAMPLE_RA
 
 bool CMiniDexed::Initialize (void)
 {
+  m_SysExFileLoader.Load ();
+
   if (!m_Serial.Initialize(31250))
   {
     return false;
@@ -144,15 +149,33 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	}
 #endif
 
+	if (pPacket[0] == MIDI_CONTROL_CHANGE)
+	{
+		if (pPacket[1] == MIDI_CC_BANK_SELECT_LSB)
+		{
+			if (pPacket[2] < 1 || pPacket[2] > 128)
+			{
+				return;
+			}
+
+			printf ("Select voice bank %u\n", (unsigned) pPacket[2]);
+			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]-1);
+		}
+
+		return;
+	}
+
 	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
 		if(pPacket[1] < 1 || pPacket[1] > 32) {
 			return;
 		}
-		printf ("Loading voice %d\n", (unsigned) pPacket[1]);
-		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1] - 1]);
+		printf ("Loading voice %u\n", (unsigned) pPacket[1]);
+		uint8_t Buffer[156];
+		s_pThis->m_SysExFileLoader.GetVoice (pPacket[1]-1, Buffer);
+		s_pThis->loadVoiceParameters(Buffer);
 		char buf_name[11];
-		memset(reinterpret_cast<void*>(buf_name), 0, 11); // Initialize with 0x00 chars
+		memset(buf_name, 0, 11); // Initialize with 0x00 chars
 		s_pThis->setName(buf_name);
 		printf ("%s\n", buf_name);
 		return;
