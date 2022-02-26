@@ -16,7 +16,7 @@
 - [x] Load a default (hardcoded) sysex
 - [x] Get it to build for and boot on a Raspberry Pi 3
 - [x] Get it to build for and boot on a Raspberry Pi 2
-- [x] Get it to build for and boot on a Raspberry Pi 1
+- [x] Get it to build for and boot on a Raspberry Pi 1 and Raspberry Pi Zero
 - [x] Support multiple voices through Program Change MIDI messages
 - [ ] Add functionality for loading `.syx` files (e.g., from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
