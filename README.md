@@ -45,8 +45,6 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 E.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system, you can use the following example. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
 
 ```
-RPI=4
-
 git clone https://github.com/probonopd/MiniDexed
 cd MiniDexed
 
@@ -58,17 +56,8 @@ wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/bin
 tar xf gcc-arm-*-*.tar.xz 
 export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
-# Build circle-stdlib library
-cd circle-stdlib/
-./configure -r ${RPI} --prefix "aarch64-none-elf-"
-make -j$(nproc)
-cd ..
-
-# Build MiniDexed
-cd src
-make -j$(nproc)
-ls *.img
-cd ..
+# Build dependencies and MiniDexed
+RPI=4 ./build.sh
 
 # Get Raspberry Pi boot files
 cd ./circle-stdlib/libs/circle/boot
