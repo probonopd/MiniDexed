@@ -7,6 +7,18 @@
 #include <circle/logger.h>
 #include "voices.c"
 
+// HD44780 LCD configuration
+#define COLUMNS		16
+#define ROWS		2
+// GPIO pins (Brcm numbering)
+#define EN_PIN		17		// Enable
+#define RS_PIN		18		// Register Select
+#define RW_PIN		19		// Read/Write (set to 0 if not connected)
+#define D4_PIN		22		// Data 4
+#define D5_PIN		23		// Data 5
+#define D6_PIN		24		// Data 6
+#define D7_PIN		25		// Data 7
+
 uint8_t fmpiano_sysex[156] = {
   95, 29, 20, 50, 99, 95, 00, 00, 41, 00, 19, 00, 00, 03, 00, 06, 79, 00, 01, 00, 14, // OP6 eg_rate_1-4, level_1-4, kbd_lev_scl_brk_pt, kbd_lev_scl_lft_depth, kbd_lev_scl_rht_depth, kbd_lev_scl_lft_curve, kbd_lev_scl_rht_curve, kbd_rate_scaling, amp_mod_sensitivity, key_vel_sensitivity, operator_output_level, osc_mode, osc_freq_coarse, osc_freq_fine, osc_detune
   95, 20, 20, 50, 99, 95, 00, 00, 00, 00, 00, 00, 00, 03, 00, 00, 99, 00, 01, 00, 00, // OP5
@@ -27,7 +39,8 @@ LOGMODULE ("kernel");
 CKernel::CKernel (void)
 :	CStdlibAppStdio ("minidexed"),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
-	m_pDexed (0)
+	m_pDexed (0),
+	m_LCD (COLUMNS, ROWS, D4_PIN, D5_PIN, D6_PIN, D7_PIN, EN_PIN, RS_PIN, RW_PIN)
 {
 	// mActLED.Blink (5);	// show we are alive
 }
@@ -39,6 +52,11 @@ CKernel::~CKernel(void)
 bool CKernel::Initialize (void)
 {
 	if (!CStdlibAppStdio::Initialize ())
+	{
+		return FALSE;
+	}
+
+	if (!m_LCD.Initialize ())
 	{
 		return FALSE;
 	}
