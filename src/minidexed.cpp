@@ -326,3 +326,8 @@ unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 
   return(nResult);
 };
+
+void CMiniDexed::LCDWrite (const char *pString)
+{
+	m_LCD.Write (pString, strlen (pString));
+}
