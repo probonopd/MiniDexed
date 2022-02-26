@@ -164,7 +164,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		// Print to optional HD44780 display
 		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
 		CString String;
-		String.Format ("%i\n\r%s", pPacket[1], buf_name);
+		String.Format ("\n\r%i\n\r%s", pPacket[1], buf_name);
 		s_pThis->LCDWrite ((const char *) String);
 		return;
 	}
