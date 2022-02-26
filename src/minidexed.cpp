@@ -35,6 +35,12 @@ bool CMiniDexed::Initialize (void)
     return false;
   }
 
+  
+  if (!m_LCD.Initialize ())
+  {
+    return FALSE;
+  }
+
   m_bUseSerial = true;
 
   activate();
@@ -178,6 +184,11 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		memset(buf_name, 0, 11); // Initialize with 0x00 chars
 		s_pThis->setName(buf_name);
 		printf ("%s\n", buf_name);
+		// Print to optional HD44780 display
+		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
+		CString String;
+		String.Format ("\n\r%i\n\r%s", pPacket[1], buf_name);
+		s_pThis->LCDWrite ((const char *) String);
 		return;
 	}
 
@@ -338,3 +349,8 @@ unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 
   return(nResult);
 };
+
+void CMiniDexed::LCDWrite (const char *pString)
+{
+	m_LCD.Write (pString, strlen (pString));
+}
