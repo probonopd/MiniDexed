@@ -155,6 +155,11 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		memset(reinterpret_cast<void*>(buf_name), 0, 11); // Initialize with 0x00 chars
 		s_pThis->setName(buf_name);
 		printf ("%s\n", buf_name);
+		// Print to optional HD44780 display
+		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
+		CString String;
+		String.Format ("%i\n\r%s", pPacket[1], buf_name);
+		s_pThis->LCDWrite ((const char *) String);
 		return;
 	}
 
