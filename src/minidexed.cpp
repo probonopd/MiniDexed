@@ -30,6 +30,12 @@ bool CMiniDexed::Initialize (void)
     return false;
   }
 
+  
+  if (!m_LCD.Initialize ())
+  {
+    return FALSE;
+  }
+
   m_bUseSerial = true;
 
   activate();

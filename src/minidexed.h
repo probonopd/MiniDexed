@@ -16,6 +16,7 @@
 #include <circle/i2ssoundbasedevice.h>
 #include <circle/hdmisoundbasedevice.h>
 #include "pckeyboard.h"
+#include <display/hd44780device.h>
 
 #define SAMPLE_RATE	48000
 
@@ -23,6 +24,18 @@
 #define CHUNK_SIZE_HDMI	(384 * 10)
 
 #define DAC_I2C_ADDRESS	0		// I2C slave address of the DAC (0 for auto probing)
+
+// HD44780 LCD configuration
+#define COLUMNS		16
+#define ROWS		2
+// GPIO pins (Brcm numbering)
+#define EN_PIN		17		// Enable
+#define RS_PIN		18		// Register Select
+#define RW_PIN		19		// Read/Write (set to 0 if not connected)
+#define D4_PIN		22		// Data 4
+#define D5_PIN		23		// Data 5
+#define D6_PIN		24		// Data 6
+#define D7_PIN		25		// Data 7
 
 class CMiniDexed : public Dexed
 {
@@ -33,14 +46,18 @@ class CMiniDexed : public Dexed
     m_PCKeyboard (this),
     m_Serial (pInterrupt, TRUE),
     m_bUseSerial (FALSE),
-    m_nSerialState (0)
+    m_nSerialState (0),
+    m_LCD (COLUMNS, ROWS, D4_PIN, D5_PIN, D6_PIN, D7_PIN, EN_PIN, RS_PIN, RW_PIN)
     {
       s_pThis = this;
     };
 
     virtual bool Initialize (void);
     void Process(boolean bPlugAndPlayUpdated);
-
+  private:
+    void LCDWrite (const char *pString);
+  private:
+  	CHD44780Device	m_LCD;
   protected:
     static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength);
     static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
