@@ -146,10 +146,13 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 
 	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
+		if(pPacket[1] < 1 || pPacket[1] > 32) {
+			return;
+		}
 		printf ("Loading voice %d\n", (unsigned) pPacket[1]);
-		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1]]);
-		// FIXME: The following 3 lines do not work yet
+		s_pThis->loadVoiceParameters(voices_bank[0][(unsigned) pPacket[1] - 1]);
 		char buf_name[11];
+		memset(reinterpret_cast<void*>(buf_name), 0, 11); // Initialize with 0x00 chars
 		s_pThis->setName(buf_name);
 		printf ("%s\n", buf_name);
 		return;
