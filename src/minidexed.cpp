@@ -159,13 +159,13 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	{
 		if (pPacket[1] == MIDI_CC_BANK_SELECT_LSB)
 		{
-			if (pPacket[2] < 1 || pPacket[2] > 128)
+			if (pPacket[2] > 127)
 			{
 				return;
 			}
 
 			printf ("Select voice bank %u\n", (unsigned) pPacket[2]);
-			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]-1);
+			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]);
 		}
 
 		return;
@@ -173,12 +173,12 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 
 	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
-		if(pPacket[1] < 1 || pPacket[1] > 32) {
+		if(pPacket[1] > 31) {
 			return;
 		}
 		printf ("Loading voice %u\n", (unsigned) pPacket[1]);
 		uint8_t Buffer[156];
-		s_pThis->m_SysExFileLoader.GetVoice (pPacket[1]-1, Buffer);
+		s_pThis->m_SysExFileLoader.GetVoice (pPacket[1], Buffer);
 		s_pThis->loadVoiceParameters(Buffer);
 		char buf_name[11];
 		memset(buf_name, 0, 11); // Initialize with 0x00 chars

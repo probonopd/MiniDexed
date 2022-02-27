@@ -73,8 +73,7 @@ void CSysExFileLoader::Load (void)
 			continue;
 		}
 
-		if (   nBank < 1
-		    || nBank > MaxVoiceBankID+1)
+		if (nBank > MaxVoiceBankID)
 		{
 			LOGWARN ("Bank #%u is not supported", nBank);
 
