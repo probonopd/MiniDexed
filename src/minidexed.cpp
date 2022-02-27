@@ -164,7 +164,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 				return;
 			}
 
-			printf ("Select voice bank %u\n", (unsigned) pPacket[2]);
+			printf ("Select voice bank %u\n", (unsigned) pPacket[2]+1); // MIDI numbering starts with 0, user interface with 1
 			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]);
 		}
 
@@ -176,7 +176,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		if(pPacket[1] > 31) {
 			return;
 		}
-		printf ("Loading voice %u\n", (unsigned) pPacket[1]);
+		printf ("Loading voice %u\n", (unsigned) pPacket[1]+1); // MIDI numbering starts with 0, user interface with 1
 		uint8_t Buffer[156];
 		s_pThis->m_SysExFileLoader.GetVoice (pPacket[1], Buffer);
 		s_pThis->loadVoiceParameters(Buffer);
@@ -187,7 +187,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 		// Print to optional HD44780 display
 		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
 		CString String;
-		String.Format ("\n\r%i\n\r%s", pPacket[1], buf_name);
+		String.Format ("\n\r%i\n\r%s", pPacket[1]+1, buf_name); // MIDI numbering starts with 0, user interface with 1
 		s_pThis->LCDWrite ((const char *) String);
 		return;
 	}
