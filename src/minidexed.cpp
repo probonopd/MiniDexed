@@ -45,6 +45,9 @@ bool CMiniDexed::Initialize (void)
 
   activate();
 
+  s_pThis->ChangeProgram(0);
+  s_pThis->setTranspose(24);
+
   return true;
 }
 
@@ -173,22 +176,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 
 	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
-		if(pPacket[1] > 31) {
-			return;
-		}
-		printf ("Loading voice %u\n", (unsigned) pPacket[1]+1); // MIDI numbering starts with 0, user interface with 1
-		uint8_t Buffer[156];
-		s_pThis->m_SysExFileLoader.GetVoice (pPacket[1], Buffer);
-		s_pThis->loadVoiceParameters(Buffer);
-		char buf_name[11];
-		memset(buf_name, 0, 11); // Initialize with 0x00 chars
-		s_pThis->setName(buf_name);
-		printf ("%s\n", buf_name);
-		// Print to optional HD44780 display
-		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
-		CString String;
-		String.Format ("\n\r%i\n\r%s", pPacket[1]+1, buf_name); // MIDI numbering starts with 0, user interface with 1
-		s_pThis->LCDWrite ((const char *) String);
+		s_pThis->ChangeProgram(pPacket[1]);
 		return;
 	}
 
@@ -218,6 +206,25 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	{
 	  s_pThis->keyup(ucKeyNumber);
 	}
+}
+
+void CMiniDexed::ChangeProgram(unsigned program) {
+		if(program > 31) {
+			return;
+		}
+		printf ("Loading voice %u\n", (unsigned) program+1); // MIDI numbering starts with 0, user interface with 1
+		uint8_t Buffer[156];
+		s_pThis->m_SysExFileLoader.GetVoice (program, Buffer);
+		s_pThis->loadVoiceParameters(Buffer);
+		char buf_name[11];
+		memset(buf_name, 0, 11); // Initialize with 0x00 chars
+		s_pThis->setName(buf_name);
+		printf ("%s\n", buf_name);
+		// Print to optional HD44780 display
+		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
+		CString String;
+		String.Format ("\n\r%i\n\r%s", program+1, buf_name); // MIDI numbering starts with 0, user interface with 1
+		s_pThis->LCDWrite ((const char *) String);
 }
 
 void CMiniDexed::USBDeviceRemovedHandler (CDevice *pDevice, void *pContext)

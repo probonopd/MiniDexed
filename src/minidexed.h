@@ -60,6 +60,7 @@ class CMiniDexed : public Dexed
   protected:
     static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength);
     static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
+    static void ChangeProgram(unsigned program);
     static void USBDeviceRemovedHandler (CDevice *pDevice, void *pContext);
     CUSBMIDIDevice     * volatile m_pMIDIDevice;
     CPCKeyboard        m_PCKeyboard;
