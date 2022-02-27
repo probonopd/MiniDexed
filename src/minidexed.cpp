@@ -159,7 +159,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	{
 		if (pPacket[1] == MIDI_CC_BANK_SELECT_LSB)
 		{
-			if (pPacket[2] > 128)
+			if (pPacket[2] > 127)
 			{
 				return;
 			}
@@ -173,7 +173,7 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 
 	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
 	{
-		if(pPacket[1] > 32) {
+		if(pPacket[1] > 31) {
 			return;
 		}
 		printf ("Loading voice %u\n", (unsigned) pPacket[1]);
