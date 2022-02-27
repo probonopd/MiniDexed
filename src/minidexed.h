@@ -57,8 +57,6 @@ class CMiniDexed : public Dexed
     void Process(boolean bPlugAndPlayUpdated);
   private:
     void LCDWrite (const char *pString);
-  private:
-  	CHD44780Device	m_LCD;
   protected:
     static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength);
     static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
@@ -70,6 +68,8 @@ class CMiniDexed : public Dexed
     unsigned m_nSerialState;
     u8 m_SerialMessage[3];
     CSysExFileLoader m_SysExFileLoader;
+  private:
+    CHD44780Device	m_LCD;
 
     static CMiniDexed *s_pThis;
 };
