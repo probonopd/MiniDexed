@@ -80,11 +80,9 @@ void CSysExFileLoader::Load (void)
 			continue;
 		}
 
-		nBank--;		// zero-based internally
-
 		if (m_pVoiceBank[nBank])
 		{
-			LOGWARN ("Bank #%u already loaded", nBank+1);
+			LOGWARN ("Bank #%u already loaded", nBank);
 
 			continue;
 		}
@@ -105,7 +103,7 @@ void CSysExFileLoader::Load (void)
 			    && m_pVoiceBank[nBank]->Format      == 0x09
 			    && m_pVoiceBank[nBank]->StatusEnd   == 0xF7)
 			{
-				LOGDBG ("Bank #%u successfully loaded", nBank+1);
+				LOGDBG ("Bank #%u successfully loaded", nBank);
 			}
 			else
 			{
