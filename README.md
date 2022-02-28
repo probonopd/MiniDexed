@@ -29,6 +29,7 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 
 ## Usage
 
+* In the case of Raspberry Pi 4, Update the firmware and bootloader to the latest version (not doing this may cause USB reliability issues)
 * Download from [GitHub Releases](../../releases)
 * Unzip
 * Put the files into the root directory of a FAT32 formatted partition on SD/microSD card
