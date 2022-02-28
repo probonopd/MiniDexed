@@ -21,8 +21,8 @@
 
 #define SAMPLE_RATE	48000
 
-#define CHUNK_SIZE	2048
-#define CHUNK_SIZE_HDMI	(384 * 10)
+#define CHUNK_SIZE	(2 * 64)
+#define CHUNK_SIZE_HDMI	(384 * 5)
 
 #define DAC_I2C_ADDRESS	0		// I2C slave address of the DAC (0 for auto probing)
 
