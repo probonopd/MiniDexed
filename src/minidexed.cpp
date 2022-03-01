@@ -18,19 +18,16 @@ CMiniDexed *CMiniDexed::s_pThis = 0;
 
 bool CMiniDexed::Initialize (void)
 {
+  if (!m_UI.Initialize ())
+  {
+    return false;
+  }
+
   m_SysExFileLoader.Load ();
 
   if (!m_Serial.Initialize(m_pConfig->GetMIDIBaudRate ()))
   {
     return false;
-  }
-
-  if (m_pLCD)
-  {
-    if (!m_pLCD->Initialize ())
-    {
-      return FALSE;
-    }
   }
 
   m_bUseSerial = true;
@@ -49,6 +46,8 @@ void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
 	{
 		m_GetChunkTimer.Dump ();
 	}
+
+	m_UI.Process ();
 
 	if (m_pMIDIDevice != 0)
 	{
@@ -203,22 +202,15 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 }
 
 void CMiniDexed::ChangeProgram(unsigned program) {
-		if(program > 31) {
-			return;
-		}
-		printf ("Loading voice %u\n", (unsigned) program+1); // MIDI numbering starts with 0, user interface with 1
-		uint8_t Buffer[156];
-		s_pThis->m_SysExFileLoader.GetVoice (program, Buffer);
-		s_pThis->loadVoiceParameters(Buffer);
-		char buf_name[11];
-		memset(buf_name, 0, 11); // Initialize with 0x00 chars
-		s_pThis->setName(buf_name);
-		printf ("%s\n", buf_name);
-		// Print to optional HD44780 display
-		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
-		CString String;
-		String.Format ("\n\r%i\n\r%s", program+1, buf_name); // MIDI numbering starts with 0, user interface with 1
-		s_pThis->LCDWrite ((const char *) String);
+	if(program > 31) {
+		return;
+	}
+
+	uint8_t Buffer[156];
+	m_SysExFileLoader.GetVoice (program, Buffer);
+	loadVoiceParameters (Buffer);
+
+	m_UI.ProgramChanged (program);
 }
 
 void CMiniDexed::USBDeviceRemovedHandler (CDevice *pDevice, void *pContext)
@@ -338,11 +330,3 @@ unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 
   return(nResult);
 };
-
-void CMiniDexed::LCDWrite (const char *pString)
-{
-	if (m_pLCD)
-	{
-		m_pLCD->Write (pString, strlen (pString));
-	}
-}

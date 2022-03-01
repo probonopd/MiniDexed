@@ -19,7 +19,7 @@
 #include "sysexfileloader.h"
 #include "pckeyboard.h"
 #include "perftimer.h"
-#include <display/hd44780device.h>
+#include "userinterface.h"
 
 class CMiniDexed : public CDexedAdapter
 {
@@ -33,28 +33,17 @@ class CMiniDexed : public CDexedAdapter
     m_nSerialState (0),
     m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
     m_pConfig (pConfig),
-    m_pLCD (0)
+    m_UI (this, pConfig)
     {
       s_pThis = this;
-
-      if (pConfig->GetLCDEnabled ())
-      {
-        m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
-                                     pConfig->GetLCDPinData4 (), pConfig->GetLCDPinData5 (),
-                                     pConfig->GetLCDPinData6 (), pConfig->GetLCDPinData7 (),
-                                     pConfig->GetLCDPinEnable (), pConfig->GetLCDPinRegisterSelect (),
-                                     pConfig->GetLCDPinReadWrite ());
-      }
     };
 
     virtual bool Initialize (void);
     void Process(boolean bPlugAndPlayUpdated);
-  private:
-    void LCDWrite (const char *pString);
   protected:
     static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength);
     static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
-    static void ChangeProgram(unsigned program);
+    void ChangeProgram(unsigned program);
     static void USBDeviceRemovedHandler (CDevice *pDevice, void *pContext);
     CUSBMIDIDevice     * volatile m_pMIDIDevice;
     CPCKeyboard        m_PCKeyboard;
@@ -66,7 +55,7 @@ class CMiniDexed : public CDexedAdapter
     CPerformanceTimer m_GetChunkTimer;
   private:
     CConfig             *m_pConfig;
-    CHD44780Device	*m_pLCD;
+    CUserInterface	m_UI;
 
     static CMiniDexed *s_pThis;
 };
