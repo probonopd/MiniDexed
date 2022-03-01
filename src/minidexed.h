@@ -4,7 +4,7 @@
 #ifndef _minidexed_h
 #define _minidexed_h
 
-#include <synth_dexed.h>
+#include "dexedadapter.h"
 #include <stdint.h>
 #include <math.h>
 #include <circle/interrupt.h>
@@ -21,11 +21,11 @@
 #include "perftimer.h"
 #include <display/hd44780device.h>
 
-class CMiniDexed : public Dexed
+class CMiniDexed : public CDexedAdapter
 {
   public:
     CMiniDexed(CConfig *pConfig, CInterruptSystem *pInterrupt)
-:   Dexed (CConfig::MaxNotes, pConfig->GetSampleRate ()),
+:   CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
     m_pMIDIDevice (0),
     m_PCKeyboard (this),
     m_Serial (pInterrupt, TRUE),
