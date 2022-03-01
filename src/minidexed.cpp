@@ -2,12 +2,8 @@
 // minidexed.cpp
 //
 #include "minidexed.h"
-#include "perftimer.h"
 #include <circle/devicenameservice.h>
 #include <stdio.h>
-
-#define MIDI_DUMP
-#define PROFILE
 
 #define MIDI_NOTE_OFF	0b1000
 #define MIDI_NOTE_ON	0b1001
@@ -20,25 +16,21 @@
 
 CMiniDexed *CMiniDexed::s_pThis = 0;
 
-extern uint8_t voices_bank[1][32][156];
-
-#ifdef PROFILE
-CPerformanceTimer GetChunkTimer ("GetChunk", 1000000U * CHUNK_SIZE/2 / SAMPLE_RATE);
-#endif
-
 bool CMiniDexed::Initialize (void)
 {
   m_SysExFileLoader.Load ();
 
-  if (!m_Serial.Initialize(31250))
+  if (!m_Serial.Initialize(m_pConfig->GetMIDIBaudRate ()))
   {
     return false;
   }
 
-  
-  if (!m_LCD.Initialize ())
+  if (m_pLCD)
   {
-    return FALSE;
+    if (!m_pLCD->Initialize ())
+    {
+      return FALSE;
+    }
   }
 
   m_bUseSerial = true;
@@ -53,9 +45,10 @@ bool CMiniDexed::Initialize (void)
 
 void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
 {
-#ifdef PROFILE
-	GetChunkTimer.Dump ();
-#endif
+	if (m_pConfig->GetProfileEnabled ())
+	{
+		m_GetChunkTimer.Dump ();
+	}
 
 	if (m_pMIDIDevice != 0)
 	{
@@ -139,24 +132,25 @@ void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLeng
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 
-#ifdef MIDI_DUMP
-	switch (nLength)
+	if (s_pThis->m_pConfig->GetMIDIDumpEnabled ())
 	{
-	case 1:
-		printf ("MIDI %u: %02X\n", nCable, (unsigned) pPacket[0]);
-		break;
+		switch (nLength)
+		{
+		case 1:
+			printf ("MIDI %u: %02X\n", nCable, (unsigned) pPacket[0]);
+			break;
 
-	case 2:
-		printf ("MIDI %u: %02X %02X\n", nCable,
-			(unsigned) pPacket[0], (unsigned) pPacket[1]);
-		break;
+		case 2:
+			printf ("MIDI %u: %02X %02X\n", nCable,
+				(unsigned) pPacket[0], (unsigned) pPacket[1]);
+			break;
 
-	case 3:
-		printf ("MIDI %u: %02X %02X %02X\n", nCable,
-			(unsigned) pPacket[0], (unsigned) pPacket[1], (unsigned) pPacket[2]);
-		break;
+		case 3:
+			printf ("MIDI %u: %02X %02X %02X\n", nCable,
+				(unsigned) pPacket[0], (unsigned) pPacket[1], (unsigned) pPacket[2]);
+			break;
+		}
 	}
-#endif
 
 	if (pPacket[0] == MIDI_CONTROL_CHANGE)
 	{
@@ -247,9 +241,7 @@ bool CMiniDexedPWM::Initialize (void)
 
 unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+  m_GetChunkTimer.Start();
 
   unsigned nResult = nChunkSize;
 
@@ -268,9 +260,7 @@ unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;
   }
 
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
+  m_GetChunkTimer.Stop();
 
   return(nResult);
 };
@@ -287,9 +277,7 @@ bool CMiniDexedI2S::Initialize (void)
 
 unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+  m_GetChunkTimer.Start();
 
   unsigned nResult = nChunkSize;
 
@@ -306,9 +294,7 @@ unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;
   }
 
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
+  m_GetChunkTimer.Stop();
 
   return(nResult);
 };
@@ -325,9 +311,7 @@ bool CMiniDexedHDMI::Initialize (void)
 
 unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+  m_GetChunkTimer.Start();
 
   unsigned nResult = nChunkSize;
 
@@ -350,14 +334,15 @@ unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
     *pBuffer++ = nSample;
   }
 
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
+  m_GetChunkTimer.Stop();
 
   return(nResult);
 };
 
 void CMiniDexed::LCDWrite (const char *pString)
 {
-	m_LCD.Write (pString, strlen (pString));
+	if (m_pLCD)
+	{
+		m_pLCD->Write (pString, strlen (pString));
+	}
 }

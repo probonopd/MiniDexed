@@ -15,42 +15,36 @@
 #include <circle/pwmsoundbasedevice.h>
 #include <circle/i2ssoundbasedevice.h>
 #include <circle/hdmisoundbasedevice.h>
+#include "config.h"
 #include "sysexfileloader.h"
 #include "pckeyboard.h"
+#include "perftimer.h"
 #include <display/hd44780device.h>
-
-#define SAMPLE_RATE	48000
-
-#define CHUNK_SIZE	(2 * 64)
-#define CHUNK_SIZE_HDMI	(384 * 5)
-
-#define DAC_I2C_ADDRESS	0		// I2C slave address of the DAC (0 for auto probing)
-
-// HD44780 LCD configuration
-#define COLUMNS		16
-#define ROWS		2
-// GPIO pins (Brcm numbering)
-#define EN_PIN		17		// Enable
-#define RS_PIN		18		// Register Select
-#define RW_PIN		19		// Read/Write (set to 0 if not connected)
-#define D4_PIN		22		// Data 4
-#define D5_PIN		23		// Data 5
-#define D6_PIN		24		// Data 6
-#define D7_PIN		25		// Data 7
 
 class CMiniDexed : public Dexed
 {
   public:
-    CMiniDexed(uint8_t max_notes, uint16_t sample_rate, CInterruptSystem *pInterrupt)
-:   Dexed(max_notes,(int)sample_rate),
+    CMiniDexed(CConfig *pConfig, CInterruptSystem *pInterrupt)
+:   Dexed (CConfig::MaxNotes, pConfig->GetSampleRate ()),
     m_pMIDIDevice (0),
     m_PCKeyboard (this),
     m_Serial (pInterrupt, TRUE),
     m_bUseSerial (FALSE),
     m_nSerialState (0),
-    m_LCD (COLUMNS, ROWS, D4_PIN, D5_PIN, D6_PIN, D7_PIN, EN_PIN, RS_PIN, RW_PIN)
+    m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
+    m_pConfig (pConfig),
+    m_pLCD (0)
     {
       s_pThis = this;
+
+      if (pConfig->GetLCDEnabled ())
+      {
+        m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
+                                     pConfig->GetLCDPinData4 (), pConfig->GetLCDPinData5 (),
+                                     pConfig->GetLCDPinData6 (), pConfig->GetLCDPinData7 (),
+                                     pConfig->GetLCDPinEnable (), pConfig->GetLCDPinRegisterSelect (),
+                                     pConfig->GetLCDPinReadWrite ());
+      }
     };
 
     virtual bool Initialize (void);
@@ -69,8 +63,10 @@ class CMiniDexed : public Dexed
     unsigned m_nSerialState;
     u8 m_SerialMessage[3];
     CSysExFileLoader m_SysExFileLoader;
+    CPerformanceTimer m_GetChunkTimer;
   private:
-    CHD44780Device	m_LCD;
+    CConfig             *m_pConfig;
+    CHD44780Device	*m_pLCD;
 
     static CMiniDexed *s_pThis;
 };
@@ -78,9 +74,9 @@ class CMiniDexed : public Dexed
 class CMiniDexedPWM : public CMiniDexed, public CPWMSoundBaseDevice
 {
   public:
-    CMiniDexedPWM(uint8_t max_notes, uint16_t sample_rate, CInterruptSystem *pInterrupt)
-:   CMiniDexed(max_notes,(int)sample_rate, pInterrupt),
-    CPWMSoundBaseDevice (pInterrupt, sample_rate, CHUNK_SIZE)
+    CMiniDexedPWM(CConfig *pConfig, CInterruptSystem *pInterrupt)
+:   CMiniDexed(pConfig, pInterrupt),
+    CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (), pConfig->GetChunkSize ())
     {
     }
 
@@ -91,9 +87,10 @@ class CMiniDexedPWM : public CMiniDexed, public CPWMSoundBaseDevice
 class CMiniDexedI2S : public CMiniDexed, public CI2SSoundBaseDevice
 {
   public:
-    CMiniDexedI2S(uint8_t max_notes, uint16_t sample_rate, CInterruptSystem *pInterrupt, CI2CMaster *pI2CMaster)
-:   CMiniDexed(max_notes,(int)sample_rate, pInterrupt),
-    CI2SSoundBaseDevice (pInterrupt, sample_rate, CHUNK_SIZE, FALSE, pI2CMaster, DAC_I2C_ADDRESS)
+    CMiniDexedI2S(CConfig *pConfig, CInterruptSystem *pInterrupt, CI2CMaster *pI2CMaster)
+:   CMiniDexed(pConfig, pInterrupt),
+    CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (), pConfig->GetChunkSize (),
+			 FALSE, pI2CMaster, pConfig->GetDACI2CAddress ())
     {
     }
 
@@ -104,9 +101,9 @@ class CMiniDexedI2S : public CMiniDexed, public CI2SSoundBaseDevice
 class CMiniDexedHDMI : public CMiniDexed, public CHDMISoundBaseDevice
 {
   public:
-    CMiniDexedHDMI(uint8_t max_notes, uint16_t sample_rate, CInterruptSystem *pInterrupt)
-:   CMiniDexed(max_notes,(int)sample_rate, pInterrupt),
-    CHDMISoundBaseDevice (pInterrupt, sample_rate, CHUNK_SIZE_HDMI)
+    CMiniDexedHDMI(CConfig *pConfig, CInterruptSystem *pInterrupt)
+:   CMiniDexed(pConfig, pInterrupt),
+    CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (), pConfig->GetChunkSize ())
     {
     }
 
