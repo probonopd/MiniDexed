@@ -24,8 +24,7 @@
 #include <string.h>
 #include <assert.h>
 #include <circle/logger.h>
-
-extern uint8_t voices_bank[1][32][156];
+#include "voices.c"
 
 LOGMODULE ("syxfile");
 

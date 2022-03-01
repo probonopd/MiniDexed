@@ -22,7 +22,6 @@
 #include <string.h>
 #include <circle/logger.h>
 #include <circle/synchronize.h>
-#include "voices.c"
 
 LOGMODULE ("kernel");
 
