@@ -2,19 +2,10 @@
 // minidexed.cpp
 //
 #include "minidexed.h"
-#include <circle/devicenameservice.h>
+#include <circle/logger.h>
 #include <stdio.h>
 
-#define MIDI_NOTE_OFF	0b1000
-#define MIDI_NOTE_ON	0b1001
-#define MIDI_AFTERTOUCH		0xA0
-#define MIDI_CONTROL_CHANGE	0xB0
-	#define MIDI_CC_BANK_SELECT_MSB	0		// TODO: not supported
-	#define MIDI_CC_BANK_SELECT_LSB	32
-#define MIDI_PROGRAM_CHANGE	0xC0
-#define MIDI_PITCH_BEND		0xE0
-
-CMiniDexed *CMiniDexed::s_pThis = 0;
+LOGMODULE ("minidexed");
 
 bool CMiniDexed::Initialize (void)
 {
@@ -25,17 +16,17 @@ bool CMiniDexed::Initialize (void)
 
   m_SysExFileLoader.Load ();
 
-  if (!m_Serial.Initialize(m_pConfig->GetMIDIBaudRate ()))
+  if (m_SerialMIDI.Initialize ())
   {
-    return false;
-  }
+    LOGNOTE ("Serial MIDI interface enabled");
 
-  m_bUseSerial = true;
+    m_bUseSerial = true;
+  }
 
   activate();
 
-  s_pThis->ChangeProgram(0);
-  s_pThis->setTranspose(24);
+  ProgramChange (0);
+  setTranspose (24);
 
   return true;
 }
@@ -49,160 +40,33 @@ void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
 
 	m_UI.Process ();
 
-	if (m_pMIDIDevice != 0)
-	{
-		return;
-	}
-
-	if (bPlugAndPlayUpdated)
-	{
-		m_pMIDIDevice =
-			(CUSBMIDIDevice *) CDeviceNameService::Get ()->GetDevice ("umidi1", FALSE);
-		if (m_pMIDIDevice != 0)
-		{
-			m_pMIDIDevice->RegisterRemovedHandler (USBDeviceRemovedHandler);
-			m_pMIDIDevice->RegisterPacketHandler (MIDIPacketHandler);
-
-			return;
-		}
-	}
+	m_MIDIKeyboard.Process (bPlugAndPlayUpdated);
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
 
-	if (!m_bUseSerial)
+	if (m_bUseSerial)
 	{
-		return;
-	}
-
-	// Read serial MIDI data
-	u8 Buffer[20];
-	int nResult = m_Serial.Read (Buffer, sizeof Buffer);
-	if (nResult <= 0)
-	{
-		return;
-	}
-
-	// Process MIDI messages
-	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message
-	for (int i = 0; i < nResult; i++)
-	{
-		u8 uchData = Buffer[i];
-
-		switch (m_nSerialState)
-		{
-		case 0:
-		MIDIRestart:
-			if ((uchData & 0xE0) == 0x80)		// Note on or off, all channels
-			{
-				m_SerialMessage[m_nSerialState++] = uchData;
-			}
-			break;
-
-		case 1:
-		case 2:
-			if (uchData & 0x80)			// got status when parameter expected
-			{
-				m_nSerialState = 0;
-
-				goto MIDIRestart;
-			}
-
-			m_SerialMessage[m_nSerialState++] = uchData;
-
-			if (m_nSerialState == 3)		// message is complete
-			{
-				MIDIPacketHandler (0, m_SerialMessage, sizeof m_SerialMessage);
-
-				m_nSerialState = 0;
-			}
-			break;
-
-		default:
-			assert (0);
-			break;
-		}
+		m_SerialMIDI.Process ();
 	}
 }
 
-void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength)
+void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 {
-	assert (s_pThis != 0);
-
-	// The packet contents are just normal MIDI data - see
-	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
-
-	if (s_pThis->m_pConfig->GetMIDIDumpEnabled ())
-	{
-		switch (nLength)
-		{
-		case 1:
-			printf ("MIDI %u: %02X\n", nCable, (unsigned) pPacket[0]);
-			break;
-
-		case 2:
-			printf ("MIDI %u: %02X %02X\n", nCable,
-				(unsigned) pPacket[0], (unsigned) pPacket[1]);
-			break;
-
-		case 3:
-			printf ("MIDI %u: %02X %02X %02X\n", nCable,
-				(unsigned) pPacket[0], (unsigned) pPacket[1], (unsigned) pPacket[2]);
-			break;
-		}
-	}
-
-	if (pPacket[0] == MIDI_CONTROL_CHANGE)
-	{
-		if (pPacket[1] == MIDI_CC_BANK_SELECT_LSB)
-		{
-			if (pPacket[2] > 127)
-			{
-				return;
-			}
-
-			printf ("Select voice bank %u\n", (unsigned) pPacket[2]+1); // MIDI numbering starts with 0, user interface with 1
-			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]);
-		}
-
-		return;
-	}
-
-	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
-	{
-		s_pThis->ChangeProgram(pPacket[1]);
-		return;
-	}
-
-	if (pPacket[0] == MIDI_PITCH_BEND)
-	{
-		s_pThis->setPitchbend((unsigned) pPacket[1]);
-		
-		return;
-	}
-
-	if (nLength < 3)
+	if (nBankLSB > 127)
 	{
 		return;
 	}
 
-	u8 ucStatus    = pPacket[0];
-	//u8 ucChannel   = ucStatus & 0x0F;
-	u8 ucType      = ucStatus >> 4;
-	u8 ucKeyNumber = pPacket[1];
-	u8 ucVelocity  = pPacket[2];
+	// MIDI numbering starts with 0, user interface with 1
+	printf ("Select voice bank %u\n", nBankLSB+1);
 
-	if (ucType == MIDI_NOTE_ON)
-	{
-	  s_pThis->keydown(ucKeyNumber,ucVelocity);
-	}
-	else if (ucType == MIDI_NOTE_OFF)
-	{
-	  s_pThis->keyup(ucKeyNumber);
-	}
+	m_SysExFileLoader.SelectVoiceBank (nBankLSB);
 }
 
-void CMiniDexed::ChangeProgram(unsigned program) {
-	if(program > 31) {
+void CMiniDexed::ProgramChange (unsigned program)
+{
+	if (program > 31)
+	{
 		return;
 	}
 
@@ -211,14 +75,6 @@ void CMiniDexed::ChangeProgram(unsigned program) {
 	loadVoiceParameters (Buffer);
 
 	m_UI.ProgramChanged (program);
-}
-
-void CMiniDexed::USBDeviceRemovedHandler (CDevice *pDevice, void *pContext)
-{
-        if (s_pThis->m_pMIDIDevice == (CUSBMIDIDevice *) pDevice)
-        {
-                s_pThis->m_pMIDIDevice = 0;
-        }
 }
 
 bool CMiniDexedPWM::Initialize (void)
