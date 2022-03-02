@@ -1,363 +1,272 @@
 //
 // minidexed.cpp
 //
+// MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
+// Copyright (C) 2022  The MiniDexed Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 #include "minidexed.h"
-#include "perftimer.h"
-#include <circle/devicenameservice.h>
+#include <circle/logger.h>
 #include <stdio.h>
+#include <assert.h>
 
-#define MIDI_DUMP
-#define PROFILE
+LOGMODULE ("minidexed");
 
-#define MIDI_NOTE_OFF	0b1000
-#define MIDI_NOTE_ON	0b1001
-#define MIDI_AFTERTOUCH		0xA0
-#define MIDI_CONTROL_CHANGE	0xB0
-	#define MIDI_CC_BANK_SELECT_MSB	0		// TODO: not supported
-	#define MIDI_CC_BANK_SELECT_LSB	32
-#define MIDI_PROGRAM_CHANGE	0xC0
-#define MIDI_PITCH_BEND		0xE0
-
-CMiniDexed *CMiniDexed::s_pThis = 0;
-
-extern uint8_t voices_bank[1][32][156];
-
-#ifdef PROFILE
-CPerformanceTimer GetChunkTimer ("GetChunk", 1000000U * CHUNK_SIZE/2 / SAMPLE_RATE);
-#endif
+CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
+	m_pConfig (pConfig),
+	m_UI (this, pConfig),
+	m_PCKeyboard (this),
+	m_SerialMIDI (this, pInterrupt, pConfig),
+	m_bUseSerial (false),
+	m_GetChunkTimer ("GetChunk",
+			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
+	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
+{
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, i);
+		assert (m_pMIDIKeyboard[i]);
+	}
+};
 
 bool CMiniDexed::Initialize (void)
 {
-  m_SysExFileLoader.Load ();
-
-  if (!m_Serial.Initialize(31250))
-  {
-    return false;
-  }
-
-  
-  if (!m_LCD.Initialize ())
-  {
-    return FALSE;
-  }
-
-  m_bUseSerial = true;
-
-  activate();
-
-  s_pThis->ChangeProgram(0);
-  s_pThis->setTranspose(24);
-
-  return true;
-}
-
-void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
-{
-#ifdef PROFILE
-	GetChunkTimer.Dump ();
-#endif
-
-	if (m_pMIDIDevice != 0)
+	if (!m_UI.Initialize ())
 	{
-		return;
+		return false;
 	}
 
-	if (bPlugAndPlayUpdated)
-	{
-		m_pMIDIDevice =
-			(CUSBMIDIDevice *) CDeviceNameService::Get ()->GetDevice ("umidi1", FALSE);
-		if (m_pMIDIDevice != 0)
-		{
-			m_pMIDIDevice->RegisterRemovedHandler (USBDeviceRemovedHandler);
-			m_pMIDIDevice->RegisterPacketHandler (MIDIPacketHandler);
+	m_SysExFileLoader.Load ();
 
-			return;
-		}
+	if (m_SerialMIDI.Initialize ())
+	{
+		LOGNOTE ("Serial MIDI interface enabled");
+
+		m_bUseSerial = true;
+	}
+
+	activate ();
+
+	ProgramChange (0);
+	setTranspose (24);
+
+	return true;
+}
+
+void CMiniDexed::Process (bool bPlugAndPlayUpdated)
+{
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		assert (m_pMIDIKeyboard[i]);
+		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
 	}
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
 
-	if (!m_bUseSerial)
+	if (m_bUseSerial)
 	{
-		return;
+		m_SerialMIDI.Process ();
 	}
 
-	// Read serial MIDI data
-	u8 Buffer[20];
-	int nResult = m_Serial.Read (Buffer, sizeof Buffer);
-	if (nResult <= 0)
+	m_UI.Process ();
+
+	if (m_bProfileEnabled)
 	{
-		return;
-	}
-
-	// Process MIDI messages
-	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message
-	for (int i = 0; i < nResult; i++)
-	{
-		u8 uchData = Buffer[i];
-
-		switch (m_nSerialState)
-		{
-		case 0:
-		MIDIRestart:
-			if ((uchData & 0xE0) == 0x80)		// Note on or off, all channels
-			{
-				m_SerialMessage[m_nSerialState++] = uchData;
-			}
-			break;
-
-		case 1:
-		case 2:
-			if (uchData & 0x80)			// got status when parameter expected
-			{
-				m_nSerialState = 0;
-
-				goto MIDIRestart;
-			}
-
-			m_SerialMessage[m_nSerialState++] = uchData;
-
-			if (m_nSerialState == 3)		// message is complete
-			{
-				MIDIPacketHandler (0, m_SerialMessage, sizeof m_SerialMessage);
-
-				m_nSerialState = 0;
-			}
-			break;
-
-		default:
-			assert (0);
-			break;
-		}
+		m_GetChunkTimer.Dump ();
 	}
 }
 
-void CMiniDexed::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength)
+void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 {
-	assert (s_pThis != 0);
-
-	// The packet contents are just normal MIDI data - see
-	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
-
-#ifdef MIDI_DUMP
-	switch (nLength)
-	{
-	case 1:
-		printf ("MIDI %u: %02X\n", nCable, (unsigned) pPacket[0]);
-		break;
-
-	case 2:
-		printf ("MIDI %u: %02X %02X\n", nCable,
-			(unsigned) pPacket[0], (unsigned) pPacket[1]);
-		break;
-
-	case 3:
-		printf ("MIDI %u: %02X %02X %02X\n", nCable,
-			(unsigned) pPacket[0], (unsigned) pPacket[1], (unsigned) pPacket[2]);
-		break;
-	}
-#endif
-
-	if (pPacket[0] == MIDI_CONTROL_CHANGE)
-	{
-		if (pPacket[1] == MIDI_CC_BANK_SELECT_LSB)
-		{
-			if (pPacket[2] > 127)
-			{
-				return;
-			}
-
-			printf ("Select voice bank %u\n", (unsigned) pPacket[2]+1); // MIDI numbering starts with 0, user interface with 1
-			s_pThis->m_SysExFileLoader.SelectVoiceBank (pPacket[2]);
-		}
-
-		return;
-	}
-
-	if (pPacket[0] == MIDI_PROGRAM_CHANGE)
-	{
-		s_pThis->ChangeProgram(pPacket[1]);
-		return;
-	}
-
-	if (pPacket[0] == MIDI_PITCH_BEND)
-	{
-		s_pThis->setPitchbend((unsigned) pPacket[1]);
-		
-		return;
-	}
-
-	if (nLength < 3)
+	if (nBankLSB > 127)
 	{
 		return;
 	}
 
-	u8 ucStatus    = pPacket[0];
-	//u8 ucChannel   = ucStatus & 0x0F;
-	u8 ucType      = ucStatus >> 4;
-	u8 ucKeyNumber = pPacket[1];
-	u8 ucVelocity  = pPacket[2];
+	// MIDI numbering starts with 0, user interface with 1
+	printf ("Select voice bank %u\n", nBankLSB+1);
 
-	if (ucType == MIDI_NOTE_ON)
-	{
-	  s_pThis->keydown(ucKeyNumber,ucVelocity);
-	}
-	else if (ucType == MIDI_NOTE_OFF)
-	{
-	  s_pThis->keyup(ucKeyNumber);
-	}
+	m_SysExFileLoader.SelectVoiceBank (nBankLSB);
 }
 
-void CMiniDexed::ChangeProgram(unsigned program) {
-		if(program > 31) {
-			return;
-		}
-		printf ("Loading voice %u\n", (unsigned) program+1); // MIDI numbering starts with 0, user interface with 1
-		uint8_t Buffer[156];
-		s_pThis->m_SysExFileLoader.GetVoice (program, Buffer);
-		s_pThis->loadVoiceParameters(Buffer);
-		char buf_name[11];
-		memset(buf_name, 0, 11); // Initialize with 0x00 chars
-		s_pThis->setName(buf_name);
-		printf ("%s\n", buf_name);
-		// Print to optional HD44780 display
-		s_pThis->LCDWrite("\x1B[?25l");		// cursor off
-		CString String;
-		String.Format ("\n\r%i\n\r%s", program+1, buf_name); // MIDI numbering starts with 0, user interface with 1
-		s_pThis->LCDWrite ((const char *) String);
-}
-
-void CMiniDexed::USBDeviceRemovedHandler (CDevice *pDevice, void *pContext)
+void CMiniDexed::ProgramChange (unsigned nProgram)
 {
-        if (s_pThis->m_pMIDIDevice == (CUSBMIDIDevice *) pDevice)
-        {
-                s_pThis->m_pMIDIDevice = 0;
-        }
+	if (nProgram > 31)
+	{
+		return;
+	}
+
+	uint8_t Buffer[156];
+	m_SysExFileLoader.GetVoice (nProgram, Buffer);
+	loadVoiceParameters (Buffer);
+
+	m_UI.ProgramChanged (nProgram);
+}
+
+//// PWM //////////////////////////////////////////////////////////////////////
+
+CMiniDexedPWM::CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CMiniDexed (pConfig, pInterrupt),
+	CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			     pConfig->GetChunkSize ())
+{
 }
 
 bool CMiniDexedPWM::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
-unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
+unsigned CMiniDexedPWM::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample += 32768;
+		nSample *= GetRangeMax()/2;
+		nSample /= 32768;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample += 32768;
-    nSample *= GetRangeMax()/2;
-    nSample /= 32768;
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop ();
+	}
 
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
-
-  return(nResult);
+	return nResult;
 };
+
+//// I2S //////////////////////////////////////////////////////////////////////
+
+CMiniDexedI2S::CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			      CI2CMaster *pI2CMaster)
+:	CMiniDexed (pConfig, pInterrupt),
+	CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			     pConfig->GetChunkSize (), false, pI2CMaster,
+			     pConfig->GetDACI2CAddress ())
+{
+}
 
 bool CMiniDexedI2S::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
-unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
+unsigned CMiniDexedI2S::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample <<= 8;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample <<= 8;
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop ();
+	}
 
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
-
-  return(nResult);
+	return nResult;
 };
+
+//// HDMI /////////////////////////////////////////////////////////////////////
+
+CMiniDexedHDMI::CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CMiniDexed (pConfig, pInterrupt),
+	CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			      pConfig->GetChunkSize ())
+{
+}
 
 bool CMiniDexedHDMI::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
 unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-#ifdef PROFILE
-  GetChunkTimer.Start();
-#endif
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
-  unsigned nFrame = 0;
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	unsigned nFrame = 0;
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample <<= 8;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample <<= 8;
+		nSample = ConvertIEC958Sample (nSample, nFrame);
+		if (++nFrame == IEC958_FRAMES_PER_BLOCK)
+		{
+			nFrame = 0;
+		}
 
-    nSample = ConvertIEC958Sample (nSample, nFrame);
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    if (++nFrame == IEC958_FRAMES_PER_BLOCK)
-      nFrame = 0;
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop();
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
-
-#ifdef PROFILE
-  GetChunkTimer.Stop();
-#endif
-
-  return(nResult);
+	return nResult;
 };
-
-void CMiniDexed::LCDWrite (const char *pString)
-{
-	m_LCD.Write (pString, strlen (pString));
-}

@@ -1,8 +1,11 @@
 //
-// perftimer.h
+// mididevice.h
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
 // Copyright (C) 2022  The MiniDexed Team
+//
+// Original author of this class:
+//	R. Stange <rsta2@o2online.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,30 +20,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _perftimer_h
-#define _perftimer_h
+#ifndef _mididevice_h
+#define _mididevice_h
 
-#include <string>
-#include <circle/timer.h>
+#include "config.h"
+#include <circle/types.h>
 
-class CPerformanceTimer
+class CMiniDexed;
+
+class CMIDIDevice
 {
 public:
-	CPerformanceTimer (const char *pName, unsigned nDeadlineMicros = 0);
+	CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig);
+	~CMIDIDevice (void);
 
-	void Start (void);
-	void Stop (void);
-
-	void Dump (unsigned nIntervalTicks = CLOCKHZ);
+protected:
+	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 
 private:
-	std::string m_Name;
-	unsigned m_nDeadlineMicros;
-
-	unsigned m_nStartTicks;
-	unsigned m_nMaximumMicros;
-
-	unsigned m_nLastDumpTicks;
+	CMiniDexed *m_pSynthesizer;
+	CConfig *m_pConfig;
 };
 
 #endif

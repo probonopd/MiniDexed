@@ -18,6 +18,7 @@ LIBS += \
 	$(NEWLIBDIR)/lib/libc.a \
 	$(NEWLIBDIR)/lib/libcirclenewlib.a \
 	$(CIRCLEHOME)/addon/display/libdisplay.a \
+	$(CIRCLEHOME)/addon/Properties/libproperties.a \
 	$(CIRCLEHOME)/addon/SDCard/libsdcard.a \
   	$(CIRCLEHOME)/lib/usb/libusb.a \
  	$(CIRCLEHOME)/lib/input/libinput.a \

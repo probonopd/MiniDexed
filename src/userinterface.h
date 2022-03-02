@@ -1,5 +1,5 @@
 //
-// perftimer.h
+// userinterface.h
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
 // Copyright (C) 2022  The MiniDexed Team
@@ -17,30 +17,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _perftimer_h
-#define _perftimer_h
+#ifndef _userinterface_h
+#define _userinterface_h
 
-#include <string>
-#include <circle/timer.h>
+#include "config.h"
+#include <display/hd44780device.h>
+#include <circle/writebuffer.h>
 
-class CPerformanceTimer
+class CMiniDexed;
+
+class CUserInterface
 {
 public:
-	CPerformanceTimer (const char *pName, unsigned nDeadlineMicros = 0);
+	CUserInterface (CMiniDexed *pMiniDexed, CConfig *pConfig);
+	~CUserInterface (void);
 
-	void Start (void);
-	void Stop (void);
+	bool Initialize (void);
 
-	void Dump (unsigned nIntervalTicks = CLOCKHZ);
+	void Process (void);
+
+	void ProgramChanged (unsigned nProgram);	// 0 .. 127
 
 private:
-	std::string m_Name;
-	unsigned m_nDeadlineMicros;
+	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
-	unsigned m_nStartTicks;
-	unsigned m_nMaximumMicros;
+private:
+	CMiniDexed *m_pMiniDexed;
+	CConfig *m_pConfig;
 
-	unsigned m_nLastDumpTicks;
+	CHD44780Device *m_pLCD;
+	CWriteBufferDevice *m_pLCDBuffered;
 };
 
 #endif

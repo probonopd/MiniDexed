@@ -26,6 +26,9 @@ make -j
 cd libs/circle/addon/display/
 make clean || true
 make -j
+cd ../Properties/
+make clean || true
+make -j
 cd ../../../..
 
 cd ..
