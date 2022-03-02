@@ -97,6 +97,7 @@ public:
                 : CStdlibApp (kernel),
                   mScreenUnbuffered (mOptions.GetWidth (), mOptions.GetHeight ()),
                   mScreen (&mScreenUnbuffered),
+                  mbScreenAvailable (false),
                   mTimer (&mInterrupt),
                   mLogger (mOptions.GetLogLevel (), &mTimer)
         {
@@ -109,10 +110,7 @@ public:
                         return false;
                 }
 
-                if (!mScreenUnbuffered.Initialize ())
-                {
-                        return false;
-                }
+                mbScreenAvailable = mScreenUnbuffered.Initialize ();
 #if 0
                 if (!mSerial.Initialize (115200))
                 {
@@ -138,6 +136,7 @@ protected:
         CScreenDevice   mScreenUnbuffered;
         //CSerialDevice   mSerial;
         CWriteBufferDevice mScreen;
+        bool            mbScreenAvailable;
         CTimer          mTimer;
         CLogger         mLogger;
 };
@@ -164,7 +163,8 @@ public:
                   mUSBHCI (&mInterrupt, &mTimer, TRUE),
                   mEMMC (&mInterrupt, &mTimer, &mActLED),
 #if !defined(__aarch64__) || !defined(LEAVE_QEMU_ON_HALT)
-                  mConsole (&mScreen, TRUE)
+                  //mConsole (&mScreen, TRUE)
+                  mConsole (&mNullDevice, &mScreen)
 #else
                   mConsole (&mScreen)
 #endif

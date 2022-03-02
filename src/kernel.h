@@ -47,9 +47,9 @@ private:
 
 private:
 	// do not change this order
-	CConfig			m_Config;
-	CI2CMaster		m_I2CMaster;
-	CMiniDexed		*m_pDexed;
+	CConfig		m_Config;
+	CI2CMaster	m_I2CMaster;
+	CMiniDexed	*m_pDexed;
 
 	static CKernel *s_pThis;
 };

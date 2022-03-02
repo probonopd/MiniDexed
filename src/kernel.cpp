@@ -18,10 +18,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
-#include <iostream>
 #include <string.h>
 #include <circle/logger.h>
 #include <circle/synchronize.h>
+#include <assert.h>
 
 LOGMODULE ("kernel");
 
@@ -75,6 +75,8 @@ bool CKernel::Initialize (void)
 		m_pDexed = new CMiniDexedPWM (&m_Config, &mInterrupt);
 	}
 
+	assert (m_pDexed);
+
 	if (!m_pDexed->Initialize ())
 	{
 		return FALSE;
@@ -85,15 +87,18 @@ bool CKernel::Initialize (void)
 
 CStdlibApp::TShutdownMode CKernel::Run (void)
 {
-	std::cout << "Hello MiniDexed!\n";
+	assert (m_pDexed);
 
-	while(42==42)
+	while (42 == 42)
 	{
 		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
 
 		m_pDexed->Process(bUpdated);
 
-		mScreen.Update ();
+		if (mbScreenAvailable)
+		{
+			mScreen.Update ();
+		}
 	}
 
 	return ShutdownHalt;
@@ -103,5 +108,8 @@ void CKernel::PanicHandler (void)
 {
 	EnableIRQs ();
 
-	s_pThis->mScreen.Update (4096);
+	if (s_pThis->mbScreenAvailable)
+	{
+		s_pThis->mScreen.Update (4096);
+	}
 }
