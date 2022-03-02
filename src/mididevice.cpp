@@ -35,6 +35,9 @@
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
+#define MIDI_TIMING_CLOCK	0xF8
+#define MIDI_ACTIVE_SENSING	0xFE
+
 CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
 :	m_pSynthesizer (pSynthesizer),
 	m_pConfig (pConfig)
@@ -58,7 +61,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		switch (nLength)
 		{
 		case 1:
-			printf ("MIDI %u: %02X\n", nCable, (unsigned) pMessage[0]);
+			if (   pMessage[0] != MIDI_TIMING_CLOCK
+			    && pMessage[0] != MIDI_ACTIVE_SENSING)
+			{
+				printf ("MIDI %u: %02X\n", nCable, (unsigned) pMessage[0]);
+			}
 			break;
 
 		case 2:
