@@ -27,6 +27,7 @@
 #include "config.h"
 #include <circle/usb/usbmidi.h>
 #include <circle/device.h>
+#include <circle/string.h>
 #include <circle/types.h>
 
 class CMiniDexed;
@@ -34,20 +35,31 @@ class CMiniDexed;
 class CMIDIKeyboard : public CMIDIDevice
 {
 public:
-	CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig);
+	static const unsigned MaxInstances = 4;
+
+public:
+	CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, unsigned nInstance = 0);
 	~CMIDIKeyboard (void);
 
 	void Process (boolean bPlugAndPlayUpdated);
 
 private:
-	static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength);
+	static void MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength);
+	static void MIDIPacketHandler1 (unsigned nCable, u8 *pPacket, unsigned nLength);
+	static void MIDIPacketHandler2 (unsigned nCable, u8 *pPacket, unsigned nLength);
+	static void MIDIPacketHandler3 (unsigned nCable, u8 *pPacket, unsigned nLength);
 
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 
 private:
+	unsigned m_nInstance;
+	CString m_DeviceName;
+
 	CUSBMIDIDevice * volatile m_pMIDIDevice;
 
-	static CMIDIKeyboard *s_pThis;
+	static CMIDIKeyboard *s_pThis[MaxInstances];
+
+	static TMIDIPacketHandler * const s_pMIDIPacketHandler[MaxInstances];
 };
 
 #endif

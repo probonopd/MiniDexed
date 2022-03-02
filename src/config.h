@@ -32,6 +32,12 @@ class CConfig		// Configuration for MiniDexed
 public:
 	static const unsigned MaxNotes = 16;		// polyphony
 
+#if RASPPI <= 3
+	static const unsigned MaxUSBMIDIDevices = 2;
+#else
+	static const unsigned MaxUSBMIDIDevices = 4;
+#endif
+
 	static const unsigned LCDColumns = 16;		// HD44780 LCD
 	static const unsigned LCDRows = 2;
 

@@ -54,7 +54,7 @@ private:
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
 
-	CMIDIKeyboard m_MIDIKeyboard;
+	CMIDIKeyboard *m_pMIDIKeyboard[CConfig::MaxUSBMIDIDevices];
 	CPCKeyboard m_PCKeyboard;
 	CSerialMIDIDevice m_SerialMIDI;
 	bool m_bUseSerial;

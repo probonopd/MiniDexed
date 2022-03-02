@@ -28,7 +28,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt)
 :	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
 	m_pConfig (pConfig),
 	m_UI (this, pConfig),
-	m_MIDIKeyboard (this, pConfig),
 	m_PCKeyboard (this),
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
@@ -36,6 +35,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt)
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
 {
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, i);
+		assert (m_pMIDIKeyboard[i]);
+	}
 };
 
 bool CMiniDexed::Initialize (void)
@@ -64,7 +68,11 @@ bool CMiniDexed::Initialize (void)
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
-	m_MIDIKeyboard.Process (bPlugAndPlayUpdated);
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		assert (m_pMIDIKeyboard[i]);
+		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
+	}
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
 
