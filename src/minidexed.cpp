@@ -20,42 +20,50 @@
 #include "minidexed.h"
 #include <circle/logger.h>
 #include <stdio.h>
+#include <assert.h>
 
 LOGMODULE ("minidexed");
 
+CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
+	m_pConfig (pConfig),
+	m_UI (this, pConfig),
+	m_MIDIKeyboard (this, pConfig),
+	m_PCKeyboard (this),
+	m_SerialMIDI (this, pInterrupt, pConfig),
+	m_bUseSerial (false),
+	m_GetChunkTimer ("GetChunk",
+			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
+	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
+{
+};
+
 bool CMiniDexed::Initialize (void)
 {
-  if (!m_UI.Initialize ())
-  {
-    return false;
-  }
-
-  m_SysExFileLoader.Load ();
-
-  if (m_SerialMIDI.Initialize ())
-  {
-    LOGNOTE ("Serial MIDI interface enabled");
-
-    m_bUseSerial = true;
-  }
-
-  activate();
-
-  ProgramChange (0);
-  setTranspose (24);
-
-  return true;
-}
-
-void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
-{
-	if (m_pConfig->GetProfileEnabled ())
+	if (!m_UI.Initialize ())
 	{
-		m_GetChunkTimer.Dump ();
+		return false;
 	}
 
-	m_UI.Process ();
+	m_SysExFileLoader.Load ();
 
+	if (m_SerialMIDI.Initialize ())
+	{
+		LOGNOTE ("Serial MIDI interface enabled");
+
+		m_bUseSerial = true;
+	}
+
+	activate ();
+
+	ProgramChange (0);
+	setTranspose (24);
+
+	return true;
+}
+
+void CMiniDexed::Process (bool bPlugAndPlayUpdated)
+{
 	m_MIDIKeyboard.Process (bPlugAndPlayUpdated);
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
@@ -63,6 +71,13 @@ void CMiniDexed::Process(boolean bPlugAndPlayUpdated)
 	if (m_bUseSerial)
 	{
 		m_SerialMIDI.Process ();
+	}
+
+	m_UI.Process ();
+
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Dump ();
 	}
 }
 
@@ -79,126 +94,171 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 	m_SysExFileLoader.SelectVoiceBank (nBankLSB);
 }
 
-void CMiniDexed::ProgramChange (unsigned program)
+void CMiniDexed::ProgramChange (unsigned nProgram)
 {
-	if (program > 31)
+	if (nProgram > 31)
 	{
 		return;
 	}
 
 	uint8_t Buffer[156];
-	m_SysExFileLoader.GetVoice (program, Buffer);
+	m_SysExFileLoader.GetVoice (nProgram, Buffer);
 	loadVoiceParameters (Buffer);
 
-	m_UI.ProgramChanged (program);
+	m_UI.ProgramChanged (nProgram);
+}
+
+//// PWM //////////////////////////////////////////////////////////////////////
+
+CMiniDexedPWM::CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CMiniDexed (pConfig, pInterrupt),
+	CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			     pConfig->GetChunkSize ())
+{
 }
 
 bool CMiniDexedPWM::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
-unsigned CMiniDexedPWM::GetChunk(u32 *pBuffer, unsigned nChunkSize)
+unsigned CMiniDexedPWM::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 {
-  m_GetChunkTimer.Start();
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample += 32768;
+		nSample *= GetRangeMax()/2;
+		nSample /= 32768;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample += 32768;
-    nSample *= GetRangeMax()/2;
-    nSample /= 32768;
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop ();
+	}
 
-  m_GetChunkTimer.Stop();
-
-  return(nResult);
+	return nResult;
 };
+
+//// I2S //////////////////////////////////////////////////////////////////////
+
+CMiniDexedI2S::CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			      CI2CMaster *pI2CMaster)
+:	CMiniDexed (pConfig, pInterrupt),
+	CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			     pConfig->GetChunkSize (), false, pI2CMaster,
+			     pConfig->GetDACI2CAddress ())
+{
+}
 
 bool CMiniDexedI2S::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
-unsigned CMiniDexedI2S::GetChunk(u32 *pBuffer, unsigned nChunkSize)
+unsigned CMiniDexedI2S::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 {
-  m_GetChunkTimer.Start();
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample <<= 8;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample <<= 8;
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop ();
+	}
 
-  m_GetChunkTimer.Stop();
-
-  return(nResult);
+	return nResult;
 };
+
+//// HDMI /////////////////////////////////////////////////////////////////////
+
+CMiniDexedHDMI::CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt)
+:	CMiniDexed (pConfig, pInterrupt),
+	CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+			      pConfig->GetChunkSize ())
+{
+}
 
 bool CMiniDexedHDMI::Initialize (void)
 {
-  if (!CMiniDexed::Initialize())
-  {
-    return false;
-  }
+	if (!CMiniDexed::Initialize ())
+	{
+		return false;
+	}
 
-  return Start ();
+	return Start ();
 }
 
 unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
 {
-  m_GetChunkTimer.Start();
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Start ();
+	}
 
-  unsigned nResult = nChunkSize;
+	unsigned nResult = nChunkSize;
 
-  int16_t int16_buf[nChunkSize/2];
-  unsigned nFrame = 0;
+	int16_t SampleBuffer[nChunkSize/2];
+	getSamples (nChunkSize/2, SampleBuffer);
 
-  getSamples(nChunkSize/2, int16_buf);
+	unsigned nFrame = 0;
+	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
+	{
+		s32 nSample = SampleBuffer[i++];
+		nSample <<= 8;
 
-  for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-  {
-    s32 nSample = int16_buf[i++];
-    nSample <<= 8;
+		nSample = ConvertIEC958Sample (nSample, nFrame);
+		if (++nFrame == IEC958_FRAMES_PER_BLOCK)
+		{
+			nFrame = 0;
+		}
 
-    nSample = ConvertIEC958Sample (nSample, nFrame);
+		*pBuffer++ = nSample;		// 2 stereo channels
+		*pBuffer++ = nSample;
+	}
 
-    if (++nFrame == IEC958_FRAMES_PER_BLOCK)
-      nFrame = 0;
+	if (m_bProfileEnabled)
+	{
+		m_GetChunkTimer.Stop();
+	}
 
-    *pBuffer++ = nSample;		// 2 stereo channels
-    *pBuffer++ = nSample;
-  }
-
-  m_GetChunkTimer.Stop();
-
-  return(nResult);
+	return nResult;
 };
