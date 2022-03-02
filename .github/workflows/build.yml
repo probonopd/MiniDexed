@@ -63,8 +63,8 @@ jobs:
            mkdir -p sdcard
            cp -r ./circle-stdlib/libs/circle/boot/* sdcard
            rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-           cp ./src/config.txt ./src/*img sdcard/
-           echo "usbspeed=full sounddev=sndpwm" > sdcard/cmdline.txt
+           cp ./src/config.txt ./src/minidexed.txt ./src/*img sdcard/
+           echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
            zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip *
