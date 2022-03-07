@@ -21,22 +21,30 @@
 #include "minidexed.h"
 #include <circle/logger.h>
 #include <circle/string.h>
+#include <circle/startup.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
 #include <assert.h>
 
 LOGMODULE ("ui");
 
-CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CConfig *pConfig)
+CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
+	m_pGPIOManager (pGPIOManager),
 	m_pConfig (pConfig),
 	m_pLCD (0),
-	m_pLCDBuffered (0)
+	m_pLCDBuffered (0),
+	m_pRotaryEncoder (0),
+	m_UIMode (UIModeVoiceSelect),
+	m_nBank (0),
+	m_nProgram (0)
 {
 }
 
 CUserInterface::~CUserInterface (void)
 {
+	delete m_pRotaryEncoder;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
 }
@@ -70,6 +78,24 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
+	if (m_pConfig->GetEncoderEnabled ())
+	{
+		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
+					       m_pConfig->GetEncoderPinData (),
+					       m_pConfig->GetEncoderPinSwitch (),
+					       m_pGPIOManager);
+		assert (m_pRotaryEncoder);
+
+		if (!m_pRotaryEncoder->Initialize ())
+		{
+			return false;
+		}
+
+		m_pRotaryEncoder->RegisterEventHandler (EncoderEventStub, this);
+
+		LOGDBG ("Rotary encoder initialized");
+	}
+
 	return true;
 }
 
@@ -81,8 +107,31 @@ void CUserInterface::Process (void)
 	}
 }
 
+void CUserInterface::BankSelected (unsigned nBankLSB)
+{
+	assert (nBankLSB < 128);
+	m_nBank = nBankLSB;
+
+	assert (m_pMiniDexed);
+	std::string BankName = m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankLSB);
+
+	// MIDI numbering starts with 0, user interface with 1
+	printf ("Select voice bank %u: \"%s\"\n", nBankLSB+1, BankName.c_str ());
+
+	if (m_UIMode == UIModeBankSelect)
+	{
+		CString String;
+		String.Format ("\n\r%-12uBANK%s", nBankLSB+1, BankName.c_str ());
+
+		LCDWrite (String);
+	}
+}
+
 void CUserInterface::ProgramChanged (unsigned nProgram)
 {
+	assert (nProgram < 128);
+	m_nProgram = nProgram;
+
 	nProgram++;	// MIDI numbering starts with 0, user interface with 1
 
 	// fetch program name from Dexed instance
@@ -93,9 +142,13 @@ void CUserInterface::ProgramChanged (unsigned nProgram)
 
 	printf ("Loading voice %u: \"%s\"\n", nProgram, ProgramName);
 
-	CString String;
-	String.Format ("\n\r%u\n\r%s", nProgram, ProgramName);
-	LCDWrite (String);
+	if (m_UIMode == UIModeVoiceSelect)
+	{
+		CString String;
+		String.Format ("\n\r%-11uVOICE%s", nProgram, ProgramName);
+
+		LCDWrite (String);
+	}
 }
 
 void CUserInterface::LCDWrite (const char *pString)
@@ -104,4 +157,68 @@ void CUserInterface::LCDWrite (const char *pString)
 	{
 		m_pLCDBuffered->Write (pString, strlen (pString));
 	}
+}
+
+void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
+{
+	int nStep = 0;
+
+	switch (Event)
+	{
+	case CKY040::EventClockwise:
+		nStep = 1;
+		break;
+
+	case CKY040::EventCounterclockwise:
+		nStep = -1;
+		break;
+
+	case CKY040::EventSwitchClick:
+		m_UIMode = static_cast <TUIMode> (m_UIMode+1);
+		if (m_UIMode == UIModeUnknown)
+		{
+			m_UIMode = UIModeStart;
+		}
+		break;
+
+	case CKY040::EventSwitchHold:
+		if (m_pRotaryEncoder->GetHoldSeconds () >= 3)
+		{
+			delete m_pLCD;		// reset LCD
+
+			reboot ();
+		}
+		return;
+
+	default:
+		return;
+	}
+
+	switch (m_UIMode)
+	{
+	case UIModeBankSelect:
+		if (m_nBank + nStep < 128)
+		{
+			m_pMiniDexed->BankSelectLSB (m_nBank + nStep);
+		}
+		break;
+
+	case UIModeVoiceSelect:
+		if (m_nProgram + nStep < 32)
+		{
+			m_pMiniDexed->ProgramChange (m_nProgram + nStep);
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void CUserInterface::EncoderEventStub (CKY040::TEvent Event, void *pParam)
+{
+	CUserInterface *pThis = static_cast<CUserInterface *> (pParam);
+	assert (pThis != 0);
+
+	pThis->EncoderEventHandler (Event);
 }

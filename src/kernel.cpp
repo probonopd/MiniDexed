@@ -30,6 +30,7 @@ CKernel *CKernel::s_pThis = 0;
 CKernel::CKernel (void)
 :	CStdlibAppStdio ("minidexed"),
 	m_Config (&mFileSystem),
+	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
 	m_pDexed (0)
 {
@@ -52,6 +53,16 @@ bool CKernel::Initialize (void)
 
 	mLogger.RegisterPanicHandler (PanicHandler);
 
+	if (!m_GPIOManager.Initialize ())
+	{
+		return FALSE;
+	}
+
+	if (!m_I2CMaster.Initialize ())
+	{
+		return FALSE;
+	}
+
 	m_Config.Load ();
 
 	// select the sound device
@@ -60,19 +71,19 @@ bool CKernel::Initialize (void)
 	{
 		LOGNOTE ("I2S mode");
 
-		m_pDexed = new CMiniDexedI2S (&m_Config, &mInterrupt, &m_I2CMaster);
+		m_pDexed = new CMiniDexedI2S (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster);
 	}
 	else if (strcmp (pSoundDevice, "hdmi") == 0)
 	{
 		LOGNOTE ("HDMI mode");
 
-		m_pDexed = new CMiniDexedHDMI (&m_Config, &mInterrupt);
+		m_pDexed = new CMiniDexedHDMI (&m_Config, &mInterrupt, &m_GPIOManager);
 	}
 	else
 	{
 		LOGNOTE ("PWM mode");
 
-		m_pDexed = new CMiniDexedPWM (&m_Config, &mInterrupt);
+		m_pDexed = new CMiniDexedPWM (&m_Config, &mInterrupt, &m_GPIOManager);
 	}
 
 	assert (m_pDexed);

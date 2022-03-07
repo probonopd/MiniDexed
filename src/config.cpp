@@ -52,6 +52,11 @@ void CConfig::Load (void)
 	m_nLCDPinData6 = m_Properties.GetNumber ("LCDPinData6", 24);
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 
+	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
+	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 5);
+	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 6);
+	m_nEncoderPinSwitch = m_Properties.GetNumber ("EncoderPinSwitch", 26);
+
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 }
@@ -119,6 +124,26 @@ unsigned CConfig::GetLCDPinData6 (void) const
 unsigned CConfig::GetLCDPinData7 (void) const
 {
 	return m_nLCDPinData7;
+}
+
+bool CConfig::GetEncoderEnabled (void) const
+{
+	return m_bEncoderEnabled;
+}
+
+unsigned CConfig::GetEncoderPinClock (void) const
+{
+	return m_nEncoderPinClock;
+}
+
+unsigned CConfig::GetEncoderPinData (void) const
+{
+	return m_nEncoderPinData;
+}
+
+unsigned CConfig::GetEncoderPinSwitch (void) const
+{
+	return m_nEncoderPinSwitch;
 }
 
 bool CConfig::GetMIDIDumpEnabled (void) const

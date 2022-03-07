@@ -24,10 +24,10 @@
 
 LOGMODULE ("minidexed");
 
-CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt)
+CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt, CGPIOManager *pGPIOManager)
 :	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
 	m_pConfig (pConfig),
-	m_UI (this, pConfig),
+	m_UI (this, pGPIOManager, pConfig),
 	m_PCKeyboard (this),
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
@@ -89,6 +89,11 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	}
 }
 
+CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
+{
+	return &m_SysExFileLoader;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 {
 	if (nBankLSB > 127)
@@ -96,10 +101,9 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 		return;
 	}
 
-	// MIDI numbering starts with 0, user interface with 1
-	printf ("Select voice bank %u\n", nBankLSB+1);
-
 	m_SysExFileLoader.SelectVoiceBank (nBankLSB);
+
+	m_UI.BankSelected (nBankLSB);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram)
@@ -118,8 +122,9 @@ void CMiniDexed::ProgramChange (unsigned nProgram)
 
 //// PWM //////////////////////////////////////////////////////////////////////
 
-CMiniDexedPWM::CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt)
-:	CMiniDexed (pConfig, pInterrupt),
+CMiniDexedPWM::CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			      CGPIOManager *pGPIOManager)
+:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
 	CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 			     pConfig->GetChunkSize ())
 {
@@ -169,8 +174,8 @@ unsigned CMiniDexedPWM::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 //// I2S //////////////////////////////////////////////////////////////////////
 
 CMiniDexedI2S::CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			      CI2CMaster *pI2CMaster)
-:	CMiniDexed (pConfig, pInterrupt),
+			      CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster)
+:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
 	CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 			     pConfig->GetChunkSize (), false, pI2CMaster,
 			     pConfig->GetDACI2CAddress ())
@@ -218,8 +223,9 @@ unsigned CMiniDexedI2S::GetChunk (u32 *pBuffer, unsigned nChunkSize)
 
 //// HDMI /////////////////////////////////////////////////////////////////////
 
-CMiniDexedHDMI::CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt)
-:	CMiniDexed (pConfig, pInterrupt),
+CMiniDexedHDMI::CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt,
+				CGPIOManager *pGPIOManager)
+:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
 	CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 			      pConfig->GetChunkSize ())
 {

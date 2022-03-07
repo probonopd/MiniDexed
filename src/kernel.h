@@ -21,6 +21,7 @@
 #define _kernel_h
 
 #include "circle_stdlib_app.h"
+#include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include "config.h"
 #include "minidexed.h"
@@ -48,6 +49,7 @@ private:
 private:
 	// do not change this order
 	CConfig		m_Config;
+	CGPIOManager	m_GPIOManager;
 	CI2CMaster	m_I2CMaster;
 	CMiniDexed	*m_pDexed;
 
