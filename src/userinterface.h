@@ -21,7 +21,9 @@
 #define _userinterface_h
 
 #include "config.h"
+#include "ky040.h"
 #include <display/hd44780device.h>
+#include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
 
 class CMiniDexed;
@@ -29,24 +31,45 @@ class CMiniDexed;
 class CUserInterface
 {
 public:
-	CUserInterface (CMiniDexed *pMiniDexed, CConfig *pConfig);
+	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig);
 	~CUserInterface (void);
 
 	bool Initialize (void);
 
 	void Process (void);
 
+	void BankSelected (unsigned nBankLSB);		// 0 .. 127
 	void ProgramChanged (unsigned nProgram);	// 0 .. 127
 
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
+	void EncoderEventHandler (CKY040::TEvent Event);
+	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
+
+private:
+	enum TUIMode
+	{
+		UIModeStart,
+		UIModeVoiceSelect = UIModeStart,
+		UIModeBankSelect,
+		UIModeUnknown
+	};
+
 private:
 	CMiniDexed *m_pMiniDexed;
+	CGPIOManager *m_pGPIOManager;
 	CConfig *m_pConfig;
 
 	CHD44780Device *m_pLCD;
 	CWriteBufferDevice *m_pLCDBuffered;
+
+	CKY040 *m_pRotaryEncoder;
+
+	TUIMode m_UIMode;
+
+	unsigned m_nBank;
+	unsigned m_nProgram;
 };
 
 #endif

@@ -67,6 +67,13 @@ public:
 	unsigned GetLCDPinData6 (void) const;
 	unsigned GetLCDPinData7 (void) const;
 
+	// KY-040 Rotary Encoder
+	// GPIO pin numbers are chip numbers, not header positions
+	bool GetEncoderEnabled (void) const;
+	unsigned GetEncoderPinClock (void) const;
+	unsigned GetEncoderPinData (void) const;
+	unsigned GetEncoderPinSwitch (void) const;
+
 	// Debug
 	bool GetMIDIDumpEnabled (void) const;
 	bool GetProfileEnabled (void) const;
@@ -89,6 +96,11 @@ private:
 	unsigned m_nLCDPinData5;
 	unsigned m_nLCDPinData6;
 	unsigned m_nLCDPinData7;
+
+	bool m_bEncoderEnabled;
+	unsigned m_nEncoderPinClock;
+	unsigned m_nEncoderPinData;
+	unsigned m_nEncoderPinSwitch;
 
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;

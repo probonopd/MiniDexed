@@ -56,6 +56,8 @@ public:
 
 	void Load (void);
 
+	std::string GetBankName (unsigned nBankID);	// 0 .. 127
+
 	void SelectVoiceBank (unsigned nBankID);	// 0 .. 127
 
 	void GetVoice (unsigned nVoiceID,		// 0 .. 31
@@ -68,6 +70,7 @@ private:
 	std::string m_DirName;
 
 	TVoiceBank *m_pVoiceBank[MaxVoiceBankID+1];
+	std::string m_BankFileName[MaxVoiceBankID+1];
 
 	unsigned m_nBankID;
 

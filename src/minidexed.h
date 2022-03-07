@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <circle/types.h>
 #include <circle/interrupt.h>
+#include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include <circle/pwmsoundbasedevice.h>
 #include <circle/i2ssoundbasedevice.h>
@@ -39,11 +40,14 @@
 class CMiniDexed : public CDexedAdapter
 {
 public:
-	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt);
+	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
+		    CGPIOManager *pGPIOManager);
 
 	virtual bool Initialize (void);
 
 	void Process (bool bPlugAndPlayUpdated);
+
+	CSysExFileLoader *GetSysExFileLoader (void);
 
 	void BankSelectLSB (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram);
@@ -69,7 +73,8 @@ protected:
 class CMiniDexedPWM : public CMiniDexed, public CPWMSoundBaseDevice
 {
 public:
-	CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt);
+	CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt,
+		       CGPIOManager *pGPIOManager);
 
 	bool Initialize (void);
 
@@ -82,7 +87,7 @@ class CMiniDexedI2S : public CMiniDexed, public CI2SSoundBaseDevice
 {
 public:
 	CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		       CI2CMaster *pI2CMaster);
+		       CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster);
 
 	bool Initialize (void);
 
@@ -94,7 +99,8 @@ public:
 class CMiniDexedHDMI : public CMiniDexed, public CHDMISoundBaseDevice
 {
 public:
-	CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt);
+	CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			CGPIOManager *pGPIOManager);
 
 	bool Initialize (void);
 

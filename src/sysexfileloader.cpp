@@ -22,6 +22,7 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <assert.h>
 #include <circle/logger.h>
 #include "voices.c"
@@ -80,7 +81,7 @@ void CSysExFileLoader::Load (void)
 		size_t nLen = strlen (pEntry->d_name);
 
 		if (   nLen < 5						// "[NNNN]N[_name].syx"
-		    || strcmp (&pEntry->d_name[nLen-4], ".syx") != 0
+		    || strcasecmp (&pEntry->d_name[nLen-4], ".syx") != 0
 		    || sscanf (pEntry->d_name, "%u", &nBank) != 1)
 		{
 			LOGWARN ("%s: Invalid filename format", pEntry->d_name);
@@ -119,6 +120,8 @@ void CSysExFileLoader::Load (void)
 			    && m_pVoiceBank[nBank]->StatusEnd   == 0xF7)
 			{
 				LOGDBG ("Bank #%u successfully loaded", nBank);
+
+				m_BankFileName[nBank] = pEntry->d_name;
 			}
 			else
 			{
@@ -138,6 +141,31 @@ void CSysExFileLoader::Load (void)
 	}
 
 	closedir (pDirectory);
+}
+
+std::string CSysExFileLoader::GetBankName (unsigned nBankID)
+{
+	if (nBankID <= MaxVoiceBankID)
+	{
+		std::string Result = m_BankFileName[nBankID];
+
+		size_t nLen = Result.length ();
+		if (nLen > 4)
+		{
+			Result.resize (nLen-4);		// remove file extension
+
+			unsigned nBank;
+			char BankName[30+1];
+			if (sscanf (Result.c_str (), "%u_%30s", &nBank, BankName) == 2)
+			{
+				Result = BankName;
+
+				return Result;
+			}
+		}
+	}
+
+	return "NO NAME";
 }
 
 void CSysExFileLoader::SelectVoiceBank (unsigned nBankID)
