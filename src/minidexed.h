@@ -33,33 +33,24 @@
 #include <circle/interrupt.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
-#include <circle/multicore.h>
-#include <circle/soundbasedevice.h>
+#include <circle/pwmsoundbasedevice.h>
+#include <circle/i2ssoundbasedevice.h>
+#include <circle/hdmisoundbasedevice.h>
 
 class CMiniDexed : public CDexedAdapter
-#ifdef ARM_ALLOW_MULTI_CORE
-	, public CMultiCoreSupport
-#endif
 {
 public:
 	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster);
+		    CGPIOManager *pGPIOManager);
 
-	bool Initialize (void);
+	virtual bool Initialize (void);
 
 	void Process (bool bPlugAndPlayUpdated);
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	void Run (unsigned nCore);
-#endif
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
 	void BankSelectLSB (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram);
-
-private:
-	void ProcessSound (void);
 
 private:
 	CConfig *m_pConfig;
@@ -72,12 +63,48 @@ private:
 	CSerialMIDIDevice m_SerialMIDI;
 	bool m_bUseSerial;
 
-	CSoundBaseDevice *m_pSoundDevice;
-	unsigned m_nQueueSizeFrames;
-
 protected:
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
+};
+
+//// PWM //////////////////////////////////////////////////////////////////////
+
+class CMiniDexedPWM : public CMiniDexed, public CPWMSoundBaseDevice
+{
+public:
+	CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt,
+		       CGPIOManager *pGPIOManager);
+
+	bool Initialize (void);
+
+	unsigned GetChunk (u32 *pBuffer, unsigned nChunkSize);
+};
+
+//// I2S //////////////////////////////////////////////////////////////////////
+
+class CMiniDexedI2S : public CMiniDexed, public CI2SSoundBaseDevice
+{
+public:
+	CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
+		       CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster);
+
+	bool Initialize (void);
+
+	unsigned GetChunk (u32 *pBuffer, unsigned nChunkSize);
+};
+
+//// HDMI /////////////////////////////////////////////////////////////////////
+
+class CMiniDexedHDMI : public CMiniDexed, public CHDMISoundBaseDevice
+{
+public:
+	CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			CGPIOManager *pGPIOManager);
+
+	bool Initialize (void);
+
+	unsigned GetChunk (u32 *pBuffer, unsigned nChunkSize);
 };
 
 #endif
