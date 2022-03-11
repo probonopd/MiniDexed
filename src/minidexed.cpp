@@ -19,18 +19,28 @@
 //
 #include "minidexed.h"
 #include <circle/logger.h>
+#include <circle/memory.h>
+#include <circle/pwmsoundbasedevice.h>
+#include <circle/i2ssoundbasedevice.h>
+#include <circle/hdmisoundbasedevice.h>
+#include <string.h>
 #include <stdio.h>
 #include <assert.h>
 
 LOGMODULE ("minidexed");
 
-CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt, CGPIOManager *pGPIOManager)
+CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
+			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster)
 :	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
+#ifdef ARM_ALLOW_MULTI_CORE
+	CMultiCoreSupport (CMemorySystem::Get ()),
+#endif
 	m_pConfig (pConfig),
 	m_UI (this, pGPIOManager, pConfig),
 	m_PCKeyboard (this),
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
+	m_pSoundDevice (0),
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
@@ -40,10 +50,38 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt, CGPIOMan
 		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, i);
 		assert (m_pMIDIKeyboard[i]);
 	}
+
+	// select the sound device
+	const char *pDeviceName = pConfig->GetSoundDevice ();
+	if (strcmp (pDeviceName, "i2s") == 0)
+	{
+		LOGNOTE ("I2S mode");
+
+		m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+							  pConfig->GetChunkSize (), false,
+							  pI2CMaster, pConfig->GetDACI2CAddress ());
+	}
+	else if (strcmp (pDeviceName, "hdmi") == 0)
+	{
+		LOGNOTE ("HDMI mode");
+
+		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+							   pConfig->GetChunkSize ());
+	}
+	else
+	{
+		LOGNOTE ("PWM mode");
+
+		m_pSoundDevice = new CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+							  pConfig->GetChunkSize ());
+	}
 };
 
 bool CMiniDexed::Initialize (void)
 {
+	assert (m_pConfig);
+	assert (m_pSoundDevice);
+
 	if (!m_UI.Initialize ())
 	{
 		return false;
@@ -63,11 +101,37 @@ bool CMiniDexed::Initialize (void)
 	ProgramChange (0);
 	setTranspose (24);
 
+	// setup and start the sound device
+	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()/2))
+	{
+		LOGERR ("Cannot allocate sound queue");
+
+		return false;
+	}
+
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
+
+	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
+
+	m_pSoundDevice->Start ();
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	// start secondary cores
+	if (!CMultiCoreSupport::Initialize ())
+	{
+		return false;
+	}
+#endif
+
 	return true;
 }
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
+#ifndef ARM_ALLOW_MULTI_CORE
+	ProcessSound ();
+#endif
+
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
 		assert (m_pMIDIKeyboard[i]);
@@ -88,6 +152,21 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_GetChunkTimer.Dump ();
 	}
 }
+
+#ifdef ARM_ALLOW_MULTI_CORE
+
+void CMiniDexed::Run (unsigned nCore)
+{
+	if (nCore == 1)
+	{
+		while (1)
+		{
+			ProcessSound ();
+		}
+	}
+}
+
+#endif
 
 CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 {
@@ -120,159 +199,30 @@ void CMiniDexed::ProgramChange (unsigned nProgram)
 	m_UI.ProgramChanged (nProgram);
 }
 
-//// PWM //////////////////////////////////////////////////////////////////////
-
-CMiniDexedPWM::CMiniDexedPWM (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			      CGPIOManager *pGPIOManager)
-:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
-	CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-			     pConfig->GetChunkSize ())
+void CMiniDexed::ProcessSound (void)
 {
-}
+	assert (m_pSoundDevice);
 
-bool CMiniDexedPWM::Initialize (void)
-{
-	if (!CMiniDexed::Initialize ())
+	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail ();
+	if (nFrames >= m_nQueueSizeFrames/2)
 	{
-		return false;
-	}
-
-	return Start ();
-}
-
-unsigned CMiniDexedPWM::GetChunk (u32 *pBuffer, unsigned nChunkSize)
-{
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Start ();
-	}
-
-	unsigned nResult = nChunkSize;
-
-	int16_t SampleBuffer[nChunkSize/2];
-	getSamples (nChunkSize/2, SampleBuffer);
-
-	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
-	{
-		s32 nSample = SampleBuffer[i++];
-		nSample += 32768;
-		nSample *= GetRangeMax()/2;
-		nSample /= 32768;
-
-		*pBuffer++ = nSample;		// 2 stereo channels
-		*pBuffer++ = nSample;
-	}
-
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Stop ();
-	}
-
-	return nResult;
-};
-
-//// I2S //////////////////////////////////////////////////////////////////////
-
-CMiniDexedI2S::CMiniDexedI2S (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			      CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster)
-:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
-	CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-			     pConfig->GetChunkSize (), false, pI2CMaster,
-			     pConfig->GetDACI2CAddress ())
-{
-}
-
-bool CMiniDexedI2S::Initialize (void)
-{
-	if (!CMiniDexed::Initialize ())
-	{
-		return false;
-	}
-
-	return Start ();
-}
-
-unsigned CMiniDexedI2S::GetChunk (u32 *pBuffer, unsigned nChunkSize)
-{
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Start ();
-	}
-
-	unsigned nResult = nChunkSize;
-
-	int16_t SampleBuffer[nChunkSize/2];
-	getSamples (nChunkSize/2, SampleBuffer);
-
-	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)	// fill the whole buffer
-	{
-		s32 nSample = SampleBuffer[i++];
-		nSample <<= 8;
-
-		*pBuffer++ = nSample;		// 2 stereo channels
-		*pBuffer++ = nSample;
-	}
-
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Stop ();
-	}
-
-	return nResult;
-};
-
-//// HDMI /////////////////////////////////////////////////////////////////////
-
-CMiniDexedHDMI::CMiniDexedHDMI (CConfig *pConfig, CInterruptSystem *pInterrupt,
-				CGPIOManager *pGPIOManager)
-:	CMiniDexed (pConfig, pInterrupt, pGPIOManager),
-	CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-			      pConfig->GetChunkSize ())
-{
-}
-
-bool CMiniDexedHDMI::Initialize (void)
-{
-	if (!CMiniDexed::Initialize ())
-	{
-		return false;
-	}
-
-	return Start ();
-}
-
-unsigned CMiniDexedHDMI::GetChunk(u32 *pBuffer, unsigned nChunkSize)
-{
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Start ();
-	}
-
-	unsigned nResult = nChunkSize;
-
-	int16_t SampleBuffer[nChunkSize/2];
-	getSamples (nChunkSize/2, SampleBuffer);
-
-	unsigned nFrame = 0;
-	for (unsigned i = 0; nChunkSize > 0; nChunkSize -= 2)		// fill the whole buffer
-	{
-		s32 nSample = SampleBuffer[i++];
-		nSample <<= 8;
-
-		nSample = ConvertIEC958Sample (nSample, nFrame);
-		if (++nFrame == IEC958_FRAMES_PER_BLOCK)
+		if (m_bProfileEnabled)
 		{
-			nFrame = 0;
+			m_GetChunkTimer.Start ();
 		}
 
-		*pBuffer++ = nSample;		// 2 stereo channels
-		*pBuffer++ = nSample;
-	}
+		int16_t SampleBuffer[nFrames];
+		getSamples (nFrames, SampleBuffer);
 
-	if (m_bProfileEnabled)
-	{
-		m_GetChunkTimer.Stop();
-	}
+		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
+		    != (int) sizeof SampleBuffer)
+		{
+			LOGERR ("Sound data dropped");
+		}
 
-	return nResult;
-};
+		if (m_bProfileEnabled)
+		{
+			m_GetChunkTimer.Stop ();
+		}
+	}
+}

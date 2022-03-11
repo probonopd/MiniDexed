@@ -18,6 +18,9 @@ fi
 cd circle-stdlib/
 make mrproper || true
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}"
+if [ "${RPI}" -gt "1" ]; then
+    echo "DEFINE += -DARM_ALLOW_MULTI_CORE" >> libs/circle/Config.mk
+fi
 echo "DEFINE += -DUSE_PWM_AUDIO_ON_ZERO" >> libs/circle/Config.mk
 echo "DEFINE += -DSAVE_VFP_REGS_ON_IRQ" >> libs/circle/Config.mk
 echo "DEFINE += -DREALTIME" >> libs/circle/Config.mk
