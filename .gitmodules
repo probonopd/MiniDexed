@@ -4,7 +4,6 @@
 [submodule "Synth_Dexed"]
 	path = Synth_Dexed
 	url = https://codeberg.org/dcoredump/Synth_Dexed
-	branch = dev
 [submodule "CMSIS_5"]
 	path = CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5
