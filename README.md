@@ -104,9 +104,6 @@ cd -
 
 # Make zip that contains Raspberry Pi 4 boot files. The contents can be copied to a FAT32 formatted partition on a microSD card
 mkdir -p sdcard
-cd sdcard
-../getsysex.sh
-cd ..
 cp -r ./circle-stdlib/libs/circle/boot/* sdcard
 mv sdcard/config64.txt sdcard/config.txt
 rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
@@ -123,7 +120,7 @@ DEV=`sudo losetup --find --partscan --show "${IMG}"`
 sudo mkfs.vfat -F 32 -n BOOT "${DEV}p1"
 mkdir boot
 sudo mount "${DEV}p1" boot
-sudo cp -R sdcard/* boot
+sudo cp sdcard/* boot
 sudo umount boot
 sudo losetup -d "${DEV}"
 rm -r boot
