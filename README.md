@@ -135,6 +135,9 @@ sudo cp -R sdcard/* boot
 sudo umount boot
 sudo losetup -d "${DEV}"
 rm -r boot
+
+# Write to SD card
+sudo dd if="${IMG}" of=/dev/mmcblk0 bs=128k status=progress
 ```
 
 ## Acknowledgements
