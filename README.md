@@ -107,7 +107,10 @@ export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 # Get Raspberry Pi boot files
 cd ./circle-stdlib/libs/circle/boot
 make
-make armstub64
+if [ "${RPI}" -gt 2 ]
+then
+	make armstub64
+fi
 cd -
 
 # Make zip that contains Raspberry Pi 4 boot files. The contents can be copied to a FAT32 formatted partition on a microSD card
