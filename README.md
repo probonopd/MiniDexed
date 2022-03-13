@@ -88,13 +88,21 @@ cd MiniDexed
 # Recursively pull git submodules
 git submodule update --init --recursive
 
+# Choose your RPi
+export RPI=4
+
 # Install toolchain
-wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+if [ "${RPI}" -gt 2 ]
+then
+	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+else
+	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+fi
 tar xf gcc-arm-*-*.tar.xz 
 export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
 # Build dependencies and MiniDexed
-RPI=4 ./build.sh
+./build.sh
 
 # Get Raspberry Pi boot files
 cd ./circle-stdlib/libs/circle/boot
