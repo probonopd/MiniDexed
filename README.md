@@ -119,12 +119,8 @@ cd sdcard
 ../getsysex.sh
 cd ..
 cp -r ./circle-stdlib/libs/circle/boot/* sdcard
-mv sdcard/config64.txt sdcard/config.txt
-sed -i 's/^arm_64bit=1/#arm_64bit=1/' sdcard/config.txt
-sed -i '/\[pi02]/{n;s/^kernel=kernel8.img/kernel=kernel7.img/}' sdcard/config.txt
-sed -i '/\[pi2]/{n;s/^kernel=kernel8.img/kernel=kernel7.img/}' sdcard/config.txt
-rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-cp ./src/*img sdcard/
+rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+cp ./src/config.txt ./src/minidexed.ini ./src/*img sdcard/
 zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
 
 # Optionally, create a RPi image. This can be written to a microSD card using tools like Etcher or dd
