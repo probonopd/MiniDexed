@@ -10,8 +10,7 @@ disable_overscan=0
 #
 
 [pi02]
-arm_64bit=1
-kernel=kernel8.img
+kernel=kernel7.img
 
 [pi3]
 arm_64bit=1
