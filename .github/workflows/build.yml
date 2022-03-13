@@ -68,9 +68,15 @@ jobs:
            cd sdcard
            cp ../kernels/* . || true
            zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip *
+    - uses: actions/upload-artifact@v3
+      if: ${{ github.ref != 'refs/heads/main' }}
+      with:
+        name: Upload to GitHub Artifacts (when not building from main branch)
+        path: ./MiniDexed*.zip
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
            set -ex
            wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
            bash ./upload.sh ./MiniDexed*.zip
+           
