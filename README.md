@@ -89,26 +89,39 @@ cd MiniDexed
 # Recursively pull git submodules
 git submodule update --init --recursive
 
+# Choose your RPi
+export RPI=4
+
 # Install toolchain
-wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+if [ "${RPI}" -gt 2 ]
+then
+	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+else
+	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+fi
 tar xf gcc-arm-*-*.tar.xz 
 export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
 # Build dependencies and MiniDexed
-RPI=4 ./build.sh
+./build.sh
 
 # Get Raspberry Pi boot files
 cd ./circle-stdlib/libs/circle/boot
 make
-make armstub64
+if [ "${RPI}" -gt 2 ]
+then
+	make armstub64
+fi
 cd -
 
 # Make zip that contains Raspberry Pi 4 boot files. The contents can be copied to a FAT32 formatted partition on a microSD card
 mkdir -p sdcard
+cd sdcard
+../getsysex.sh
+cd ..
 cp -r ./circle-stdlib/libs/circle/boot/* sdcard
-mv sdcard/config64.txt sdcard/config.txt
-rm -rf sdcard/config32.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-cp ./src/*img sdcard/
+rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+cp ./src/config.txt ./src/minidexed.ini ./src/*img sdcard/
 zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
 
 # Optionally, create a RPi image. This can be written to a microSD card using tools like Etcher or dd
@@ -121,10 +134,13 @@ DEV=`sudo losetup --find --partscan --show "${IMG}"`
 sudo mkfs.vfat -F 32 -n BOOT "${DEV}p1"
 mkdir boot
 sudo mount "${DEV}p1" boot
-sudo cp sdcard/* boot
+sudo cp -R sdcard/* boot
 sudo umount boot
 sudo losetup -d "${DEV}"
 rm -r boot
+
+# Write to SD card
+sudo dd if="${IMG}" of=/dev/mmcblk0 bs=128k status=progress
 ```
 
 ## Acknowledgements
