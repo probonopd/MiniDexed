@@ -20,8 +20,9 @@
 - [x] Support multiple voices through Program Change and Bank Change LSB/MSB MIDI messages
 - [x] Add functionality for loading `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [x] Show voice name on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb)
+- [x] Support selecting patches using MIDI Bank Change and Program Change messages
 - [ ] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
-- [ ] Add a way to configure each Dexed instance through Performance sysex messages
+- [ ] Add a way to configure multiple Dexed instances through Performance sysex messages
 - [ ] Allow for each Dexed instance to be stereo shifted
 - [ ] Add reverb effect
 
