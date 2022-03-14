@@ -15,7 +15,10 @@ else
 fi
 
 # Define system options
-OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME"
+OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o SCREEN_DMA_BURST_LENGTH=1"
+if [ "${RPI}" -gt "1" ]; then
+    OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
+fi
 
 # Build circle-stdlib library
 cd circle-stdlib/
