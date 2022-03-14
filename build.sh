@@ -14,17 +14,23 @@ else
     export TOOLCHAIN_PREFIX="arm-none-eabi-"
 fi
 
+# Define system options
+OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o SCREEN_DMA_BURST_LENGTH=1"
+if [ "${RPI}" -gt "1" ]; then
+    OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
+fi
+
 # Build circle-stdlib library
 cd circle-stdlib/
 make mrproper || true
-./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}"
-echo "DEFINE += -DUSE_PWM_AUDIO_ON_ZERO" >> libs/circle/Config.mk
-echo "DEFINE += -DSAVE_VFP_REGS_ON_IRQ" >> libs/circle/Config.mk
-echo "DEFINE += -DREALTIME" >> libs/circle/Config.mk
+./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS}
 make -j
 
 # Build additional libraries
 cd libs/circle/addon/display/
+make clean || true
+make -j
+cd ../sensor/
 make clean || true
 make -j
 cd ../Properties/

@@ -31,6 +31,7 @@
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CONTROL_CHANGE	0b1011
 	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
+	#define MIDI_CC_VOLUME			7
 	#define MIDI_CC_BANK_SELECT_LSB		32
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
@@ -130,6 +131,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 		switch (pMessage[1])
 		{
+		case MIDI_CC_VOLUME:
+			m_pSynthesizer->SetVolume (pMessage[2]);
+			break;
+
 		case MIDI_CC_BANK_SELECT_LSB:
 			m_pSynthesizer->BankSelectLSB (pMessage[2]);
 			break;

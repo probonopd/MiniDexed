@@ -18,7 +18,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "kernel.h"
-#include <string.h>
 #include <circle/logger.h>
 #include <circle/synchronize.h>
 #include <assert.h>
@@ -65,27 +64,7 @@ bool CKernel::Initialize (void)
 
 	m_Config.Load ();
 
-	// select the sound device
-	const char *pSoundDevice = m_Config.GetSoundDevice ();
-	if (strcmp (pSoundDevice, "i2s") == 0)
-	{
-		LOGNOTE ("I2S mode");
-
-		m_pDexed = new CMiniDexedI2S (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster);
-	}
-	else if (strcmp (pSoundDevice, "hdmi") == 0)
-	{
-		LOGNOTE ("HDMI mode");
-
-		m_pDexed = new CMiniDexedHDMI (&m_Config, &mInterrupt, &m_GPIOManager);
-	}
-	else
-	{
-		LOGNOTE ("PWM mode");
-
-		m_pDexed = new CMiniDexedPWM (&m_Config, &mInterrupt, &m_GPIOManager);
-	}
-
+	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster);
 	assert (m_pDexed);
 
 	if (!m_pDexed->Initialize ())
@@ -110,6 +89,8 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 		{
 			mScreen.Update ();
 		}
+
+		m_CPUThrottle.Update ();
 	}
 
 	return ShutdownHalt;

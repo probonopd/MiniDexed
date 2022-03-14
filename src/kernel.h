@@ -21,6 +21,7 @@
 #define _kernel_h
 
 #include "circle_stdlib_app.h"
+#include <circle/cputhrottle.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include "config.h"
@@ -49,6 +50,7 @@ private:
 private:
 	// do not change this order
 	CConfig		m_Config;
+	CCPUThrottle	m_CPUThrottle;
 	CGPIOManager	m_GPIOManager;
 	CI2CMaster	m_I2CMaster;
 	CMiniDexed	*m_pDexed;

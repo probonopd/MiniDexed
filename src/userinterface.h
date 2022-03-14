@@ -21,7 +21,7 @@
 #define _userinterface_h
 
 #include "config.h"
-#include "ky040.h"
+#include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
@@ -40,8 +40,17 @@ public:
 
 	void BankSelected (unsigned nBankLSB);		// 0 .. 127
 	void ProgramChanged (unsigned nProgram);	// 0 .. 127
+	void VolumeChanged (unsigned nVolume);		// 0 .. 127
 
 private:
+	// Print to display in this format:
+	// +----------------+
+	// |INSTANCE    MENU|
+	// |PARAM[=VALUE]   |
+	// +----------------+
+	void DisplayWrite (const char *pInstance, const char *pMenu,
+			   const char *pParam, const char *pValue = nullptr);
+
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
 	void EncoderEventHandler (CKY040::TEvent Event);
@@ -53,6 +62,7 @@ private:
 		UIModeStart,
 		UIModeVoiceSelect = UIModeStart,
 		UIModeBankSelect,
+		UIModeVolume,
 		UIModeUnknown
 	};
 
@@ -70,6 +80,7 @@ private:
 
 	unsigned m_nBank;
 	unsigned m_nProgram;
+	unsigned m_nVolume;
 };
 
 #endif

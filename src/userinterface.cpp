@@ -38,7 +38,8 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pRotaryEncoder (0),
 	m_UIMode (UIModeVoiceSelect),
 	m_nBank (0),
-	m_nProgram (0)
+	m_nProgram (0),
+	m_nVolume (0)
 {
 }
 
@@ -73,7 +74,7 @@ bool CUserInterface::Initialize (void)
 		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
 
-		LCDWrite ("\x1B[?25l");		// cursor off
+		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
 
 		LOGDBG ("LCD initialized");
 	}
@@ -121,9 +122,9 @@ void CUserInterface::BankSelected (unsigned nBankLSB)
 	if (m_UIMode == UIModeBankSelect)
 	{
 		CString String;
-		String.Format ("\n\r%-12uBANK%s", nBankLSB+1, BankName.c_str ());
+		String.Format ("%u", nBankLSB+1);
 
-		LCDWrite (String);
+		DisplayWrite (String, "BANK", BankName.c_str ());
 	}
 }
 
@@ -145,10 +146,66 @@ void CUserInterface::ProgramChanged (unsigned nProgram)
 	if (m_UIMode == UIModeVoiceSelect)
 	{
 		CString String;
-		String.Format ("\n\r%-11uVOICE%s", nProgram, ProgramName);
+		String.Format ("%u", nProgram);
 
-		LCDWrite (String);
+		DisplayWrite (String, "VOICE", ProgramName);
 	}
+}
+
+void CUserInterface::VolumeChanged (unsigned nVolume)
+{
+	assert (nVolume < 128);
+	m_nVolume = nVolume;
+
+	if (m_UIMode == UIModeVolume)
+	{
+		char VolumeBar[CConfig::LCDColumns+1];
+		memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
+		VolumeBar[nVolume * CConfig::LCDColumns / 127] = '\0';
+
+		DisplayWrite ("", "VOLUME", VolumeBar);
+	}
+}
+
+void CUserInterface::DisplayWrite (const char *pInstance, const char *pMenu,
+				   const char *pParam, const char *pValue)
+{
+	assert (pInstance);
+	assert (pMenu);
+	assert (pParam);
+
+	CString Msg ("\x1B[H");		// cursor home
+
+	// first line
+	Msg.Append (pInstance);
+
+	size_t nLen = strlen (pInstance) + strlen (pMenu);
+	if (nLen < CConfig::LCDColumns)
+	{
+		for (unsigned i = CConfig::LCDColumns-nLen; i > 0; i--)
+		{
+			Msg.Append (" ");
+		}
+	}
+
+	Msg.Append (pMenu);
+
+	// second line
+	CString ParamValue (pParam);
+	if (pValue)
+	{
+		ParamValue.Append ("=");
+		ParamValue.Append (pValue);
+	}
+
+	Msg.Append (ParamValue);
+
+	if (ParamValue.GetLength () < CConfig::LCDColumns)
+	{
+		Msg.Append ("\x1B[K");		// clear end of line
+	}
+
+	LCDWrite (Msg);
 }
 
 void CUserInterface::LCDWrite (const char *pString)
@@ -209,6 +266,22 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 			m_pMiniDexed->ProgramChange (m_nProgram + nStep);
 		}
 		break;
+
+	case UIModeVolume: {
+		const int Increment = 128 / CConfig::LCDColumns;
+
+		int nVolume = m_nVolume + nStep*Increment;
+		if (nVolume < 0)
+		{
+			nVolume = 0;
+		}
+		else if (nVolume > 127)
+		{
+			nVolume = 127;
+		}
+
+		m_pMiniDexed->SetVolume (nVolume);
+		} break;
 
 	default:
 		break;
