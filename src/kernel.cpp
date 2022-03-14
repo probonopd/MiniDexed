@@ -89,6 +89,8 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 		{
 			mScreen.Update ();
 		}
+
+		m_CPUThrottle.Update ();
 	}
 
 	return ShutdownHalt;
