@@ -57,6 +57,7 @@ public:
 
 	void BankSelectLSB (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram);
+	void SetVolume (unsigned nVolume);
 
 private:
 	void ProcessSound (void);

@@ -98,6 +98,7 @@ bool CMiniDexed::Initialize (void)
 
 	activate ();
 
+	SetVolume (100);
 	ProgramChange (0);
 	setTranspose (24);
 
@@ -197,6 +198,18 @@ void CMiniDexed::ProgramChange (unsigned nProgram)
 	loadVoiceParameters (Buffer);
 
 	m_UI.ProgramChanged (nProgram);
+}
+
+void CMiniDexed::SetVolume (unsigned nVolume)
+{
+	if (nVolume > 127)
+	{
+		return;
+	}
+
+	setGain (nVolume / 127.0);
+
+	m_UI.VolumeChanged (nVolume);
 }
 
 void CMiniDexed::ProcessSound (void)
