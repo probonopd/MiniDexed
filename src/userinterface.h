@@ -21,7 +21,7 @@
 #define _userinterface_h
 
 #include "config.h"
-#include "ky040.h"
+#include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
