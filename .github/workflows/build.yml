@@ -20,7 +20,6 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
-           sed -i -e 's|AUDIO_BLOCK_SAMPLES|n_samples|g' Synth_Dexed/src/dexed.cpp # FIXME: Remove this line once upstreamed
     - name: Install toolchains
       run: |
            set -ex
