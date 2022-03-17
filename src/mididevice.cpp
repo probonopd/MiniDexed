@@ -31,8 +31,10 @@
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CONTROL_CHANGE	0b1011
 	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
+	#define MIDI_CC_MODULATION		1
 	#define MIDI_CC_VOLUME			7
 	#define MIDI_CC_BANK_SELECT_LSB		32
+	#define MIDI_CC_BANK_SUSTAIN		64
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -131,12 +133,21 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 		switch (pMessage[1])
 		{
+		case MIDI_CC_MODULATION:
+			m_pSynthesizer->setModWheel (pMessage[2]);
+			m_pSynthesizer->ControllersRefresh ();
+			break;
+
 		case MIDI_CC_VOLUME:
 			m_pSynthesizer->SetVolume (pMessage[2]);
 			break;
 
 		case MIDI_CC_BANK_SELECT_LSB:
 			m_pSynthesizer->BankSelectLSB (pMessage[2]);
+			break;
+
+		case MIDI_CC_BANK_SUSTAIN:
+			m_pSynthesizer->setSustain (pMessage[2] >= 64);
 			break;
 		}
 		break;
@@ -145,9 +156,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		m_pSynthesizer->ProgramChange (pMessage[1]);
 		break;
 
-	case MIDI_PITCH_BEND:
-		m_pSynthesizer->setPitchbend (pMessage[1]);
-		break;
+	case MIDI_PITCH_BEND: {
+		if (nLength < 3)
+		{
+			break;
+		}
+
+		s16 nValue = pMessage[1];
+		nValue |= (s16) pMessage[2] << 7;
+		nValue -= 0x2000;
+
+		m_pSynthesizer->setPitchbend (nValue);
+		} break;
 
 	default:
 		break;

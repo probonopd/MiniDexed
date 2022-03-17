@@ -102,6 +102,9 @@ bool CMiniDexed::Initialize (void)
 	ProgramChange (0);
 	setTranspose (24);
 
+	setPBController (12, 1);
+	setMWController (99, 7, 0);
+
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
 	{
