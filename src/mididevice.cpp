@@ -34,6 +34,7 @@
 	#define MIDI_CC_MODULATION		1
 	#define MIDI_CC_VOLUME			7
 	#define MIDI_CC_BANK_SELECT_LSB		32
+	#define MIDI_CC_BANK_SUSTAIN		64
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -143,6 +144,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 		case MIDI_CC_BANK_SELECT_LSB:
 			m_pSynthesizer->BankSelectLSB (pMessage[2]);
+			break;
+
+		case MIDI_CC_BANK_SUSTAIN:
+			m_pSynthesizer->setSustain (pMessage[2] >= 64);
 			break;
 		}
 		break;
