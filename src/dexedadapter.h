@@ -63,6 +63,13 @@ public:
 		m_SpinLock.Release ();
 	}
 
+	void ControllersRefresh (void)
+	{
+		m_SpinLock.Acquire ();
+		Dexed::ControllersRefresh ();
+		m_SpinLock.Release ();
+	}
+
 private:
 	CSpinLock m_SpinLock;
 };

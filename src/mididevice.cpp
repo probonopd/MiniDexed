@@ -134,6 +134,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		{
 		case MIDI_CC_MODULATION:
 			m_pSynthesizer->setModWheel (pMessage[2]);
+			m_pSynthesizer->ControllersRefresh ();
 			break;
 
 		case MIDI_CC_VOLUME:
