@@ -115,12 +115,12 @@ bool CMiniDexed::Initialize (void)
 		m_bUseSerial = true;
 	}
 
-	SetVolume (100);
-	ProgramChange (0);
-
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		assert (m_pTG[i]);
+
+		SetVolume (100, i);
+		ProgramChange (0, i);
 
 		m_pTG[i]->setTranspose (24);
 
@@ -245,114 +245,98 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
-void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
+void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	if (nBankLSB > 127)
 	{
 		return;
 	}
 
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		m_nVoiceBankID[i] = nBankLSB;
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	m_nVoiceBankID[nTG] = nBankLSB;
 
-	m_UI.BankSelected (nBankLSB);
+	m_UI.BankSelected (nBankLSB, nTG);
 }
 
-void CMiniDexed::ProgramChange (unsigned nProgram)
+void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	if (nProgram > 31)
 	{
 		return;
 	}
 
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		uint8_t Buffer[156];
-		m_SysExFileLoader.GetVoice (m_nVoiceBankID[i], nProgram, Buffer);
+	assert (nTG < CConfig::ToneGenerators);
+	uint8_t Buffer[156];
+	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG], nProgram, Buffer);
 
-		assert (m_pTG[i]);
-		m_pTG[i]->loadVoiceParameters (Buffer);
-	}
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->loadVoiceParameters (Buffer);
 
-	m_UI.ProgramChanged (nProgram);
+	m_UI.ProgramChanged (nProgram, nTG);
 }
 
-void CMiniDexed::SetVolume (unsigned nVolume)
+void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 {
 	if (nVolume > 127)
 	{
 		return;
 	}
 
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->setGain (nVolume / 127.0);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setGain (nVolume / 127.0);
 
-	m_UI.VolumeChanged (nVolume);
+	m_UI.VolumeChanged (nVolume, nTG);
 }
 
-void CMiniDexed::keyup (int16_t pitch)
+void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->keyup (pitch);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->keyup (pitch);
 }
 
-void CMiniDexed::keydown (int16_t pitch, uint8_t velocity)
+void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->keydown (pitch, velocity);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->keydown (pitch, velocity);
 }
 
-void CMiniDexed::setSustain(bool sustain)
+void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->setSustain (sustain);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setSustain (sustain);
 }
 
-void CMiniDexed::setModWheel (uint8_t value)
+void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->setModWheel (value);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setModWheel (value);
 }
 
-void CMiniDexed::setPitchbend (int16_t value)
+void CMiniDexed::setPitchbend (int16_t value, unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->setPitchbend (value);
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setPitchbend (value);
 }
 
-void CMiniDexed::ControllersRefresh (void)
+void CMiniDexed::ControllersRefresh (unsigned nTG)
 {
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-	{
-		assert (m_pTG[i]);
-		m_pTG[i]->ControllersRefresh ();
-	}
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->ControllersRefresh ();
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
 {
 	char VoiceName[11];
 	memset (VoiceName, 0, sizeof VoiceName);
+
+	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setName (VoiceName);
 

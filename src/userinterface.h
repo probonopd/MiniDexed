@@ -38,9 +38,9 @@ public:
 
 	void Process (void);
 
-	void BankSelected (unsigned nBankLSB);		// 0 .. 127
-	void ProgramChanged (unsigned nProgram);	// 0 .. 127
-	void VolumeChanged (unsigned nVolume);		// 0 .. 127
+	void BankSelected (unsigned nBankLSB, unsigned  nTG);		// 0 .. 127
+	void ProgramChanged (unsigned nProgram, unsigned  nTG);		// 0 .. 127
+	void VolumeChanged (unsigned nVolume, unsigned  nTG);		// 0 .. 127
 
 private:
 	// Print to display in this format:
@@ -78,9 +78,10 @@ private:
 
 	TUIMode m_UIMode;
 
-	unsigned m_nBank;
-	unsigned m_nProgram;
-	unsigned m_nVolume;
+	unsigned m_nTG;
+	unsigned m_nBank[CConfig::ToneGenerators];
+	unsigned m_nProgram[CConfig::ToneGenerators];
+	unsigned m_nVolume[CConfig::ToneGenerators];
 };
 
 #endif

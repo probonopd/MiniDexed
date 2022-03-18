@@ -19,6 +19,7 @@
 //
 #include "pckeyboard.h"
 #include "minidexed.h"
+#include "config.h"
 #include <circle/devicenameservice.h>
 #include <circle/util.h>
 #include <assert.h>
@@ -112,7 +113,10 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
 			if (ucKeyNumber != 0)
 			{
-				s_pThis->m_pSynthesizer->keyup (ucKeyNumber);
+				for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+				{
+					s_pThis->m_pSynthesizer->keyup (ucKeyNumber, nTG);
+				}
 			}
 		}
 	}
@@ -127,7 +131,10 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
 			if (ucKeyNumber != 0)
 			{
-				s_pThis->m_pSynthesizer->keydown (ucKeyNumber, 100);
+				for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+				{
+					s_pThis->m_pSynthesizer->keydown (ucKeyNumber, 100, nTG);
+				}
 			}
 		}
 	}

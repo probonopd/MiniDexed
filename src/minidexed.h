@@ -56,19 +56,19 @@ public:
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
-	void BankSelectLSB (unsigned nBankLSB);
-	void ProgramChange (unsigned nProgram);
-	void SetVolume (unsigned nVolume);
+	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
+	void ProgramChange (unsigned nProgram, unsigned nTG);
+	void SetVolume (unsigned nVolume, unsigned nTG);
 
-	void keyup (int16_t pitch);
-	void keydown (int16_t pitch, uint8_t velocity);
+	void keyup (int16_t pitch, unsigned nTG);
+	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
-	void setSustain (bool sustain);
-	void setModWheel (uint8_t value);
-	void setPitchbend (int16_t value);
-	void ControllersRefresh (void);
+	void setSustain (bool sustain, unsigned nTG);
+	void setModWheel (uint8_t value, unsigned nTG);
+	void setPitchbend (int16_t value, unsigned nTG);
+	void ControllersRefresh (unsigned nTG);
 
-	std::string GetVoiceName (unsigned nTG = 0);
+	std::string GetVoiceName (unsigned nTG);
 
 private:
 	void ProcessSound (void);

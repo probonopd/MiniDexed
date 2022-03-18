@@ -37,10 +37,14 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pLCDBuffered (0),
 	m_pRotaryEncoder (0),
 	m_UIMode (UIModeVoiceSelect),
-	m_nBank (0),
-	m_nProgram (0),
-	m_nVolume (0)
+	m_nTG (0)
 {
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_nBank[nTG] = 0;
+		m_nProgram[nTG] = 0;
+		m_nVolume[nTG] = 0;
+	}
 }
 
 CUserInterface::~CUserInterface (void)
@@ -108,10 +112,11 @@ void CUserInterface::Process (void)
 	}
 }
 
-void CUserInterface::BankSelected (unsigned nBankLSB)
+void CUserInterface::BankSelected (unsigned nBankLSB, unsigned  nTG)
 {
 	assert (nBankLSB < 128);
-	m_nBank = nBankLSB;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nBank[nTG] = nBankLSB;
 
 	assert (m_pMiniDexed);
 	std::string BankName = m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankLSB);
@@ -119,48 +124,62 @@ void CUserInterface::BankSelected (unsigned nBankLSB)
 	// MIDI numbering starts with 0, user interface with 1
 	printf ("Select voice bank %u: \"%s\"\n", nBankLSB+1, BankName.c_str ());
 
-	if (m_UIMode == UIModeBankSelect)
+	if (   m_UIMode == UIModeBankSelect
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		CString String;
 		String.Format ("%u", nBankLSB+1);
 
-		DisplayWrite (String, "BANK", BankName.c_str ());
+		DisplayWrite (TG, "BANK", String, BankName.c_str ());
 	}
 }
 
-void CUserInterface::ProgramChanged (unsigned nProgram)
+void CUserInterface::ProgramChanged (unsigned nProgram, unsigned  nTG)
 {
 	assert (nProgram < 128);
-	m_nProgram = nProgram;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nProgram[nTG] = nProgram;
 
 	nProgram++;	// MIDI numbering starts with 0, user interface with 1
 
 	assert (m_pMiniDexed);
-	std::string VoiceName = m_pMiniDexed->GetVoiceName ();
+	std::string VoiceName = m_pMiniDexed->GetVoiceName (nTG);
 
 	printf ("Loading voice %u: \"%s\"\n", nProgram, VoiceName.c_str ());
 
-	if (m_UIMode == UIModeVoiceSelect)
+	if (   m_UIMode == UIModeVoiceSelect
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		CString String;
 		String.Format ("%u", nProgram);
 
-		DisplayWrite (String, "VOICE", VoiceName.c_str ());
+		DisplayWrite (TG, "VOICE", String, VoiceName.c_str ());
 	}
 }
 
-void CUserInterface::VolumeChanged (unsigned nVolume)
+void CUserInterface::VolumeChanged (unsigned nVolume, unsigned  nTG)
 {
 	assert (nVolume < 128);
-	m_nVolume = nVolume;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nVolume[nTG] = nVolume;
 
-	if (m_UIMode == UIModeVolume)
+	if (   m_UIMode == UIModeVolume
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		char VolumeBar[CConfig::LCDColumns+1];
 		memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
 		VolumeBar[nVolume * CConfig::LCDColumns / 127] = '\0';
 
-		DisplayWrite ("", "VOLUME", VolumeBar);
+		DisplayWrite (TG, "VOLUME", VolumeBar);
 	}
 }
 
@@ -235,6 +254,13 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		}
 		break;
 
+	case CKY040::EventSwitchDoubleClick:
+		if (++m_nTG == CConfig::ToneGenerators)
+		{
+			m_nTG = 0;
+		}
+		break;
+
 	case CKY040::EventSwitchHold:
 		if (m_pRotaryEncoder->GetHoldSeconds () >= 3)
 		{
@@ -251,23 +277,23 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 	switch (m_UIMode)
 	{
 	case UIModeBankSelect:
-		if (m_nBank + nStep < 128)
+		if (m_nBank[m_nTG] + nStep < 128)
 		{
-			m_pMiniDexed->BankSelectLSB (m_nBank + nStep);
+			m_pMiniDexed->BankSelectLSB (m_nBank[m_nTG] + nStep, m_nTG);
 		}
 		break;
 
 	case UIModeVoiceSelect:
-		if (m_nProgram + nStep < 32)
+		if (m_nProgram[m_nTG] + nStep < 32)
 		{
-			m_pMiniDexed->ProgramChange (m_nProgram + nStep);
+			m_pMiniDexed->ProgramChange (m_nProgram[m_nTG] + nStep, m_nTG);
 		}
 		break;
 
 	case UIModeVolume: {
 		const int Increment = 128 / CConfig::LCDColumns;
 
-		int nVolume = m_nVolume + nStep*Increment;
+		int nVolume = m_nVolume[m_nTG] + nStep*Increment;
 		if (nVolume < 0)
 		{
 			nVolume = 0;
@@ -277,7 +303,7 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 			nVolume = 127;
 		}
 
-		m_pMiniDexed->SetVolume (nVolume);
+		m_pMiniDexed->SetVolume (nVolume, m_nTG);
 		} break;
 
 	default:

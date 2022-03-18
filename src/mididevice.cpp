@@ -107,12 +107,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		{
 			if (ucVelocity <= 127)
 			{
-				m_pSynthesizer->keydown (ucKeyNumber, ucVelocity);
+				for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+				{
+					m_pSynthesizer->keydown (ucKeyNumber, ucVelocity, nTG);
+				}
 			}
 		}
 		else
 		{
-			m_pSynthesizer->keyup (ucKeyNumber);
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				m_pSynthesizer->keyup (ucKeyNumber, nTG);
+			}
 		}
 		break;
 
@@ -122,7 +128,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			break;
 		}
 
-		m_pSynthesizer->keyup (ucKeyNumber);
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			m_pSynthesizer->keyup (ucKeyNumber, nTG);
+		}
 		break;
 
 	case MIDI_CONTROL_CHANGE:
@@ -134,26 +143,41 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		switch (pMessage[1])
 		{
 		case MIDI_CC_MODULATION:
-			m_pSynthesizer->setModWheel (pMessage[2]);
-			m_pSynthesizer->ControllersRefresh ();
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				m_pSynthesizer->setModWheel (pMessage[2], nTG);
+				m_pSynthesizer->ControllersRefresh (nTG);
+			}
 			break;
 
 		case MIDI_CC_VOLUME:
-			m_pSynthesizer->SetVolume (pMessage[2]);
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				m_pSynthesizer->SetVolume (pMessage[2], nTG);
+			}
 			break;
 
 		case MIDI_CC_BANK_SELECT_LSB:
-			m_pSynthesizer->BankSelectLSB (pMessage[2]);
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+			}
 			break;
 
 		case MIDI_CC_BANK_SUSTAIN:
-			m_pSynthesizer->setSustain (pMessage[2] >= 64);
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+			}
 			break;
 		}
 		break;
 
 	case MIDI_PROGRAM_CHANGE:
-		m_pSynthesizer->ProgramChange (pMessage[1]);
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+		}
 		break;
 
 	case MIDI_PITCH_BEND: {
@@ -166,7 +190,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		nValue |= (s16) pMessage[2] << 7;
 		nValue -= 0x2000;
 
-		m_pSynthesizer->setPitchbend (nValue);
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			m_pSynthesizer->setPitchbend (nValue, nTG);
+		}
 		} break;
 
 	default:
