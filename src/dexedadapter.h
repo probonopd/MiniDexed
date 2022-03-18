@@ -70,6 +70,13 @@ public:
 		m_SpinLock.Release ();
 	}
 
+	void setSustain (bool sustain)
+	{
+		m_SpinLock.Acquire ();
+		Dexed::setSustain (sustain);
+		m_SpinLock.Release ();
+	}
+
 private:
 	CSpinLock m_SpinLock;
 };
