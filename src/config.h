@@ -25,18 +25,27 @@
 
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
+#include <circle/sysconfig.h>
 #include <string>
 
 class CConfig		// Configuration for MiniDexed
 {
 public:
-#if RASPPI == 1
+#ifndef ARM_ALLOW_MULTI_CORE
 	static const unsigned ToneGenerators = 1;
+#else
+	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
+	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
+	static const unsigned ToneGenerators = TGsCore1 + 2*TGsCore23;
+#endif
+
+#if RASPPI == 1
 	static const unsigned MaxNotes = 8;		// polyphony
 #else
-	static const unsigned ToneGenerators = 2;
-	static const unsigned MaxNotes = 16;		// polyphony
+	static const unsigned MaxNotes = 16;
 #endif
+
+	static const unsigned MaxChunkSize = 4096;
 
 #if RASPPI <= 3
 	static const unsigned MaxUSBMIDIDevices = 2;

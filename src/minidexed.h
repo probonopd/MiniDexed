@@ -73,6 +73,17 @@ public:
 private:
 	void ProcessSound (void);
 
+#ifdef ARM_ALLOW_MULTI_CORE
+	enum TCoreStatus
+	{
+		CoreStatusInit,
+		CoreStatusIdle,
+		CoreStatusBusy,
+		CoreStatusExit,
+		CoreStatusUnknown
+	};
+#endif
+
 private:
 	CConfig *m_pConfig;
 
@@ -88,6 +99,12 @@ private:
 
 	CSoundBaseDevice *m_pSoundDevice;
 	unsigned m_nQueueSizeFrames;
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	volatile TCoreStatus m_CoreStatus[CORES];
+	volatile unsigned m_nFramesToProcess;
+	int16_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
+#endif
 
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;

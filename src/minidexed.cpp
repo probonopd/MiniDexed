@@ -85,6 +85,13 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pSoundDevice = new CPWMSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 							  pConfig->GetChunkSize ());
 	}
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	for (unsigned nCore = 0; nCore < CORES; nCore++)
+	{
+		m_CoreStatus[nCore] = CoreStatusInit;
+	}
+#endif
 };
 
 bool CMiniDexed::Initialize (void)
@@ -175,11 +182,56 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 
 void CMiniDexed::Run (unsigned nCore)
 {
+	assert (1 <= nCore && nCore < CORES);
+
 	if (nCore == 1)
+	{
+		m_CoreStatus[nCore] = CoreStatusIdle;			// core 1 ready
+
+		// wait for cores 2 and 3 to be ready
+		for (unsigned nCore = 2; nCore < CORES; nCore++)
+		{
+			while (m_CoreStatus[nCore] != CoreStatusIdle)
+			{
+				// just wait
+			}
+		}
+
+		while (m_CoreStatus[nCore] != CoreStatusExit)
+		{
+			ProcessSound ();
+		}
+	}
+	else								// core 2 and 3
 	{
 		while (1)
 		{
-			ProcessSound ();
+			m_CoreStatus[nCore] = CoreStatusIdle;		// ready to be kicked
+			while (m_CoreStatus[nCore] == CoreStatusIdle)
+			{
+				// just wait
+			}
+
+			// now kicked from core 1
+
+			if (m_CoreStatus[nCore] == CoreStatusExit)
+			{
+				m_CoreStatus[nCore] = CoreStatusUnknown;
+
+				break;
+			}
+
+			assert (m_CoreStatus[nCore] == CoreStatusBusy);
+
+			// process the TGs, assigned to this core (2 or 3)
+
+			assert (m_nFramesToProcess <= CConfig::MaxChunkSize);
+			unsigned nTG = CConfig::TGsCore1 + (nCore-2)*CConfig::TGsCore23;
+			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
+			{
+				assert (m_pTG[nTG]);
+				m_pTG[nTG]->getSamples (m_nFramesToProcess, m_OutputLevel[nTG]);
+			}
 		}
 	}
 }
@@ -303,6 +355,8 @@ std::string CMiniDexed::GetVoiceName (unsigned nTG)
 	return Result;
 }
 
+#ifndef ARM_ALLOW_MULTI_CORE
+
 void CMiniDexed::ProcessSound (void)
 {
 	assert (m_pSoundDevice);
@@ -316,33 +370,7 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		int16_t SampleBuffer[nFrames];
-
-#if RASPPI > 1
-		for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
-		{
-			int16_t TempBuffer[nFrames];
-
-			assert (m_pTG[i]);
-			m_pTG[i]->getSamples (nFrames, TempBuffer);
-
-			if (i == 0)
-			{
-				for (unsigned j = 0; j < nFrames; j++)
-				{
-					SampleBuffer[j] = TempBuffer[j] / CConfig::ToneGenerators;
-				}
-			}
-			else
-			{
-				for (unsigned j = 0; j < nFrames; j++)
-				{
-					SampleBuffer[j] += TempBuffer[j] / CConfig::ToneGenerators;
-				}
-			}
-		}
-#else
 		m_pTG[0]->getSamples (nFrames, SampleBuffer);
-#endif
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
 		    != (int) sizeof SampleBuffer)
@@ -356,3 +384,75 @@ void CMiniDexed::ProcessSound (void)
 		}
 	}
 }
+
+#else	// #ifdef ARM_ALLOW_MULTI_CORE
+
+void CMiniDexed::ProcessSound (void)
+{
+	assert (m_pSoundDevice);
+
+	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail ();
+	if (nFrames >= m_nQueueSizeFrames/2)
+	{
+		if (m_bProfileEnabled)
+		{
+			m_GetChunkTimer.Start ();
+		}
+
+		m_nFramesToProcess = nFrames;
+
+		// kick secondary cores
+		for (unsigned nCore = 2; nCore < CORES; nCore++)
+		{
+			assert (m_CoreStatus[nCore] == CoreStatusIdle);
+			m_CoreStatus[nCore] = CoreStatusBusy;
+		}
+
+		// process the TGs assigned to core 1
+		assert (nFrames <= CConfig::MaxChunkSize);
+		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
+		{
+			assert (m_pTG[i]);
+			m_pTG[i]->getSamples (nFrames, m_OutputLevel[i]);
+		}
+
+		// wait for cores 2 and 3 to complete their work
+		for (unsigned nCore = 2; nCore < CORES; nCore++)
+		{
+			while (m_CoreStatus[nCore] != CoreStatusIdle)
+			{
+				// just wait
+			}
+		}
+
+		// now mix the output of all TGs
+		int16_t SampleBuffer[nFrames];
+		assert (CConfig::ToneGenerators == 8);
+		for (unsigned i = 0; i < nFrames; i++)
+		{
+			int32_t nSample =   m_OutputLevel[0][i]
+					  + m_OutputLevel[1][i]
+					  + m_OutputLevel[2][i]
+					  + m_OutputLevel[3][i]
+					  + m_OutputLevel[4][i]
+					  + m_OutputLevel[5][i]
+					  + m_OutputLevel[6][i]
+					  + m_OutputLevel[7][i];
+
+			SampleBuffer[i] = (int16_t) (nSample / CConfig::ToneGenerators);
+		}
+
+		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
+		    != (int) sizeof SampleBuffer)
+		{
+			LOGERR ("Sound data dropped");
+		}
+
+		if (m_bProfileEnabled)
+		{
+			m_GetChunkTimer.Stop ();
+		}
+	}
+}
+
+#endif
