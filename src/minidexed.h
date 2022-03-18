@@ -88,6 +88,7 @@ private:
 	CConfig *m_pConfig;
 
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;

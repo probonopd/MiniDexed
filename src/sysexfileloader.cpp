@@ -45,8 +45,7 @@ uint8_t CSysExFileLoader::s_DefaultVoice[SizeSingleVoice] =	// FM-Piano
 };
 
 CSysExFileLoader::CSysExFileLoader (const char *pDirName)
-:	m_DirName (pDirName),
-	m_nBankID (0)
+:	m_DirName (pDirName)
 {
 	m_DirName += "/voice";
 
@@ -168,22 +167,14 @@ std::string CSysExFileLoader::GetBankName (unsigned nBankID)
 	return "NO NAME";
 }
 
-void CSysExFileLoader::SelectVoiceBank (unsigned nBankID)
+void CSysExFileLoader::GetVoice (unsigned nBankID, unsigned nVoiceID, uint8_t *pVoiceData)
 {
-	if (nBankID <= MaxVoiceBankID)
+	if (   nBankID <= MaxVoiceBankID
+	    && nVoiceID <= VoicesPerBank)
 	{
-		m_nBankID = nBankID;
-	}
-}
-
-void CSysExFileLoader::GetVoice (unsigned nVoiceID, uint8_t *pVoiceData)
-{
-	if (nVoiceID <= VoicesPerBank)
-	{
-		assert (m_nBankID <= MaxVoiceBankID);
-		if (m_pVoiceBank[m_nBankID])
+		if (m_pVoiceBank[nBankID])
 		{
-			DecodePackedVoice (m_pVoiceBank[m_nBankID]->Voice[nVoiceID], pVoiceData);
+			DecodePackedVoice (m_pVoiceBank[nBankID]->Voice[nVoiceID], pVoiceData);
 
 			return;
 		}
@@ -191,7 +182,7 @@ void CSysExFileLoader::GetVoice (unsigned nVoiceID, uint8_t *pVoiceData)
 		{
 			// Use default voices_bank instead of s_DefaultVoice for bank 0,
 			// if the bank was not successfully loaded from disk.
-			if (m_nBankID == 0)
+			if (nBankID == 0)
 			{
 				memcpy (pVoiceData, voices_bank[0][nVoiceID], SizeSingleVoice);
 

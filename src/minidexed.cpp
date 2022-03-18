@@ -49,6 +49,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
+		m_nVoiceBankID[i] = 0;
+
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
 
@@ -250,7 +252,10 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB)
 		return;
 	}
 
-	m_SysExFileLoader.SelectVoiceBank (nBankLSB);
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		m_nVoiceBankID[i] = nBankLSB;
+	}
 
 	m_UI.BankSelected (nBankLSB);
 }
@@ -262,10 +267,11 @@ void CMiniDexed::ProgramChange (unsigned nProgram)
 		return;
 	}
 
-	uint8_t Buffer[156];
-	m_SysExFileLoader.GetVoice (nProgram, Buffer);
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
+		uint8_t Buffer[156];
+		m_SysExFileLoader.GetVoice (m_nVoiceBankID[i], nProgram, Buffer);
+
 		assert (m_pTG[i]);
 		m_pTG[i]->loadVoiceParameters (Buffer);
 	}
