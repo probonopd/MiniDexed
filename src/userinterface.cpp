@@ -135,20 +135,17 @@ void CUserInterface::ProgramChanged (unsigned nProgram)
 
 	nProgram++;	// MIDI numbering starts with 0, user interface with 1
 
-	// fetch program name from Dexed instance
-	char ProgramName[11];
-	memset (ProgramName, 0, sizeof ProgramName);
 	assert (m_pMiniDexed);
-	m_pMiniDexed->setName (ProgramName);
+	std::string VoiceName = m_pMiniDexed->GetVoiceName ();
 
-	printf ("Loading voice %u: \"%s\"\n", nProgram, ProgramName);
+	printf ("Loading voice %u: \"%s\"\n", nProgram, VoiceName.c_str ());
 
 	if (m_UIMode == UIModeVoiceSelect)
 	{
 		CString String;
 		String.Format ("%u", nProgram);
 
-		DisplayWrite (String, "VOICE", ProgramName);
+		DisplayWrite (String, "VOICE", VoiceName.c_str ());
 	}
 }
 

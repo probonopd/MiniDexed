@@ -31,7 +31,7 @@ LOGMODULE ("minidexed");
 
 CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster)
-:	CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ()),
+:
 #ifdef ARM_ALLOW_MULTI_CORE
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
@@ -45,6 +45,16 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
 {
+	assert (m_pConfig);
+
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
+		assert (m_pTG[i]);
+
+		m_pTG[i]->activate ();
+	}
+
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
 		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, i);
@@ -96,14 +106,18 @@ bool CMiniDexed::Initialize (void)
 		m_bUseSerial = true;
 	}
 
-	activate ();
-
 	SetVolume (100);
 	ProgramChange (0);
-	setTranspose (24);
 
-	setPBController (12, 1);
-	setMWController (99, 7, 0);
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+
+		m_pTG[i]->setTranspose (24);
+
+		m_pTG[i]->setPBController (12, 1);
+		m_pTG[i]->setMWController (99, 7, 0);
+	}
 
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
@@ -198,7 +212,11 @@ void CMiniDexed::ProgramChange (unsigned nProgram)
 
 	uint8_t Buffer[156];
 	m_SysExFileLoader.GetVoice (nProgram, Buffer);
-	loadVoiceParameters (Buffer);
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->loadVoiceParameters (Buffer);
+	}
 
 	m_UI.ProgramChanged (nProgram);
 }
@@ -210,9 +228,79 @@ void CMiniDexed::SetVolume (unsigned nVolume)
 		return;
 	}
 
-	setGain (nVolume / 127.0);
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->setGain (nVolume / 127.0);
+	}
 
 	m_UI.VolumeChanged (nVolume);
+}
+
+void CMiniDexed::keyup (int16_t pitch)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->keyup (pitch);
+	}
+}
+
+void CMiniDexed::keydown (int16_t pitch, uint8_t velocity)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->keydown (pitch, velocity);
+	}
+}
+
+void CMiniDexed::setSustain(bool sustain)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->setSustain (sustain);
+	}
+}
+
+void CMiniDexed::setModWheel (uint8_t value)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->setModWheel (value);
+	}
+}
+
+void CMiniDexed::setPitchbend (int16_t value)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->setPitchbend (value);
+	}
+}
+
+void CMiniDexed::ControllersRefresh (void)
+{
+	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	{
+		assert (m_pTG[i]);
+		m_pTG[i]->ControllersRefresh ();
+	}
+}
+
+std::string CMiniDexed::GetVoiceName (unsigned nTG)
+{
+	char VoiceName[11];
+	memset (VoiceName, 0, sizeof VoiceName);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setName (VoiceName);
+
+	std::string Result (VoiceName);
+
+	return Result;
 }
 
 void CMiniDexed::ProcessSound (void)
@@ -228,7 +316,33 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		int16_t SampleBuffer[nFrames];
-		getSamples (nFrames, SampleBuffer);
+
+#if RASPPI > 1
+		for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+		{
+			int16_t TempBuffer[nFrames];
+
+			assert (m_pTG[i]);
+			m_pTG[i]->getSamples (nFrames, TempBuffer);
+
+			if (i == 0)
+			{
+				for (unsigned j = 0; j < nFrames; j++)
+				{
+					SampleBuffer[j] = TempBuffer[j] / CConfig::ToneGenerators;
+				}
+			}
+			else
+			{
+				for (unsigned j = 0; j < nFrames; j++)
+				{
+					SampleBuffer[j] += TempBuffer[j] / CConfig::ToneGenerators;
+				}
+			}
+		}
+#else
+		m_pTG[0]->getSamples (nFrames, SampleBuffer);
+#endif
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
 		    != (int) sizeof SampleBuffer)

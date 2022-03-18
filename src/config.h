@@ -30,7 +30,13 @@
 class CConfig		// Configuration for MiniDexed
 {
 public:
+#if RASPPI == 1
+	static const unsigned ToneGenerators = 1;
+	static const unsigned MaxNotes = 8;		// polyphony
+#else
+	static const unsigned ToneGenerators = 2;
 	static const unsigned MaxNotes = 16;		// polyphony
+#endif
 
 #if RASPPI <= 3
 	static const unsigned MaxUSBMIDIDevices = 2;

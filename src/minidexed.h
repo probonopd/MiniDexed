@@ -29,6 +29,7 @@
 #include "serialmididevice.h"
 #include "perftimer.h"
 #include <stdint.h>
+#include <string>
 #include <circle/types.h>
 #include <circle/interrupt.h>
 #include <circle/gpiomanager.h>
@@ -36,9 +37,9 @@
 #include <circle/multicore.h>
 #include <circle/soundbasedevice.h>
 
-class CMiniDexed : public CDexedAdapter
+class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
-	, public CMultiCoreSupport
+:	public CMultiCoreSupport
 #endif
 {
 public:
@@ -59,11 +60,23 @@ public:
 	void ProgramChange (unsigned nProgram);
 	void SetVolume (unsigned nVolume);
 
+	void keyup (int16_t pitch);
+	void keydown (int16_t pitch, uint8_t velocity);
+
+	void setSustain (bool sustain);
+	void setModWheel (uint8_t value);
+	void setPitchbend (int16_t value);
+	void ControllersRefresh (void);
+
+	std::string GetVoiceName (unsigned nTG = 0);
+
 private:
 	void ProcessSound (void);
 
 private:
 	CConfig *m_pConfig;
+
+	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
