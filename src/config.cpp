@@ -38,7 +38,11 @@ void CConfig::Load (void)
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
 
 	m_nSampleRate = m_Properties.GetNumber ("SampleRate", 48000);
+#ifdef ARM_ALLOW_MULTI_CORE
 	m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_SoundDevice == "hdmi" ? 384*6 : 256);
+#else
+	m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_SoundDevice == "hdmi" ? 384*6 : 1024);
+#endif
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);

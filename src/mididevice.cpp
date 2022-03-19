@@ -45,11 +45,27 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
 :	m_pSynthesizer (pSynthesizer),
 	m_pConfig (pConfig)
 {
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_ChannelMap[nTG] = Disabled;
+	}
 }
 
 CMIDIDevice::~CMIDIDevice (void)
 {
 	m_pSynthesizer = 0;
+}
+
+void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_ChannelMap[nTG] = ucChannel;
+}
+
+u8 CMIDIDevice::GetChannel (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_ChannelMap[nTG];
 }
 
 void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable)
@@ -67,17 +83,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				printf ("MIDI %u: %02X\n", nCable, (unsigned) pMessage[0]);
+				printf ("MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			printf ("MIDI %u: %02X %02X\n", nCable,
+			printf ("MIDI%u: %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			printf ("MIDI %u: %02X %02X %02X\n", nCable,
+			printf ("MIDI%u: %02X %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
@@ -89,87 +105,93 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		return;
 	}
 
-	u8 ucStatus    = pMessage[0];
-	// TODO: u8 ucChannel   = ucStatus & 0x0F;
-	u8 ucType      = ucStatus >> 4;
-	u8 ucKeyNumber = pMessage[1];
-	u8 ucVelocity  = pMessage[2];
+	u8 ucStatus  = pMessage[0];
+	u8 ucChannel = ucStatus & 0x0F;
+	u8 ucType    = ucStatus >> 4;
 
-	switch (ucType)
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-	case MIDI_NOTE_ON:
-		if (nLength < 3)
+		if (   m_ChannelMap[nTG] == ucChannel
+		    || m_ChannelMap[nTG] == OmniMode)
 		{
-			break;
-		}
-
-		if (ucVelocity > 0)
-		{
-			if (ucVelocity <= 127)
+			switch (ucType)
 			{
-				m_pSynthesizer->keydown (ucKeyNumber, ucVelocity);
+			case MIDI_NOTE_ON:
+				if (nLength < 3)
+				{
+					break;
+				}
+
+				if (pMessage[2] > 0)
+				{
+					if (pMessage[2] <= 127)
+					{
+						m_pSynthesizer->keydown (pMessage[1],
+									 pMessage[2], nTG);
+					}
+				}
+				else
+				{
+					m_pSynthesizer->keyup (pMessage[1], nTG);
+				}
+				break;
+
+			case MIDI_NOTE_OFF:
+				if (nLength < 3)
+				{
+					break;
+				}
+
+				m_pSynthesizer->keyup (pMessage[1], nTG);
+				break;
+
+			case MIDI_CONTROL_CHANGE:
+				if (nLength < 3)
+				{
+					break;
+				}
+
+				switch (pMessage[1])
+				{
+				case MIDI_CC_MODULATION:
+					m_pSynthesizer->setModWheel (pMessage[2], nTG);
+					m_pSynthesizer->ControllersRefresh (nTG);
+					break;
+
+				case MIDI_CC_VOLUME:
+					m_pSynthesizer->SetVolume (pMessage[2], nTG);
+					break;
+
+				case MIDI_CC_BANK_SELECT_LSB:
+					m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+					break;
+
+				case MIDI_CC_BANK_SUSTAIN:
+					m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+					break;
+				}
+				break;
+
+			case MIDI_PROGRAM_CHANGE:
+				m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+				break;
+
+			case MIDI_PITCH_BEND: {
+				if (nLength < 3)
+				{
+					break;
+				}
+
+				s16 nValue = pMessage[1];
+				nValue |= (s16) pMessage[2] << 7;
+				nValue -= 0x2000;
+
+				m_pSynthesizer->setPitchbend (nValue, nTG);
+				} break;
+
+			default:
+				break;
 			}
 		}
-		else
-		{
-			m_pSynthesizer->keyup (ucKeyNumber);
-		}
-		break;
-
-	case MIDI_NOTE_OFF:
-		if (nLength < 3)
-		{
-			break;
-		}
-
-		m_pSynthesizer->keyup (ucKeyNumber);
-		break;
-
-	case MIDI_CONTROL_CHANGE:
-		if (nLength < 3)
-		{
-			break;
-		}
-
-		switch (pMessage[1])
-		{
-		case MIDI_CC_MODULATION:
-			m_pSynthesizer->setModWheel (pMessage[2]);
-			m_pSynthesizer->ControllersRefresh ();
-			break;
-
-		case MIDI_CC_VOLUME:
-			m_pSynthesizer->SetVolume (pMessage[2]);
-			break;
-
-		case MIDI_CC_BANK_SELECT_LSB:
-			m_pSynthesizer->BankSelectLSB (pMessage[2]);
-			break;
-
-		case MIDI_CC_BANK_SUSTAIN:
-			m_pSynthesizer->setSustain (pMessage[2] >= 64);
-			break;
-		}
-		break;
-
-	case MIDI_PROGRAM_CHANGE:
-		m_pSynthesizer->ProgramChange (pMessage[1]);
-		break;
-
-	case MIDI_PITCH_BEND: {
-		if (nLength < 3)
-		{
-			break;
-		}
-
-		s16 nValue = pMessage[1];
-		nValue |= (s16) pMessage[2] << 7;
-		nValue -= 0x2000;
-
-		m_pSynthesizer->setPitchbend (nValue);
-		} break;
-
-	default:
-		break;
 	}
 }

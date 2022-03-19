@@ -37,10 +37,15 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pLCDBuffered (0),
 	m_pRotaryEncoder (0),
 	m_UIMode (UIModeVoiceSelect),
-	m_nBank (0),
-	m_nProgram (0),
-	m_nVolume (0)
+	m_nTG (0)
 {
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_nBank[nTG] = 0;
+		m_nProgram[nTG] = 0;
+		m_nVolume[nTG] = 0;
+		m_uchMIDIChannel[nTG] = CMIDIDevice::Disabled;
+	}
 }
 
 CUserInterface::~CUserInterface (void)
@@ -108,62 +113,100 @@ void CUserInterface::Process (void)
 	}
 }
 
-void CUserInterface::BankSelected (unsigned nBankLSB)
+void CUserInterface::BankSelected (unsigned nBankLSB, unsigned  nTG)
 {
 	assert (nBankLSB < 128);
-	m_nBank = nBankLSB;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nBank[nTG] = nBankLSB;
 
 	assert (m_pMiniDexed);
 	std::string BankName = m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankLSB);
 
 	// MIDI numbering starts with 0, user interface with 1
-	printf ("Select voice bank %u: \"%s\"\n", nBankLSB+1, BankName.c_str ());
+	printf ("TG%u: Select voice bank %u: \"%s\"\n", nTG+1, nBankLSB+1, BankName.c_str ());
 
-	if (m_UIMode == UIModeBankSelect)
+	if (   m_UIMode == UIModeBankSelect
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		CString String;
 		String.Format ("%u", nBankLSB+1);
 
-		DisplayWrite (String, "BANK", BankName.c_str ());
+		DisplayWrite (TG, "BANK", String, BankName.c_str ());
 	}
 }
 
-void CUserInterface::ProgramChanged (unsigned nProgram)
+void CUserInterface::ProgramChanged (unsigned nProgram, unsigned  nTG)
 {
 	assert (nProgram < 128);
-	m_nProgram = nProgram;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nProgram[nTG] = nProgram;
 
 	nProgram++;	// MIDI numbering starts with 0, user interface with 1
 
-	// fetch program name from Dexed instance
-	char ProgramName[11];
-	memset (ProgramName, 0, sizeof ProgramName);
 	assert (m_pMiniDexed);
-	m_pMiniDexed->setName (ProgramName);
+	std::string VoiceName = m_pMiniDexed->GetVoiceName (nTG);
 
-	printf ("Loading voice %u: \"%s\"\n", nProgram, ProgramName);
+	printf ("TG%u: Loading voice %u: \"%s\"\n", nTG+1, nProgram, VoiceName.c_str ());
 
-	if (m_UIMode == UIModeVoiceSelect)
+	if (   m_UIMode == UIModeVoiceSelect
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		CString String;
 		String.Format ("%u", nProgram);
 
-		DisplayWrite (String, "VOICE", ProgramName);
+		DisplayWrite (TG, "VOICE", String, VoiceName.c_str ());
 	}
 }
 
-void CUserInterface::VolumeChanged (unsigned nVolume)
+void CUserInterface::VolumeChanged (unsigned nVolume, unsigned  nTG)
 {
 	assert (nVolume < 128);
-	m_nVolume = nVolume;
+	assert (nTG < CConfig::ToneGenerators);
+	m_nVolume[nTG] = nVolume;
 
-	if (m_UIMode == UIModeVolume)
+	if (   m_UIMode == UIModeVolume
+	    && m_nTG == nTG)
 	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
 		char VolumeBar[CConfig::LCDColumns+1];
 		memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
 		VolumeBar[nVolume * CConfig::LCDColumns / 127] = '\0';
 
-		DisplayWrite ("", "VOLUME", VolumeBar);
+		DisplayWrite (TG, "VOLUME", VolumeBar);
+	}
+}
+
+void CUserInterface::MIDIChannelChanged (uint8_t uchChannel, unsigned  nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_uchMIDIChannel[nTG] = uchChannel;
+
+	if (   m_UIMode == UIModeMIDI
+	    && m_nTG == nTG)
+	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
+		CString String;
+		switch (uchChannel)
+		{
+		case CMIDIDevice::OmniMode:	String = "OMNI";	break;
+		case CMIDIDevice::Disabled:	String = "OFF";		break;
+
+		default:
+			String.Format ("%u", (unsigned) uchChannel+1);
+			break;
+		}
+
+		DisplayWrite (TG, "MIDI", "CHANNEL", (const char *) String);
 	}
 }
 
@@ -173,6 +216,12 @@ void CUserInterface::DisplayWrite (const char *pInstance, const char *pMenu,
 	assert (pInstance);
 	assert (pMenu);
 	assert (pParam);
+
+	// Do not show instance, if there is only one.
+	if (CConfig::ToneGenerators == 1)
+	{
+		pInstance = "";
+	}
 
 	CString Msg ("\x1B[H");		// cursor home
 
@@ -238,6 +287,13 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		}
 		break;
 
+	case CKY040::EventSwitchDoubleClick:
+		if (++m_nTG == CConfig::ToneGenerators)
+		{
+			m_nTG = 0;
+		}
+		break;
+
 	case CKY040::EventSwitchHold:
 		if (m_pRotaryEncoder->GetHoldSeconds () >= 3)
 		{
@@ -245,7 +301,12 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 
 			reboot ();
 		}
-		return;
+		else
+		{
+			m_UIMode = UIModeStart;
+			m_nTG = 0;
+		}
+		break;
 
 	default:
 		return;
@@ -254,23 +315,23 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 	switch (m_UIMode)
 	{
 	case UIModeBankSelect:
-		if (m_nBank + nStep < 128)
+		if (m_nBank[m_nTG] + nStep < 128)
 		{
-			m_pMiniDexed->BankSelectLSB (m_nBank + nStep);
+			m_pMiniDexed->BankSelectLSB (m_nBank[m_nTG] + nStep, m_nTG);
 		}
 		break;
 
 	case UIModeVoiceSelect:
-		if (m_nProgram + nStep < 32)
+		if (m_nProgram[m_nTG] + nStep < 32)
 		{
-			m_pMiniDexed->ProgramChange (m_nProgram + nStep);
+			m_pMiniDexed->ProgramChange (m_nProgram[m_nTG] + nStep, m_nTG);
 		}
 		break;
 
 	case UIModeVolume: {
 		const int Increment = 128 / CConfig::LCDColumns;
 
-		int nVolume = m_nVolume + nStep*Increment;
+		int nVolume = m_nVolume[m_nTG] + nStep*Increment;
 		if (nVolume < 0)
 		{
 			nVolume = 0;
@@ -280,8 +341,15 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 			nVolume = 127;
 		}
 
-		m_pMiniDexed->SetVolume (nVolume);
+		m_pMiniDexed->SetVolume (nVolume, m_nTG);
 		} break;
+
+	case UIModeMIDI:
+		if ((uint8_t) (m_uchMIDIChannel[m_nTG] + nStep) < CMIDIDevice::ChannelUnknown)
+		{
+			m_pMiniDexed->SetMIDIChannel (m_uchMIDIChannel[m_nTG] + nStep, m_nTG);
+		}
+		break;
 
 	default:
 		break;

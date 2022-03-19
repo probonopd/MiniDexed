@@ -18,7 +18,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "pckeyboard.h"
-#include "minidexed.h"
 #include <circle/devicenameservice.h>
 #include <circle/util.h>
 #include <assert.h>
@@ -61,8 +60,8 @@ static TKeyInfo KeyTable[] =
 
 CPCKeyboard *CPCKeyboard::s_pThis = 0;
 
-CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer)
-:	m_pSynthesizer (pSynthesizer),
+CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig)
+:	CMIDIDevice (pSynthesizer, pConfig),
 	m_pKeyboard (0)
 {
 	s_pThis = this;
@@ -72,8 +71,6 @@ CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer)
 
 CPCKeyboard::~CPCKeyboard (void)
 {
-	m_pSynthesizer = 0;
-
 	s_pThis = 0;
 }
 
@@ -100,7 +97,6 @@ void CPCKeyboard::Process (boolean bPlugAndPlayUpdated)
 void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6])
 {
 	assert (s_pThis != 0);
-	assert (s_pThis->m_pSynthesizer != 0);
 
 	// report released keys
 	for (unsigned i = 0; i < 6; i++)
@@ -112,7 +108,8 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
 			if (ucKeyNumber != 0)
 			{
-				s_pThis->m_pSynthesizer->keyup (ucKeyNumber);
+				u8 NoteOff[] = {0x80, ucKeyNumber, 0};
+				s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
 			}
 		}
 	}
@@ -127,7 +124,8 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
 			if (ucKeyNumber != 0)
 			{
-				s_pThis->m_pSynthesizer->keydown (ucKeyNumber, 100);
+				u8 NoteOn[] = {0x90, ucKeyNumber, 100};
+				s_pThis->MIDIMessageHandler (NoteOn, sizeof NoteOn);
 			}
 		}
 	}

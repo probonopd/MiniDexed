@@ -58,9 +58,8 @@ public:
 
 	std::string GetBankName (unsigned nBankID);	// 0 .. 127
 
-	void SelectVoiceBank (unsigned nBankID);	// 0 .. 127
-
-	void GetVoice (unsigned nVoiceID,		// 0 .. 31
+	void GetVoice (unsigned nBankID,		// 0 .. 127
+		       unsigned nVoiceID,		// 0 .. 31
 		       uint8_t *pVoiceData);		// returns unpacked format (156 bytes)
 
 private:
@@ -71,8 +70,6 @@ private:
 
 	TVoiceBank *m_pVoiceBank[MaxVoiceBankID+1];
 	std::string m_BankFileName[MaxVoiceBankID+1];
-
-	unsigned m_nBankID;
 
 	static uint8_t s_DefaultVoice[SizeSingleVoice];
 };

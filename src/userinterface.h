@@ -25,6 +25,7 @@
 #include <display/hd44780device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
+#include <stdint.h>
 
 class CMiniDexed;
 
@@ -38,9 +39,10 @@ public:
 
 	void Process (void);
 
-	void BankSelected (unsigned nBankLSB);		// 0 .. 127
-	void ProgramChanged (unsigned nProgram);	// 0 .. 127
-	void VolumeChanged (unsigned nVolume);		// 0 .. 127
+	void BankSelected (unsigned nBankLSB, unsigned  nTG);		// 0 .. 127
+	void ProgramChanged (unsigned nProgram, unsigned  nTG);		// 0 .. 127
+	void VolumeChanged (unsigned nVolume, unsigned  nTG);		// 0 .. 127
+	void MIDIChannelChanged (uint8_t uchChannel, unsigned  nTG);
 
 private:
 	// Print to display in this format:
@@ -63,6 +65,7 @@ private:
 		UIModeVoiceSelect = UIModeStart,
 		UIModeBankSelect,
 		UIModeVolume,
+		UIModeMIDI,
 		UIModeUnknown
 	};
 
@@ -78,9 +81,11 @@ private:
 
 	TUIMode m_UIMode;
 
-	unsigned m_nBank;
-	unsigned m_nProgram;
-	unsigned m_nVolume;
+	unsigned m_nTG;
+	unsigned m_nBank[CConfig::ToneGenerators];
+	unsigned m_nProgram[CConfig::ToneGenerators];
+	unsigned m_nVolume[CConfig::ToneGenerators];
+	uint8_t m_uchMIDIChannel[CConfig::ToneGenerators];
 };
 
 #endif
