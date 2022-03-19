@@ -31,8 +31,20 @@ class CMiniDexed;
 class CMIDIDevice
 {
 public:
+	enum TChannel
+	{
+		Channels = 16,
+		OmniMode = Channels,
+		Disabled,
+		ChannelUnknown
+	};
+
+public:
 	CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig);
 	~CMIDIDevice (void);
+
+	void SetChannel (u8 ucChannel, unsigned nTG);
+	u8 GetChannel (unsigned nTG) const;
 
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
@@ -40,6 +52,8 @@ protected:
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
+
+	u8 m_ChannelMap[CConfig::ToneGenerators];
 };
 
 #endif

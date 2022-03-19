@@ -44,6 +44,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 		m_nBank[nTG] = 0;
 		m_nProgram[nTG] = 0;
 		m_nVolume[nTG] = 0;
+		m_uchMIDIChannel[nTG] = CMIDIDevice::Disabled;
 	}
 }
 
@@ -183,12 +184,44 @@ void CUserInterface::VolumeChanged (unsigned nVolume, unsigned  nTG)
 	}
 }
 
+void CUserInterface::MIDIChannelChanged (uint8_t uchChannel, unsigned  nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_uchMIDIChannel[nTG] = uchChannel;
+
+	if (   m_UIMode == UIModeMIDI
+	    && m_nTG == nTG)
+	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
+		CString String;
+		switch (uchChannel)
+		{
+		case CMIDIDevice::OmniMode:	String = "OMNI";	break;
+		case CMIDIDevice::Disabled:	String = "OFF";		break;
+
+		default:
+			String.Format ("%u", (unsigned) uchChannel+1);
+			break;
+		}
+
+		DisplayWrite (TG, "MIDI", "CHANNEL", (const char *) String);
+	}
+}
+
 void CUserInterface::DisplayWrite (const char *pInstance, const char *pMenu,
 				   const char *pParam, const char *pValue)
 {
 	assert (pInstance);
 	assert (pMenu);
 	assert (pParam);
+
+	// Do not show instance, if there is only one.
+	if (CConfig::ToneGenerators == 1)
+	{
+		pInstance = "";
+	}
 
 	CString Msg ("\x1B[H");		// cursor home
 
@@ -268,7 +301,12 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 
 			reboot ();
 		}
-		return;
+		else
+		{
+			m_UIMode = UIModeStart;
+			m_nTG = 0;
+		}
+		break;
 
 	default:
 		return;
@@ -305,6 +343,13 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 
 		m_pMiniDexed->SetVolume (nVolume, m_nTG);
 		} break;
+
+	case UIModeMIDI:
+		if ((uint8_t) (m_uchMIDIChannel[m_nTG] + nStep) < CMIDIDevice::ChannelUnknown)
+		{
+			m_pMiniDexed->SetMIDIChannel (m_uchMIDIChannel[m_nTG] + nStep, m_nTG);
+		}
+		break;
 
 	default:
 		break;

@@ -128,6 +128,8 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setMWController (99, 7, 0);
 	}
 
+	SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
 	{
@@ -287,6 +289,26 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	m_pTG[nTG]->setGain (nVolume / 127.0);
 
 	m_UI.VolumeChanged (nVolume, nTG);
+}
+
+void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		assert (m_pMIDIKeyboard[i]);
+		m_pMIDIKeyboard[i]->SetChannel (uchChannel, nTG);
+	}
+
+	m_PCKeyboard.SetChannel (uchChannel, nTG);
+
+	if (m_bUseSerial)
+	{
+		m_SerialMIDI.SetChannel (uchChannel, nTG);
+	}
+
+	m_UI.MIDIChannelChanged (uchChannel, nTG);
 }
 
 void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
