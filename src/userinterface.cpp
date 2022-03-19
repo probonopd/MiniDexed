@@ -122,7 +122,7 @@ void CUserInterface::BankSelected (unsigned nBankLSB, unsigned  nTG)
 	std::string BankName = m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankLSB);
 
 	// MIDI numbering starts with 0, user interface with 1
-	printf ("Select voice bank %u: \"%s\"\n", nBankLSB+1, BankName.c_str ());
+	printf ("TG%u: Select voice bank %u: \"%s\"\n", nTG+1, nBankLSB+1, BankName.c_str ());
 
 	if (   m_UIMode == UIModeBankSelect
 	    && m_nTG == nTG)
@@ -148,7 +148,7 @@ void CUserInterface::ProgramChanged (unsigned nProgram, unsigned  nTG)
 	assert (m_pMiniDexed);
 	std::string VoiceName = m_pMiniDexed->GetVoiceName (nTG);
 
-	printf ("Loading voice %u: \"%s\"\n", nProgram, VoiceName.c_str ());
+	printf ("TG%u: Loading voice %u: \"%s\"\n", nTG+1, nProgram, VoiceName.c_str ());
 
 	if (   m_UIMode == UIModeVoiceSelect
 	    && m_nTG == nTG)
