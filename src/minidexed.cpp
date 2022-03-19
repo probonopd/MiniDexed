@@ -37,7 +37,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 	m_pConfig (pConfig),
 	m_UI (this, pGPIOManager, pConfig),
-	m_PCKeyboard (this),
+	m_PCKeyboard (this, pConfig),
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
 	m_pSoundDevice (0),

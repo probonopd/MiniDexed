@@ -20,16 +20,18 @@
 #ifndef _pckeyboard_h
 #define _pckeyboard_h
 
+#include "mididevice.h"
+#include "config.h"
 #include <circle/usb/usbkeyboard.h>
 #include <circle/device.h>
 #include <circle/types.h>
 
 class CMiniDexed;
 
-class CPCKeyboard
+class CPCKeyboard : public CMIDIDevice
 {
 public:
-	CPCKeyboard (CMiniDexed *pSynthesizer);
+	CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig);
 	~CPCKeyboard (void);
 
 	void Process (boolean bPlugAndPlayUpdated);
@@ -44,8 +46,6 @@ private:
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 
 private:
-	CMiniDexed *m_pSynthesizer;
-
 	CUSBKeyboardDevice * volatile m_pKeyboard;
 
 	u8 m_LastKeys[6];
