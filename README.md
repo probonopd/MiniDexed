@@ -22,6 +22,7 @@
 - [x] Show voice name on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb)
 - [x] Support selecting patches using MIDI Bank Change and Program Change messages
 - [x] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
+- [ ] Add a way to configure multiple Dexed instances through Performance `.syx` files
 - [ ] Add a way to configure multiple Dexed instances through Performance sysex messages
 - [ ] Allow for each Dexed instance to be stereo shifted
 - [ ] Add reverb effect
