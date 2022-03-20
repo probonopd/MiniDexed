@@ -41,6 +41,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
 	m_pSoundDevice (0),
+#ifdef ARM_ALLOW_MULTI_CORE
+	m_nActiveTGsLog2 (0),
+#endif
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
@@ -50,6 +53,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
+		m_nPan[i] = 64;
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
@@ -138,7 +142,11 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
+#ifndef ARM_ALLOW_MULTI_CORE
 	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
+#else
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
+#endif
 
 	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
 
@@ -291,6 +299,19 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	m_UI.VolumeChanged (nVolume, nTG);
 }
 
+void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
+{
+	if (nPan > 127)
+	{
+		return;
+	}
+
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPan[nTG] = nPan;
+
+	m_UI.PanChanged (nPan, nTG);
+}
+
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 {
 	if (!(-99 <= nMasterTune && nMasterTune <= 99))
@@ -321,6 +342,21 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	{
 		m_SerialMIDI.SetChannel (uchChannel, nTG);
 	}
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	unsigned nActiveTGs = 0;
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		if (m_PCKeyboard.GetChannel (nTG) != CMIDIDevice::Disabled)
+		{
+			nActiveTGs++;
+		}
+	}
+
+	assert (nActiveTGs <= 8);
+	static const unsigned Log2[] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
+	m_nActiveTGsLog2 = Log2[nActiveTGs];
+#endif
 
 	m_UI.MIDIChannelChanged (uchChannel, nTG);
 }
@@ -452,20 +488,32 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		// now mix the output of all TGs
-		int16_t SampleBuffer[nFrames];
+		int16_t SampleBuffer[nFrames][2];
 		assert (CConfig::ToneGenerators == 8);
 		for (unsigned i = 0; i < nFrames; i++)
 		{
-			int32_t nSample =   m_OutputLevel[0][i]
-					  + m_OutputLevel[1][i]
-					  + m_OutputLevel[2][i]
-					  + m_OutputLevel[3][i]
-					  + m_OutputLevel[4][i]
-					  + m_OutputLevel[5][i]
-					  + m_OutputLevel[6][i]
-					  + m_OutputLevel[7][i];
+			int32_t nLeft =   m_OutputLevel[0][i] * (127-m_nPan[0])
+					+ m_OutputLevel[1][i] * (127-m_nPan[1])
+					+ m_OutputLevel[2][i] * (127-m_nPan[2])
+					+ m_OutputLevel[3][i] * (127-m_nPan[3])
+					+ m_OutputLevel[4][i] * (127-m_nPan[4])
+					+ m_OutputLevel[5][i] * (127-m_nPan[5])
+					+ m_OutputLevel[6][i] * (127-m_nPan[6])
+					+ m_OutputLevel[7][i] * (127-m_nPan[7]);
+			nLeft >>= m_nActiveTGsLog2 + 7;
 
-			SampleBuffer[i] = (int16_t) (nSample / CConfig::ToneGenerators);
+			int32_t nRight =   m_OutputLevel[0][i] * m_nPan[0]
+					 + m_OutputLevel[1][i] * m_nPan[1]
+					 + m_OutputLevel[2][i] * m_nPan[2]
+					 + m_OutputLevel[3][i] * m_nPan[3]
+					 + m_OutputLevel[4][i] * m_nPan[4]
+					 + m_OutputLevel[5][i] * m_nPan[5]
+					 + m_OutputLevel[6][i] * m_nPan[6]
+					 + m_OutputLevel[7][i] * m_nPan[7];
+			nRight >>= m_nActiveTGsLog2 + 7;
+
+			SampleBuffer[i][0] = (int16_t) nLeft;
+			SampleBuffer[i][1] = (int16_t) nRight;
 		}
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
