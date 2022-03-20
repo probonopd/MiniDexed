@@ -42,6 +42,8 @@ public:
 	void BankSelected (unsigned nBankLSB, unsigned  nTG);		// 0 .. 127
 	void ProgramChanged (unsigned nProgram, unsigned  nTG);		// 0 .. 127
 	void VolumeChanged (unsigned nVolume, unsigned  nTG);		// 0 .. 127
+	void PanChanged (unsigned nPan, unsigned  nTG);			// 0 .. 127
+	void MasterTuneChanged (int nMasterTune, unsigned  nTG);	// -99 .. 99
 	void MIDIChannelChanged (uint8_t uchChannel, unsigned  nTG);
 
 private:
@@ -65,6 +67,8 @@ private:
 		UIModeVoiceSelect = UIModeStart,
 		UIModeBankSelect,
 		UIModeVolume,
+		UIModePan,
+		UIModeMasterTune,
 		UIModeMIDI,
 		UIModeUnknown
 	};
@@ -85,6 +89,8 @@ private:
 	unsigned m_nBank[CConfig::ToneGenerators];
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
+	unsigned m_nPan[CConfig::ToneGenerators];
+	int m_nMasterTune[CConfig::ToneGenerators];
 	uint8_t m_uchMIDIChannel[CConfig::ToneGenerators];
 };
 

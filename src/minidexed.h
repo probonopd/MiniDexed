@@ -59,6 +59,8 @@ public:
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
+	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
+	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
@@ -90,6 +92,7 @@ private:
 
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
+	unsigned m_nPan[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -103,6 +106,7 @@ private:
 	unsigned m_nQueueSizeFrames;
 
 #ifdef ARM_ALLOW_MULTI_CORE
+	unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
 	int16_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];

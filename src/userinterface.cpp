@@ -44,6 +44,8 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 		m_nBank[nTG] = 0;
 		m_nProgram[nTG] = 0;
 		m_nVolume[nTG] = 0;
+		m_nPan[nTG] = 64;
+		m_nMasterTune[nTG] = 0;
 		m_uchMIDIChannel[nTG] = CMIDIDevice::Disabled;
 	}
 }
@@ -181,6 +183,51 @@ void CUserInterface::VolumeChanged (unsigned nVolume, unsigned  nTG)
 		VolumeBar[nVolume * CConfig::LCDColumns / 127] = '\0';
 
 		DisplayWrite (TG, "VOLUME", VolumeBar);
+	}
+}
+
+void CUserInterface::PanChanged (unsigned nPan, unsigned  nTG)
+{
+	assert (nPan < 128);
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPan[nTG] = nPan;
+
+	if (   m_UIMode == UIModePan
+	    && m_nTG == nTG)
+	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
+		char PanMarker[CConfig::LCDColumns+1];
+		memset (PanMarker, '.', CConfig::LCDColumns);
+		PanMarker[CConfig::LCDColumns] = '\0';
+		unsigned nIndex = nPan * CConfig::LCDColumns / 127;
+		if (nIndex == CConfig::LCDColumns)
+		{
+			nIndex--;
+		}
+		PanMarker[nIndex] = '\xFF';
+
+		DisplayWrite (TG, "PAN", PanMarker);
+	}
+}
+
+void CUserInterface::MasterTuneChanged (int nMasterTune, unsigned  nTG)
+{
+	assert (-99 <= nMasterTune && nMasterTune <= 99);
+	assert (nTG < CConfig::ToneGenerators);
+	m_nMasterTune[nTG] = nMasterTune;
+
+	if (   m_UIMode == UIModeMasterTune
+	    && m_nTG == nTG)
+	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
+		CString String;
+		String.Format ("%d", nMasterTune);
+
+		DisplayWrite (TG, "MASTER TUNE", "DETUNE", (const char *) String);
 	}
 }
 
@@ -342,6 +389,36 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		}
 
 		m_pMiniDexed->SetVolume (nVolume, m_nTG);
+		} break;
+
+	case UIModePan: {
+		const int Increment = 128 / CConfig::LCDColumns;
+
+		int nPan = m_nPan[m_nTG] + nStep*Increment;
+		if (nPan < 0)
+		{
+			nPan = 0;
+		}
+		else if (nPan > 127)
+		{
+			nPan = 127;
+		}
+
+		m_pMiniDexed->SetPan (nPan, m_nTG);
+		} break;
+
+	case UIModeMasterTune: {
+		int nMasterTune = m_nMasterTune[m_nTG] + nStep;
+		if (nMasterTune < -99)
+		{
+			nMasterTune = -99;
+		}
+		else if (nMasterTune > 99)
+		{
+			nMasterTune = 99;
+		}
+
+		m_pMiniDexed->SetMasterTune (nMasterTune, m_nTG);
 		} break;
 
 	case UIModeMIDI:
