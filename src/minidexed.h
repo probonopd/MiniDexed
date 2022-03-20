@@ -59,6 +59,7 @@ public:
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
+	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);

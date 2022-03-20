@@ -291,6 +291,20 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	m_UI.VolumeChanged (nVolume, nTG);
 }
 
+void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
+{
+	if (!(-99 <= nMasterTune && nMasterTune <= 99))
+	{
+		return;
+	}
+
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setMasterTune ((int8_t) nMasterTune);
+
+	m_UI.MasterTuneChanged (nMasterTune, nTG);
+}
+
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);

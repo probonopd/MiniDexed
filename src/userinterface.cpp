@@ -44,6 +44,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 		m_nBank[nTG] = 0;
 		m_nProgram[nTG] = 0;
 		m_nVolume[nTG] = 0;
+		m_nMasterTune[nTG] = 0;
 		m_uchMIDIChannel[nTG] = CMIDIDevice::Disabled;
 	}
 }
@@ -181,6 +182,25 @@ void CUserInterface::VolumeChanged (unsigned nVolume, unsigned  nTG)
 		VolumeBar[nVolume * CConfig::LCDColumns / 127] = '\0';
 
 		DisplayWrite (TG, "VOLUME", VolumeBar);
+	}
+}
+
+void CUserInterface::MasterTuneChanged (int nMasterTune, unsigned  nTG)
+{
+	assert (-99 <= nMasterTune && nMasterTune <= 99);
+	assert (nTG < CConfig::ToneGenerators);
+	m_nMasterTune[nTG] = nMasterTune;
+
+	if (   m_UIMode == UIModeMasterTune
+	    && m_nTG == nTG)
+	{
+		CString TG;
+		TG.Format ("TG%u", nTG+1);
+
+		CString String;
+		String.Format ("%d", nMasterTune);
+
+		DisplayWrite (TG, "MASTER TUNE", "DETUNE", (const char *) String);
 	}
 }
 
@@ -342,6 +362,20 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		}
 
 		m_pMiniDexed->SetVolume (nVolume, m_nTG);
+		} break;
+
+	case UIModeMasterTune: {
+		int nMasterTune = m_nMasterTune[m_nTG] + nStep;
+		if (nMasterTune < -99)
+		{
+			nMasterTune = -99;
+		}
+		else if (nMasterTune > 99)
+		{
+			nMasterTune = 99;
+		}
+
+		m_pMiniDexed->SetMasterTune (nMasterTune, m_nTG);
 		} break;
 
 	case UIModeMIDI:
