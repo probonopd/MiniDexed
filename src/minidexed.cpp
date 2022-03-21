@@ -30,13 +30,14 @@
 LOGMODULE ("minidexed");
 
 CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster)
+			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem)
 :
 #ifdef ARM_ALLOW_MULTI_CORE
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
 	m_UI (this, pGPIOManager, pConfig),
+	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig),
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
@@ -137,7 +138,22 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setMWController (99, 7, 0);
 	}
 
-	SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+	if (m_PerformanceConfig.Load ())
+	{
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
+			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
+			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
+			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
+			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+		}
+	}
+	else
+	{
+		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+	}
 
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
