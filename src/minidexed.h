@@ -24,10 +24,12 @@
 #include "config.h"
 #include "userinterface.h"
 #include "sysexfileloader.h"
+#include "performanceconfig.h"
 #include "midikeyboard.h"
 #include "pckeyboard.h"
 #include "serialmididevice.h"
 #include "perftimer.h"
+#include <fatfs/ff.h>
 #include <stdint.h>
 #include <string>
 #include <circle/types.h>
@@ -44,7 +46,7 @@ class CMiniDexed
 {
 public:
 	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster);
+		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem);
 
 	bool Initialize (void);
 
@@ -96,6 +98,7 @@ private:
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
+	CPerformanceConfig m_PerformanceConfig;
 
 	CMIDIKeyboard *m_pMIDIKeyboard[CConfig::MaxUSBMIDIDevices];
 	CPCKeyboard m_PCKeyboard;

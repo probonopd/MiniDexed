@@ -64,7 +64,8 @@ bool CKernel::Initialize (void)
 
 	m_Config.Load ();
 
-	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster);
+	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster,
+				   &mFileSystem);
 	assert (m_pDexed);
 
 	if (!m_pDexed->Initialize ())
