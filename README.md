@@ -43,7 +43,8 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 * Alternatively, attach a HDMI display with sound and select HDMI sound output using `SoundDevice=hdmi` in `minidexed.ini` (this may introduce slight latency)
 * Attach a MIDI keyboard via USB
 * Boot
-* Stat playing
+* Start playing
+* See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
 
 
 ## Pinout
