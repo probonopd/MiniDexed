@@ -198,10 +198,11 @@ void CUserInterface::PanChanged (unsigned nPan, unsigned  nTG)
 		CString TG;
 		TG.Format ("TG%u", nTG+1);
 
-		assert (CConfig::LCDColumns == 16);
-		char PanMarker[CConfig::LCDColumns] = ".......:.......";
-		unsigned nIndex = nPan * (CConfig::LCDColumns-1) / 127;
-		if (nIndex == CConfig::LCDColumns-1)
+		char PanMarker[CConfig::LCDColumns+1];
+		memset (PanMarker, '.', CConfig::LCDColumns);
+		PanMarker[CConfig::LCDColumns] = '\0';
+		unsigned nIndex = nPan * CConfig::LCDColumns / 127;
+		if (nIndex == CConfig::LCDColumns)
 		{
 			nIndex--;
 		}
