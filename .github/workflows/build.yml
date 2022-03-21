@@ -63,7 +63,7 @@ jobs:
            mkdir -p sdcard
            cp -r ./circle-stdlib/libs/circle/boot/* sdcard
            rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-           cp ./src/config.txt ./src/minidexed.ini ./src/*img sdcard/
+           cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
