@@ -103,6 +103,7 @@ private:
 	bool m_bUseSerial;
 
 	CSoundBaseDevice *m_pSoundDevice;
+	bool m_bChannelsSwapped;
 	unsigned m_nQueueSizeFrames;
 
 #ifdef ARM_ALLOW_MULTI_CORE

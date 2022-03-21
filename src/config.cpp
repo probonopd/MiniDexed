@@ -44,6 +44,7 @@ void CConfig::Load (void)
 	m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_SoundDevice == "hdmi" ? 384*6 : 1024);
 #endif
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
+	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);
 
@@ -83,6 +84,11 @@ unsigned CConfig::GetChunkSize (void) const
 unsigned CConfig::GetDACI2CAddress (void) const
 {
 	return m_nDACI2CAddress;
+}
+
+bool CConfig::GetChannelsSwapped (void) const
+{
+	return m_bChannelsSwapped;
 }
 
 unsigned CConfig::GetMIDIBaudRate (void) const
