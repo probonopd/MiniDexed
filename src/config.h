@@ -67,6 +67,7 @@ public:
 	unsigned GetSampleRate (void) const;
 	unsigned GetChunkSize (void) const;
 	unsigned GetDACI2CAddress (void) const;		// 0 for auto probing
+	bool GetChannelsSwapped (void) const;
 
 	// MIDI
 	unsigned GetMIDIBaudRate (void) const;
@@ -100,6 +101,7 @@ private:
 	unsigned m_nSampleRate;
 	unsigned m_nChunkSize;
 	unsigned m_nDACI2CAddress;
+	bool m_bChannelsSwapped;
 
 	unsigned m_nMIDIBaudRate;
 

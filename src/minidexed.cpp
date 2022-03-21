@@ -41,6 +41,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_SerialMIDI (this, pInterrupt, pConfig),
 	m_bUseSerial (false),
 	m_pSoundDevice (0),
+	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
 	m_nActiveTGsLog2 (0),
 #endif
@@ -83,6 +84,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 							   pConfig->GetChunkSize ());
+
+		// The channels are swapped by default in the HDMI sound driver.
+		// TODO: Remove this line, when this has been fixed in the driver.
+		m_bChannelsSwapped = !m_bChannelsSwapped;
 	}
 	else
 	{
@@ -512,8 +517,16 @@ void CMiniDexed::ProcessSound (void)
 					 + m_OutputLevel[7][i] * m_nPan[7];
 			nRight >>= m_nActiveTGsLog2 + 7;
 
-			SampleBuffer[i][0] = (int16_t) nLeft;
-			SampleBuffer[i][1] = (int16_t) nRight;
+			if (!m_bChannelsSwapped)
+			{
+				SampleBuffer[i][0] = (int16_t) nLeft;
+				SampleBuffer[i][1] = (int16_t) nRight;
+			}
+			else
+			{
+				SampleBuffer[i][0] = (int16_t) nRight;
+				SampleBuffer[i][1] = (int16_t) nLeft;
+			}
 		}
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
