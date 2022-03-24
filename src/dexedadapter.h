@@ -33,6 +33,8 @@ public:
 	CDexedAdapter (uint8_t maxnotes, int rate)
 	: Dexed (maxnotes, rate)
 	{
+		Dexed::setCompressor(true);
+		printf("Dexed-Compressor: %d",Dexed::compressorEnabled());
 	}
 
 	void loadVoiceParameters (uint8_t* data)

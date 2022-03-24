@@ -20,7 +20,11 @@ OBJS += \
        $(SYNTH_DEXED_DIR)/pitchenv.o \
        $(SYNTH_DEXED_DIR)/porta.o \
        $(SYNTH_DEXED_DIR)/sin.o \
-       $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/SupportFunctions.o
+       $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/SupportFunctions.o \
+       $(CMSIS_DSP_SOURCE_DIR)/BasicMathFunctions/BasicMathFunctions.o \
+       $(CMSIS_DSP_SOURCE_DIR)/FastMathFunctions/FastMathFunctions.o \
+       $(CMSIS_DSP_SOURCE_DIR)/FilteringFunctions/FilteringFunctions.o \
+       $(CMSIS_DSP_SOURCE_DIR)/CommonTables/CommonTables.o
 
 INCLUDE += -I $(SYNTH_DEXED_DIR)
 INCLUDE += -I $(CMSIS_CORE_INCLUDE_DIR)
@@ -28,4 +32,4 @@ INCLUDE += -I $(CMSIS_DSP_INCLUDE_DIR)
 INCLUDE += -I $(CMSIS_DSP_PRIVATE_INCLUDE_DIR)
 CXXFLAGS += -DARM_MATH_NEON
 
-EXTRACLEAN = $(SYNTH_DEXED_DIR)/*.[od] $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/*.[od]
+EXTRACLEAN = $(SYNTH_DEXED_DIR)/*.[od] $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/BasicMathFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/FastMathFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/FilteringFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/CommonTables/*.[od]
