@@ -76,6 +76,8 @@ public:
 	std::string GetVoiceName (unsigned nTG);
 
 private:
+	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
+
 	void ProcessSound (void);
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -95,6 +97,10 @@ private:
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
+
+	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
+	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
+	int m_nNoteShift[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;

@@ -80,6 +80,15 @@ bool CPerformanceConfig::Load (void)
 
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_nDetune[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
+
+		PropertyName.Format ("NoteLimitLow%u", nTG+1);
+		m_nNoteLimitLow[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("NoteLimitHigh%u", nTG+1);
+		m_nNoteLimitHigh[nTG] = m_Properties.GetNumber (PropertyName, 127);
+
+		PropertyName.Format ("NoteShift%u", nTG+1);
+		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 	}
 
 	return bResult;
@@ -119,4 +128,22 @@ int CPerformanceConfig::GetDetune (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nDetune[nTG];
+}
+
+unsigned CPerformanceConfig::GetNoteLimitLow (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nNoteLimitLow[nTG];
+}
+
+unsigned CPerformanceConfig::GetNoteLimitHigh (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nNoteLimitHigh[nTG];
+}
+
+int CPerformanceConfig::GetNoteShift (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nNoteShift[nTG];
 }
