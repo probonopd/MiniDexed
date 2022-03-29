@@ -57,6 +57,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nVoiceBankID[i] = 0;
 		m_nPan[i] = 64;
 
+		m_nNoteLimitLow[i] = 0;
+		m_nNoteLimitHigh[i] = 127;
+		m_nNoteShift[i] = 0;
+
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
 
@@ -148,6 +152,10 @@ bool CMiniDexed::Initialize (void)
 			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
 			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
 			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+
+			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
+			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
+			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
 		}
 	}
 	else
@@ -386,14 +394,45 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->keyup (pitch);
+
+	pitch = ApplyNoteLimits (pitch, nTG);
+	if (pitch >= 0)
+	{
+		m_pTG[nTG]->keyup (pitch);
+	}
 }
 
 void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->keydown (pitch, velocity);
+
+	pitch = ApplyNoteLimits (pitch, nTG);
+	if (pitch >= 0)
+	{
+		m_pTG[nTG]->keydown (pitch, velocity);
+	}
+}
+
+int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	if (   pitch < (int16_t) m_nNoteLimitLow[nTG]
+	    || pitch > (int16_t) m_nNoteLimitHigh[nTG])
+	{
+		return -1;
+	}
+
+	pitch += m_nNoteShift[nTG];
+
+	if (   pitch < 0
+	    || pitch > 127)
+	{
+		return -1;
+	}
+
+	return pitch;
 }
 
 void CMiniDexed::setSustain(bool sustain, unsigned nTG)

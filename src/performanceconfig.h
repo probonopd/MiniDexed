@@ -42,6 +42,9 @@ public:
 	unsigned GetVolume (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPan (unsigned nTG) const;			// 0 .. 127
 	int GetDetune (unsigned nTG) const;			// -99 .. 99
+	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
+	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
+	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -52,6 +55,9 @@ private:
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
 	int m_nDetune[CConfig::ToneGenerators];
+	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
+	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
+	int m_nNoteShift[CConfig::ToneGenerators];
 };
 
 #endif
