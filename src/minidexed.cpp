@@ -108,6 +108,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_CoreStatus[nCore] = CoreStatusInit;
 	}
 #endif
+
+	// Create reverb object
+	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+	reverb->size(0.3);
+	reverb->hidamp(0.8);
+	reverb->lodamp(0.5);
+	reverb->lowpass(0.3);
+	reverb->diffusion(0.2);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -582,6 +590,15 @@ void CMiniDexed::ProcessSound (void)
 				SampleBuffer[i][0] = (int16_t) nRight;
 				SampleBuffer[i][1] = (int16_t) nLeft;
 			}
+		}
+
+		// Test adding reverb
+		int16_t ReverbBuffer[nFrames][2];
+		reverb->doReverb(nFrames,&SampleBuffer[0][0],&SampleBuffer[0][1],&ReverbBuffer[0][0],&ReverbBuffer[0][1]);
+		for (unsigned i = 0; i < nFrames; i++)
+                {
+			SampleBuffer[i][0] += ReverbBuffer[0][0];
+                        SampleBuffer[i][1] += ReverbBuffer[0][1];
 		}
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)

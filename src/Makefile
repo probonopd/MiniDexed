@@ -8,7 +8,8 @@ CMSIS_DIR = ../CMSIS_5/CMSIS
 
 OBJS = main.o kernel.o minidexed.o config.o userinterface.o \
        mididevice.o midikeyboard.o serialmididevice.o pckeyboard.o \
-       sysexfileloader.o performanceconfig.o perftimer.o
+       sysexfileloader.o performanceconfig.o perftimer.o \
+       effect_platervbstereo.o
 
 include ./Synth_Dexed.mk
 include ./Rules.mk
