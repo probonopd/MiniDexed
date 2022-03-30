@@ -1,0 +1,110 @@
+//
+// uimenu.h
+//
+// MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
+// Copyright (C) 2022  The MiniDexed Team
+//
+// Original author of this class:
+//	R. Stange <rsta2@o2online.de>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+#ifndef _uimenu_h
+#define _uimenu_h
+
+#include <string>
+
+class CMiniDexed;
+class CUserInterface;
+
+class CUIMenu
+{
+private:
+	static const unsigned MaxMenuDepth = 5;
+
+public:
+	enum TMenuEvent
+	{
+		MenuEventUpdate,
+		MenuEventSelect,
+		MenuEventBack,
+		MenuEventHome,
+		MenuEventStepDown,
+		MenuEventStepUp,
+		MenuEventUnknown
+	};
+
+public:
+	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
+
+	void EventHandler (TMenuEvent Event);
+
+private:
+	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
+
+	struct TMenuItem
+	{
+		const char *Name;
+		TMenuHandler *Handler;
+		TMenuItem *MenuItem;
+		unsigned Parameter;
+	};
+
+	typedef std::string TToString (int nValue);
+
+	struct TParameter
+	{
+		int Minimum;
+		int Maximum;
+		int Increment;
+		TToString *ToString;
+	};
+
+private:
+	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+
+	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
+
+	static std::string ToVolume (int nValue);
+	static std::string ToPan (int nValue);
+	static std::string ToMIDIChannel (int nValue);
+
+private:
+	CUserInterface *m_pUI;
+	CMiniDexed *m_pMiniDexed;
+
+	TMenuItem *m_pParentMenu;
+	TMenuItem *m_pCurrentMenu;
+	unsigned m_nCurrentMenuItem;
+	unsigned m_nCurrentSelection;
+	unsigned m_nCurrentParameter;
+
+	TMenuItem *m_MenuStackParent[MaxMenuDepth];
+	TMenuItem *m_MenuStackMenu[MaxMenuDepth];
+	unsigned m_nMenuStackItem[MaxMenuDepth];
+	unsigned m_nMenuStackSelection[MaxMenuDepth];
+	unsigned m_nMenuStackParameter[MaxMenuDepth];
+	unsigned m_nCurrentMenuDepth;
+
+	static TMenuItem s_MenuRoot[];
+	static TMenuItem s_MainMenu[];
+	static TMenuItem s_TGMenu[];
+
+	static TParameter s_TGParameter[];
+};
+
+#endif

@@ -55,7 +55,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
+		m_nProgram[i] = 0;
+		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
+		m_nMasterTune[i] = 0;
+		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
@@ -294,7 +298,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceBankID[nTG] = nBankLSB;
 
-	m_UI.BankSelected (nBankLSB, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -305,13 +309,15 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nProgram[nTG] = nProgram;
+
 	uint8_t Buffer[156];
 	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG], nProgram, Buffer);
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
 
-	m_UI.ProgramChanged (nProgram, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
@@ -322,10 +328,12 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nVolume[nTG] = nVolume;
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setGain (nVolume / 127.0);
 
-	m_UI.VolumeChanged (nVolume, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
@@ -338,7 +346,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 
-	m_UI.PanChanged (nPan, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
@@ -349,15 +357,18 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nMasterTune[nTG] = nMasterTune;
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setMasterTune ((int8_t) nMasterTune);
 
-	m_UI.MasterTuneChanged (nMasterTune, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
+	m_nMIDIChannel[nTG] = uchChannel;
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
@@ -376,7 +387,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	unsigned nActiveTGs = 0;
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-		if (m_PCKeyboard.GetChannel (nTG) != CMIDIDevice::Disabled)
+		if (m_nMIDIChannel[nTG] != CMIDIDevice::Disabled)
 		{
 			nActiveTGs++;
 		}
@@ -387,7 +398,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	m_nActiveTGsLog2 = Log2[nActiveTGs];
 #endif
 
-	m_UI.MIDIChannelChanged (uchChannel, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
@@ -461,6 +472,48 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->ControllersRefresh ();
+}
+
+void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	switch (Parameter)
+	{
+	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
+	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
+	case TGParameterPan:		SetPan (nValue, nTG);		break;
+	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
+
+	case TGParameterMIDIChannel:
+		assert (0 <= nValue && nValue <= 255);
+		SetMIDIChannel ((uint8_t) nValue, nTG);
+		break;
+
+	default:
+		assert (0);
+		break;
+	}
+}
+
+int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	switch (Parameter)
+	{
+	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
+	case TGParameterProgram:	return m_nProgram[nTG];
+	case TGParameterVolume:		return m_nVolume[nTG];
+	case TGParameterPan:		return m_nPan[nTG];
+	case TGParameterMasterTune:	return m_nMasterTune[nTG];
+	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
+
+	default:
+		assert (0);
+		return 0;
+	}
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
