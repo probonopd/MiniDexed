@@ -34,7 +34,10 @@ public:
 	: Dexed (maxnotes, rate)
 	{
 		Dexed::setCompressor(true);
-		printf("Dexed-Compressor: %d",Dexed::compressorEnabled());
+		if(Dexed::getCompressor()==true)
+			printf("Dexed-Compressor: enabled\n");
+		else
+			printf("Dexed-Compressor: disabled\n");
 	}
 
 	void loadVoiceParameters (uint8_t* data)
