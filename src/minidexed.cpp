@@ -109,13 +109,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	// Create reverb object
+	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
-	reverb->size(0.3);
+	reverb->size(0.7);
 	reverb->hidamp(0.8);
 	reverb->lodamp(0.5);
 	reverb->lowpass(0.3);
 	reverb->diffusion(0.2);
+	// END setup reverb
 };
 
 bool CMiniDexed::Initialize (void)
@@ -592,17 +593,18 @@ void CMiniDexed::ProcessSound (void)
 			}
 		}
 
-		// Test adding reverb
+		// BEGIN adding reverb
 		int16_t ReverbBuffer[nFrames][2];
-		reverb->doReverb(nFrames,&SampleBuffer[0][0],&SampleBuffer[0][1],&ReverbBuffer[0][0],&ReverbBuffer[0][1]);
+
+		reverb->doReverb(nFrames,SampleBuffer,ReverbBuffer);
 		for (unsigned i = 0; i < nFrames; i++)
                 {
-			SampleBuffer[i][0] += ReverbBuffer[0][0];
-                        SampleBuffer[i][1] += ReverbBuffer[0][1];
+			SampleBuffer[i][0] = ReverbBuffer[i][0];
+                        SampleBuffer[i][1] = ReverbBuffer[i][1];
 		}
+		// END adding reverb
 
-		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
-		    != (int) sizeof SampleBuffer)
+		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)
 		{
 			LOGERR ("Sound data dropped");
 		}

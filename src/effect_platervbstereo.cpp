@@ -155,7 +155,7 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
-void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *inblockR, int16_t *outblockL, int16_t *outblockR)
+void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_t outblock[][2])
 {
     int i;
     float32_t input, acc, temp1, temp2;
@@ -193,47 +193,16 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *
 
             cleanup_done = true;
         }
-        if (!inblockL)
-		memset(inblockL,0,len);
-        if (!inblockR)
-		memset(inblockR,0,len);
+        if (!inblock && outblock)
+		memset(outblock,0,len*sizeof(int16_t)*2);
 
         return;
     }
     cleanup_done = false;
 
-    if(!outblockL)
-    {
-      printf("Cannot allocate memory for outblockL - stopping!");
-      while(1);
-    }
-    if(!outblockR)
-    {
-      printf("Cannot allocate memory for outblockR - stopping!");
-      while(1);
-    }
-
-    if (!inblockL)
-      memset(inblockL,0,len);
-    if (!inblockR)
-      memset(inblockR,0,len);
-
-    input_blockL=(float32_t*)malloc(sizeof(float32_t)*len);
-    if(!input_blockL)
-    {
-      printf("Cannot allocate memory for input_blockL - stopping!");
-      while(1);
-    }
-    input_blockR=(float32_t*)malloc(sizeof(float32_t)*len);
-    if(!input_blockR)
-    {
-      printf("Cannot allocate memory for input_blockR - stopping!");
-      while(1);
-    }
-
     // convert data to float32
-    arm_q15_to_float((q15_t *)inblockL, input_blockL, len);
-    arm_q15_to_float((q15_t *)inblockR, input_blockR, len);
+    //arm_q15_to_float((q15_t *)inblockL, input_blockL, len);
+    //arm_q15_to_float((q15_t *)inblockR, input_blockR, len);
 
     rv_time = rv_time_k;
 
@@ -270,7 +239,7 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *
         y += (int64_t)y1 * idx;
         lfo2_out_cos = (int32_t) (y >> (32-8)); // 16bit output   
 
-	input = input_blockL[i] * input_attn;
+	input = (float32_t(inblock[i][0])/32768.0f) * input_attn;
         // chained input allpasses, channel L
         acc = in_allp1_bufL[in_allp1_idxL]  + input * in_allp_k;  
         in_allp1_bufL[in_allp1_idxL] = input - in_allp_k * acc;
@@ -292,8 +261,7 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *
         in_allp_out_L = acc;
         if (++in_allp4_idxL >= sizeof(in_allp4_bufL)/sizeof(float32_t)) in_allp4_idxL = 0;
 
-        input = input_blockR[i] * input_attn;
-
+        input = (float32_t(inblock[i][1])/32768.0f) * input_attn;
         // chained input allpasses, channel R
         acc = in_allp1_bufR[in_allp1_idxR]  + input * in_allp_k;  
         in_allp1_bufR[in_allp1_idxR] = input - in_allp_k * acc;
@@ -439,7 +407,7 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-        outblockL[i] =(int16_t)(master_lowpass_l * 32767.0f); //sat16(output * 30, 0);
+        outblock[i][0]=(int16_t)(master_lowpass_l * 32767.0f); //sat16(output * 30, 0);
 
         // Channel R
         #ifdef TAP1_MODULATED
@@ -482,12 +450,6 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t *inblockL, int16_t *
         // Master lowpass filter
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
-        outblockR[i] =(int16_t)(master_lowpass_r * 32767.0f);
-		
+        outblock[i][1]=(int16_t)(master_lowpass_r * 32767.0f);
     }
-
-    if(input_blockL)
-      free(input_blockL);
-    if(input_blockR)
-      free(input_blockR);
 }

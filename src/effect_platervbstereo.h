@@ -65,11 +65,17 @@ template<typename T>
 inline static T max(const T& a, const T& b) {
   return a > b ? a : b;
 }
-*/
 
-inline long my_map(long x, long in_min, long in_max, long out_min, long out_max) {
+inline long maplong(long x, long in_min, long in_max, long out_min, long out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+*/
+
+inline float32_t mapfloat(float32_t val, float32_t in_min, float32_t in_max, float32_t out_min, float32_t out_max)
+{
+  return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 
 /***
  * Loop delay modulation: comment/uncomment to switch sin/cos 
@@ -83,13 +89,13 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(uint16_t len, int16_t *inblockL, int16_t *inblockR, int16_t *outblockL, int16_t *outblockR);
+    void doReverb(uint16_t len, int16_t inblock[][2], int16_t outblock[][2]);
 
     void size(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        n = my_map(n, 0.0f, 1.0f, 0.2f, rv_time_k_max);
-        float32_t attn = my_map(n, 0.0f, rv_time_k_max, 0.5f, 0.25f);
+        n = mapfloat(n, 0.0f, 1.0f, 0.2f, rv_time_k_max);
+        float32_t attn = mapfloat(n, 0.0f, rv_time_k_max, 0.5f, 0.25f);
         //__disable_irq();
         rv_time_k = n;
         input_attn = attn;
@@ -116,14 +122,14 @@ public:
     void lowpass(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        n = my_map(n*n*n, 0.0f, 1.0f, 0.05f, 1.0f);
+        n = mapfloat(n*n*n, 0.0f, 1.0f, 0.05f, 1.0f);
         master_lowpass_f = n;
     }
     
     void diffusion(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        n = my_map(n, 0.0f, 1.0f, 0.005f, 0.65f);
+        n = mapfloat(n, 0.0f, 1.0f, 0.005f, 0.65f);
         //__disable_irq();
         in_allp_k = n;
         loop_allp_k = n;
@@ -136,8 +142,6 @@ public:
     void tgl_bypass(void) {bypass ^=1;}
 private:
     bool bypass = false;
-    float32_t* input_blockL;
-    float32_t* input_blockR;
     float32_t input_attn;
 
     float32_t in_allp_k;            // input allpass coeff 
