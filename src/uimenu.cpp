@@ -31,13 +31,13 @@
 
 using namespace std;
 
-CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
+const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
 	{"MiniDexed", MenuHandler, s_MainMenu},
 	{0}
 };
 
-CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
+const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
 	{"TG1",		MenuHandler,	s_TGMenu, 0},
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -52,7 +52,7 @@ CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{0}
 };
 
-CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
+const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 {
 	{"Voice",	EditProgramNumber},
 	{"Bank",	EditVoiceBankNumber},
@@ -66,7 +66,7 @@ CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 };
 
 // must match CMiniDexed::TTGParameter
-CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
+const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
 	{0,	CSysExFileLoader::MaxVoiceBankID,	1},		// TGParameterVoiceBank
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},		// TGParameterProgram

@@ -57,7 +57,7 @@ private:
 	{
 		const char *Name;
 		TMenuHandler *Handler;
-		TMenuItem *MenuItem;
+		const TMenuItem *MenuItem;
 		unsigned Parameter;
 	};
 
@@ -87,24 +87,24 @@ private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;
 
-	TMenuItem *m_pParentMenu;
-	TMenuItem *m_pCurrentMenu;
+	const TMenuItem *m_pParentMenu;
+	const TMenuItem *m_pCurrentMenu;
 	unsigned m_nCurrentMenuItem;
 	unsigned m_nCurrentSelection;
 	unsigned m_nCurrentParameter;
 
-	TMenuItem *m_MenuStackParent[MaxMenuDepth];
-	TMenuItem *m_MenuStackMenu[MaxMenuDepth];
+	const TMenuItem *m_MenuStackParent[MaxMenuDepth];
+	const TMenuItem *m_MenuStackMenu[MaxMenuDepth];
 	unsigned m_nMenuStackItem[MaxMenuDepth];
 	unsigned m_nMenuStackSelection[MaxMenuDepth];
 	unsigned m_nMenuStackParameter[MaxMenuDepth];
 	unsigned m_nCurrentMenuDepth;
 
-	static TMenuItem s_MenuRoot[];
-	static TMenuItem s_MainMenu[];
-	static TMenuItem s_TGMenu[];
+	static const TMenuItem s_MenuRoot[];
+	static const TMenuItem s_MainMenu[];
+	static const TMenuItem s_TGMenu[];
 
-	static TParameter s_TGParameter[];
+	static const TParameter s_TGParameter[];
 };
 
 #endif
