@@ -112,10 +112,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	reverb->size(0.7);
-	reverb->hidamp(0.8);
+	reverb->hidamp(0.5);
 	reverb->lodamp(0.5);
 	reverb->lowpass(0.3);
 	reverb->diffusion(0.2);
+	reverb->send(0.8);
 	// END setup reverb
 };
 
@@ -558,6 +559,7 @@ void CMiniDexed::ProcessSound (void)
 
 		// now mix the output of all TGs
 		int16_t SampleBuffer[nFrames][2];
+
 		assert (CConfig::ToneGenerators == 8);
 		for (unsigned i = 0; i < nFrames; i++)
 		{
@@ -594,14 +596,7 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		// BEGIN adding reverb
-		int16_t ReverbBuffer[nFrames][2];
-
-		reverb->doReverb(nFrames,SampleBuffer,ReverbBuffer);
-		for (unsigned i = 0; i < nFrames; i++)
-                {
-			SampleBuffer[i][0] = ReverbBuffer[i][0];
-                        SampleBuffer[i][1] = ReverbBuffer[i][1];
-		}
+		reverb->doReverb(nFrames,SampleBuffer);
 		// END adding reverb
 
 		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)

@@ -1,6 +1,6 @@
 /*  Stereo plate reverb for Teensy 4
  *
- *  Adapted for use in MiniDexed (Holger Wirtz <wirtz@parasitstudio.de>)
+ *  Adapted for MiniDexed (Holger Wirtz <dcoredump@googlemail.com>)
  *
  *  Author: Piotr Zapart
  *          www.hexefx.com
@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <assert.h>
 #include "effect_platervbstereo.h"
 
 #define INP_ALLP_COEFF      (0.65f)                         // default input allpass coeff
@@ -151,11 +152,13 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
     lfo1_adder = (UINT32_MAX + 1)/(samplerate * LFO1_FREQ_HZ);
     lfo2_phase_acc = 0;
     lfo2_adder = (UINT32_MAX + 1)/(samplerate * LFO2_FREQ_HZ);  
+
+    send_level = 0.0;
 }
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
-void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_t outblock[][2])
+void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t audioblock[][2])
 {
     int i;
     float32_t input, acc, temp1, temp2;
@@ -193,16 +196,10 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_
 
             cleanup_done = true;
         }
-        if (!inblock && outblock)
-		memset(outblock,0,len*sizeof(int16_t)*2);
 
         return;
     }
     cleanup_done = false;
-
-    // convert data to float32
-    //arm_q15_to_float((q15_t *)inblockL, input_blockL, len);
-    //arm_q15_to_float((q15_t *)inblockR, input_blockR, len);
 
     rv_time = rv_time_k;
 
@@ -239,7 +236,8 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_
         y += (int64_t)y1 * idx;
         lfo2_out_cos = (int32_t) (y >> (32-8)); // 16bit output   
 
-	input = (float32_t(inblock[i][0])/32768.0f) * input_attn;
+	input = (float32_t(audioblock[i][0])/32767.0f) * input_attn;
+
         // chained input allpasses, channel L
         acc = in_allp1_bufL[in_allp1_idxL]  + input * in_allp_k;  
         in_allp1_bufL[in_allp1_idxL] = input - in_allp_k * acc;
@@ -261,7 +259,8 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_
         in_allp_out_L = acc;
         if (++in_allp4_idxL >= sizeof(in_allp4_bufL)/sizeof(float32_t)) in_allp4_idxL = 0;
 
-        input = (float32_t(inblock[i][1])/32768.0f) * input_attn;
+        input = (float32_t(audioblock[i][1])/32767.0f) * input_attn;
+
         // chained input allpasses, channel R
         acc = in_allp1_bufR[in_allp1_idxR]  + input * in_allp_k;  
         in_allp1_bufR[in_allp1_idxR] = input - in_allp_k * acc;
@@ -407,7 +406,13 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-        outblock[i][0]=(int16_t)(master_lowpass_l * 32767.0f); //sat16(output * 30, 0);
+	int32_t out = audioblock[i][0] + int16_t(master_lowpass_l * 32767.0f * send_level);
+        if(out > INT16_MAX)
+        	audioblock[i][0] = INT16_MAX;
+	else if(out < INT16_MIN)
+		audioblock[i][0] = INT16_MIN;
+	else
+		audioblock[i][0] = out;
 
         // Channel R
         #ifdef TAP1_MODULATED
@@ -450,6 +455,13 @@ void AudioEffectPlateReverb::doReverb(uint16_t len, int16_t inblock[][2], int16_
         // Master lowpass filter
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
-        outblock[i][1]=(int16_t)(master_lowpass_r * 32767.0f);
+
+	out = audioblock[i][1] + int16_t(master_lowpass_l * 32767.0f * send_level);
+        if(out > INT16_MAX)
+        	audioblock[i][1] = INT16_MAX;
+	else if(out < INT16_MIN)
+		audioblock[i][1] = INT16_MIN;
+	else
+		audioblock[i][1] = out;
     }
 }

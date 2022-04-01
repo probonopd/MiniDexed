@@ -89,7 +89,7 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(uint16_t len, int16_t inblock[][2], int16_t outblock[][2]);
+    void doReverb(uint16_t len, int16_t audioblock[][2]);
 
     void size(float n)
     {
@@ -136,12 +136,18 @@ public:
         //__enable_irq();
     }
 
+    void send(float n)
+    {
+        send_level = constrain(n, 0.0f, 1.0f);
+    }
+
     float32_t get_size(void) {return rv_time_k;}
     bool get_bypass(void) {return bypass;}
     void set_bypass(bool state) {bypass = state;};
     void tgl_bypass(void) {bypass ^=1;}
 private:
     bool bypass = false;
+    float32_t send_level;
     float32_t input_attn;
 
     float32_t in_allp_k;            // input allpass coeff 
