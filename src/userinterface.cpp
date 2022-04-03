@@ -186,11 +186,11 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventSwitchClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		m_Menu.EventHandler (CUIMenu::MenuEventBack);
 		break;
 
 	case CKY040::EventSwitchDoubleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventBack);
+		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
 		break;
 
 	case CKY040::EventSwitchHold:
