@@ -38,6 +38,7 @@
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
 #include <circle/soundbasedevice.h>
+#include <circle/spinlock.h>
 #include "effect_platervbstereo.h"
 
 class CMiniDexed
@@ -73,6 +74,20 @@ public:
 	void setModWheel (uint8_t value, unsigned nTG);
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
+
+	enum TParameter
+	{
+		ParameterReverbSize,
+		ParameterReverbHighDamp,
+		ParameterReverbLowDamp,
+		ParameterReverbLowPass,
+		ParameterReverbDiffusion,
+		ParameterReverbSend,
+		ParameterUnknown
+	};
+
+	void SetParameter (TParameter Parameter, int nValue);
+	int GetParameter (TParameter Parameter);
 
 	enum TTGParameter
 	{
@@ -114,6 +129,8 @@ private:
 private:
 	CConfig *m_pConfig;
 
+	int m_nParameter[ParameterUnknown];			// global (non-TG) parameters
+
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
@@ -151,6 +168,7 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
+	CSpinLock m_ReverbSpinLock;
 };
 
 #endif

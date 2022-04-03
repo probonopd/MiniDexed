@@ -73,12 +73,14 @@ private:
 
 private:
 	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 
+	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
 	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
 	static std::string GetOPValueString (unsigned nOPParameter, int nValue);
@@ -116,9 +118,11 @@ private:
 	static const TMenuItem s_MenuRoot[];
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
+	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 
+	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];

@@ -48,6 +48,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG6",		MenuHandler,	s_TGMenu, 5},
 	{"TG7",		MenuHandler,	s_TGMenu, 6},
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
+	{"Reverb",	MenuHandler,	s_ReverbMenu},
 #endif
 	{0}
 };
@@ -65,6 +66,21 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
 };
+
+#ifdef ARM_ALLOW_MULTI_CORE
+
+const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
+{
+	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
+	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
+	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
+	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
+	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
+	{"Send",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSend},
+	{0}
+};
+
+#endif
 
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
@@ -120,6 +136,17 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
 	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
 	{0}
+};
+
+// must match CMiniDexed::TParameter
+const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::TGParameterUnknown] =
+{
+	{0,	99,	1},		// ParameterReverbSize
+	{0,	99,	1},		// ParameterReverbHighDamp
+	{0,	99,	1},		// ParameterReverbLowDamp
+	{0,	99,	1},		// ParameterReverbLowPass
+	{0,	99,	1},		// ParameterReverbDiffusion
+	{0,	99,	1},		// ParameterReverbSend
 };
 
 // must match CMiniDexed::TTGParameter
@@ -306,6 +333,52 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
 	}
+}
+
+void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	CMiniDexed::TParameter Param = (CMiniDexed::TParameter) pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_GlobalParameter[Param];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetParameter (Param);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetParameter (Param, nValue);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetParameter (Param, nValue);
+		break;
+
+	default:
+		return;
+	}
+
+	const char *pMenuName =
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+
+	string Value = GetGlobalValueString (Param, pUIMenu->m_pMiniDexed->GetParameter (Param));
+
+	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
@@ -535,6 +608,25 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
+{
+	string Result;
+
+	assert (nParameter < sizeof CUIMenu::s_GlobalParameter / sizeof CUIMenu::s_GlobalParameter[0]);
+
+	CUIMenu::TToString *pToString = CUIMenu::s_GlobalParameter[nParameter].ToString;
+	if (pToString)
+	{
+		Result = (*pToString) (nValue);
+	}
+	else
+	{
+		Result = to_string (nValue);
+	}
+
+	return Result;
 }
 
 string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
