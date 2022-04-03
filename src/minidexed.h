@@ -38,6 +38,7 @@
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
 #include <circle/soundbasedevice.h>
+#include <circle/spinlock.h>
 #include "effect_platervbstereo.h"
 
 class CMiniDexed
@@ -74,6 +75,39 @@ public:
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
+	enum TParameter
+	{
+		ParameterReverbSize,
+		ParameterReverbHighDamp,
+		ParameterReverbLowDamp,
+		ParameterReverbLowPass,
+		ParameterReverbDiffusion,
+		ParameterReverbSend,
+		ParameterUnknown
+	};
+
+	void SetParameter (TParameter Parameter, int nValue);
+	int GetParameter (TParameter Parameter);
+
+	enum TTGParameter
+	{
+		TGParameterVoiceBank,
+		TGParameterProgram,
+		TGParameterVolume,
+		TGParameterPan,
+		TGParameterMasterTune,
+		TGParameterMIDIChannel,
+		TGParameterUnknown
+	};
+
+	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
+	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
+
+	// access (global or OP-related) parameter of the active voice of a TG
+	static const unsigned NoOP = 6;		// for global parameters
+	void SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG);
+	uint8_t GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG);
+
 	std::string GetVoiceName (unsigned nTG);
 
 private:
@@ -95,9 +129,16 @@ private:
 private:
 	CConfig *m_pConfig;
 
+	int m_nParameter[ParameterUnknown];			// global (non-TG) parameters
+
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
+
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
+	unsigned m_nProgram[CConfig::ToneGenerators];
+	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
+	int m_nMasterTune[CConfig::ToneGenerators];
+	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
@@ -127,6 +168,7 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
+	CSpinLock m_ReverbSpinLock;
 };
 
 #endif

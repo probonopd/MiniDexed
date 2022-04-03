@@ -55,7 +55,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
+		m_nProgram[i] = 0;
+		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
+		m_nMasterTune[i] = 0;
+		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
@@ -111,12 +115,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
-	reverb->size(0.7);
-	reverb->hidamp(0.5);
-	reverb->lodamp(0.5);
-	reverb->lowpass(0.3);
-	reverb->diffusion(0.2);
-	reverb->send(0.8);
+	SetParameter (ParameterReverbSize, 70);
+	SetParameter (ParameterReverbHighDamp, 50);
+	SetParameter (ParameterReverbLowDamp, 50);
+	SetParameter (ParameterReverbLowPass, 30);
+	SetParameter (ParameterReverbDiffusion, 20);
+	SetParameter (ParameterReverbSend, 80);
 	// END setup reverb
 };
 
@@ -304,7 +308,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceBankID[nTG] = nBankLSB;
 
-	m_UI.BankSelected (nBankLSB, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -315,13 +319,15 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nProgram[nTG] = nProgram;
+
 	uint8_t Buffer[156];
 	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG], nProgram, Buffer);
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
 
-	m_UI.ProgramChanged (nProgram, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
@@ -332,10 +338,12 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nVolume[nTG] = nVolume;
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setGain (nVolume / 127.0);
 
-	m_UI.VolumeChanged (nVolume, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
@@ -348,7 +356,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 
-	m_UI.PanChanged (nPan, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
@@ -359,15 +367,18 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 	}
 
 	assert (nTG < CConfig::ToneGenerators);
+	m_nMasterTune[nTG] = nMasterTune;
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setMasterTune ((int8_t) nMasterTune);
 
-	m_UI.MasterTuneChanged (nMasterTune, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
+	m_nMIDIChannel[nTG] = uchChannel;
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
@@ -386,7 +397,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	unsigned nActiveTGs = 0;
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-		if (m_PCKeyboard.GetChannel (nTG) != CMIDIDevice::Disabled)
+		if (m_nMIDIChannel[nTG] != CMIDIDevice::Disabled)
 		{
 			nActiveTGs++;
 		}
@@ -397,7 +408,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	m_nActiveTGsLog2 = Log2[nActiveTGs];
 #endif
 
-	m_UI.MIDIChannelChanged (uchChannel, nTG);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
@@ -471,6 +482,116 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->ControllersRefresh ();
+}
+
+void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
+{
+	assert (reverb);
+
+	assert (Parameter < ParameterUnknown);
+	m_nParameter[Parameter] = nValue;
+
+	float fValue = nValue / 99.0;
+
+	m_ReverbSpinLock.Acquire ();
+
+	switch (Parameter)
+	{
+	case ParameterReverbSize:	reverb->size (fValue);		break;
+	case ParameterReverbHighDamp:	reverb->hidamp (fValue);	break;
+	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
+	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
+	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
+	case ParameterReverbSend:	reverb->send (fValue);		break;
+
+	default:
+		assert (0);
+		break;
+	}
+
+	m_ReverbSpinLock.Release ();
+}
+
+int CMiniDexed::GetParameter (TParameter Parameter)
+{
+	assert (Parameter < ParameterUnknown);
+	return m_nParameter[Parameter];
+}
+
+void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	switch (Parameter)
+	{
+	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
+	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
+	case TGParameterPan:		SetPan (nValue, nTG);		break;
+	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
+
+	case TGParameterMIDIChannel:
+		assert (0 <= nValue && nValue <= 255);
+		SetMIDIChannel ((uint8_t) nValue, nTG);
+		break;
+
+	default:
+		assert (0);
+		break;
+	}
+}
+
+int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	switch (Parameter)
+	{
+	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
+	case TGParameterProgram:	return m_nProgram[nTG];
+	case TGParameterVolume:		return m_nVolume[nTG];
+	case TGParameterPan:		return m_nPan[nTG];
+	case TGParameterMasterTune:	return m_nMasterTune[nTG];
+	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
+
+	default:
+		assert (0);
+		return 0;
+	}
+}
+
+void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	assert (nOP <= 6);
+
+	if (nOP < 6)
+	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+	}
+
+	uchOffset += nOP * 21;
+	assert (uchOffset < 156);
+
+	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+}
+
+uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	assert (nOP <= 6);
+
+	if (nOP < 6)
+	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+	}
+
+	uchOffset += nOP * 21;
+	assert (uchOffset < 156);
+
+	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
@@ -596,7 +717,9 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		// BEGIN adding reverb
+		m_ReverbSpinLock.Acquire ();
 		reverb->doReverb(nFrames,SampleBuffer);
+		m_ReverbSpinLock.Release ();
 		// END adding reverb
 
 		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)
