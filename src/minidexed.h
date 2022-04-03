@@ -38,6 +38,7 @@
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
 #include <circle/soundbasedevice.h>
+#include "effect_platervbstereo.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -124,6 +125,8 @@ private:
 
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
+
+	AudioEffectPlateReverb* reverb;
 };
 
 #endif

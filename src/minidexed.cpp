@@ -108,6 +108,16 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_CoreStatus[nCore] = CoreStatusInit;
 	}
 #endif
+
+	// BEGIN setup reverb
+	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+	reverb->size(0.7);
+	reverb->hidamp(0.5);
+	reverb->lodamp(0.5);
+	reverb->lowpass(0.3);
+	reverb->diffusion(0.2);
+	reverb->send(0.8);
+	// END setup reverb
 };
 
 bool CMiniDexed::Initialize (void)
@@ -549,6 +559,7 @@ void CMiniDexed::ProcessSound (void)
 
 		// now mix the output of all TGs
 		int16_t SampleBuffer[nFrames][2];
+
 		assert (CConfig::ToneGenerators == 8);
 		for (unsigned i = 0; i < nFrames; i++)
 		{
@@ -584,8 +595,11 @@ void CMiniDexed::ProcessSound (void)
 			}
 		}
 
-		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
-		    != (int) sizeof SampleBuffer)
+		// BEGIN adding reverb
+		reverb->doReverb(nFrames,SampleBuffer);
+		// END adding reverb
+
+		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)
 		{
 			LOGERR ("Sound data dropped");
 		}
