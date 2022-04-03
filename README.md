@@ -41,8 +41,8 @@ I am wondering whether we can run multiple Dexed instances, in order to recreate
 * Unzip
 * Put the files into the root directory of a FAT32 formatted partition on SD/microSD card
 * Put SD/microSD card into Raspberry Pi 1, 2, 3 or 4 (Zero and Zero 2 can probably be used but need HDMI or a supported i2c DAC for audio out)
-* Attach headphones to the headphone jack using `SoundDevice=pwm` in `minidexed.ini` (default)
-* Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini`
+* Attach headphones to the headphone jack using `SoundDevice=pwm` in `minidexed.ini` (default) (poor audio quality)
+* Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini` (best audio quality)
 * Alternatively, attach a HDMI display with sound and select HDMI sound output using `SoundDevice=hdmi` in `minidexed.ini` (this may introduce slight latency)
 * Attach a MIDI keyboard via USB
 * Boot
