@@ -23,7 +23,7 @@ fi
 # Build circle-stdlib library
 cd circle-stdlib/
 make mrproper || true
-./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS}
+./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
 make -j
 
 # Build additional libraries

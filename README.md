@@ -88,27 +88,29 @@ __CAUTION:__ All GPIO numbers are [chip numbers](https://pinout.xyz/), not heade
 E.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system, you can use the following example. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
 
 ```
+# Choose your RPi
+export RPI=4
+
 git clone https://github.com/probonopd/MiniDexed
 cd MiniDexed
+mkdir -p kernels sdcard
 
 # Recursively pull git submodules
 git submodule update --init --recursive
 
-# Choose your RPi
-export RPI=4
-
 # Install toolchain
 if [ "${RPI}" -gt 2 ]
 then
-	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+	wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
 else
-	wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+	wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
 fi
-tar xf gcc-arm-*-*.tar.xz 
+tar xvf gcc-arm-*-*.tar.xz 
 export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
 # Build dependencies and MiniDexed
 ./build.sh
+cp ./src/kernel*.img ./kernels/
 
 # Get Raspberry Pi boot files
 cd ./circle-stdlib/libs/circle/boot
@@ -120,14 +122,17 @@ fi
 cd -
 
 # Make zip that contains Raspberry Pi 4 boot files. The contents can be copied to a FAT32 formatted partition on a microSD card
-mkdir -p sdcard
 cd sdcard
 ../getsysex.sh
 cd ..
 cp -r ./circle-stdlib/libs/circle/boot/* sdcard
 rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-cp ./src/config.txt ./src/minidexed.ini ./src/*img sdcard/
-zip -r MiniDexed_Raspberry_Pi_${RPI}.zip sdcard/*
+cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
+echo "usbspeed=full" > sdcard/cmdline.txt
+cd sdcard
+cp ../kernels/* . || true
+zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip *
+cd -
 
 # Optionally, create a RPi image. This can be written to a microSD card using tools like Etcher or dd
 sudo apt install --yes  mount parted
@@ -145,7 +150,7 @@ sudo losetup -d "${DEV}"
 rm -r boot
 
 # Write to SD card
-sudo dd if="${IMG}" of=/dev/mmcblk0 bs=128k status=progress
+sudo dd if="${IMG}" of=/dev/mmcblk0 bs=512k status=progress
 ```
 
 ## Acknowledgements
