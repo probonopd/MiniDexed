@@ -28,7 +28,9 @@
 - [x] Add a way to configure multiple Dexed instances through `performance.ini` files
 - [ ] Add a way to configure multiple Dexed instances through Performance `.syx` files
 - [ ] Add a way to configure multiple Dexed instances through Performance sysex messages
-- [ ] Add reverb effect
+- [x] Add compressor effect
+- [x] Add reverb effect
+- [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
 
 I am wondering whether we can run multiple Dexed instances, in order to recreate basically an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
 
