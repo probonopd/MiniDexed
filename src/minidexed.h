@@ -87,6 +87,11 @@ public:
 	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
 	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
 
+	// access (global or OP-related) parameter of the active voice of a TG
+	static const unsigned NoOP = 6;		// for global parameters
+	void SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG);
+	uint8_t GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG);
+
 	std::string GetVoiceName (unsigned nTG);
 
 private:

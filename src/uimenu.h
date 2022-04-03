@@ -76,12 +76,25 @@ private:
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
+	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
+	static std::string GetOPValueString (unsigned nOPParameter, int nValue);
 
 	static std::string ToVolume (int nValue);
 	static std::string ToPan (int nValue);
 	static std::string ToMIDIChannel (int nValue);
+
+	static std::string ToAlgorithm (int nValue);
+	static std::string ToOnOff (int nValue);
+	static std::string ToLFOWaveform (int nValue);
+	static std::string ToTransposeNote (int nValue);
+	static std::string ToBreakpointNote (int nValue);
+	static std::string ToKeyboardCurve (int nValue);
+	static std::string ToOscillatorMode (int nValue);
+	static std::string ToOscillatorDetune (int nValue);
 
 private:
 	CUserInterface *m_pUI;
@@ -103,8 +116,14 @@ private:
 	static const TMenuItem s_MenuRoot[];
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
+	static const TMenuItem s_EditVoiceMenu[];
+	static const TMenuItem s_OperatorMenu[];
 
 	static const TParameter s_TGParameter[];
+	static const TParameter s_VoiceParameter[];
+	static const TParameter s_OPParameter[];
+
+	static const char s_NoteName[100][4];
 };
 
 #endif

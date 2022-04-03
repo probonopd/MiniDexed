@@ -516,6 +516,40 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	}
 }
 
+void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	assert (nOP <= 6);
+
+	if (nOP < 6)
+	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+	}
+
+	uchOffset += nOP * 21;
+	assert (uchOffset < 156);
+
+	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+}
+
+uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	assert (nOP <= 6);
+
+	if (nOP < 6)
+	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+	}
+
+	uchOffset += nOP * 21;
+	assert (uchOffset < 156);
+
+	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+}
+
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
 {
 	char VoiceName[11];

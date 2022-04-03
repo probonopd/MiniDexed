@@ -62,6 +62,63 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 #endif
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
+	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
+{
+	{"OP1",		MenuHandler,		s_OperatorMenu, 0},
+	{"OP2",		MenuHandler,		s_OperatorMenu, 1},
+	{"OP3",		MenuHandler,		s_OperatorMenu, 2},
+	{"OP4",		MenuHandler,		s_OperatorMenu, 3},
+	{"OP5",		MenuHandler,		s_OperatorMenu, 4},
+	{"OP6",		MenuHandler,		s_OperatorMenu, 5},
+	{"P EG Rate 1",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R1},
+	{"P EG Rate 2",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R2},
+	{"P EG Rate 3",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R3},
+	{"P EG Rate 4",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R4},
+	{"P EG Level 1",EditVoiceParameter,	0,		DEXED_PITCH_EG_L1},
+	{"P EG Level 2",EditVoiceParameter,	0,		DEXED_PITCH_EG_L2},
+	{"P EG Level 3",EditVoiceParameter,	0,		DEXED_PITCH_EG_L3},
+	{"P EG Level 4",EditVoiceParameter,	0,		DEXED_PITCH_EG_L4},
+	{"Algorithm",	EditVoiceParameter,	0,		DEXED_ALGORITHM},
+	{"Feedback",	EditVoiceParameter,	0,		DEXED_FEEDBACK},
+	{"Osc Key Sync",EditVoiceParameter,	0,		DEXED_OSC_KEY_SYNC},
+	{"LFO Speed",	EditVoiceParameter,	0,		DEXED_LFO_SPEED},
+	{"LFO Delay",	EditVoiceParameter,	0,		DEXED_LFO_DELAY},
+	{"LFO PMD",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_DEP},
+	{"LFO AMD",	EditVoiceParameter,	0,		DEXED_LFO_AMP_MOD_DEP},
+	{"LFO Sync",	EditVoiceParameter,	0,		DEXED_LFO_SYNC},
+	{"LFO Wave",	EditVoiceParameter,	0,		DEXED_LFO_WAVE},
+	{"P Mod Sens.",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_SENS},
+	{"Transpose",	EditVoiceParameter,	0,		DEXED_TRANSPOSE},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
+{
+	{"EG Rate 1",	EditOPParameter,	0,	DEXED_OP_EG_R1},
+	{"EG Rate 2",	EditOPParameter,	0,	DEXED_OP_EG_R2},
+	{"EG Rate 3",	EditOPParameter,	0,	DEXED_OP_EG_R3},
+	{"EG Rate 4",	EditOPParameter,	0,	DEXED_OP_EG_R4},
+	{"EG Level 1",	EditOPParameter,	0,	DEXED_OP_EG_L1},
+	{"EG Level 2",	EditOPParameter,	0,	DEXED_OP_EG_L2},
+	{"EG Level 3",	EditOPParameter,	0,	DEXED_OP_EG_L3},
+	{"EG Level 4",	EditOPParameter,	0,	DEXED_OP_EG_L4},
+	{"Break Point",	EditOPParameter,	0,	DEXED_OP_LEV_SCL_BRK_PT},
+	{"L Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_DEPTH},
+	{"R Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_DEPTH},
+	{"L Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_CURVE},
+	{"R Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_CURVE},
+	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
+	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
+	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
+	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
+	{"Osc Mode",	EditOPParameter,	0,	DEXED_OP_OSC_MODE},
+	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
+	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
+	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
 	{0}
 };
 
@@ -75,6 +132,70 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{-99,	99,					1},		// TGParameterMasterTune
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel} // TGParameterMIDIChannel
 };
+
+// must match DexedVoiceParameters in Synth_Dexed
+const CUIMenu::TParameter CUIMenu::s_VoiceParameter[] =
+{
+	{0,	99,	1},				// DEXED_PITCH_EG_R1
+	{0,	99,	1},				// DEXED_PITCH_EG_R2
+	{0,	99,	1},				// DEXED_PITCH_EG_R3
+	{0,	99,	1},				// DEXED_PITCH_EG_R4
+	{0,	99,	1},				// DEXED_PITCH_EG_L1
+	{0,	99,	1},				// DEXED_PITCH_EG_L2
+	{0,	99,	1},				// DEXED_PITCH_EG_L3
+	{0,	99,	1},				// DEXED_PITCH_EG_L4
+	{0,	31,	1,	ToAlgorithm},		// DEXED_ALGORITHM
+	{0,	7,	1},				// DEXED_FEEDBACK
+	{0,	1,	1,	ToOnOff},		// DEXED_OSC_KEY_SYNC
+	{0,	99,	1},				// DEXED_LFO_SPEED
+	{0,	99,	1},				// DEXED_LFO_DELAY
+	{0,	99,	1},				// DEXED_LFO_PITCH_MOD_DEP
+	{0,	99,	1},				// DEXED_LFO_AMP_MOD_DEP
+	{0,	1,	1,	ToOnOff},		// DEXED_LFO_SYNC
+	{0,	5,	1,	ToLFOWaveform},		// DEXED_LFO_WAVE
+	{0,	7,	1},				// DEXED_LFO_PITCH_MOD_SENS
+	{0,	48,	1,	ToTransposeNote}	// DEXED_TRANSPOSE
+};
+
+// must match DexedVoiceOPParameters in Synth_Dexed
+const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
+{
+	{0,	99,	1},				// DEXED_OP_EG_R1
+	{0,	99,	1},				// DEXED_OP_EG_R2
+	{0,	99,	1},				// DEXED_OP_EG_R3
+	{0,	99,	1},				// DEXED_OP_EG_R4
+	{0,	99,	1},				// DEXED_OP_EG_L1
+	{0,	99,	1},				// DEXED_OP_EG_L2
+	{0,	99,	1},				// DEXED_OP_EG_L3
+	{0,	99,	1},				// DEXED_OP_EG_L4
+	{0,	99,	1,	ToBreakpointNote},	// DEXED_OP_LEV_SCL_BRK_PT
+	{0,	99,	1},				// DEXED_OP_SCL_LEFT_DEPTH
+	{0,	99,	1},				// DEXED_OP_SCL_RGHT_DEPTH
+	{0,	3,	1,	ToKeyboardCurve},	// DEXED_OP_SCL_LEFT_CURVE
+	{0,	3,	1,	ToKeyboardCurve},	// DEXED_OP_SCL_RGHT_CURVE
+	{0,	7,	1},				// DEXED_OP_OSC_RATE_SCALE
+	{0,	3,	1},				// DEXED_OP_AMP_MOD_SENS
+	{0,	7,	1},				// DEXED_OP_KEY_VEL_SENS
+	{0,	99,	1},				// DEXED_OP_OUTPUT_LEV
+	{0,	1,	1,	ToOscillatorMode},	// DEXED_OP_OSC_MODE
+	{0,	31,	1},				// DEXED_OP_FREQ_COARSE
+	{0,	99,	1},				// DEXED_OP_FREQ_FINE
+	{0,	14,	1,	ToOscillatorDetune}	// DEXED_OP_OSC_DETUNE
+};
+
+const char CUIMenu::s_NoteName[100][4] =
+{
+	"A1", "A#1", "B1", "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1",	"G1", "G#1",
+	"A2", "A#2", "B2", "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2",
+	"A3", "A#3", "B3", "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3",
+	"A4", "A#4", "B4", "C4", "C#4", "D4", "D#4", "E4", "F4", "F#4", "G4", "G#4",
+	"A5", "A#5", "B5", "C5", "C#5", "D5", "D#5", "E5", "F5", "F#5", "G5", "G#5",
+	"A6", "A#6", "B6", "C6", "C#6", "D6", "D#6", "E6", "F6", "F#6", "G6", "G#6",
+	"A7", "A#7", "B7", "C7", "C#7", "D7", "D#7", "E7", "F7", "F#7", "G7", "G#7",
+	"A8", "A#8", "B8", "C8", "C#8", "D8", "D#8", "E8", "F8", "F#8", "G8", "G#8",
+	"A9", "A#9", "B9", "C9"
+};
+static const unsigned NoteC3 = 27;
 
 CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 :	m_pUI (pUI),
@@ -278,8 +399,10 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
 
-	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (
-		(CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter, nTG);
+	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_TGParameter[Param];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
 
 	switch (Event)
 	{
@@ -287,23 +410,21 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventStepDown:
-		nValue -= s_TGParameter[pUIMenu->m_nCurrentParameter].Increment;
-		if (nValue < s_TGParameter[pUIMenu->m_nCurrentParameter].Minimum)
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
 		{
-			nValue = s_TGParameter[pUIMenu->m_nCurrentParameter].Minimum;
+			nValue = rParam.Minimum;
 		}
-		pUIMenu->m_pMiniDexed->SetTGParameter (
-			(CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter, nValue, nTG);
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
 		break;
 
 	case MenuEventStepUp:
-		nValue += s_TGParameter[pUIMenu->m_nCurrentParameter].Increment;
-		if (nValue > s_TGParameter[pUIMenu->m_nCurrentParameter].Maximum)
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
 		{
-			nValue = s_TGParameter[pUIMenu->m_nCurrentParameter].Maximum;
+			nValue = rParam.Maximum;
 		}
-		pUIMenu->m_pMiniDexed->SetTGParameter (
-			(CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter, nValue, nTG);
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
 		break;
 
 	default:
@@ -313,15 +434,107 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value = GetTGValueString (
-		pUIMenu->m_nCurrentParameter,
-		pUIMenu->m_pMiniDexed->GetTGParameter (
-			(CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter, nTG));
+	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
-				      nValue > s_TGParameter[pUIMenu->m_nCurrentParameter].Minimum, nValue < s_TGParameter[pUIMenu->m_nCurrentParameter].Maximum);
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
+
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_VoiceParameter[nParam];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetVoiceParameter (nParam, CMiniDexed::NoOP, nTG);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, CMiniDexed::NoOP, nTG);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, CMiniDexed::NoOP, nTG);
+		break;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	string Value = GetVoiceValueString (nParam, nValue);
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
+	unsigned nOP = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
+
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_OPParameter[nParam];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetVoiceParameter (nParam, nOP, nTG);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, nOP, nTG);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, nOP, nTG);
+		break;
+
+	default:
+		return;
+	}
+
+	string OP ("OP");
+	OP += to_string (nOP+1);
+
+	string Value = GetOPValueString (nParam, nValue);
+
+	pUIMenu->m_pUI->DisplayWrite (OP.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
@@ -331,6 +544,44 @@ string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
 	assert (nTGParameter < sizeof CUIMenu::s_TGParameter / sizeof CUIMenu::s_TGParameter[0]);
 
 	CUIMenu::TToString *pToString = CUIMenu::s_TGParameter[nTGParameter].ToString;
+	if (pToString)
+	{
+		Result = (*pToString) (nValue);
+	}
+	else
+	{
+		Result = to_string (nValue);
+	}
+
+	return Result;
+}
+
+string CUIMenu::GetVoiceValueString (unsigned nVoiceParameter, int nValue)
+{
+	string Result;
+
+	assert (nVoiceParameter < sizeof CUIMenu::s_VoiceParameter / sizeof CUIMenu::s_VoiceParameter[0]);
+
+	CUIMenu::TToString *pToString = CUIMenu::s_VoiceParameter[nVoiceParameter].ToString;
+	if (pToString)
+	{
+		Result = (*pToString) (nValue);
+	}
+	else
+	{
+		Result = to_string (nValue);
+	}
+
+	return Result;
+}
+
+string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
+{
+	string Result;
+
+	assert (nOPParameter < sizeof CUIMenu::s_OPParameter / sizeof CUIMenu::s_OPParameter[0]);
+
+	CUIMenu::TToString *pToString = CUIMenu::s_OPParameter[nOPParameter].ToString;
 	if (pToString)
 	{
 		Result = (*pToString) (nValue);
@@ -376,4 +627,80 @@ string CUIMenu::ToMIDIChannel (int nValue)
 	case CMIDIDevice::Disabled:	return "Off";
 	default:			return to_string (nValue+1);
 	}
+}
+
+string CUIMenu::ToAlgorithm (int nValue)
+{
+	return to_string (nValue + 1);
+}
+
+string CUIMenu::ToOnOff (int nValue)
+{
+	static const char *OnOff[] = {"Off", "On"};
+
+	assert ((unsigned) nValue < sizeof OnOff / sizeof OnOff[0]);
+
+	return OnOff[nValue];
+}
+
+string CUIMenu::ToLFOWaveform (int nValue)
+{
+	static const char *Waveform[] = {"Triangle", "Saw down", "Saw up",
+					 "Square", "Sine", "Sample/Hold"};
+
+	assert ((unsigned) nValue < sizeof Waveform / sizeof Waveform[0]);
+
+	return Waveform[nValue];
+}
+
+string CUIMenu::ToTransposeNote (int nValue)
+{
+	nValue += NoteC3 - 24;
+
+	assert ((unsigned) nValue < sizeof s_NoteName / sizeof s_NoteName[0]);
+
+	return s_NoteName[nValue];
+}
+
+string CUIMenu::ToBreakpointNote (int nValue)
+{
+	assert ((unsigned) nValue < sizeof s_NoteName / sizeof s_NoteName[0]);
+
+	return s_NoteName[nValue];
+}
+
+string CUIMenu::ToKeyboardCurve (int nValue)
+{
+	static const char *Curve[] = {"-Lin", "-Exp", "+Exp", "+Lin"};
+
+	assert ((unsigned) nValue < sizeof Curve / sizeof Curve[0]);
+
+	return Curve[nValue];
+}
+
+string CUIMenu::ToOscillatorMode (int nValue)
+{
+	static const char *Mode[] = {"Ratio", "Fixed"};
+
+	assert ((unsigned) nValue < sizeof Mode / sizeof Mode[0]);
+
+	return Mode[nValue];
+}
+
+string CUIMenu::ToOscillatorDetune (int nValue)
+{
+	string Result;
+
+	nValue -= 7;
+
+	if (nValue > 0)
+	{
+		Result = "+" + to_string (nValue);
+	}
+	else
+	{
+		Result = to_string (nValue);
+	}
+
+	return Result;
 }
