@@ -119,7 +119,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 20);
+	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbSend, 80);
 	// END setup reverb
 };
