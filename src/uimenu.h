@@ -42,6 +42,8 @@ public:
 		MenuEventHome,
 		MenuEventStepDown,
 		MenuEventStepUp,
+		MenuEventPressAndStepDown,
+		MenuEventPressAndStepUp,
 		MenuEventUnknown
 	};
 
@@ -97,6 +99,8 @@ private:
 	static std::string ToKeyboardCurve (int nValue);
 	static std::string ToOscillatorMode (int nValue);
 	static std::string ToOscillatorDetune (int nValue);
+
+	void TGShortcutHandler (TMenuEvent Event);
 
 private:
 	CUserInterface *m_pUI;
