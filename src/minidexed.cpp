@@ -113,8 +113,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	SetParameter (ParameterCompressorEnable, 1);
+
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
@@ -171,6 +174,16 @@ bool CMiniDexed::Initialize (void)
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
 		}
+
+		// Effects
+		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+		SetParameter (ParameterReverbSend, m_PerformanceConfig.GetReverbSend ());
 	}
 	else
 	{
@@ -491,25 +504,62 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	assert (Parameter < ParameterUnknown);
 	m_nParameter[Parameter] = nValue;
 
-	float fValue = nValue / 99.0;
-
-	m_ReverbSpinLock.Acquire ();
-
 	switch (Parameter)
 	{
-	case ParameterReverbSize:	reverb->size (fValue);		break;
-	case ParameterReverbHighDamp:	reverb->hidamp (fValue);	break;
-	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
-	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
-	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
-	case ParameterReverbSend:	reverb->send (fValue);		break;
+	case ParameterCompressorEnable:
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			assert (m_pTG[nTG]);
+			m_pTG[nTG]->setCompressor (!!nValue);
+		}
+		break;
+
+	case ParameterReverbEnable:
+		m_ReverbSpinLock.Acquire ();
+		reverb->set_bypass (!nValue);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbSize:
+		m_ReverbSpinLock.Acquire ();
+		reverb->size (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbHighDamp:
+		m_ReverbSpinLock.Acquire ();
+		reverb->hidamp (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbLowDamp:
+		m_ReverbSpinLock.Acquire ();
+		reverb->lodamp (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbLowPass:
+		m_ReverbSpinLock.Acquire ();
+		reverb->lowpass (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbDiffusion:
+		m_ReverbSpinLock.Acquire ();
+		reverb->diffusion (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbSend:
+		m_ReverbSpinLock.Acquire ();
+		reverb->send (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
 
 	default:
 		assert (0);
 		break;
 	}
-
-	m_ReverbSpinLock.Release ();
 }
 
 int CMiniDexed::GetParameter (TParameter Parameter)
@@ -717,9 +767,12 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		// BEGIN adding reverb
-		m_ReverbSpinLock.Acquire ();
-		reverb->doReverb(nFrames,SampleBuffer);
-		m_ReverbSpinLock.Release ();
+		if (m_nParameter[ParameterReverbEnable])
+		{
+			m_ReverbSpinLock.Acquire ();
+			reverb->doReverb(nFrames,SampleBuffer);
+			m_ReverbSpinLock.Release ();
+		}
 		// END adding reverb
 
 		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)

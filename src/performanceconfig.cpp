@@ -91,6 +91,16 @@ bool CPerformanceConfig::Load (void)
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 	}
 
+	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
+
+	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
+	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
+	m_nReverbHighDamp = m_Properties.GetNumber ("ReverbHighDamp", 50);
+	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
+	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
+	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
+	m_nReverbSend = m_Properties.GetNumber ("ReverbSend", 80);
+
 	return bResult;
 }
 
@@ -146,4 +156,44 @@ int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nNoteShift[nTG];
+}
+
+bool CPerformanceConfig::GetCompressorEnable (void) const
+{
+	return m_bCompressorEnable;
+}
+
+bool CPerformanceConfig::GetReverbEnable (void) const
+{
+	return m_bReverbEnable;
+}
+
+unsigned CPerformanceConfig::GetReverbSize (void) const
+{
+	return m_nReverbSize;
+}
+
+unsigned CPerformanceConfig::GetReverbHighDamp (void) const
+{
+	return m_nReverbHighDamp;
+}
+
+unsigned CPerformanceConfig::GetReverbLowDamp (void) const
+{
+	return m_nReverbLowDamp;
+}
+
+unsigned CPerformanceConfig::GetReverbLowPass (void) const
+{
+	return m_nReverbLowPass;
+}
+
+unsigned CPerformanceConfig::GetReverbDiffusion (void) const
+{
+	return m_nReverbDiffusion;
+}
+
+unsigned CPerformanceConfig::GetReverbSend (void) const
+{
+	return m_nReverbSend;
 }

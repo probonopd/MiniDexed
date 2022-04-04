@@ -48,8 +48,8 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG6",		MenuHandler,	s_TGMenu, 5},
 	{"TG7",		MenuHandler,	s_TGMenu, 6},
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
-	{"Reverb",	MenuHandler,	s_ReverbMenu},
 #endif
+	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{0}
 };
 
@@ -67,10 +67,20 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
+{
+	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
+#ifdef ARM_ALLOW_MULTI_CORE
+	{"Reverb",	MenuHandler,		s_ReverbMenu},
+#endif
+	{0}
+};
+
 #ifdef ARM_ALLOW_MULTI_CORE
 
 const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 {
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
 	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
 	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
 	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
@@ -139,14 +149,16 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 };
 
 // must match CMiniDexed::TParameter
-const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::TGParameterUnknown] =
+const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	99,	1},		// ParameterReverbSize
-	{0,	99,	1},		// ParameterReverbHighDamp
-	{0,	99,	1},		// ParameterReverbLowDamp
-	{0,	99,	1},		// ParameterReverbLowPass
-	{0,	99,	1},		// ParameterReverbDiffusion
-	{0,	99,	1},		// ParameterReverbSend
+	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
+	{0,	99,	1},				// ParameterReverbSize
+	{0,	99,	1},				// ParameterReverbHighDamp
+	{0,	99,	1},				// ParameterReverbLowDamp
+	{0,	99,	1},				// ParameterReverbLowPass
+	{0,	99,	1},				// ParameterReverbDiffusion
+	{0,	99,	1}				// ParameterReverbSend
 };
 
 // must match CMiniDexed::TTGParameter

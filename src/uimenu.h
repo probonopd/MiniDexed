@@ -118,6 +118,7 @@ private:
 	static const TMenuItem s_MenuRoot[];
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
+	static const TMenuItem s_EffectsMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
