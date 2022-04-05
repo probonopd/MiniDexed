@@ -30,7 +30,11 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 - [x] Add reverb effect
 - [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
 
-Contributions are highly welcome.
+## System Requirements
+
+* Raspberry Pi 1, 2, 3, 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2c DAC for audio out). On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
+* A PCM5102A or PCM5122 based DAC or HDMI display or audio extractor for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
+* Optionally (but highly recommended), an [alphanumeric 1602 LCD Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
 
 ## Usage
 
@@ -38,7 +42,7 @@ Contributions are highly welcome.
 * Download from [GitHub Releases](../../releases)
 * Unzip
 * Put the files into the root directory of a FAT32 formatted partition on SD/microSD card
-* Put SD/microSD card into Raspberry Pi 1, 2, 3 or 4 (Zero and Zero 2 can probably be used but need HDMI or a supported i2c DAC for audio out)
+* Put SD/microSD card into Raspberry Pi 1, 2, 3 or 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2c DAC for audio out)
 * Attach headphones to the headphone jack using `SoundDevice=pwm` in `minidexed.ini` (default) (poor audio quality)
 * Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini` (best audio quality)
 * Alternatively, attach a HDMI display with sound and select HDMI sound output using `SoundDevice=hdmi` in `minidexed.ini` (this may introduce slight latency)
@@ -83,9 +87,13 @@ __CAUTION:__ All GPIO numbers are [chip numbers](https://pinout.xyz/), not heade
 |04 | NONE |  |  |  |  |  | can generate clock signal|
 |20 | NONE |  |  |  |  |  | may be used for DAC DIN|
 
+## Downloading
+
+Compiled versions are available on [GitHub Releases](../../releases). Just download and put on a FAT32 formatted SD card.
+
 ## Building locally
 
-E.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system, you can use the following example. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
+If you need to build the source code yoursel, you can use the following example, e.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
 
 ```
 # Choose your RPi
