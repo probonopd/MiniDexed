@@ -34,6 +34,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pLCD (0),
 	m_pLCDBuffered (0),
 	m_pRotaryEncoder (0),
+	m_bSwitchPressed (false),
 	m_Menu (this, pMiniDexed)
 {
 }
@@ -177,12 +178,22 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 {
 	switch (Event)
 	{
+	case CKY040::EventSwitchDown:
+		m_bSwitchPressed = true;
+		break;
+
+	case CKY040::EventSwitchUp:
+		m_bSwitchPressed = false;
+		break;
+
 	case CKY040::EventClockwise:
-		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
+		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepUp
+						      : CUIMenu::MenuEventStepUp);
 		break;
 
 	case CKY040::EventCounterclockwise:
-		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
+		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepDown
+						      : CUIMenu::MenuEventStepDown);
 		break;
 
 	case CKY040::EventSwitchClick:
@@ -193,16 +204,16 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
 		break;
 
+	case CKY040::EventSwitchTripleClick:
+		m_Menu.EventHandler (CUIMenu::MenuEventHome);
+		break;
+
 	case CKY040::EventSwitchHold:
-		if (m_pRotaryEncoder->GetHoldSeconds () >= 3)
+		if (m_pRotaryEncoder->GetHoldSeconds () >= 10)
 		{
 			delete m_pLCD;		// reset LCD
 
 			reboot ();
-		}
-		else
-		{
-			m_Menu.EventHandler (CUIMenu::MenuEventHome);
 		}
 		break;
 

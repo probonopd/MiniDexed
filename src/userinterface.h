@@ -64,6 +64,7 @@ private:
 	CWriteBufferDevice *m_pLCDBuffered;
 
 	CKY040 *m_pRotaryEncoder;
+	bool m_bSwitchPressed;
 
 	CUIMenu m_Menu;
 };
