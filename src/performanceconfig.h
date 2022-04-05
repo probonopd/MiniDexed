@@ -35,6 +35,8 @@ public:
 
 	bool Load (void);
 
+	bool Save (void);
+
 	// TG#
 	unsigned GetBankNumber (unsigned nTG) const;		// 0 .. 127
 	unsigned GetVoiceNumber (unsigned nTG) const;		// 0 .. 31
@@ -46,6 +48,16 @@ public:
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
 
+	void SetBankNumber (unsigned nValue, unsigned nTG);
+	void SetVoiceNumber (unsigned nValue, unsigned nTG);
+	void SetMIDIChannel (unsigned nValue, unsigned nTG);
+	void SetVolume (unsigned nValue, unsigned nTG);
+	void SetPan (unsigned nValue, unsigned nTG);
+	void SetDetune (int nValue, unsigned nTG);
+	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
+	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
+	void SetNoteShift (int nValue, unsigned nTG);
+
 	// Effects
 	bool GetCompressorEnable (void) const;
 	bool GetReverbEnable (void) const;
@@ -55,6 +67,15 @@ public:
 	unsigned GetReverbLowPass (void) const;			// 0 .. 99
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
 	unsigned GetReverbSend (void) const;			// 0 .. 99
+
+	void SetCompressorEnable (bool bValue);
+	void SetReverbEnable (bool bValue);
+	void SetReverbSize (unsigned nValue);
+	void SetReverbHighDamp (unsigned nValue);
+	void SetReverbLowDamp (unsigned nValue);
+	void SetReverbLowPass (unsigned nValue);
+	void SetReverbDiffusion (unsigned nValue);
+	void SetReverbSend (unsigned nValue);
 
 private:
 	CPropertiesFatFsFile m_Properties;

@@ -51,6 +51,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Save",	MenuHandler,	s_SaveMenu},
 	{0}
 };
 
@@ -146,6 +147,12 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
 	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
 	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
+{
+	{"Performance",	SavePerformance},
 	{0}
 };
 
@@ -647,6 +654,27 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
+void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != MenuEventUpdate)
+	{
+		return;
+	}
+
+	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance ();
+
+	const char *pMenuName =
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+
+	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      bOK ? "Completed" : "Error",
+				      false, false);
+
+	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+}
+
 string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
 {
 	string Result;
@@ -862,4 +890,12 @@ void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 
 		EventHandler (MenuEventUpdate);
 	}
+}
+
+void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext)
+{
+	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
+	assert (pThis);
+
+	pThis->EventHandler (MenuEventBack);
 }

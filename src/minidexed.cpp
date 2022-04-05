@@ -788,3 +788,31 @@ void CMiniDexed::ProcessSound (void)
 }
 
 #endif
+
+bool CMiniDexed::SavePerformance (void)
+{
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_PerformanceConfig.SetBankNumber (m_nVoiceBankID[nTG], nTG);
+		m_PerformanceConfig.SetVoiceNumber (m_nProgram[nTG], nTG);
+		m_PerformanceConfig.SetMIDIChannel (m_nMIDIChannel[nTG], nTG);
+		m_PerformanceConfig.SetVolume (m_nVolume[nTG], nTG);
+		m_PerformanceConfig.SetPan (m_nPan[nTG], nTG);
+		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
+
+		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
+		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
+		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
+	}
+
+	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
+	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
+	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
+	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
+	m_PerformanceConfig.SetReverbLowDamp (m_nParameter[ParameterReverbLowDamp]);
+	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
+	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
+	m_PerformanceConfig.SetReverbSend (m_nParameter[ParameterReverbSend]);
+
+	return m_PerformanceConfig.Save ();
+}

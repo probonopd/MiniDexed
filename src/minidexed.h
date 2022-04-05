@@ -112,6 +112,8 @@ public:
 
 	std::string GetVoiceName (unsigned nTG);
 
+	bool SavePerformance (void);
+
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 

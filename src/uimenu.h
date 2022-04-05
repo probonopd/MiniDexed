@@ -24,6 +24,7 @@
 #define _uimenu_h
 
 #include <string>
+#include <circle/timer.h>
 
 class CMiniDexed;
 class CUserInterface;
@@ -81,6 +82,7 @@ private:
 	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
 
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
@@ -101,6 +103,8 @@ private:
 	static std::string ToOscillatorDetune (int nValue);
 
 	void TGShortcutHandler (TMenuEvent Event);
+
+	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 
 private:
 	CUserInterface *m_pUI;
@@ -126,6 +130,7 @@ private:
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
+	static const TMenuItem s_SaveMenu[];
 
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
