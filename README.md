@@ -50,11 +50,11 @@ Contributions are highly welcome.
 
 ## Pinout
 
-All devices on Raspberry Pi GPIOs are optional.
+All devices on Raspberry Pi GPIOs are **optional**.
 
 __CAUTION:__ All GPIO numbers are [chip numbers](https://pinout.xyz/), not header positions.
 
-|GPIO | Device |  | Function | Direction | Commant|
+|GPIO | Device |  | Function | Direction | Comment|
 |---|---|---|---|---|---|
 |14 | UART |  | TXD |  | OUT |  | serial MIDI|
 |15 | UART |  | RXD |  | IN |  | serial MIDI|
