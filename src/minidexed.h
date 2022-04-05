@@ -77,6 +77,8 @@ public:
 
 	enum TParameter
 	{
+		ParameterCompressorEnable,
+		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
 		ParameterReverbLowDamp,

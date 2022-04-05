@@ -46,6 +46,16 @@ public:
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
 
+	// Effects
+	bool GetCompressorEnable (void) const;
+	bool GetReverbEnable (void) const;
+	unsigned GetReverbSize (void) const;			// 0 .. 99
+	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
+	unsigned GetReverbLowDamp (void) const;			// 0 .. 99
+	unsigned GetReverbLowPass (void) const;			// 0 .. 99
+	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
+	unsigned GetReverbSend (void) const;			// 0 .. 99
+
 private:
 	CPropertiesFatFsFile m_Properties;
 
@@ -58,6 +68,15 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+
+	bool m_bCompressorEnable;
+	bool m_bReverbEnable;
+	unsigned m_nReverbSize;
+	unsigned m_nReverbHighDamp;
+	unsigned m_nReverbLowDamp;
+	unsigned m_nReverbLowPass;
+	unsigned m_nReverbDiffusion;
+	unsigned m_nReverbSend;
 };
 
 #endif
