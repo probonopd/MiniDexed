@@ -2,11 +2,9 @@
 
 ![minidexed](https://user-images.githubusercontent.com/2480569/161813414-bb156a1c-efec-44c0-802a-8926412a08e0.jpg)
 
-[Dexed](https://asb2m10.github.io/dexed/) is a FM synthesizer closely modeled on the famous DX7 by a well-known Japanese manufacturer. MiniDexed is a port to run it on a bare metal Raspberry Pi (without a Linux kernel or operating system).
+[Dexed](https://asb2m10.github.io/dexed/) is a FM synthesizer closely modeled on the famous DX7 by a well-known Japanese manufacturer. MiniDexed is a port to run it on a bare metal Raspberry Pi (without a Linux kernel or operating system). On Raspberry Pi 2 and larger, it can run 8 Dexed instances, basically creating an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
 
-## TODO
-
- Contributions are highly welcome.
+## Features
 
 - [x] Get [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] Upload SD card contents to [GitHub Releases](../../releases)
@@ -32,7 +30,7 @@
 - [x] Add reverb effect
 - [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
 
-I am wondering whether we can run multiple Dexed instances, in order to recreate basically an open source equivalent of the TX802 (8 DX7 instances without the keyboard in one box).
+Contributions are highly welcome.
 
 ## Usage
 
