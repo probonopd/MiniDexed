@@ -37,6 +37,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 	{0}
 };
 
+// inserting menu items before "TG1" affect TGShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
 	{"TG1",		MenuHandler,	s_TGMenu, 0},
@@ -328,8 +329,7 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	default:
-		assert (0);
-		break;
+		return;
 	}
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
@@ -422,6 +422,11 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;
 
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
 	default:
 		return;
 	}
@@ -464,6 +469,11 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
 
 	default:
 		return;
@@ -512,6 +522,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
 		break;
 
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
 	default:
 		return;
 	}
@@ -558,6 +573,11 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, CMiniDexed::NoOP, nTG);
 		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
 
 	default:
 		return;
@@ -606,6 +626,11 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, nOP, nTG);
 		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
 
 	default:
 		return;
@@ -807,4 +832,34 @@ string CUIMenu::ToOscillatorDetune (int nValue)
 	}
 
 	return Result;
+}
+
+void CUIMenu::TGShortcutHandler (TMenuEvent Event)
+{
+	assert (m_nCurrentMenuDepth >= 2);
+	assert (m_MenuStackMenu[0] = s_MainMenu);
+	unsigned nTG = m_nMenuStackSelection[0];
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_nMenuStackItem[1] == nTG);
+	assert (m_nMenuStackParameter[1] == nTG);
+
+	assert (   Event == MenuEventPressAndStepDown
+		|| Event == MenuEventPressAndStepUp);
+	if (Event == MenuEventPressAndStepDown)
+	{
+		nTG--;
+	}
+	else
+	{
+		nTG++;
+	}
+
+	if (nTG < CConfig::ToneGenerators)
+	{
+		m_nMenuStackSelection[0] = nTG;
+		m_nMenuStackItem[1] = nTG;
+		m_nMenuStackParameter[1] = nTG;
+
+		EventHandler (MenuEventUpdate);
+	}
 }
