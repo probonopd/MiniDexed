@@ -152,7 +152,7 @@ sudo losetup -d "${DEV}"
 rm -r boot
 
 # Write to SD card
-sudo dd if="${IMG}" of=/dev/mmcblk0 bs=512k status=progress
+sudo dd if="${IMG}" of=/dev/mmcblk0 bs=512k status=progress && sync
 ```
 
 ## Acknowledgements

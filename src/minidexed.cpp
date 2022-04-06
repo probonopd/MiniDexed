@@ -58,6 +58,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
+		pan_float[i]=0.0f;
 		m_nMasterTune[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
@@ -113,6 +114,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	// BEGIN setup tg_mixer
+	tg_mixer = new AudioStereoMixer<8>();
+	// END setup tg_mixer
+
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbSize, 70);
@@ -120,7 +125,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
 	SetParameter (ParameterReverbDiffusion, 65);
-	SetParameter (ParameterReverbSend, 80);
+	SetParameter (ParameterReverbLevel, 80);
 	// END setup reverb
 };
 
@@ -285,7 +290,7 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
-				m_pTG[nTG]->getSamples (m_nFramesToProcess, m_OutputLevel[nTG]);
+				m_pTG[nTG]->getSamples (m_OutputLevel[nTG], m_nFramesToProcess);
 			}
 		}
 	}
@@ -348,13 +353,11 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 {
-	if (nPan > 127)
-	{
-		return;
-	}
+	constrain(nPan,-1.0f,1.0f);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
+	pan_float[nTG]=mapfloat(nPan,0,127,-1.0,1.0);
 
 	m_UI.ParameterChanged ();
 }
@@ -502,7 +505,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
 	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
 	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
-	case ParameterReverbSend:	reverb->send (fValue);		break;
+	case ParameterReverbLevel:	reverb->level (fValue);		break;
 
 	default:
 		assert (0);
@@ -622,8 +625,8 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		int16_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (nFrames, SampleBuffer);
+		//int16_t SampleBuffer[nFrames]; // TODO float->int
+		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
 		    != (int) sizeof SampleBuffer)
@@ -666,7 +669,7 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
-			m_pTG[i]->getSamples (nFrames, m_OutputLevel[i]);
+			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
 		}
 
 		// wait for cores 2 and 3 to complete their work
@@ -678,51 +681,53 @@ void CMiniDexed::ProcessSound (void)
 			}
 		}
 
+		//
+		// Audio signal path after tone generators starts here
+		//
+
 		// now mix the output of all TGs
-		int16_t SampleBuffer[nFrames][2];
+		float32_t SampleBuffer[2][nFrames];
+		uint8_t indexL=0, indexR=1;
+
+		assert (SampleBuffer[0]!=NULL);
+		arm_fill_f32(0.0, SampleBuffer[0], nFrames);
+		assert (SampleBuffer[1]!=NULL);
+		arm_fill_f32(0.0, SampleBuffer[1], nFrames);
+		
+		if (m_bChannelsSwapped)
+		{
+			indexL=1;
+			indexR=0;
+		}
 
 		assert (CConfig::ToneGenerators == 8);
-		for (unsigned i = 0; i < nFrames; i++)
+
+		for (uint16_t i = 0; i < nFrames; i++)
 		{
-			int32_t nLeft =   m_OutputLevel[0][i] * (127-m_nPan[0])
-					+ m_OutputLevel[1][i] * (127-m_nPan[1])
-					+ m_OutputLevel[2][i] * (127-m_nPan[2])
-					+ m_OutputLevel[3][i] * (127-m_nPan[3])
-					+ m_OutputLevel[4][i] * (127-m_nPan[4])
-					+ m_OutputLevel[5][i] * (127-m_nPan[5])
-					+ m_OutputLevel[6][i] * (127-m_nPan[6])
-					+ m_OutputLevel[7][i] * (127-m_nPan[7]);
-			nLeft >>= m_nActiveTGsLog2 + 7;
-
-			int32_t nRight =   m_OutputLevel[0][i] * m_nPan[0]
-					 + m_OutputLevel[1][i] * m_nPan[1]
-					 + m_OutputLevel[2][i] * m_nPan[2]
-					 + m_OutputLevel[3][i] * m_nPan[3]
-					 + m_OutputLevel[4][i] * m_nPan[4]
-					 + m_OutputLevel[5][i] * m_nPan[5]
-					 + m_OutputLevel[6][i] * m_nPan[6]
-					 + m_OutputLevel[7][i] * m_nPan[7];
-			nRight >>= m_nActiveTGsLog2 + 7;
-
-			if (!m_bChannelsSwapped)
+			for(uint8_t n=0; n<CConfig::ToneGenerators; n++)
 			{
-				SampleBuffer[i][0] = (int16_t) nLeft;
-				SampleBuffer[i][1] = (int16_t) nRight;
-			}
-			else
-			{
-				SampleBuffer[i][0] = (int16_t) nRight;
-				SampleBuffer[i][1] = (int16_t) nLeft;
+				SampleBuffer[indexL][i] += m_OutputLevel[n][i] * 1.0f-pan_float[n];
+				SampleBuffer[indexR][i] += m_OutputLevel[n][i] * pan_float[n];
 			}
 		}
 
 		// BEGIN adding reverb
 		m_ReverbSpinLock.Acquire ();
-		reverb->doReverb(nFrames,SampleBuffer);
+		reverb->doReverb(SampleBuffer[0],SampleBuffer[1],nFrames);
 		m_ReverbSpinLock.Release ();
 		// END adding reverb
 
-		if (m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer) != (int) sizeof SampleBuffer)
+		// Convert float to int16 array
+		float32_t tmp_float[nFrames*2];
+		int16_t tmp_int[nFrames*2];
+		for(uint16_t i=0; i<nFrames;i++)
+		{
+			tmp_float[i*2]=SampleBuffer[0][i];
+			tmp_float[(i*2)+1]=SampleBuffer[1][i];
+		}
+		arm_float_to_q15(tmp_float,(q15_t*)tmp_int,nFrames*2);
+
+		if (m_pSoundDevice->Write (tmp_int, sizeof tmp_int) != (int) sizeof tmp_int)
 		{
 			LOGERR ("Sound data dropped");
 		}

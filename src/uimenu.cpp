@@ -76,7 +76,7 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
-	{"Send",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSend},
+	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
 	{0}
 };
 

@@ -45,37 +45,9 @@
 #ifndef _EFFECT_PLATERVBSTEREO_H
 #define _EFFECT_PLATERVBSTEREO_H
 
-#include "arm_math.h"
 #include <stdint.h>
-
-#define constrain(amt, low, high) ({ \
-  __typeof__(amt) _amt = (amt); \
-  __typeof__(low) _low = (low); \
-  __typeof__(high) _high = (high); \
-  (_amt < _low) ? _low : ((_amt > _high) ? _high : _amt); \
-})
-
-/*
-template<typename T>
-inline static T min(const T& a, const T& b) {
-  return a < b ? a : b;
-}
-
-template<typename T>
-inline static T max(const T& a, const T& b) {
-  return a > b ? a : b;
-}
-
-inline long maplong(long x, long in_min, long in_max, long out_min, long out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-*/
-
-inline float32_t mapfloat(float32_t val, float32_t in_min, float32_t in_max, float32_t out_min, float32_t out_max)
-{
-  return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
+#include <arm_math.h>
+#include "common.h"
 
 /***
  * Loop delay modulation: comment/uncomment to switch sin/cos 
@@ -89,7 +61,7 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(uint16_t len, int16_t audioblock[][2]);
+    void doReverb(float32_t* audioblockL, float32_t* audioblockR, uint16_t len);
 
     void size(float n)
     {
@@ -136,9 +108,9 @@ public:
         //__enable_irq();
     }
 
-    void send(float n)
+    void level(float n)
     {
-        send_level = constrain(n, 0.0f, 1.0f);
+        reverb_level = constrain(n, 0.0f, 1.0f);
     }
 
     float32_t get_size(void) {return rv_time_k;}
@@ -147,7 +119,7 @@ public:
     void tgl_bypass(void) {bypass ^=1;}
 private:
     bool bypass = false;
-    float32_t send_level;
+    float32_t reverb_level;
     float32_t input_attn;
 
     float32_t in_allp_k;            // input allpass coeff 
