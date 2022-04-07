@@ -173,6 +173,7 @@ private:
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<8>* tg_mixer;
 
+	CSpinLock m_PanoramaSpinLock;
 	CSpinLock m_ReverbSpinLock;
 };
 

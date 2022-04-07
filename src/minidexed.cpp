@@ -115,7 +115,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 
 	// BEGIN setup tg_mixer
-	tg_mixer = new AudioStereoMixer<8>();
+	//tg_mixer = new AudioStereoMixer<8>();
 	// END setup tg_mixer
 
 	// BEGIN setup reverb
@@ -124,7 +124,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 65);
+	SetParameter (ParameterReverbDiffusion, 20);
 	SetParameter (ParameterReverbLevel, 80);
 	// END setup reverb
 };
@@ -702,18 +702,19 @@ void CMiniDexed::ProcessSound (void)
 
 		assert (CConfig::ToneGenerators == 8);
 
-		for (uint16_t i = 0; i < nFrames; i++)
+		// BEGIN stereo panorama
+		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 		{
-			for(uint8_t n=0; n<CConfig::ToneGenerators; n++)
-			{
-				SampleBuffer[indexL][i] += m_OutputLevel[n][i] * 1.0f-pan_float[n];
-				SampleBuffer[indexR][i] += m_OutputLevel[n][i] * pan_float[n];
-			}
+			m_PanoramaSpinLock.Acquire ();
+			arm_scale_f32(m_OutputLevel[0], 1.0f-pan_float[i], SampleBuffer[indexL], nFrames);
+			arm_scale_f32(m_OutputLevel[1], pan_float[i], SampleBuffer[indexR], nFrames);
+			m_PanoramaSpinLock.Release ();
 		}
+		// END stereo panorama
 
 		// BEGIN adding reverb
 		m_ReverbSpinLock.Acquire ();
-		reverb->doReverb(SampleBuffer[0],SampleBuffer[1],nFrames);
+		reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],nFrames);
 		m_ReverbSpinLock.Release ();
 		// END adding reverb
 
@@ -722,12 +723,12 @@ void CMiniDexed::ProcessSound (void)
 		int16_t tmp_int[nFrames*2];
 		for(uint16_t i=0; i<nFrames;i++)
 		{
-			tmp_float[i*2]=SampleBuffer[0][i];
-			tmp_float[(i*2)+1]=SampleBuffer[1][i];
+			tmp_float[i*2]=SampleBuffer[indexL][i];
+			tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
 		}
-		arm_float_to_q15(tmp_float,(q15_t*)tmp_int,nFrames*2);
+		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
 
-		if (m_pSoundDevice->Write (tmp_int, sizeof tmp_int) != (int) sizeof tmp_int)
+		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
 			LOGERR ("Sound data dropped");
 		}

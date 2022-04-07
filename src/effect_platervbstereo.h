@@ -61,34 +61,28 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(float32_t* audioblockL, float32_t* audioblockR, uint16_t len);
+    void doReverb(float32_t* blockL, float32_t* blockR, uint16_t len);
 
     void size(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.2f, rv_time_k_max);
         float32_t attn = mapfloat(n, 0.0f, rv_time_k_max, 0.5f, 0.25f);
-        //__disable_irq();
         rv_time_k = n;
         input_attn = attn;
-        //__enable_irq();
     }
 
     void hidamp(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        //__disable_irq();
         lp_hidamp_k = 1.0f - n;
-        //__enable_irq();
     }
     
     void lodamp(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        //__disable_irq();
         lp_lodamp_k = -n;
         rv_time_scaler = 1.0f - n * 0.12f;        // limit the max reverb time, otherwise it will clip
-        //__enable_irq();
     }
 
     void lowpass(float n)
@@ -102,10 +96,8 @@ public:
     {
         n = constrain(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.005f, 0.65f);
-        //__disable_irq();
         in_allp_k = n;
         loop_allp_k = n;
-        //__enable_irq();
     }
 
     void level(float n)
@@ -117,6 +109,7 @@ public:
     bool get_bypass(void) {return bypass;}
     void set_bypass(bool state) {bypass = state;};
     void tgl_bypass(void) {bypass ^=1;}
+    float32_t get_level(void) {return reverb_level;}
 private:
     bool bypass = false;
     float32_t reverb_level;

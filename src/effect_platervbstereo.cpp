@@ -153,14 +153,13 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
     lfo2_phase_acc = 0;
     lfo2_adder = (UINT32_MAX + 1)/(samplerate * LFO2_FREQ_HZ);  
 
-    reverb_level = 0.0;
+    reverb_level = 0.0f;
 }
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
-void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audioblockR, uint16_t len)
+void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint16_t len)
 {
-    int i;
     float32_t input, acc, temp1, temp2;
     uint16_t temp16;
     float32_t rv_time;
@@ -203,7 +202,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audiobl
 
     rv_time = rv_time_k;
 
-    for (i=0; i < len; i++) 
+    for (uint16_t i=0; i < len; i++) 
     {
         // do the LFOs
         lfo1_phase_acc += lfo1_adder;
@@ -236,7 +235,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audiobl
         y += (int64_t)y1 * idx;
         lfo2_out_cos = (int32_t) (y >> (32-8)); // 16bit output   
 
-	input = audioblockL[i] * input_attn;
+	input = blockL[i] * input_attn;
 
         // chained input allpasses, channel L
         acc = in_allp1_bufL[in_allp1_idxL]  + input * in_allp_k;  
@@ -259,7 +258,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audiobl
         in_allp_out_L = acc;
         if (++in_allp4_idxL >= sizeof(in_allp4_bufL)/sizeof(float32_t)) in_allp4_idxL = 0;
 
-        input = audioblockR[i] * input_attn;
+        input = blockR[i] * input_attn;
 
         // chained input allpasses, channel R
         acc = in_allp1_bufR[in_allp1_idxR]  + input * in_allp_k;  
@@ -406,7 +405,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audiobl
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-	audioblockL[i]+=master_lowpass_l * reverb_level;
+	blockL[i] = blockL[i] + (master_lowpass_l * reverb_level);
 
         // Channel R
         #ifdef TAP1_MODULATED
@@ -450,6 +449,6 @@ void AudioEffectPlateReverb::doReverb(float32_t* audioblockL, float32_t* audiobl
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
 
-	audioblockR[i]+=master_lowpass_r * reverb_level;
+	blockR[i] = blockR[i] + (master_lowpass_r * reverb_level);
     }
 }
