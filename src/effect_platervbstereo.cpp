@@ -158,7 +158,7 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
-void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint16_t len)
+void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR, uint16_t len)
 {
     float32_t input, acc, temp1, temp2;
     uint16_t temp16;
@@ -235,7 +235,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint
         y += (int64_t)y1 * idx;
         lfo2_out_cos = (int32_t) (y >> (32-8)); // 16bit output   
 
-	input = blockL[i] * input_attn;
+	input = inblockL[i] * input_attn;
 
         // chained input allpasses, channel L
         acc = in_allp1_bufL[in_allp1_idxL]  + input * in_allp_k;  
@@ -258,7 +258,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint
         in_allp_out_L = acc;
         if (++in_allp4_idxL >= sizeof(in_allp4_bufL)/sizeof(float32_t)) in_allp4_idxL = 0;
 
-        input = blockR[i] * input_attn;
+        input = inblockR[i] * input_attn;
 
         // chained input allpasses, channel R
         acc = in_allp1_bufR[in_allp1_idxR]  + input * in_allp_k;  
@@ -405,7 +405,7 @@ void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-	blockL[i] = blockL[i] + (master_lowpass_l * reverb_level);
+	rvbblockL[i] = master_lowpass_l;
 
         // Channel R
         #ifdef TAP1_MODULATED
@@ -449,6 +449,6 @@ void AudioEffectPlateReverb::doReverb(float32_t* blockL, float32_t* blockR, uint
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
 
-	blockR[i] = blockR[i] + (master_lowpass_r * reverb_level);
+	rvbblockR[i] = master_lowpass_r;
     }
 }

@@ -139,7 +139,7 @@ private:
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
-	unsigned pan_float[CConfig::ToneGenerators];
+	float32_t pan_float[CConfig::ToneGenerators];
 	int m_nMasterTune[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 

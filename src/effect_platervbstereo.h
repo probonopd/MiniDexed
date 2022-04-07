@@ -61,7 +61,7 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(float32_t* blockL, float32_t* blockR, uint16_t len);
+    void doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR,uint16_t len);
 
     void size(float n)
     {

@@ -689,36 +689,57 @@ void CMiniDexed::ProcessSound (void)
 		float32_t SampleBuffer[2][nFrames];
 		uint8_t indexL=0, indexR=1;
 
-		assert (SampleBuffer[0]!=NULL);
-		arm_fill_f32(0.0, SampleBuffer[0], nFrames);
-		assert (SampleBuffer[1]!=NULL);
-		arm_fill_f32(0.0, SampleBuffer[1], nFrames);
-		
 		if (m_bChannelsSwapped)
 		{
 			indexL=1;
 			indexR=0;
 		}
 
+		// init left sum output
+		assert (SampleBuffer[0]!=NULL);
+		arm_fill_f32(0.0, SampleBuffer[0], nFrames);
+		// init right sum output
+		assert (SampleBuffer[1]!=NULL);
+		arm_fill_f32(0.0, SampleBuffer[1], nFrames);
+		
 		assert (CConfig::ToneGenerators == 8);
 
 		// BEGIN stereo panorama
 		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 		{
+			float32_t tmpBuffer[nFrames];
+
 			m_PanoramaSpinLock.Acquire ();
-			arm_scale_f32(m_OutputLevel[0], 1.0f-pan_float[i], SampleBuffer[indexL], nFrames);
-			arm_scale_f32(m_OutputLevel[1], pan_float[i], SampleBuffer[indexR], nFrames);
+			// calculate left panorama of this TG
+			arm_scale_f32(m_OutputLevel[i], 1.0f-pan_float[i], tmpBuffer, nFrames);
+			// add left panorama output of this TG to sum output
+			arm_add_f32(SampleBuffer[indexL], tmpBuffer, SampleBuffer[indexL], nFrames);
+
+			// calculate right panorama of this TG
+			arm_scale_f32(m_OutputLevel[i], pan_float[i], tmpBuffer, nFrames);
+			// add right panaorama output of this TG to sum output
+			arm_add_f32(SampleBuffer[indexR], tmpBuffer, SampleBuffer[indexR], nFrames);
+
 			m_PanoramaSpinLock.Release ();
 		}
 		// END stereo panorama
 
 		// BEGIN adding reverb
+		float32_t ReverbBuffer[2][nFrames];
+
 		m_ReverbSpinLock.Acquire ();
-		reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],nFrames);
+		reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
 		m_ReverbSpinLock.Release ();
+
+		// scale down and add left reverb buffer by reverb level 
+		arm_scale_f32(ReverbBuffer[0], reverb->get_level(), ReverbBuffer[0], nFrames);
+		arm_add_f32(SampleBuffer[indexL], ReverbBuffer[0], SampleBuffer[indexL], nFrames);
+		// scale down and add right reverb buffer by reverb level 
+		arm_scale_f32(ReverbBuffer[1], reverb->get_level(), ReverbBuffer[1], nFrames);
+		arm_add_f32(SampleBuffer[indexR], ReverbBuffer[1], SampleBuffer[indexR], nFrames);
 		// END adding reverb
 
-		// Convert float to int16 array
+		// Convert dual float array (left, right) to single int16 array (left/right)
 		float32_t tmp_float[nFrames*2];
 		int16_t tmp_int[nFrames*2];
 		for(uint16_t i=0; i<nFrames;i++)
