@@ -99,7 +99,7 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbSend = m_Properties.GetNumber ("ReverbSend", 80);
+	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 80);
 
 	return bResult;
 }
@@ -161,7 +161,7 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowDamp", m_nReverbLowDamp);
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
-	m_Properties.SetNumber ("ReverbSend", m_nReverbSend);
+	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
 
 	return m_Properties.Save ();
 }
@@ -309,9 +309,9 @@ unsigned CPerformanceConfig::GetReverbDiffusion (void) const
 	return m_nReverbDiffusion;
 }
 
-unsigned CPerformanceConfig::GetReverbSend (void) const
+unsigned CPerformanceConfig::GetReverbLevel (void) const
 {
-	return m_nReverbSend;
+	return m_nReverbLevel;
 }
 
 void CPerformanceConfig::SetCompressorEnable (bool bValue)
@@ -349,7 +349,7 @@ void CPerformanceConfig::SetReverbDiffusion (unsigned nValue)
 	m_nReverbDiffusion = nValue;
 }
 
-void CPerformanceConfig::SetReverbSend (unsigned nValue)
+void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
-	m_nReverbSend = nValue;
+	m_nReverbLevel = nValue;
 }

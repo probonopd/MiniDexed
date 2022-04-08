@@ -58,6 +58,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
+		pan_float[i]=0.0f;
 		m_nMasterTune[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
@@ -113,6 +114,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	// BEGIN setup tg_mixer
+	//tg_mixer = new AudioStereoMixer<8>();
+	// END setup tg_mixer
+
 	SetParameter (ParameterCompressorEnable, 1);
 
 	// BEGIN setup reverb
@@ -122,7 +127,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 65);
+	SetParameter (ParameterReverbDiffusion, 20);
 	SetParameter (ParameterReverbLevel, 80);
 	// END setup reverb
 };
@@ -298,7 +303,7 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
-				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
+				m_pTG[nTG]->getSamples (m_OutputLevel[nTG], m_nFramesToProcess);
 			}
 		}
 	}
@@ -361,13 +366,11 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 {
-	if (nPan > 127)
-	{
-		return;
-	}
+	constrain(nPan,-1.0f,1.0f);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
+	pan_float[nTG]=mapfloat(nPan,0,127,-1.0,1.0);
 
 	m_UI.ParameterChanged ();
 }
@@ -506,6 +509,14 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	switch (Parameter)
 	{
+<<<<<<< HEAD
+	case ParameterReverbSize:	reverb->size (fValue);		break;
+	case ParameterReverbHighDamp:	reverb->hidamp (fValue);	break;
+	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
+	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
+	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
+	case ParameterReverbLevel:	reverb->level (fValue);		break;
+=======
 	case ParameterCompressorEnable:
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
@@ -672,8 +683,8 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		int16_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (nFrames, SampleBuffer);
+		//int16_t SampleBuffer[nFrames]; // TODO float->int
+		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
 		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
 		    != (int) sizeof SampleBuffer)

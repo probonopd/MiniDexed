@@ -166,7 +166,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbLowDamp
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
-	{0,	99,	1}				// ParameterReverbSend
+	{0,	99,	1}				// ParameterReverbLevel
 };
 
 // must match CMiniDexed::TTGParameter
