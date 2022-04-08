@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
 #ifndef _dexedadapter_h
 #define _dexedadapter_h
 
@@ -56,10 +57,10 @@ public:
 		m_SpinLock.Release ();
 	}
 
-	void getSamples (uint16_t n_samples, int16_t* buffer)
+	void getSamples (float32_t* buffer, uint16_t n_samples)
 	{
 		m_SpinLock.Acquire ();
-		Dexed::getSamples (n_samples, buffer);
+		Dexed::getSamples (buffer, n_samples);
 		m_SpinLock.Release ();
 	}
 

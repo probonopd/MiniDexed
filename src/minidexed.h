@@ -39,7 +39,9 @@
 #include <circle/multicore.h>
 #include <circle/soundbasedevice.h>
 #include <circle/spinlock.h>
+#include "common.h"
 #include "effect_platervbstereo.h"
+#include "mixer.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -84,7 +86,7 @@ public:
 		ParameterReverbLowDamp,
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
-		ParameterReverbSend,
+		ParameterReverbLevel,
 		ParameterUnknown
 	};
 
@@ -141,6 +143,7 @@ private:
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
+	float32_t m_fPan[CConfig::ToneGenerators];
 	int m_nMasterTune[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 
@@ -165,13 +168,16 @@ private:
 	unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
-	int16_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
+	float32_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
 #endif
 
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
+	AudioStereoMixer<8>* tg_mixer;
+
+	CSpinLock m_PanoramaSpinLock;
 	CSpinLock m_ReverbSpinLock;
 };
 

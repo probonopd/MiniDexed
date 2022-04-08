@@ -58,7 +58,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
-		m_fPan[i] = 0.5f;
+		pan_float[i]=0.0f;
 		m_nMasterTune[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
@@ -114,6 +114,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	// BEGIN setup tg_mixer
+	//tg_mixer = new AudioStereoMixer<8>();
+	// END setup tg_mixer
+
+	SetParameter (ParameterCompressorEnable, 1);
+
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -121,11 +127,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 65);
+	SetParameter (ParameterReverbDiffusion, 20);
 	SetParameter (ParameterReverbLevel, 80);
 	// END setup reverb
-
-	SetParameter (ParameterCompressorEnable, 1);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -299,7 +303,7 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
-				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
+				m_pTG[nTG]->getSamples (m_OutputLevel[nTG], m_nFramesToProcess);
 			}
 		}
 	}
@@ -362,15 +366,12 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 {
-	if (nPan > 127)
-	{
-		return;
-	}
+	constrain(nPan,-1.0f,1.0f);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
-	m_fPan[nTG]=mapfloat(nPan,0,127,0.0,1.0);
-	
+	pan_float[nTG]=mapfloat(nPan,0,127,-1.0,1.0);
+
 	m_UI.ParameterChanged ();
 }
 
@@ -508,6 +509,14 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	switch (Parameter)
 	{
+<<<<<<< HEAD
+	case ParameterReverbSize:	reverb->size (fValue);		break;
+	case ParameterReverbHighDamp:	reverb->hidamp (fValue);	break;
+	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
+	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
+	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
+	case ParameterReverbLevel:	reverb->level (fValue);		break;
+=======
 	case ParameterCompressorEnable:
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
@@ -674,20 +683,11 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		float32_t SampleBuffer[nFrames];
+		//int16_t SampleBuffer[nFrames]; // TODO float->int
 		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
-		// Convert dual float array (left, right) to single int16 array (left/right)
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
-		for(uint16_t i=0; i<nFrames;i++)
-		{
-			tmp_float[i*2]=SampleBuffer[i];
-			tmp_float[(i*2)+1]=SampleBuffer[i];
-		}
-		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
-
-		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
+		    != (int) sizeof SampleBuffer)
 		{
 			LOGERR ("Sound data dropped");
 		}
@@ -769,14 +769,15 @@ void CMiniDexed::ProcessSound (void)
 
 			m_PanoramaSpinLock.Acquire ();
 			// calculate left panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], 1.0f-m_fPan[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], 1.0f-pan_float[i], tmpBuffer, nFrames);
 			// add left panorama output of this TG to sum output
 			arm_add_f32(SampleBuffer[indexL], tmpBuffer, SampleBuffer[indexL], nFrames);
 
 			// calculate right panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], m_fPan[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], pan_float[i], tmpBuffer, nFrames);
 			// add right panaorama output of this TG to sum output
 			arm_add_f32(SampleBuffer[indexR], tmpBuffer, SampleBuffer[indexR], nFrames);
+
 			m_PanoramaSpinLock.Release ();
 		}
 		// END stereo panorama

@@ -45,37 +45,9 @@
 #ifndef _EFFECT_PLATERVBSTEREO_H
 #define _EFFECT_PLATERVBSTEREO_H
 
-#include "arm_math.h"
 #include <stdint.h>
-
-#define constrain(amt, low, high) ({ \
-  __typeof__(amt) _amt = (amt); \
-  __typeof__(low) _low = (low); \
-  __typeof__(high) _high = (high); \
-  (_amt < _low) ? _low : ((_amt > _high) ? _high : _amt); \
-})
-
-/*
-template<typename T>
-inline static T min(const T& a, const T& b) {
-  return a < b ? a : b;
-}
-
-template<typename T>
-inline static T max(const T& a, const T& b) {
-  return a > b ? a : b;
-}
-
-inline long maplong(long x, long in_min, long in_max, long out_min, long out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-*/
-
-inline float32_t mapfloat(float32_t val, float32_t in_min, float32_t in_max, float32_t out_min, float32_t out_max)
-{
-  return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
+#include <arm_math.h>
+#include "common.h"
 
 /***
  * Loop delay modulation: comment/uncomment to switch sin/cos 
@@ -89,34 +61,28 @@ class AudioEffectPlateReverb
 {
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    void doReverb(uint16_t len, int16_t audioblock[][2]);
+    void doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR,uint16_t len);
 
     void size(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.2f, rv_time_k_max);
         float32_t attn = mapfloat(n, 0.0f, rv_time_k_max, 0.5f, 0.25f);
-        //__disable_irq();
         rv_time_k = n;
         input_attn = attn;
-        //__enable_irq();
     }
 
     void hidamp(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        //__disable_irq();
         lp_hidamp_k = 1.0f - n;
-        //__enable_irq();
     }
     
     void lodamp(float n)
     {
         n = constrain(n, 0.0f, 1.0f);
-        //__disable_irq();
         lp_lodamp_k = -n;
         rv_time_scaler = 1.0f - n * 0.12f;        // limit the max reverb time, otherwise it will clip
-        //__enable_irq();
     }
 
     void lowpass(float n)
@@ -130,24 +96,23 @@ public:
     {
         n = constrain(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.005f, 0.65f);
-        //__disable_irq();
         in_allp_k = n;
         loop_allp_k = n;
-        //__enable_irq();
     }
 
-    void send(float n)
+    void level(float n)
     {
-        send_level = constrain(n, 0.0f, 1.0f);
+        reverb_level = constrain(n, 0.0f, 1.0f);
     }
 
     float32_t get_size(void) {return rv_time_k;}
     bool get_bypass(void) {return bypass;}
     void set_bypass(bool state) {bypass = state;};
     void tgl_bypass(void) {bypass ^=1;}
+    float32_t get_level(void) {return reverb_level;}
 private:
     bool bypass = false;
-    float32_t send_level;
+    float32_t reverb_level;
     float32_t input_attn;
 
     float32_t in_allp_k;            // input allpass coeff 

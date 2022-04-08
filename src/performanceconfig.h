@@ -66,7 +66,7 @@ public:
 	unsigned GetReverbLowDamp (void) const;			// 0 .. 99
 	unsigned GetReverbLowPass (void) const;			// 0 .. 99
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
-	unsigned GetReverbSend (void) const;			// 0 .. 99
+	unsigned GetReverbLevel (void) const;			// 0 .. 99
 
 	void SetCompressorEnable (bool bValue);
 	void SetReverbEnable (bool bValue);
@@ -75,7 +75,7 @@ public:
 	void SetReverbLowDamp (unsigned nValue);
 	void SetReverbLowPass (unsigned nValue);
 	void SetReverbDiffusion (unsigned nValue);
-	void SetReverbSend (unsigned nValue);
+	void SetReverbLevel (unsigned nValue);
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -97,7 +97,7 @@ private:
 	unsigned m_nReverbLowDamp;
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
-	unsigned m_nReverbSend;
+	unsigned m_nReverbLevel;
 };
 
 #endif
