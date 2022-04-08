@@ -118,8 +118,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	//tg_mixer = new AudioStereoMixer<8>();
 	// END setup tg_mixer
 
+	SetParameter (ParameterCompressorEnable, 1);
+
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
 	SetParameter (ParameterReverbHighDamp, 50);
 	SetParameter (ParameterReverbLowDamp, 50);
@@ -176,6 +179,16 @@ bool CMiniDexed::Initialize (void)
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
 		}
+
+		// Effects
+		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+		SetParameter (ParameterReverbSend, m_PerformanceConfig.GetReverbSend ());
 	}
 	else
 	{
@@ -494,25 +507,70 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	assert (Parameter < ParameterUnknown);
 	m_nParameter[Parameter] = nValue;
 
-	float fValue = nValue / 99.0;
-
-	m_ReverbSpinLock.Acquire ();
-
 	switch (Parameter)
 	{
+<<<<<<< HEAD
 	case ParameterReverbSize:	reverb->size (fValue);		break;
 	case ParameterReverbHighDamp:	reverb->hidamp (fValue);	break;
 	case ParameterReverbLowDamp:	reverb->lodamp (fValue);	break;
 	case ParameterReverbLowPass:	reverb->lowpass (fValue);	break;
 	case ParameterReverbDiffusion:	reverb->diffusion (fValue);	break;
 	case ParameterReverbLevel:	reverb->level (fValue);		break;
+=======
+	case ParameterCompressorEnable:
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			assert (m_pTG[nTG]);
+			m_pTG[nTG]->setCompressor (!!nValue);
+		}
+		break;
+
+	case ParameterReverbEnable:
+		m_ReverbSpinLock.Acquire ();
+		reverb->set_bypass (!nValue);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbSize:
+		m_ReverbSpinLock.Acquire ();
+		reverb->size (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbHighDamp:
+		m_ReverbSpinLock.Acquire ();
+		reverb->hidamp (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbLowDamp:
+		m_ReverbSpinLock.Acquire ();
+		reverb->lodamp (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbLowPass:
+		m_ReverbSpinLock.Acquire ();
+		reverb->lowpass (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbDiffusion:
+		m_ReverbSpinLock.Acquire ();
+		reverb->diffusion (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterReverbSend:
+		m_ReverbSpinLock.Acquire ();
+		reverb->send (nValue / 99.0);
+		m_ReverbSpinLock.Release ();
+		break;
 
 	default:
 		assert (0);
 		break;
 	}
-
-	m_ReverbSpinLock.Release ();
 }
 
 int CMiniDexed::GetParameter (TParameter Parameter)
@@ -725,18 +783,21 @@ void CMiniDexed::ProcessSound (void)
 		// END stereo panorama
 
 		// BEGIN adding reverb
-		float32_t ReverbBuffer[2][nFrames];
+		if (m_nParameter[ParameterReverbEnable])
+		{
+			float32_t ReverbBuffer[2][nFrames];
 
-		m_ReverbSpinLock.Acquire ();
-		reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
-		m_ReverbSpinLock.Release ();
+			m_ReverbSpinLock.Acquire ();
+			reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
+			m_ReverbSpinLock.Release ();
 
-		// scale down and add left reverb buffer by reverb level 
-		arm_scale_f32(ReverbBuffer[0], reverb->get_level(), ReverbBuffer[0], nFrames);
-		arm_add_f32(SampleBuffer[indexL], ReverbBuffer[0], SampleBuffer[indexL], nFrames);
-		// scale down and add right reverb buffer by reverb level 
-		arm_scale_f32(ReverbBuffer[1], reverb->get_level(), ReverbBuffer[1], nFrames);
-		arm_add_f32(SampleBuffer[indexR], ReverbBuffer[1], SampleBuffer[indexR], nFrames);
+			// scale down and add left reverb buffer by reverb level 
+			arm_scale_f32(ReverbBuffer[0], reverb->get_level(), ReverbBuffer[0], nFrames);
+			arm_add_f32(SampleBuffer[indexL], ReverbBuffer[0], SampleBuffer[indexL], nFrames);
+			// scale down and add right reverb buffer by reverb level 
+			arm_scale_f32(ReverbBuffer[1], reverb->get_level(), ReverbBuffer[1], nFrames);
+			arm_add_f32(SampleBuffer[indexR], ReverbBuffer[1], SampleBuffer[indexR], nFrames);
+		}
 		// END adding reverb
 
 		// Convert dual float array (left, right) to single int16 array (left/right)
@@ -762,3 +823,31 @@ void CMiniDexed::ProcessSound (void)
 }
 
 #endif
+
+bool CMiniDexed::SavePerformance (void)
+{
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_PerformanceConfig.SetBankNumber (m_nVoiceBankID[nTG], nTG);
+		m_PerformanceConfig.SetVoiceNumber (m_nProgram[nTG], nTG);
+		m_PerformanceConfig.SetMIDIChannel (m_nMIDIChannel[nTG], nTG);
+		m_PerformanceConfig.SetVolume (m_nVolume[nTG], nTG);
+		m_PerformanceConfig.SetPan (m_nPan[nTG], nTG);
+		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
+
+		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
+		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
+		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
+	}
+
+	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
+	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
+	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
+	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
+	m_PerformanceConfig.SetReverbLowDamp (m_nParameter[ParameterReverbLowDamp]);
+	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
+	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
+	m_PerformanceConfig.SetReverbSend (m_nParameter[ParameterReverbSend]);
+
+	return m_PerformanceConfig.Save ();
+}

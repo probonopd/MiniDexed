@@ -79,6 +79,8 @@ public:
 
 	enum TParameter
 	{
+		ParameterCompressorEnable,
+		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
 		ParameterReverbLowDamp,
@@ -111,6 +113,8 @@ public:
 	uint8_t GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG);
 
 	std::string GetVoiceName (unsigned nTG);
+
+	bool SavePerformance (void);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note

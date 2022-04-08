@@ -37,6 +37,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 	{0}
 };
 
+// inserting menu items before "TG1" affect TGShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
 	{"TG1",		MenuHandler,	s_TGMenu, 0},
@@ -48,8 +49,9 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG6",		MenuHandler,	s_TGMenu, 5},
 	{"TG7",		MenuHandler,	s_TGMenu, 6},
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
-	{"Reverb",	MenuHandler,	s_ReverbMenu},
 #endif
+	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Save",	MenuHandler,	s_SaveMenu},
 	{0}
 };
 
@@ -67,10 +69,20 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
+{
+	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
+#ifdef ARM_ALLOW_MULTI_CORE
+	{"Reverb",	MenuHandler,		s_ReverbMenu},
+#endif
+	{0}
+};
+
 #ifdef ARM_ALLOW_MULTI_CORE
 
 const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 {
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
 	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
 	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
 	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
@@ -138,15 +150,23 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{0}
 };
 
-// must match CMiniDexed::TParameter
-const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::TGParameterUnknown] =
+const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
-	{0,	99,	1},		// ParameterReverbSize
-	{0,	99,	1},		// ParameterReverbHighDamp
-	{0,	99,	1},		// ParameterReverbLowDamp
-	{0,	99,	1},		// ParameterReverbLowPass
-	{0,	99,	1},		// ParameterReverbDiffusion
-	{0,	99,	1},		// ParameterReverbSend
+	{"Performance",	SavePerformance},
+	{0}
+};
+
+// must match CMiniDexed::TParameter
+const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
+{
+	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
+	{0,	99,	1},				// ParameterReverbSize
+	{0,	99,	1},				// ParameterReverbHighDamp
+	{0,	99,	1},				// ParameterReverbLowDamp
+	{0,	99,	1},				// ParameterReverbLowPass
+	{0,	99,	1},				// ParameterReverbDiffusion
+	{0,	99,	1}				// ParameterReverbSend
 };
 
 // must match CMiniDexed::TTGParameter
@@ -316,8 +336,7 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	default:
-		assert (0);
-		break;
+		return;
 	}
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
@@ -410,6 +429,11 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;
 
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
 	default:
 		return;
 	}
@@ -452,6 +476,11 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
 
 	default:
 		return;
@@ -500,6 +529,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
 		break;
 
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
 	default:
 		return;
 	}
@@ -546,6 +580,11 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, CMiniDexed::NoOP, nTG);
 		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
 
 	default:
 		return;
@@ -595,6 +634,11 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pMiniDexed->SetVoiceParameter (nParam, nValue, nOP, nTG);
 		break;
 
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
 	default:
 		return;
 	}
@@ -608,6 +652,27 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != MenuEventUpdate)
+	{
+		return;
+	}
+
+	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance ();
+
+	const char *pMenuName =
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+
+	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      bOK ? "Completed" : "Error",
+				      false, false);
+
+	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 }
 
 string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
@@ -795,4 +860,42 @@ string CUIMenu::ToOscillatorDetune (int nValue)
 	}
 
 	return Result;
+}
+
+void CUIMenu::TGShortcutHandler (TMenuEvent Event)
+{
+	assert (m_nCurrentMenuDepth >= 2);
+	assert (m_MenuStackMenu[0] = s_MainMenu);
+	unsigned nTG = m_nMenuStackSelection[0];
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_nMenuStackItem[1] == nTG);
+	assert (m_nMenuStackParameter[1] == nTG);
+
+	assert (   Event == MenuEventPressAndStepDown
+		|| Event == MenuEventPressAndStepUp);
+	if (Event == MenuEventPressAndStepDown)
+	{
+		nTG--;
+	}
+	else
+	{
+		nTG++;
+	}
+
+	if (nTG < CConfig::ToneGenerators)
+	{
+		m_nMenuStackSelection[0] = nTG;
+		m_nMenuStackItem[1] = nTG;
+		m_nMenuStackParameter[1] = nTG;
+
+		EventHandler (MenuEventUpdate);
+	}
+}
+
+void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext)
+{
+	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
+	assert (pThis);
+
+	pThis->EventHandler (MenuEventBack);
 }
