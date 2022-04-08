@@ -113,8 +113,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	SetParameter (ParameterCompressorEnable, 1);
-
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -125,6 +123,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbSend, 80);
 	// END setup reverb
+
+	SetParameter (ParameterCompressorEnable, 1);
 };
 
 bool CMiniDexed::Initialize (void)
