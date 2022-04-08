@@ -58,6 +58,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
+		m_fPan[i] = 0.5f;
 		m_nMasterTune[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
@@ -113,8 +114,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	SetParameter (ParameterCompressorEnable, 1);
-
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -125,6 +124,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 80);
 	// END setup reverb
+
+	SetParameter (ParameterCompressorEnable, 1);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -368,7 +369,8 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
-
+	m_fPan[nTG]=mapfloat(nPan,0,127,0.0,1.0);
+	
 	m_UI.ParameterChanged ();
 }
 
@@ -672,11 +674,20 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		int16_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (nFrames, SampleBuffer);
+		float32_t SampleBuffer[nFrames];
+		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
-		if (   m_pSoundDevice->Write (SampleBuffer, sizeof SampleBuffer)
-		    != (int) sizeof SampleBuffer)
+		// Convert dual float array (left, right) to single int16 array (left/right)
+		float32_t tmp_float[nFrames*2];
+		int16_t tmp_int[nFrames*2];
+		for(uint16_t i=0; i<nFrames;i++)
+		{
+			tmp_float[i*2]=SampleBuffer[i];
+			tmp_float[(i*2)+1]=SampleBuffer[i];
+		}
+		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+
+		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
 			LOGERR ("Sound data dropped");
 		}
@@ -758,15 +769,14 @@ void CMiniDexed::ProcessSound (void)
 
 			m_PanoramaSpinLock.Acquire ();
 			// calculate left panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], 1.0f-pan_float[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], 1.0f-m_fPan[i], tmpBuffer, nFrames);
 			// add left panorama output of this TG to sum output
 			arm_add_f32(SampleBuffer[indexL], tmpBuffer, SampleBuffer[indexL], nFrames);
 
 			// calculate right panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], pan_float[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], m_fPan[i], tmpBuffer, nFrames);
 			// add right panaorama output of this TG to sum output
 			arm_add_f32(SampleBuffer[indexR], tmpBuffer, SampleBuffer[indexR], nFrames);
-
 			m_PanoramaSpinLock.Release ();
 		}
 		// END stereo panorama
