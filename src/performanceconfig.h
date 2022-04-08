@@ -35,6 +35,8 @@ public:
 
 	bool Load (void);
 
+	bool Save (void);
+
 	// TG#
 	unsigned GetBankNumber (unsigned nTG) const;		// 0 .. 127
 	unsigned GetVoiceNumber (unsigned nTG) const;		// 0 .. 31
@@ -45,6 +47,35 @@ public:
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+
+	void SetBankNumber (unsigned nValue, unsigned nTG);
+	void SetVoiceNumber (unsigned nValue, unsigned nTG);
+	void SetMIDIChannel (unsigned nValue, unsigned nTG);
+	void SetVolume (unsigned nValue, unsigned nTG);
+	void SetPan (unsigned nValue, unsigned nTG);
+	void SetDetune (int nValue, unsigned nTG);
+	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
+	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
+	void SetNoteShift (int nValue, unsigned nTG);
+
+	// Effects
+	bool GetCompressorEnable (void) const;
+	bool GetReverbEnable (void) const;
+	unsigned GetReverbSize (void) const;			// 0 .. 99
+	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
+	unsigned GetReverbLowDamp (void) const;			// 0 .. 99
+	unsigned GetReverbLowPass (void) const;			// 0 .. 99
+	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
+	unsigned GetReverbSend (void) const;			// 0 .. 99
+
+	void SetCompressorEnable (bool bValue);
+	void SetReverbEnable (bool bValue);
+	void SetReverbSize (unsigned nValue);
+	void SetReverbHighDamp (unsigned nValue);
+	void SetReverbLowDamp (unsigned nValue);
+	void SetReverbLowPass (unsigned nValue);
+	void SetReverbDiffusion (unsigned nValue);
+	void SetReverbSend (unsigned nValue);
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -58,6 +89,15 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+
+	bool m_bCompressorEnable;
+	bool m_bReverbEnable;
+	unsigned m_nReverbSize;
+	unsigned m_nReverbHighDamp;
+	unsigned m_nReverbLowDamp;
+	unsigned m_nReverbLowPass;
+	unsigned m_nReverbDiffusion;
+	unsigned m_nReverbSend;
 };
 
 #endif
