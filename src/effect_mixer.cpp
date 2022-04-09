@@ -128,11 +128,6 @@ template <int NN> void AudioStereoMixer<NN>::doAddMix(uint8_t channel, float32_t
        arm_scale_f32(inR,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
     arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 
-    if(sumbufL)
-      arm_fill_f32(0.0, sumbufL, buffer_length);
-    if(sumbufR)
-      arm_fill_f32(0.0, sumbufR, buffer_length);
-
     free(tmp);
 }
 
@@ -144,4 +139,10 @@ template <int NN> void AudioStereoMixer<NN>::getMix(float32_t* bufferL, float32_
     assert(sumbufR);
     arm_copy_f32 (sumbufL, bufferL, buffer_length);
     arm_copy_f32 (sumbufR, bufferR, buffer_length);
+
+    if(sumbufL)
+      arm_fill_f32(0.0, sumbufL, buffer_length);
+    if(sumbufR)
+      arm_fill_f32(0.0, sumbufR, buffer_length);
+
 }
