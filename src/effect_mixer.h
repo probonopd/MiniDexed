@@ -26,62 +26,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+ 
+#ifndef template_mixer_h_
+#define template_mixer_h_
 
-#include <cstdlib>
-#include <stdint.h>
-#include <assert.h>
 #include "arm_math.h"
-#include "mixer.h"
+#include <stdint.h>
 
-template <int NN> void AudioMixer<NN>::gain(uint8_t channel, float32_t gain)
+#define UNITYGAIN 1.0f
+#define MAX_GAIN 1.0f
+#define MIN_GAIN 0.0f
+
+template <int NN> class AudioMixer
 {
-    if (channel >= NN) return;
+public:
+	AudioMixer(uint16_t len)
+        {
+	    for (uint8_t i=0; i<NN; i++)
+                multiplier[i] = UNITYGAIN;
 
-    if (gain > MAX_GAIN)
-         gain = MAX_GAIN;
-    else if (gain < MIN_GAIN)
-         gain = MIN_GAIN;
-    multiplier[channel] = gain;
-}
+	    sumbufL=(float32_t*)malloc(sizeof(float32_t) * len);
+	    arm_fill_f32(0.0, sumbufL, len);
+	};
+        void doAddMix(uint8_t channel, float32_t* in, uint16_t len);
+	/**
+	 * this sets the individual gains
+	 * @param channel
+	 * @param gain
+	 */
+	void gain(uint8_t channel, float32_t gain);
+	/**
+	 * set all channels to specified gain
+	 * @param gain
+	 */
+	void gain(float32_t gain);
+	void get_mix(float32_t* buffer, uint16_t len);
 
-template <int NN> void AudioMixer<NN>::gain(float32_t gain)
+protected:
+	float32_t multiplier[NN];
+	float32_t* sumbufL;
+};
+
+template <int NN> class AudioStereoMixer : public AudioMixer<NN>
 {
-    for (uint8_t i = 0; i < NN; i++)
-    {
-        if (gain > MAX_GAIN)
-            gain = MAX_GAIN;
-        else if (gain < MIN_GAIN)
-            gain = MIN_GAIN;
-        multiplier[i] = gain;
-    } 
-}
+public:
+	AudioStereoMixer(uint16_t len)
+	{
+	    AudioMixer<NN>(len);
+    	    for (uint8_t i=0; i<NN; i++)
+               	panorama[i] = 0.0;
 
-template <int NN> void AudioMixer<NN>::doAddMix(uint8_t channel, float32_t* in, float32_t* out, uint16_t len)
-{
-    float32_t* tmp=malloc(sizeof(float32_t)*len);
+	    sumbufR=(float32_t*)malloc(sizeof(float32_t) * len);
+	    arm_fill_f32(0.0, sumbufR, len);
+	};
+	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR, uint16_t len);
+	void get_mix(float32_t* bufferL, float32_t* bufferR, uint16_t len);
+protected:
+	float32_t panorama[NN];
+	float32_t* sumbufR;
+};
 
-    assert(tmp!=NULL);
-
-    arm_scale_f32(in,multiplier[channel],tmp,len);
-    arm_add_f32(out, tmp, out, len);
-
-    free(tmp);
-}
-
-template <int NN> void AudioStereoMixer<NN>::doAddMix(uint8_t channel, float32_t* in[], float32_t* out[], uint16_t len)
-{
-    float32_t* tmp=malloc(sizeof(float32_t)*len);
-
-    assert(tmp!=NULL);
-
-    // panorama
-    for(uint16_t i=0;i<len;i++)
-    {
-	// left
-    	arm_scale_f32(in+(i*2),multiplier[channel],tmp+(i*2),len);
-    	arm_add_f32(out(i*2), tmp(i*2), out(i*2), len*2);
-	// right
-    }
-
-    free(tmp);
-}
+#endif

@@ -114,6 +114,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	// BEGIN setup tg_mixer
+	//tg_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize());
+	// END setup tgmixer
+
 	// BEGIN setup reverb
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -762,24 +766,30 @@ void CMiniDexed::ProcessSound (void)
 		
 		assert (CConfig::ToneGenerators == 8);
 
-		// BEGIN stereo panorama
+		// BEGIN stereo panorama and TG mixing
 		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 		{
-			float32_t tmpBuffer[nFrames];
+			float32_t tmpBuffer[2][nFrames];
+
+			assert (tmpBuffer[0]!=NULL);
+			arm_fill_f32(0.0, tmpBuffer[0], nFrames);
+			assert (tmpBuffer[1]!=NULL);
+			arm_fill_f32(0.0, tmpBuffer[1], nFrames);
 
 			m_PanoramaSpinLock.Acquire ();
 			// calculate left panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], 1.0f-m_fPan[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], 1.0f-m_fPan[i], tmpBuffer[0], nFrames);
 			// add left panorama output of this TG to sum output
-			arm_add_f32(SampleBuffer[indexL], tmpBuffer, SampleBuffer[indexL], nFrames);
+			arm_add_f32(SampleBuffer[indexL], tmpBuffer[0], SampleBuffer[indexL], nFrames);
 
 			// calculate right panorama of this TG
-			arm_scale_f32(m_OutputLevel[i], m_fPan[i], tmpBuffer, nFrames);
+			arm_scale_f32(m_OutputLevel[i], m_fPan[i], tmpBuffer[1], nFrames);
 			// add right panaorama output of this TG to sum output
-			arm_add_f32(SampleBuffer[indexR], tmpBuffer, SampleBuffer[indexR], nFrames);
+			arm_add_f32(SampleBuffer[indexR], tmpBuffer[1], SampleBuffer[indexR], nFrames);
+			//tg_mixer->doAddMix(i,tmpBuffer[0],tmpBuffer[1],nFrames);
 			m_PanoramaSpinLock.Release ();
 		}
-		// END stereo panorama
+		// END stereo panorama and TG mixing
 
 		// BEGIN adding reverb
 		if (m_nParameter[ParameterReverbEnable])

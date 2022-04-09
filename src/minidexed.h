@@ -41,7 +41,8 @@
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_platervbstereo.h"
-#include "mixer.h"
+#include "effect_compressor.h"
+//#include "effect_mixer.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -175,7 +176,7 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
-	AudioStereoMixer<8>* tg_mixer;
+	//AudioStereoMixer<8>* tg_mixer;
 
 	CSpinLock m_PanoramaSpinLock;
 	CSpinLock m_ReverbSpinLock;
