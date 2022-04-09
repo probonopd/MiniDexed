@@ -51,9 +51,6 @@ template <int NN> void AudioMixer<NN>::doAddMix(uint8_t channel, float32_t* in)
       arm_scale_f32(in,multiplier[channel],tmp,buffer_length);
     arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 
-    if(sumbufL)
-      arm_fill_f32(0.0, sumbufL, buffer_length);
-
     free(tmp);
 }
 
@@ -62,6 +59,9 @@ template <int NN> void AudioMixer<NN>::getMix(float32_t* buffer)
     assert(buffer);
     assert(sumbufL);
     arm_copy_f32(sumbufL, buffer, buffer_length);
+
+    if(sumbufL)
+      arm_fill_f32(0.0, sumbufL, buffer_length);
 }
 
 template <int NN> AudioStereoMixer<NN>::AudioStereoMixer(uint16_t len) : AudioMixer<NN>(len)
