@@ -1,37 +1,21 @@
 // Taken from https://github.com/manicken/Audio/tree/templateMixer
 // Adapted for MiniDexed by Holger Wirtz <dcoredump@googlemail.com>
 
-/* Audio Library for Teensy 3.X
- * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
- *
- * Development of this audio library was funded by PJRC.COM, LLC by sales of
- * Teensy and Audio Adaptor boards.  Please support PJRC's efforts to develop
- * open source software by purchasing Teensy or other PJRC products.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice, development funding notice, and this permission
- * notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 #include <cstdlib>
 #include <stdint.h>
 #include <assert.h>
 #include "arm_math.h"
 #include "effect_mixer.h"
+
+template <int NN> AudioMixer<NN>::AudioMixer(uint16_t len)
+{
+    buffer_length=len;
+    for (uint8_t i=0; i<NN; i++)
+      multiplier[i] = UNITY_GAIN;
+
+    sumbufL=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
+    arm_fill_f32(0.0, sumbufL, len);
+}
 
 template <int NN> void AudioMixer<NN>::gain(uint8_t channel, float32_t gain)
 {
@@ -56,50 +40,108 @@ template <int NN> void AudioMixer<NN>::gain(float32_t gain)
     } 
 }
 
-template <int NN> void AudioMixer<NN>::doAddMix(uint8_t channel, float32_t* in, float32_t* out, uint16_t len)
+template <int NN> void AudioMixer<NN>::doAddMix(uint8_t channel, float32_t* in)
 {
-    float32_t* tmp=malloc(sizeof(float32_t)*len);
+    float32_t* tmp=malloc(sizeof(float32_t)*buffer_length);
 
     assert(tmp!=NULL);
+    assert(in);
 
-    arm_scale_f32(in,multiplier[channel],tmp,len);
-    arm_add_f32(out, tmp, out, len);
+    if(multiplier[channel]!=UNITY_GAIN)
+      arm_scale_f32(in,multiplier[channel],tmp,buffer_length);
+    arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
+
+    if(sumbufL)
+      arm_fill_f32(0.0, sumbufL, buffer_length);
 
     free(tmp);
 }
 
-template <int NN> void AudioMixer<NN>::get_mix(float32_t* buffer, uint16_t len)
+template <int NN> void AudioMixer<NN>::getMix(float32_t* buffer)
 {
     assert(buffer);
-    assert(sumbuf);
-    arm_copy_f32 (sumbuf, buffer, len);
+    assert(sumbufL);
+    arm_copy_f32(sumbufL, buffer, buffer_length);
 }
 
-template <int NN> void AudioStereoMixer<NN>::doAddMix(uint8_t channel, float32_t* inL, float32_t* inR, float32_t* outL, float32_t* outR, uint16_t len)
+template <int NN> AudioStereoMixer<NN>::AudioStereoMixer(uint16_t len) : AudioMixer<NN>(len)
 {
-    float32_t* tmp=malloc(sizeof(float32_t)*len);
+    buffer_length=len;
+    for (uint8_t i=0; i<NN; i++)
+      panorama[i] = UNITY_PANORAMA;
+
+    sumbufR=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
+    arm_fill_f32(0.0, sumbufR, buffer_length);
+}
+
+template <int NN> void AudioStereoMixer<NN>::pan(uint8_t channel, float32_t pan)
+{
+    if (channel >= NN) return;
+
+    if (pan > MAX_PANORAMA)
+         pan = MAX_PANORAMA;
+    else if (pan < MIN_PANORAMA)
+         pan = MIN_PANORAMA;
+    panorama[channel] = pan;
+}
+
+template <int NN> void AudioStereoMixer<NN>::doAddMix(uint8_t channel, float32_t* in)
+{
+    float32_t* tmp=malloc(sizeof(float32_t)*buffer_length);
 
     assert(tmp!=NULL);
+    assert(in);
 
-    // panorama
-    for(uint16_t i=0;i<len;i++)
-    {
-	// left
-    	arm_scale_f32(inL,AudioMixer<NN>::multiplier[channel],tmp,len);
-    	arm_add_f32(outL, tmp, outL, len);
-	// right
-    	arm_scale_f32(inR,AudioMixer<NN>::multiplier[channel],tmp,len);
-    	arm_add_f32(outR, tmp, outR, len);
-    }
+    // left
+    arm_scale_f32(in, 1.0f-panorama[channel], tmp, buffer_length);
+    if(multiplier[channel]!=UNITY_GAIN)
+      arm_scale_f32(tmp,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+    arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
+    // right
+    arm_scale_f32(in, panorama[channel], tmp, buffer_length);
+    if(multiplier[channel]!=UNITY_GAIN)
+       arm_scale_f32(tmp,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+    arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
+
+    if(sumbufL)
+      arm_fill_f32(0.0, sumbufL, buffer_length);
+    if(sumbufR)
+      arm_fill_f32(0.0, sumbufR, buffer_length);
 
     free(tmp);
 }
 
-template <int NN> void AudioMixer<NN>::get_mix(float32_t* bufferL, float32_t bufferL, uint16_t len)
+template <int NN> void AudioStereoMixer<NN>::doAddMix(uint8_t channel, float32_t* inL, float32_t* inR)
+{
+    float32_t* tmp=malloc(sizeof(float32_t)*buffer_length);
+
+    assert(tmp!=NULL);
+    assert(inL);
+    assert(inR);
+
+    // left
+    if(multiplier[channel]!=UNITY_GAIN)
+      arm_scale_f32(inL,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+    arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
+    // right
+    if(multiplier[channel]!=UNITY_GAIN)
+       arm_scale_f32(inR,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+    arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
+
+    if(sumbufL)
+      arm_fill_f32(0.0, sumbufL, buffer_length);
+    if(sumbufR)
+      arm_fill_f32(0.0, sumbufR, buffer_length);
+
+    free(tmp);
+}
+
+template <int NN> void AudioStereoMixer<NN>::getMix(float32_t* bufferL, float32_t* bufferR)
 {
     assert(bufferR);
     assert(bufferL);
-    assert(sumbuf);
-    arm_copy_f32 (sumbuf[0], bufferL, len);
-    arm_copy_f32 (sumbuf[1], bufferR, len);
+    assert(sumbufL);
+    assert(sumbufR);
+    arm_copy_f32 (sumbufL, bufferL, buffer_length);
+    arm_copy_f32 (sumbufR, bufferR, buffer_length);
 }

@@ -1,87 +1,45 @@
 // Taken from https://github.com/manicken/Audio/tree/templateMixer
 // Adapted for MiniDexed by Holger Wirtz <dcoredump@googlemail.com>
 
-/* Audio Library for Teensy 3.X
- * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
- *
- * Development of this audio library was funded by PJRC.COM, LLC by sales of
- * Teensy and Audio Adaptor boards.  Please support PJRC's efforts to develop
- * open source software by purchasing Teensy or other PJRC products.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice, development funding notice, and this permission
- * notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
- 
 #ifndef template_mixer_h_
 #define template_mixer_h_
 
 #include "arm_math.h"
 #include <stdint.h>
 
-#define UNITYGAIN 1.0f
+#define UNITY_GAIN 1.0f
 #define MAX_GAIN 1.0f
 #define MIN_GAIN 0.0f
+#define UNITY_PANORAMA 1.0f
+#define MAX_PANORAMA 1.0f
+#define MIN_PANORAMA 0.0f
 
 template <int NN> class AudioMixer
 {
 public:
-	AudioMixer(uint16_t len)
-        {
-	    for (uint8_t i=0; i<NN; i++)
-                multiplier[i] = UNITYGAIN;
-
-	    sumbufL=(float32_t*)malloc(sizeof(float32_t) * len);
-	    arm_fill_f32(0.0, sumbufL, len);
-	};
-        void doAddMix(uint8_t channel, float32_t* in, uint16_t len);
-	/**
-	 * this sets the individual gains
-	 * @param channel
-	 * @param gain
-	 */
+	AudioMixer(uint16_t len);
+        void doAddMix(uint8_t channel, float32_t* in);
 	void gain(uint8_t channel, float32_t gain);
-	/**
-	 * set all channels to specified gain
-	 * @param gain
-	 */
 	void gain(float32_t gain);
-	void get_mix(float32_t* buffer, uint16_t len);
-
+	void getMix(float32_t* buffer);
 protected:
 	float32_t multiplier[NN];
 	float32_t* sumbufL;
+	uint16_t buffer_length;
 };
 
 template <int NN> class AudioStereoMixer : public AudioMixer<NN>
 {
 public:
-	AudioStereoMixer(uint16_t len)
-	{
-	    AudioMixer<NN>(len);
-    	    for (uint8_t i=0; i<NN; i++)
-               	panorama[i] = 0.0;
-
-	    sumbufR=(float32_t*)malloc(sizeof(float32_t) * len);
-	    arm_fill_f32(0.0, sumbufR, len);
-	};
-	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR, uint16_t len);
-	void get_mix(float32_t* bufferL, float32_t* bufferR, uint16_t len);
+	AudioStereoMixer(uint16_t len);
+        void pan(uint8_t channel, float32_t pan);
+	void doAddMix(uint8_t channel, float32_t* in);
+	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR);
+	void getMix(float32_t* bufferL, float32_t* bufferR);
 protected:
+	using AudioMixer<NN>::sumbufL;
+	using AudioMixer<NN>::multiplier;
+	using AudioMixer<NN>::buffer_length;
 	float32_t panorama[NN];
 	float32_t* sumbufR;
 };
