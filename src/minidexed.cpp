@@ -115,7 +115,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 
 	// BEGIN setup tg_mixer
-	tg_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize());
+	tg_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
 
 	// BEGIN setup reverb
@@ -162,6 +162,8 @@ bool CMiniDexed::Initialize (void)
 
 		m_pTG[i]->setPBController (12, 1);
 		m_pTG[i]->setMWController (99, 7, 0);
+
+		tg_mixer->pan(i,m_fPan[i]);
 	}
 
 	if (m_PerformanceConfig.Load ())
@@ -747,37 +749,35 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
-		// now mix the output of all TGs
-		uint8_t indexL=0, indexR=1;
+		assert (CConfig::ToneGenerators == 8);
 
+		// swap stereo channels if needed
+		uint8_t indexL=0, indexR=1;
 		if (m_bChannelsSwapped)
 		{
 			indexL=1;
 			indexR=0;
 		}
 		
-		assert (CConfig::ToneGenerators == 8);
-
-		// BEGIN stereo panorama and TG mixing
+		// BEGIN TG mixing
 		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
-		{
-			tg_mixer->pan(i,m_fPan[i]);
 			tg_mixer->doAddMix(i,m_OutputLevel[i]);
-		}
-		// END stereo panorama and TG mixing
+		// END TG mixing
 
-		// BEGIN adding reverb
+		// BEGIN create SampleBuffer for holding audio data
 		float32_t SampleBuffer[2][nFrames];
-
 		// init left sum output
 		assert (SampleBuffer[0]!=NULL);
 		arm_fill_f32(0.0, SampleBuffer[0], nFrames);
 		// init right sum output
 		assert (SampleBuffer[1]!=NULL);
 		arm_fill_f32(0.0, SampleBuffer[1], nFrames);
+		// END create SampleBuffer for holding audio data
 
+		// get the mix of all TGs
                 tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
 
+		// BEGIN adding reverb
 		if (m_nParameter[ParameterReverbEnable])
 		{
 			float32_t ReverbBuffer[2][nFrames];

@@ -40,9 +40,9 @@
 #include <circle/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
+#include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
-#include "effect_mixer.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
