@@ -58,13 +58,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
-		m_fPan[i] = 0.5f;
 		m_nMasterTune[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
+
+		m_nReverbSend[i] = 0;
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
@@ -119,6 +120,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup tgmixer
 
 	// BEGIN setup reverb
+	reverb_send_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
@@ -163,7 +165,9 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setPBController (12, 1);
 		m_pTG[i]->setMWController (99, 7, 0);
 
-		tg_mixer->pan(i,m_fPan[i]);
+		tg_mixer->pan(i,m_nPan[i]/127.0f);
+		reverb_send_mixer->pan(i,m_nPan[i]/127.0f);
+		reverb_send_mixer->gain(i,m_nReverbSend[i]/127.0f);
 	}
 
 	if (m_PerformanceConfig.Load ())
@@ -180,6 +184,8 @@ bool CMiniDexed::Initialize (void)
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+
+			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 		}
 
 		// Effects
@@ -361,7 +367,7 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	m_nVolume[nTG] = nVolume;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setGain (nVolume / 127.0);
+	m_pTG[nTG]->setGain (nVolume / 127.0f);
 
 	m_UI.ParameterChanged ();
 }
@@ -375,7 +381,19 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
-	m_fPan[nTG]=mapfloat(nPan,0,127,0.0,1.0);
+	
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
+{
+	if (nReverbSend > 127)
+	{
+		return;
+	}
+
+	assert (nTG < CConfig::ToneGenerators);
+	m_nReverbSend[nTG] = nReverbSend;
 	
 	m_UI.ParameterChanged ();
 }
@@ -593,6 +611,8 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 		SetMIDIChannel ((uint8_t) nValue, nTG);
 		break;
 
+	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
+
 	default:
 		assert (0);
 		break;
@@ -611,6 +631,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterPan:		return m_nPan[nTG];
 	case TGParameterMasterTune:	return m_nMasterTune[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
+	case TGParameterReverbSend:	return m_nReverbSend[nTG];
 
 	default:
 		assert (0);
@@ -761,17 +782,14 @@ void CMiniDexed::ProcessSound (void)
 		
 		// BEGIN TG mixing
 		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+		{
 			tg_mixer->doAddMix(i,m_OutputLevel[i]);
+			reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+		}
 		// END TG mixing
 
 		// BEGIN create SampleBuffer for holding audio data
 		float32_t SampleBuffer[2][nFrames];
-		// init left sum output
-		assert (SampleBuffer[0]!=NULL);
-		arm_fill_f32(0.0, SampleBuffer[0], nFrames);
-		// init right sum output
-		assert (SampleBuffer[1]!=NULL);
-		arm_fill_f32(0.0, SampleBuffer[1], nFrames);
 		// END create SampleBuffer for holding audio data
 
 		// get the mix of all TGs
@@ -781,9 +799,12 @@ void CMiniDexed::ProcessSound (void)
 		if (m_nParameter[ParameterReverbEnable])
 		{
 			float32_t ReverbBuffer[2][nFrames];
+			float32_t ReverbSendBuffer[2][nFrames];
+
+                	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
 
 			m_ReverbSpinLock.Acquire ();
-			reverb->doReverb(SampleBuffer[indexL],SampleBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
+			reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
 			m_ReverbSpinLock.Release ();
 
 			// scale down and add left reverb buffer by reverb level 
@@ -833,6 +854,8 @@ bool CMiniDexed::SavePerformance (void)
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
+
+		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 	}
 
 	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);

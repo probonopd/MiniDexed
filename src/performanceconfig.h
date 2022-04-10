@@ -47,6 +47,7 @@ public:
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
 
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
@@ -57,6 +58,7 @@ public:
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
+	void SetReverbSend (unsigned nValue, unsigned nTG);
 
 	// Effects
 	bool GetCompressorEnable (void) const;
@@ -89,6 +91,7 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+	int m_nReverbSend[CConfig::ToneGenerators];
 
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;

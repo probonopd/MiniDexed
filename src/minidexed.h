@@ -78,6 +78,8 @@ public:
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
+	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
+
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -102,6 +104,7 @@ public:
 		TGParameterPan,
 		TGParameterMasterTune,
 		TGParameterMIDIChannel,
+		TGParameterReverbSend,
 		TGParameterUnknown
 	};
 
@@ -144,13 +147,14 @@ private:
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
-	float32_t m_fPan[CConfig::ToneGenerators];
 	int m_nMasterTune[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+
+	unsigned m_nReverbSend[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -177,8 +181,8 @@ private:
 
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<8>* tg_mixer;
+	AudioStereoMixer<8>* reverb_send_mixer;
 
-	CSpinLock m_PanoramaSpinLock;
 	CSpinLock m_ReverbSpinLock;
 };
 

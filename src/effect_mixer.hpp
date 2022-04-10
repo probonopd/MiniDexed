@@ -28,6 +28,12 @@ public:
 		arm_fill_f32(0.0, sumbufL, len);
 	}
 
+	~AudioMixer()
+	{
+		if(sumbufL)
+			free(sumbufL);
+	}
+
         void doAddMix(uint8_t channel, float32_t* in)
 	{
 		float32_t* tmp=(float32_t*)malloc(sizeof(float32_t)*buffer_length);
@@ -93,6 +99,14 @@ public:
 		arm_fill_f32(0.0, sumbufR, buffer_length);
 	}
 
+	~AudioStereoMixer()
+	{
+		if(sumbufL)
+			free(sumbufL);
+		if(sumbufR)
+			free(sumbufR);
+	}
+
         void pan(uint8_t channel, float32_t pan)
 	{
 		if (channel >= NN) return;
@@ -136,11 +150,11 @@ public:
 
 		// left
 		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inL,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+			arm_scale_f32(inL,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
 		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inR,AudioMixer<NN>::multiplier[channel],tmp,buffer_length);
+			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 
 		if(tmp)
