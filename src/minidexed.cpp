@@ -116,11 +116,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 
 	// BEGIN setup tg_mixer
-	tg_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize()/2);
+	tg_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
 
 	// BEGIN setup reverb
-	reverb_send_mixer = new AudioStereoMixer<8>(pConfig->GetChunkSize()/2);
+	reverb_send_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
@@ -128,7 +128,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbLowDamp, 50);
 	SetParameter (ParameterReverbLowPass, 30);
 	SetParameter (ParameterReverbDiffusion, 65);
-	SetParameter (ParameterReverbLevel, 80);
+	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
@@ -165,9 +165,10 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setPBController (12, 1);
 		m_pTG[i]->setMWController (99, 7, 0);
 
-		tg_mixer->pan(i,m_nPan[i]/127.0f);
-		reverb_send_mixer->pan(i,m_nPan[i]/127.0f);
-		reverb_send_mixer->gain(i,m_nReverbSend[i]/127.0f);
+		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
+		tg_mixer->gain(i,1.0f);
+		reverb_send_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
+		reverb_send_mixer->gain(i,mapfloat(m_nReverbSend[i],0,99,0.0f,1.0f));
 	}
 
 	if (m_PerformanceConfig.Load ())
@@ -326,10 +327,7 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
-	if (nBankLSB > 127)
-	{
-		return;
-	}
+	nBankLSB=constrain((int)nBankLSB,0,127);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceBankID[nTG] = nBankLSB;
@@ -339,10 +337,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
-	if (nProgram > 31)
-	{
-		return;
-	}
+	nProgram=constrain((int)nProgram,0,31);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nProgram[nTG] = nProgram;
@@ -358,10 +353,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 {
-	if (nVolume > 127)
-	{
-		return;
-	}
+	nVolume=constrain((int)nVolume,0,127);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVolume[nTG] = nVolume;
@@ -374,36 +366,32 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 {
-	if (nPan > 127)
-	{
-		return;
-	}
+	nPan=constrain((int)nPan,0,127);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 	
+	tg_mixer->pan(nTG,mapfloat(nPan,-99,99,0.0f,1.0f));
+	reverb_send_mixer->pan(nTG,mapfloat(nPan,-99,99,0.0f,1.0f));
+
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 {
-	if (nReverbSend > 127)
-	{
-		return;
-	}
+	nReverbSend=constrain((int)nReverbSend,0,99);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nReverbSend[nTG] = nReverbSend;
+
+	reverb_send_mixer->gain(nTG,mapfloat(nReverbSend,0,99,0.0f,1.0f));
 	
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 {
-	if (!(-99 <= nMasterTune && nMasterTune <= 99))
-	{
-		return;
-	}
+	constrain((int)nMasterTune,-99,99);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nMasterTune[nTG] = nMasterTune;
@@ -541,44 +529,51 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		break;
 
 	case ParameterReverbEnable:
+		constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
 		reverb->set_bypass (!nValue);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbSize:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->size (nValue / 99.0);
+		reverb->size (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbHighDamp:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->hidamp (nValue / 99.0);
+		reverb->hidamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowDamp:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->lodamp (nValue / 99.0);
+		reverb->lodamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowPass:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->lowpass (nValue / 99.0);
+		reverb->lowpass (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbDiffusion:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->diffusion (nValue / 99.0);
+		reverb->diffusion (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLevel:
+		constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->level (nValue / 99.0);
+		reverb->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
@@ -801,18 +796,24 @@ void CMiniDexed::ProcessSound (void)
 			float32_t ReverbBuffer[2][nFrames];
 			float32_t ReverbSendBuffer[2][nFrames];
 
-                	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+			arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+			arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+			arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+			arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
 
 			m_ReverbSpinLock.Acquire ();
-			reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[0], ReverbBuffer[1],nFrames);
-			m_ReverbSpinLock.Release ();
+
+                	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+			reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
 
 			// scale down and add left reverb buffer by reverb level 
-			arm_scale_f32(ReverbBuffer[0], reverb->get_level(), ReverbBuffer[0], nFrames);
-			arm_add_f32(SampleBuffer[indexL], ReverbBuffer[0], SampleBuffer[indexL], nFrames);
+			arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+			arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
 			// scale down and add right reverb buffer by reverb level 
-			arm_scale_f32(ReverbBuffer[1], reverb->get_level(), ReverbBuffer[1], nFrames);
-			arm_add_f32(SampleBuffer[indexR], ReverbBuffer[1], SampleBuffer[indexR], nFrames);
+			arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+			arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+
+			m_ReverbSpinLock.Release ();
 		}
 		// END adding reverb
 

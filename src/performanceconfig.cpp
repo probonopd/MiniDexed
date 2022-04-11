@@ -91,7 +91,7 @@ bool CPerformanceConfig::Load (void)
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 
 		PropertyName.Format ("ReverbSend%u", nTG+1);
-		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 64);
+		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
 	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
@@ -102,7 +102,7 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 80);
+	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
 	return bResult;
 }

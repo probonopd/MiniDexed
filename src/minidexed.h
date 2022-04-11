@@ -180,8 +180,8 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
-	AudioStereoMixer<8>* tg_mixer;
-	AudioStereoMixer<8>* reverb_send_mixer;
+	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
+	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
 };

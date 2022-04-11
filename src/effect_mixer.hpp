@@ -25,7 +25,7 @@ public:
 			multiplier[i] = UNITY_GAIN;
 
 		sumbufL=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
-		arm_fill_f32(0.0, sumbufL, len);
+		arm_fill_f32(0.0f, sumbufL, len);
 	}
 
 	~AudioMixer()
@@ -78,7 +78,7 @@ public:
 		arm_copy_f32(sumbufL, buffer, buffer_length);
 
 		if(sumbufL)
-			arm_fill_f32(0.0, sumbufL, buffer_length);
+			arm_fill_f32(0.0f, sumbufL, buffer_length);
 	}
 
 protected:
@@ -96,7 +96,7 @@ public:
 			panorama[i] = UNITY_PANORAMA;
 
 		sumbufR=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
-		arm_fill_f32(0.0, sumbufR, buffer_length);
+		arm_fill_f32(0.0f, sumbufR, buffer_length);
 	}
 
 	~AudioStereoMixer()
@@ -172,9 +172,9 @@ public:
 		arm_copy_f32 (sumbufR, bufferR, buffer_length);
 
 		if(sumbufL)
-			arm_fill_f32(0.0, sumbufL, buffer_length);
+			arm_fill_f32(0.0f, sumbufL, buffer_length);
 		if(sumbufR)
-			arm_fill_f32(0.0, sumbufR, buffer_length);
+			arm_fill_f32(0.0f, sumbufR, buffer_length);
 	}
 
 protected:

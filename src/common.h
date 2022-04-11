@@ -11,11 +11,24 @@ inline float32_t mapfloat(float32_t val, float32_t in_min, float32_t in_max, flo
   return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-#define constrain(amt, low, high) ({ \
-  __typeof__(amt) _amt = (amt); \
-  __typeof__(low) _low = (low); \
-  __typeof__(high) _high = (high); \
-  (_amt < _low) ? _low : ((_amt > _high) ? _high : _amt); \
-})
+inline float32_t mapfloat(int val, int in_min, int in_max, float32_t out_min, float32_t out_max)
+{
+  return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
+#ifndef _constrain_defined_
+#define _constrain_defined_
+template<class T>
+const T& constrain(const T& x, const T& a, const T& b) {
+    if(x < a) {
+        return a;
+    }
+    else if(b < x) {
+        return b;
+    }
+    else
+        return x;
+}
+#endif
 
 #endif
