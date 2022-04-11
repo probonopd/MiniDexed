@@ -103,6 +103,7 @@ private:
 	static std::string ToOscillatorDetune (int nValue);
 
 	void TGShortcutHandler (TMenuEvent Event);
+	void OPShortcutHandler (TMenuEvent Event);
 
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 

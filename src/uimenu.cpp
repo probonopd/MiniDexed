@@ -94,6 +94,7 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 
 #endif
 
+// inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
 	{"OP1",		MenuHandler,		s_OperatorMenu, 0},
@@ -636,7 +637,7 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventPressAndStepDown:
 	case MenuEventPressAndStepUp:
-		pUIMenu->TGShortcutHandler (Event);
+		pUIMenu->OPShortcutHandler (Event);
 		return;
 
 	default:
@@ -887,6 +888,36 @@ void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 		m_nMenuStackSelection[0] = nTG;
 		m_nMenuStackItem[1] = nTG;
 		m_nMenuStackParameter[1] = nTG;
+
+		EventHandler (MenuEventUpdate);
+	}
+}
+
+void CUIMenu::OPShortcutHandler (TMenuEvent Event)
+{
+	assert (m_nCurrentMenuDepth >= 3);
+	assert (m_MenuStackMenu[m_nCurrentMenuDepth-2] = s_EditVoiceMenu);
+	unsigned nOP = m_nMenuStackSelection[m_nCurrentMenuDepth-2];
+	assert (nOP < 6);
+	assert (m_nMenuStackItem[m_nCurrentMenuDepth-1] == nOP);
+	assert (m_nMenuStackParameter[m_nCurrentMenuDepth-1] == nOP);
+
+	assert (   Event == MenuEventPressAndStepDown
+		|| Event == MenuEventPressAndStepUp);
+	if (Event == MenuEventPressAndStepDown)
+	{
+		nOP--;
+	}
+	else
+	{
+		nOP++;
+	}
+
+	if (nOP < 6)
+	{
+		m_nMenuStackSelection[m_nCurrentMenuDepth-2] = nOP;
+		m_nMenuStackItem[m_nCurrentMenuDepth-1] = nOP;
+		m_nMenuStackParameter[m_nCurrentMenuDepth-1] = nOP;
 
 		EventHandler (MenuEventUpdate);
 	}
