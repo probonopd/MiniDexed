@@ -371,8 +371,8 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 	
-	tg_mixer->pan(nTG,mapfloat(nPan,-99,99,0.0f,1.0f));
-	reverb_send_mixer->pan(nTG,mapfloat(nPan,-99,99,0.0f,1.0f));
+	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
+	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 
 	m_UI.ParameterChanged ();
 }
@@ -391,7 +391,7 @@ void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 {
-	constrain((int)nMasterTune,-99,99);
+	nMasterTune=constrain((int)nMasterTune,-99,99);
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nMasterTune[nTG] = nMasterTune;
@@ -529,49 +529,49 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		break;
 
 	case ParameterReverbEnable:
-		constrain((int)nValue,0,1);
+		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
 		reverb->set_bypass (!nValue);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbSize:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->size (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbHighDamp:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->hidamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowDamp:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->lodamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowPass:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->lowpass (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbDiffusion:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->diffusion (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLevel:
-		constrain((int)nValue,0,99);
+		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
 		reverb->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
@@ -699,15 +699,9 @@ void CMiniDexed::ProcessSound (void)
 		float32_t SampleBuffer[nFrames];
 		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
-		// Convert dual float array (left, right) to single int16 array (left/right)
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
-		for(uint16_t i=0; i<nFrames;i++)
-		{
-			tmp_float[i*2]=SampleBuffer[i];
-			tmp_float[(i*2)+1]=SampleBuffer[i];
-		}
-		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+		// Convert single float array (mono) to int16 array
+		int16_t tmp_int[nFrames];
+		arm_float_to_q15(SampleBuffer,tmp_int,nFrames);
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{

@@ -158,6 +158,19 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 	{0}
 };
 
+// must match CMiniDexed::TParameter
+const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
+{
+	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
+	{0,	99,	1},				// ParameterReverbSize
+	{0,	99,	1},				// ParameterReverbHighDamp
+	{0,	99,	1},				// ParameterReverbLowDamp
+	{0,	99,	1},				// ParameterReverbLowPass
+	{0,	99,	1},				// ParameterReverbDiffusion
+	{0,	99,	1}				// ParameterReverbLevel
+};
+
 // must match CMiniDexed::TTGParameter
 const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
@@ -168,17 +181,6 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
 	{0, 99, 1}								// TGParameterReverbSend
-};
-
-// must match CMiniDexed::TTGParameter
-const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
-{
-	{0,	CSysExFileLoader::MaxVoiceBankID,	1},		// TGParameterVoiceBank
-	{0,	CSysExFileLoader::VoicesPerBank-1,	1},		// TGParameterProgram
-	{0,	127,					8, ToVolume},	// TGParameterVolume
-	{0,	127,					8, ToPan},	// TGParameterPan
-	{-99,	99,					1},		// TGParameterMasterTune
-	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel} // TGParameterMIDIChannel
 };
 
 // must match DexedVoiceParameters in Synth_Dexed

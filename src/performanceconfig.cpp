@@ -154,6 +154,9 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nNoteShift[nTG]);
+
+		PropertyName.Format ("ReverbSend%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
 	}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);

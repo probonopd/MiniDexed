@@ -24,28 +24,24 @@ public:
 		for (uint8_t i=0; i<NN; i++)
 			multiplier[i] = UNITY_GAIN;
 
-		sumbufL=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
+		sumbufL=new float32_t[buffer_length];
 		arm_fill_f32(0.0f, sumbufL, len);
 	}
 
 	~AudioMixer()
 	{
-		if(sumbufL)
-			free(sumbufL);
+		delete [] sumbufL;
 	}
 
         void doAddMix(uint8_t channel, float32_t* in)
 	{
-		float32_t* tmp=(float32_t*)malloc(sizeof(float32_t)*buffer_length);
+		float32_t tmp[buffer_length];
 
-		assert(tmp!=NULL);
 		assert(in);
 
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(in,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
-
-		free(tmp);
 	}
 
 	void gain(uint8_t channel, float32_t gain)
@@ -95,16 +91,13 @@ public:
 		for (uint8_t i=0; i<NN; i++)
 			panorama[i] = UNITY_PANORAMA;
 
-		sumbufR=(float32_t*)malloc(sizeof(float32_t) * buffer_length);
+		sumbufR=new float32_t[buffer_length];
 		arm_fill_f32(0.0f, sumbufR, buffer_length);
 	}
 
 	~AudioStereoMixer()
 	{
-		if(sumbufL)
-			free(sumbufL);
-		if(sumbufR)
-			free(sumbufR);
+		delete [] sumbufR;
 	}
 
         void pan(uint8_t channel, float32_t pan)
@@ -120,9 +113,8 @@ public:
 
 	void doAddMix(uint8_t channel, float32_t* in)
 	{
-		float32_t* tmp=(float32_t*)malloc(sizeof(float32_t)*buffer_length);
+		float32_t tmp[buffer_length];
 
-		assert(tmp!=NULL);
 		assert(in);
 
 		// left
@@ -135,16 +127,12 @@ public:
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
-
-		if(tmp)
-			free(tmp);
 	}
 
 	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR)
 	{
-		float32_t* tmp=malloc(sizeof(float32_t)*buffer_length);
+		float32_t tmp[buffer_length];
 
-		assert(tmp!=NULL);
 		assert(inL);
 		assert(inR);
 
@@ -156,9 +144,6 @@ public:
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
-
-		if(tmp)
-			free(tmp);
 	}
 
 	void getMix(float32_t* bufferL, float32_t* bufferR)
