@@ -89,6 +89,9 @@ bool CPerformanceConfig::Load (void)
 
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
+
+		PropertyName.Format ("ReverbSend%u", nTG+1);
+		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
 	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
@@ -99,7 +102,7 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 80);
+	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
 	return bResult;
 }
@@ -151,6 +154,9 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nNoteShift[nTG]);
+
+		PropertyName.Format ("ReverbSend%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
 	}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
@@ -220,6 +226,12 @@ int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 	return m_nNoteShift[nTG];
 }
 
+unsigned CPerformanceConfig::GetReverbSend (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nReverbSend[nTG];
+}
+
 void CPerformanceConfig::SetBankNumber (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -272,6 +284,12 @@ void CPerformanceConfig::SetNoteShift (int nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nNoteShift[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nReverbSend[nTG] = nValue;
 }
 
 bool CPerformanceConfig::GetCompressorEnable (void) const

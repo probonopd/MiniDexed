@@ -11,6 +11,11 @@ inline float32_t mapfloat(float32_t val, float32_t in_min, float32_t in_max, flo
   return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+inline float32_t mapfloat(int val, int in_min, int in_max, float32_t out_min, float32_t out_max)
+{
+  return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 #define constrain(amt, low, high) ({ \
   __typeof__(amt) _amt = (amt); \
   __typeof__(low) _low = (low); \

@@ -41,7 +41,6 @@
  * 
  */
 
-#pragma once
 #ifndef _EFFECT_PLATERVBSTEREO_H
 #define _EFFECT_PLATERVBSTEREO_H
 

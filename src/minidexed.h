@@ -40,8 +40,9 @@
 #include <circle/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
+#include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
-#include "mixer.h"
+#include "effect_compressor.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -77,6 +78,8 @@ public:
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
+	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
+
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -101,6 +104,7 @@ public:
 		TGParameterPan,
 		TGParameterMasterTune,
 		TGParameterMIDIChannel,
+		TGParameterReverbSend,
 		TGParameterUnknown
 	};
 
@@ -143,13 +147,14 @@ private:
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
-	float32_t m_fPan[CConfig::ToneGenerators];
 	int m_nMasterTune[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+
+	unsigned m_nReverbSend[CConfig::ToneGenerators];
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -175,9 +180,9 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
-	AudioStereoMixer<8>* tg_mixer;
+	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
+	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
-	CSpinLock m_PanoramaSpinLock;
 	CSpinLock m_ReverbSpinLock;
 };
 
