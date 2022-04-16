@@ -81,6 +81,12 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_nDetune[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 
+		PropertyName.Format ("Cutoff%u", nTG+1);
+		m_nCutoff[nTG] = m_Properties.GetNumber (PropertyName, 99);
+
+		PropertyName.Format ("Resonance%u", nTG+1);
+		m_nResonance[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
 		PropertyName.Format ("NoteLimitLow%u", nTG+1);
 		m_nNoteLimitLow[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
@@ -146,6 +152,12 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nDetune[nTG]);
 
+		PropertyName.Format ("Cutoff%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nCutoff[nTG]);
+
+		PropertyName.Format ("Resonance%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nResonance[nTG]);
+
 		PropertyName.Format ("NoteLimitLow%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nNoteLimitLow[nTG]);
 
@@ -208,6 +220,18 @@ int CPerformanceConfig::GetDetune (unsigned nTG) const
 	return m_nDetune[nTG];
 }
 
+unsigned CPerformanceConfig::GetCutoff (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nCutoff[nTG];
+}
+
+unsigned CPerformanceConfig::GetResonance (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nResonance[nTG];
+}
+
 unsigned CPerformanceConfig::GetNoteLimitLow (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -266,6 +290,18 @@ void CPerformanceConfig::SetDetune (int nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nDetune[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetCutoff (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nCutoff[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetResonance (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nResonance[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetNoteLimitLow (unsigned nValue, unsigned nTG)

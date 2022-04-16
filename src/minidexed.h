@@ -68,6 +68,8 @@ public:
 	void SetVolume (unsigned nVolume, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
+	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
+	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
@@ -103,6 +105,8 @@ public:
 		TGParameterVolume,
 		TGParameterPan,
 		TGParameterMasterTune,
+		TGParameterCutoff,
+		TGParameterResonance,
 		TGParameterMIDIChannel,
 		TGParameterReverbSend,
 		TGParameterUnknown
@@ -148,6 +152,8 @@ private:
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
 	int m_nMasterTune[CConfig::ToneGenerators];
+	int m_nCutoff[CConfig::ToneGenerators];
+	int m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
