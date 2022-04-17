@@ -44,6 +44,8 @@ public:
 	unsigned GetVolume (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPan (unsigned nTG) const;			// 0 .. 127
 	int GetDetune (unsigned nTG) const;			// -99 .. 99
+	unsigned GetCutoff (unsigned nTG) const;		// 0 .. 99
+	unsigned GetResonance (unsigned nTG) const;		// 0 .. 99
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
@@ -55,6 +57,8 @@ public:
 	void SetVolume (unsigned nValue, unsigned nTG);
 	void SetPan (unsigned nValue, unsigned nTG);
 	void SetDetune (int nValue, unsigned nTG);
+	void SetCutoff (unsigned nValue, unsigned nTG);
+	void SetResonance (unsigned nValue, unsigned nTG);
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
@@ -88,6 +92,8 @@ private:
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
 	int m_nDetune[CConfig::ToneGenerators];
+	unsigned m_nCutoff[CConfig::ToneGenerators];
+	unsigned m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];

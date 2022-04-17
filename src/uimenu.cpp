@@ -65,6 +65,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 #endif
 	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
+	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
+	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -179,6 +181,8 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
 	{-99,	99,					1},			// TGParameterMasterTune
+	{0,	99,					1},			// TGParameterCutoff
+	{0,	99,					1},			// TGParameterResonance
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
 	{0, 99, 1}								// TGParameterReverbSend
 };
