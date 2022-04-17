@@ -24,6 +24,12 @@ TODO
 - [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
 - [ ] https://github.com/probonopd/MiniDexed/issues
 
+## Introduction
+
+Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3t94ceMHJo):
+
+[![](https://i.ytimg.com/vi/Z3t94ceMHJo/sddefault.jpg)](https://www.youtube.com/watch?v=Z3t94ceMHJo)
+
 ## System Requirements
 
 * Raspberry Pi 1, 2, 3, 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2s DAC for audio out). On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
@@ -154,6 +160,14 @@ rm -r boot
 # Write to SD card
 sudo dd if="${IMG}" of=/dev/mmcblk0 bs=512k status=progress && sync
 ```
+
+## Discussions
+
+https://github.com/probonopd/MiniDexed/discussions
+
+## Wiki
+
+https://github.com/probonopd/MiniDexed/wiki
 
 ## Acknowledgements
 
