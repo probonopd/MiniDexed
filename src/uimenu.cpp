@@ -106,6 +106,8 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 	{"OP4",		MenuHandler,		s_OperatorMenu, 3},
 	{"OP5",		MenuHandler,		s_OperatorMenu, 4},
 	{"OP6",		MenuHandler,		s_OperatorMenu, 5},
+	{"Algorithm",	EditVoiceParameter,	0,		DEXED_ALGORITHM},
+	{"Feedback",	EditVoiceParameter,	0,		DEXED_FEEDBACK},
 	{"P EG Rate 1",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R1},
 	{"P EG Rate 2",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R2},
 	{"P EG Rate 3",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R3},
@@ -114,8 +116,6 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 	{"P EG Level 2",EditVoiceParameter,	0,		DEXED_PITCH_EG_L2},
 	{"P EG Level 3",EditVoiceParameter,	0,		DEXED_PITCH_EG_L3},
 	{"P EG Level 4",EditVoiceParameter,	0,		DEXED_PITCH_EG_L4},
-	{"Algorithm",	EditVoiceParameter,	0,		DEXED_ALGORITHM},
-	{"Feedback",	EditVoiceParameter,	0,		DEXED_FEEDBACK},
 	{"Osc Key Sync",EditVoiceParameter,	0,		DEXED_OSC_KEY_SYNC},
 	{"LFO Speed",	EditVoiceParameter,	0,		DEXED_LFO_SPEED},
 	{"LFO Delay",	EditVoiceParameter,	0,		DEXED_LFO_DELAY},
@@ -130,6 +130,11 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 {
+	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
+	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
+	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
+	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
+	{"Osc Mode",	EditOPParameter,	0,	DEXED_OP_OSC_MODE},
 	{"EG Rate 1",	EditOPParameter,	0,	DEXED_OP_EG_R1},
 	{"EG Rate 2",	EditOPParameter,	0,	DEXED_OP_EG_R2},
 	{"EG Rate 3",	EditOPParameter,	0,	DEXED_OP_EG_R3},
@@ -146,11 +151,6 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
 	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
 	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
-	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
-	{"Osc Mode",	EditOPParameter,	0,	DEXED_OP_OSC_MODE},
-	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
-	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
-	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
 	{0}
 };
 
