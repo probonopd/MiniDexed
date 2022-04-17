@@ -11,5 +11,7 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        sysexfileloader.o performanceconfig.o perftimer.o \
        effect_compressor.o effect_platervbstereo.o
 
+OPTIMIZE = -O3
+
 include ./Synth_Dexed.mk
 include ./Rules.mk
