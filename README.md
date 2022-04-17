@@ -6,29 +6,23 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 
 ## Features
 
-- [x] Get [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) to build with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
-- [x] Upload SD card contents to [GitHub Releases](../../releases)
-- [x] Get it to build for and boot on a Raspberry Pi 4
-- [x] Get it to react to USB MIDI
-- [x] Get it to react to MIDI via Raspberry Pi 4 GPIO
-- [x] Get it to produce some sound on the headphone jack
-- [x] Get it to produce some sound produced by Dexed
-- [x] Load a default (hardcoded) sysex
-- [x] Get it to build for and boot on a Raspberry Pi 3
-- [x] Get it to build for and boot on a Raspberry Pi 2
-- [x] Get it to build for and boot on a Raspberry Pi 1 and Raspberry Pi Zero
-- [x] Support multiple voices through Program Change and Bank Change LSB/MSB MIDI messages
-- [x] Add functionality for loading `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
-- [x] Show voice name on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb)
-- [x] Support selecting patches using MIDI Bank Change and Program Change messages
-- [x] Get 8 Dexed instances to run simultaneously (like in a TX816) and mix their output together
-- [x] Allow for each Dexed instance to be detuned and stereo shifted
-- [x] Add a way to configure multiple Dexed instances through `performance.ini` files
-- [ ] Add a way to configure multiple Dexed instances through Performance `.syx` files
-- [ ] Add a way to configure multiple Dexed instances through Performance sysex messages
-- [x] Add compressor effect
-- [x] Add reverb effect
+- [x] Uses [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
+- [x] SD card contents can be downloaded from [GitHub Releases](../../releases)
+- [x] Runs on Raspberry Pi Zero, Raspberry Pi 1, 2, 3, 4, 400
+- [x] produces sound on the headphone jack, HDMI (better), or a dedicated DAC (best)
+- [x] Supports multiple voices through Program Change and Bank Change LSB/MSB MIDI messages
+- [x] Loads `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
+- [x] Menu structure on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and rotary encoder
+- [x] Runs up to 8 Dexed instances simultaneously (like in a TX816) and mixes their output together
+- [x] Allows for each Dexed instance to be detuned and stereo shifted
+- [x] Allows to configure multiple Dexed instances through `performance.ini` files
+- [x] Compressor effect
+- [x] Reverb effect
+
+TODO
+
 - [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
+- [ ] https://github.com/probonopd/MiniDexed/issues
 
 ## System Requirements
 
