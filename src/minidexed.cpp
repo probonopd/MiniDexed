@@ -59,6 +59,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
 		m_nMasterTune[i] = 0;
+		m_nCutoff[i] = 99;
+		m_nResonance[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
 
 		m_nNoteLimitLow[i] = 0;
@@ -181,6 +183,8 @@ bool CMiniDexed::Initialize (void)
 			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
 			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
 			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
+			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
 
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
@@ -402,6 +406,32 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+void CMiniDexed::SetCutoff (int nCutoff, unsigned nTG)
+{
+	nCutoff = constrain (nCutoff, 0, 99);
+
+	assert (nTG < CConfig::ToneGenerators);
+	m_nCutoff[nTG] = nCutoff;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setFilterCutoff (mapfloat (nCutoff, 0, 99, 0.0f, 1.0f));
+
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
+{
+	nResonance = constrain (nResonance, 0, 99);
+
+	assert (nTG < CConfig::ToneGenerators);
+	m_nResonance[nTG] = nResonance;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setFilterResonance (mapfloat (nResonance, 0, 99, 0.0f, 1.0f));
+
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -600,6 +630,8 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
 	case TGParameterPan:		SetPan (nValue, nTG);		break;
 	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
+	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
+	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
 
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
@@ -625,6 +657,8 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterVolume:		return m_nVolume[nTG];
 	case TGParameterPan:		return m_nPan[nTG];
 	case TGParameterMasterTune:	return m_nMasterTune[nTG];
+	case TGParameterCutoff:		return m_nCutoff[nTG];
+	case TGParameterResonance:	return m_nResonance[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
 
@@ -845,6 +879,8 @@ bool CMiniDexed::SavePerformance (void)
 		m_PerformanceConfig.SetVolume (m_nVolume[nTG], nTG);
 		m_PerformanceConfig.SetPan (m_nPan[nTG], nTG);
 		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
+		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
+		m_PerformanceConfig.SetResonance (m_nResonance[nTG], nTG);
 
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
