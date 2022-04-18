@@ -93,7 +93,7 @@ Compiled versions are available on [GitHub Releases](../../releases). Just downl
 
 ## Building locally
 
-If you need to build the source code yoursel, you can use the following example, e.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
+Normal users do not need to build the source code, as compiled versions are provided for download (see above). If you are a developer and want to build the source code yourself, you can use the following example, e.g., to build for Raspberry Pi 4 on a Ubuntu 20.04 build system. See [`build.yml`](../../tree/main/.github/workflows/build.yml) for complete build steps that create versions for Raspberry Pi 1, 2, 3,and 4 in 32-bit and 64-bit as required.
 
 ```
 # Choose your RPi
