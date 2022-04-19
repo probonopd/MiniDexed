@@ -46,6 +46,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 * Start playing
 * If the system seems to become unresponsive after a few seconds, remove `usbspeed=full` from `cmdline.txt` and repeat ([details](https://github.com/probonopd/MiniDexed/issues/39))
 * See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
+* If something is unclear or does not work, don't hesitate to [ask](https://github.com/probonopd/MiniDexed/discussions/)!
 
 ## Pinout
 
