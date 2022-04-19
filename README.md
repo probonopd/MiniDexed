@@ -41,9 +41,10 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 * Attach headphones to the headphone jack using `SoundDevice=pwm` in `minidexed.ini` (default) (poor audio quality)
 * Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini` (best audio quality)
 * Alternatively, attach a HDMI display with sound and select HDMI sound output using `SoundDevice=hdmi` in `minidexed.ini` (this may introduce slight latency)
-* Attach a MIDI keyboard via USB
+* Attach a MIDI keyboard via USB (alternatively you can build a circuit that allows you to attach a "traditional" MIDI keyboard using a DIN connector, or use a DIN-MIDI-to-USB adapter)
 * Boot
 * Start playing
+* If the system seems to become unresponsive after a few seconds, remove `usbspeed=full` from `cmdline.txt` and repeat ([details](https://github.com/probonopd/MiniDexed/issues/39))
 * See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
 
 ## Pinout
