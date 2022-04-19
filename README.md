@@ -29,7 +29,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 
 * Raspberry Pi 1, 2, 3, 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2s DAC for audio out). On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
 * A P[CM5102A or PCM5122 based DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2c-dac), HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
-* Optionally (but highly recommended), an [alphanumeric 1602 LCD Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
+* Optionally (but highly recommended), an [LCDC1602 Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) (not i2c) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
 
 ## Usage
 
