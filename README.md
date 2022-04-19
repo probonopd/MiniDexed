@@ -19,11 +19,6 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 - [x] Compressor effect
 - [x] Reverb effect
 
-TODO
-
-- [ ] Make it possible to assign voice parameters to sliders and knobs on MIDI controllers
-- [ ] https://github.com/probonopd/MiniDexed/issues
-
 ## Introduction
 
 Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3t94ceMHJo):
@@ -50,7 +45,6 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 * Boot
 * Start playing
 * See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
-
 
 ## Pinout
 
@@ -91,17 +85,21 @@ __CAUTION:__ All GPIO numbers are [chip numbers](https://pinout.xyz/), not heade
 
 Compiled versions are available on [GitHub Releases](../../releases). Just download and put on a FAT32 formatted SD card.
 
-# Building
+## Building
 
 Please see the [wiki](https://github.com/probonopd/MiniDexed/wiki/Development#building-locally) on how to compile the code yourself.
 
+## Contributing
+
+This project lives from the contributions of skilled C++ developers, testers, writers, etc. Please see https://github.com/probonopd/MiniDexed/issues.
+
 ## Discussions
 
-https://github.com/probonopd/MiniDexed/discussions
+We are happy to hear from you. Please join the discussions on https://github.com/probonopd/MiniDexed/discussions.
 
 ## Documentation
 
-https://github.com/probonopd/MiniDexed/wiki
+Project documentation is at https://github.com/probonopd/MiniDexed/wiki.
 
 ## Acknowledgements
 
