@@ -8,8 +8,8 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 
 - [x] Uses [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] SD card contents can be downloaded from [GitHub Releases](../../releases)
-- [x] Runs on Raspberry Pi Zero, Raspberry Pi 1, 2, 3, 4, 400
-- [x] produces sound on the headphone jack, HDMI (better), or a dedicated DAC (best)
+- [x] Runs on all Raspberry Pi models (except Pico); see below for details
+- [x] Produces sound on the headphone jack, HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) (better), or a [dedicated DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2c-dac) (best)
 - [x] Supports multiple voices through Program Change and Bank Change LSB/MSB MIDI messages
 - [x] Loads `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [x] Menu structure on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and rotary encoder
@@ -28,7 +28,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 ## System Requirements
 
 * Raspberry Pi 1, 2, 3, 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2s DAC for audio out). On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
-* A PCM5102A or PCM5122 based DAC or HDMI display or audio extractor for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
+* A P[CM5102A or PCM5122 based DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2c-dac), HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
 * Optionally (but highly recommended), an [alphanumeric 1602 LCD Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
 
 ## Usage
