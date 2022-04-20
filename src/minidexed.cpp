@@ -677,20 +677,29 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 
 	if (nOP < 6)
 	{
+		if (uchOffset == DEXED_OP_ENABLE)
+		{
+			if (uchValue)
+			{
+				m_uchOPMask[nTG] |= 1 << nOP;
+			}
+			else
+			{
+				m_uchOPMask[nTG] &= ~(1 << nOP);
+			}
+
+			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
+
+			return;
+		}
+
 		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 
 	uchOffset += nOP * 21;
 	assert (uchOffset < 156);
 
-	if (nOP < 6 && uchOffset == DEXED_OP_ENABLE)
-	{
-		// https://github.com/probonopd/MiniDexed/issues/111#issuecomment-1103319499
-		m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
-		m_pTG[nTG]->setOPAll(m_uchOPMask[nTG]);
-	} else {
-		m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
-	}
+	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
 }
 
 uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
@@ -701,21 +710,18 @@ uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned
 
 	if (nOP < 6)
 	{
+		if (uchOffset == DEXED_OP_ENABLE)
+		{
+			return !!(m_uchOPMask[nTG] & (1 << nOP));
+		}
+
 		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 
 	uchOffset += nOP * 21;
 	assert (uchOffset < 156);
 
-	if (nOP < 6 && uchOffset == DEXED_OP_ENABLE)
-	{
-		// https://github.com/probonopd/MiniDexed/issues/111#issuecomment-1103319499
-		// In this case the bit for the respective operator
-		// in m_uchOPMask[] must be returned (0 or 1)
-		return 1 == ( (m_pTG[nTG]->getVoiceDataElement (uchOffset) >> nTG) & 1);
-	} else {
-		return m_pTG[nTG]->getVoiceDataElement (uchOffset);
-	}
+	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
