@@ -81,7 +81,6 @@ public:
 	void ControllersRefresh (unsigned nTG);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
-	uint8_t m_uchOPMask[CConfig::ToneGenerators];
 	
 	enum TParameter
 	{
@@ -127,7 +126,8 @@ public:
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
-
+	uint8_t m_uchOPMask[CConfig::ToneGenerators];
+	
 	void ProcessSound (void);
 
 #ifdef ARM_ALLOW_MULTI_CORE
