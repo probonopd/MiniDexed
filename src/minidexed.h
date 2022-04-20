@@ -81,7 +81,7 @@ public:
 	void ControllersRefresh (unsigned nTG);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
-	
+
 	enum TParameter
 	{
 		ParameterCompressorEnable,
