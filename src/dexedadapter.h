@@ -25,6 +25,8 @@
 #include <circle/spinlock.h>
 #include <stdint.h>
 
+#define DEXED_OP_ENABLE (DEXED_OP_OSC_DETUNE + 1)
+
 // Some Dexed methods require to be guarded from being interrupted
 // by other Dexed calls. This is done herein.
 

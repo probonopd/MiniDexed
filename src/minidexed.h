@@ -81,7 +81,8 @@ public:
 	void ControllersRefresh (unsigned nTG);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
-
+	uint8_t m_uchOPMask[CConfig::ToneGenerators];
+	
 	enum TParameter
 	{
 		ParameterCompressorEnable,

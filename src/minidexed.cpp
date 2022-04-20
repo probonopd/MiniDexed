@@ -68,6 +68,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nNoteShift[i] = 0;
 
 		m_nReverbSend[i] = 0;
+		m_uchOPMask[i] = 0b111111;	// All operators on
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
@@ -682,7 +683,14 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 	uchOffset += nOP * 21;
 	assert (uchOffset < 156);
 
-	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+	if (nOP < 6 && uchOffset == DEXED_OP_ENABLE)
+	{
+		// https://github.com/probonopd/MiniDexed/issues/111#issuecomment-1103319499
+		m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+		m_pTG[nTG]->setOPAll(m_uchOPMask[nTG]);
+	} else {
+		m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+	}
 }
 
 uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
@@ -699,7 +707,15 @@ uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned
 	uchOffset += nOP * 21;
 	assert (uchOffset < 156);
 
-	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+	if (nOP < 6 && uchOffset == DEXED_OP_ENABLE)
+	{
+		// https://github.com/probonopd/MiniDexed/issues/111#issuecomment-1103319499
+		// In this case the bit for the respective operator
+		// in m_uchOPMask[] must be returned (0 or 1)
+		return 1 == ( (m_pTG[nTG]->getVoiceDataElement (uchOffset) >> nTG) & 1);
+	} else {
+		return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+	}
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
