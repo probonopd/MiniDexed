@@ -152,6 +152,7 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
 	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
 	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
+	{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
 	{0}
 };
 
@@ -235,7 +236,8 @@ const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
 	{0,	1,	1,	ToOscillatorMode},	// DEXED_OP_OSC_MODE
 	{0,	31,	1},				// DEXED_OP_FREQ_COARSE
 	{0,	99,	1},				// DEXED_OP_FREQ_FINE
-	{0,	14,	1,	ToOscillatorDetune}	// DEXED_OP_OSC_DETUNE
+	{0,	14,	1,	ToOscillatorDetune},	// DEXED_OP_OSC_DETUNE
+	{0, 1, 1, ToOnOff}		// DEXED_OP_ENABLE
 };
 
 const char CUIMenu::s_NoteName[100][4] =

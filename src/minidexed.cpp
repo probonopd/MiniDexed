@@ -68,6 +68,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nNoteShift[i] = 0;
 
 		m_nReverbSend[i] = 0;
+		m_uchOPMask[i] = 0b111111;	// All operators on
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
@@ -676,6 +677,22 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 
 	if (nOP < 6)
 	{
+		if (uchOffset == DEXED_OP_ENABLE)
+		{
+			if (uchValue)
+			{
+				m_uchOPMask[nTG] |= 1 << nOP;
+			}
+			else
+			{
+				m_uchOPMask[nTG] &= ~(1 << nOP);
+			}
+
+			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
+
+			return;
+		}
+
 		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 
@@ -693,6 +710,11 @@ uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned
 
 	if (nOP < 6)
 	{
+		if (uchOffset == DEXED_OP_ENABLE)
+		{
+			return !!(m_uchOPMask[nTG] & (1 << nOP));
+		}
+
 		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 

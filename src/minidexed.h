@@ -126,7 +126,8 @@ public:
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
-
+	uint8_t m_uchOPMask[CConfig::ToneGenerators];
+	
 	void ProcessSound (void);
 
 #ifdef ARM_ALLOW_MULTI_CORE
