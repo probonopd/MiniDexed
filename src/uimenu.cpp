@@ -130,6 +130,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 {
+	{"Enable", EditOPParameter,		0,	DEXED_OP_ENABLE},
 	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
 	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
 	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
@@ -151,7 +152,6 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
 	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
 	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
-	{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
 	{0}
 };
 
@@ -215,6 +215,7 @@ const CUIMenu::TParameter CUIMenu::s_VoiceParameter[] =
 // must match DexedVoiceOPParameters in Synth_Dexed
 const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
 {
+	{0, 1, 1, ToOnOff},				// DEXED_OP_ENABLE
 	{0,	99,	1},				// DEXED_OP_EG_R1
 	{0,	99,	1},				// DEXED_OP_EG_R2
 	{0,	99,	1},				// DEXED_OP_EG_R3
@@ -235,8 +236,7 @@ const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
 	{0,	1,	1,	ToOscillatorMode},	// DEXED_OP_OSC_MODE
 	{0,	31,	1},				// DEXED_OP_FREQ_COARSE
 	{0,	99,	1},				// DEXED_OP_FREQ_FINE
-	{0,	14,	1,	ToOscillatorDetune},	// DEXED_OP_OSC_DETUNE
-	{0, 1, 1, ToOnOff}		// DEXED_OP_ENABLE
+	{0,	14,	1,	ToOscillatorDetune}	// DEXED_OP_OSC_DETUNE
 };
 
 const char CUIMenu::s_NoteName[100][4] =
