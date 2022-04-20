@@ -26,6 +26,7 @@
 #include "userinterface.h"
 #include "sysexfileloader.h"
 #include "config.h"
+#include <cmath>
 #include <circle/sysconfig.h>
 #include <assert.h>
 
@@ -655,7 +656,57 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	string OP ("OP");
 	OP += to_string (nOP+1);
 
-	string Value = GetOPValueString (nParam, nValue);
+	string Value;
+
+	static const int FixedMultiplier[4] = {1, 10, 100, 1000};
+	if (nParam == DEXED_OP_FREQ_COARSE)
+	{
+		if (!pUIMenu->m_pMiniDexed->GetVoiceParameter (DEXED_OP_OSC_MODE, nOP, nTG))
+		{
+			// Ratio
+			if (!nValue)
+			{
+				Value = "0.50";
+			}
+			else
+			{
+				Value = to_string (nValue);
+				Value += ".00";
+			}
+		}
+		else
+		{
+			// Fixed
+			Value = to_string (FixedMultiplier[nValue % 4]);
+		}
+	}
+	else if (nParam == DEXED_OP_FREQ_FINE)
+	{
+		int nCoarse = pUIMenu->m_pMiniDexed->GetVoiceParameter (
+							DEXED_OP_FREQ_COARSE, nOP, nTG);
+
+		char Buffer[20];
+		if (!pUIMenu->m_pMiniDexed->GetVoiceParameter (DEXED_OP_OSC_MODE, nOP, nTG))
+		{
+			// Ratio
+			float fValue = 1.0f + nValue / 100.0f;
+			fValue *= !nCoarse ? 0.5f : (float) nCoarse;
+			sprintf (Buffer, "%.2f", (double) fValue);
+		}
+		else
+		{
+			// Fixed
+			float fValue = powf (1.023293f, (float) nValue);
+			fValue *= (float) FixedMultiplier[nCoarse % 4];
+			sprintf (Buffer, "%.3fHz", (double) fValue);
+		}
+
+		Value = Buffer;
+	}
+	else
+	{
+		Value = GetOPValueString (nParam, nValue);
+	}
 
 	pUIMenu->m_pUI->DisplayWrite (OP.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
