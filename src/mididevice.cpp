@@ -31,10 +31,15 @@
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CONTROL_CHANGE	0b1011
 	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
-	#define MIDI_CC_MODULATION		1
-	#define MIDI_CC_VOLUME			7
+	#define MIDI_CC_MODULATION			1
+	#define MIDI_CC_VOLUME				7
+	#define MIDI_CC_PAN_POSITION		10
 	#define MIDI_CC_BANK_SELECT_LSB		32
 	#define MIDI_CC_BANK_SUSTAIN		64
+	#define MIDI_CC_RESONANCE			71
+	#define MIDI_CC_FREQUENCY_CUTOFF	74
+	#define MIDI_CC_REVERB_LEVEL		91
+	#define MIDI_CC_DETUNE_LEVEL		94
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -162,12 +167,32 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					m_pSynthesizer->SetVolume (pMessage[2], nTG);
 					break;
 
+				case MIDI_CC_PAN_POSITION:
+					m_pSynthesizer->SetPan (pMessage[2], nTG);
+					break;
+
 				case MIDI_CC_BANK_SELECT_LSB:
 					m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
 					break;
 
 				case MIDI_CC_BANK_SUSTAIN:
 					m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+					break;
+
+				case MIDI_CC_RESONANCE:
+					m_pSynthesizer->SetResonance (pMessage[2], nTG);
+					break;
+					
+				case MIDI_CC_FREQUENCY_CUTOFF:
+					m_pSynthesizer->SetCutoff (pMessage[2], nTG);
+					break;
+/*
+				case MIDI_CC_REVERB_LEVEL:
+					m_pSynthesizer->SetReverbLevel (pMessage[2]);
+					break;
+*/
+				case MIDI_CC_DETUNE_LEVEL:
+					m_pSynthesizer->SetMasterTune (pMessage[2], nTG);
 					break;
 				}
 				break;
