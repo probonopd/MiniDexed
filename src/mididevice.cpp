@@ -190,7 +190,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					break;
 
 				case MIDI_CC_REVERB_LEVEL:
-					m_pSynthesizer->SetReverbSend (pMessage[2], nTG);
+					m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 					break;
 
 				case MIDI_CC_DETUNE_LEVEL:
