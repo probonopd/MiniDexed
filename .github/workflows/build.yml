@@ -20,6 +20,16 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
+    - name: Patch in WM8960 support
+      run: |
+           set -ex
+           # As long as https://github.com/rsta2/circle/pull/286 is not merged yet
+           cd circle-stdlib/libs/circle
+           wget -q "https://github.com/matemaciek/circle/commit/cb2b3843b3efa84d9ccf4d2f1c739b95b1404ec3.diff"
+           patch -p1 < cb2b3843b3efa84d9ccf4d2f1c739b95b1404ec3.diff
+           rm *.diff
+           find . -type f -name "*.orig" -delete
+           cd -
     - name: Install toolchains
       run: |
            set -ex
