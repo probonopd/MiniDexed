@@ -521,6 +521,24 @@ void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 	m_pTG[nTG]->setSustain (sustain);
 }
 
+void CMiniDexed::panic(uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	if (value == 0) {
+		m_pTG[nTG]->panic ();
+	}
+}
+
+void CMiniDexed::notesOff(uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	if (value == 0) {
+		m_pTG[nTG]->notesOff ();
+	}
+}
+
 void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);

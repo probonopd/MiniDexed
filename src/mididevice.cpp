@@ -40,6 +40,8 @@
 	#define MIDI_CC_FREQUENCY_CUTOFF	74
 	#define MIDI_CC_REVERB_LEVEL		91
 	#define MIDI_CC_DETUNE_LEVEL		94
+	#define MIDI_CC_ALL_SOUND_OFF		120
+	#define MIDI_CC_ALL_NOTES_OFF		123
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -207,6 +209,14 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 				case MIDI_CC_DETUNE_LEVEL:
 					m_pSynthesizer->SetMasterTune (pMessage[2], nTG);
+					break;
+
+				case MIDI_CC_ALL_SOUND_OFF:
+					m_pSynthesizer->panic (pMessage[2], nTG);
+					break;
+
+				case MIDI_CC_ALL_NOTES_OFF:
+					m_pSynthesizer->notesOff (pMessage[2], nTG);
 					break;
 				}
 				break;
