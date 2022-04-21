@@ -196,11 +196,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					break;
 
 				case MIDI_CC_RESONANCE:
-					m_pSynthesizer->SetResonance (pMessage[2], nTG);
+					m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 					break;
 					
 				case MIDI_CC_FREQUENCY_CUTOFF:
-					m_pSynthesizer->SetCutoff (pMessage[2], nTG);
+					m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 					break;
 
 				case MIDI_CC_REVERB_LEVEL:
@@ -208,7 +208,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					break;
 
 				case MIDI_CC_DETUNE_LEVEL:
-					m_pSynthesizer->SetMasterTune (pMessage[2], nTG);
+					m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 0, 127, -99, 99), nTG);
 					break;
 
 				case MIDI_CC_ALL_SOUND_OFF:
