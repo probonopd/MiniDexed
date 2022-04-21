@@ -25,7 +25,7 @@ jobs:
            set -ex
            # As long as https://github.com/rsta2/circle/pull/286 is not merged yet
            cd circle-stdlib/libs/circle
-           patch -p1 < ../../../src/WM8960.diff
+           patch -p1 < ../../../src/patches/WM8960.diff
            rm *.diff
            find . -type f -name "*.orig" -delete
            cd -
