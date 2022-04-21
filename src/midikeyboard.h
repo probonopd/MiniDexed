@@ -29,6 +29,7 @@
 #include <circle/device.h>
 #include <circle/string.h>
 #include <circle/types.h>
+#include <queue>
 
 class CMiniDexed;
 
@@ -43,6 +44,8 @@ public:
 
 	void Process (boolean bPlugAndPlayUpdated);
 
+	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+
 private:
 	static void MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength);
 	static void MIDIPacketHandler1 (unsigned nCable, u8 *pPacket, unsigned nLength);
@@ -52,10 +55,20 @@ private:
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 
 private:
+	struct TSendQueueEntry
+	{
+		u8	*pMessage;
+		size_t	 nLength;
+		unsigned nCable;
+	};
+
+private:
 	unsigned m_nInstance;
 	CString m_DeviceName;
 
 	CUSBMIDIDevice * volatile m_pMIDIDevice;
+
+	std::queue<TSendQueueEntry> m_SendQueue;
 
 	static CMIDIKeyboard *s_pThis[MaxInstances];
 

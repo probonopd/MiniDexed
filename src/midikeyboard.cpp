@@ -22,6 +22,7 @@
 //
 #include "midikeyboard.h"
 #include <circle/devicenameservice.h>
+#include <cstring>
 #include <assert.h>
 
 CMIDIKeyboard *CMIDIKeyboard::s_pThis[MaxInstances] = {0};
@@ -43,6 +44,8 @@ CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, unsign
 	s_pThis[m_nInstance] = this;
 
 	m_DeviceName.Format ("umidi%u", nInstance+1);
+
+	AddDevice (m_DeviceName);
 }
 
 CMIDIKeyboard::~CMIDIKeyboard (void)
@@ -53,6 +56,19 @@ CMIDIKeyboard::~CMIDIKeyboard (void)
 
 void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
 {
+	while (!m_SendQueue.empty ())
+	{
+		TSendQueueEntry Entry = m_SendQueue.front ();
+		m_SendQueue.pop ();
+
+		if (m_pMIDIDevice)
+		{
+			m_pMIDIDevice->SendPlainMIDI (Entry.nCable, Entry.pMessage, Entry.nLength);
+		}
+
+		delete [] Entry.pMessage;
+	}
+
 	if (!bPlugAndPlayUpdated)
 	{
 		return;
@@ -70,6 +86,18 @@ void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
 			m_pMIDIDevice->RegisterRemovedHandler (DeviceRemovedHandler, this);
 		}
 	}
+}
+
+void CMIDIKeyboard::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
+{
+	TSendQueueEntry Entry;
+	Entry.pMessage = new u8[nLength];
+	Entry.nLength = nLength;
+	Entry.nCable = nCable;
+
+	memcpy (Entry.pMessage, pMessage, nLength);
+
+	m_SendQueue.push (Entry);
 }
 
 void CMIDIKeyboard::MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength)

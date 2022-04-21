@@ -48,6 +48,8 @@
 #define MIDI_TIMING_CLOCK	0xF8
 #define MIDI_ACTIVE_SENSING	0xFE
 
+CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
+
 CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
 :	m_pSynthesizer (pSynthesizer),
 	m_pConfig (pConfig)
@@ -104,6 +106,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
+		}
+	}
+
+	// handle MIDI through
+	if (m_DeviceName.compare (m_pConfig->GetMIDIThroughIn ()) == 0)
+	{
+		TDeviceMap::const_iterator Iterator;
+
+		Iterator = s_DeviceMap.find (m_pConfig->GetMIDIThroughOut ());
+		if (Iterator != s_DeviceMap.end ())
+		{
+			Iterator->second->Send (pMessage, nLength, nCable);
 		}
 	}
 
@@ -229,4 +243,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 		}
 	}
+}
+
+void CMIDIDevice::AddDevice (const char *pDeviceName)
+{
+	assert (pDeviceName);
+
+	assert (m_DeviceName.empty ());
+	m_DeviceName = pDeviceName;
+	assert (!m_DeviceName.empty ());
+
+	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
 }

@@ -27,6 +27,7 @@
 #include "config.h"
 #include <circle/interrupt.h>
 #include <circle/serial.h>
+#include <circle/writebuffer.h>
 #include <circle/types.h>
 
 class CMiniDexed;
@@ -41,12 +42,16 @@ public:
 
 	void Process (void);
 
+	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+
 private:
 	CConfig *m_pConfig;
 
 	CSerialDevice m_Serial;
 	unsigned m_nSerialState;
 	u8 m_SerialMessage[3];
+
+	CWriteBufferDevice m_SendBuffer;
 };
 
 #endif
