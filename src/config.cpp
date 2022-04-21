@@ -48,22 +48,22 @@ void CConfig::Load (void)
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);
 
-	const char *pMIDIThrough = m_Properties.GetString ("MIDIThrough");
-	if (pMIDIThrough)
+	const char *pMIDIThru = m_Properties.GetString ("MIDIThru");
+	if (pMIDIThru)
 	{
-		std::string Arg (pMIDIThrough);
+		std::string Arg (pMIDIThru);
 
 		size_t nPos = Arg.find (',');
 		if (nPos != std::string::npos)
 		{
-			m_MIDIThroughIn = Arg.substr (0, nPos);
-			m_MIDIThroughOut = Arg.substr (nPos+1);
+			m_MIDIThruIn = Arg.substr (0, nPos);
+			m_MIDIThruOut = Arg.substr (nPos+1);
 
-			if (   m_MIDIThroughIn.empty ()
-			    || m_MIDIThroughOut.empty ())
+			if (   m_MIDIThruIn.empty ()
+			    || m_MIDIThruOut.empty ())
 			{
-				m_MIDIThroughIn.clear ();
-				m_MIDIThroughOut.clear ();
+				m_MIDIThruIn.clear ();
+				m_MIDIThruOut.clear ();
 			}
 		}
 	}
@@ -116,14 +116,14 @@ unsigned CConfig::GetMIDIBaudRate (void) const
 	return m_nMIDIBaudRate;
 }
 
-const char *CConfig::GetMIDIThroughIn (void) const
+const char *CConfig::GetMIDIThruIn (void) const
 {
-	return m_MIDIThroughIn.c_str ();
+	return m_MIDIThruIn.c_str ();
 }
 
-const char *CConfig::GetMIDIThroughOut (void) const
+const char *CConfig::GetMIDIThruOut (void) const
 {
-	return m_MIDIThroughOut.c_str ();
+	return m_MIDIThruOut.c_str ();
 }
 
 bool CConfig::GetLCDEnabled (void) const
