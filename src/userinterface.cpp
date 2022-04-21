@@ -209,7 +209,7 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventSwitchHold:
-		if (m_pRotaryEncoder->GetHoldSeconds () >= 10)
+		if (m_pRotaryEncoder->GetHoldSeconds () >= 120)
 		{
 			delete m_pLCD;		// reset LCD
 
