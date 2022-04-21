@@ -67,6 +67,8 @@ CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig)
 	s_pThis = this;
 
 	memset (m_LastKeys, 0, sizeof m_LastKeys);
+
+	AddDevice ("ukbd1");
 }
 
 CPCKeyboard::~CPCKeyboard (void)

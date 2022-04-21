@@ -28,8 +28,10 @@ CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem
 :	CMIDIDevice (pSynthesizer, pConfig),
 	m_pConfig (pConfig),
 	m_Serial (pInterrupt, TRUE),
-	m_nSerialState (0)
+	m_nSerialState (0),
+	m_SendBuffer (&m_Serial)
 {
+	AddDevice ("ttyS1");
 }
 
 CSerialMIDIDevice::~CSerialMIDIDevice (void)
@@ -45,6 +47,8 @@ boolean CSerialMIDIDevice::Initialize (void)
 
 void CSerialMIDIDevice::Process (void)
 {
+	m_SendBuffer.Update ();
+
 	// Read serial MIDI data
 	u8 Buffer[100];
 	int nResult = m_Serial.Read (Buffer, sizeof Buffer);
@@ -95,4 +99,9 @@ void CSerialMIDIDevice::Process (void)
 			break;
 		}
 	}
+}
+
+void CSerialMIDIDevice::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
+{
+	m_SendBuffer.Write (pMessage, nLength);
 }

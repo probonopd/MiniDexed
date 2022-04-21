@@ -24,6 +24,8 @@
 #define _mididevice_h
 
 #include "config.h"
+#include <string>
+#include <unordered_map>
 #include <circle/types.h>
 
 class CMiniDexed;
@@ -41,19 +43,28 @@ public:
 
 public:
 	CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig);
-	~CMIDIDevice (void);
+	virtual ~CMIDIDevice (void);
 
 	void SetChannel (u8 ucChannel, unsigned nTG);
 	u8 GetChannel (unsigned nTG) const;
 
+	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
+
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
+
+	void AddDevice (const char *pDeviceName);
 
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
 
 	u8 m_ChannelMap[CConfig::ToneGenerators];
+
+	std::string m_DeviceName;
+
+	typedef std::unordered_map<std::string, CMIDIDevice *> TDeviceMap;
+	static TDeviceMap s_DeviceMap;
 };
 
 #endif
