@@ -68,8 +68,8 @@ jobs:
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
-           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip *
-           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip" >> $GITHUB_ENV
+           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
+           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip" >> $GITHUB_ENV
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
