@@ -25,7 +25,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
-#include "actled.h"
+#include "kernel.h"
 
 #define MIDI_NOTE_OFF		0b1000
 #define MIDI_NOTE_ON		0b1001
