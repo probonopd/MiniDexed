@@ -82,7 +82,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 {
 	assert (m_pSynthesizer != 0);
 	
-	CActLED.Blink (1, 100, 100);
+	CActLED::Blink (1, 100, 100);
 
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
