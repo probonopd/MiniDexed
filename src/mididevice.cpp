@@ -208,7 +208,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					break;
 
 				case MIDI_CC_DETUNE_LEVEL:
-					m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 0, 127, -99, 99), nTG);
+					if (pMessage[2] == 0)
+					{
+						// "0 to 127, with 0 being no celeste (detune) effect applied at all."
+						m_pSynthesizer->SetMasterTune (0, nTG);
+					}
+					else
+					{
+						m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+					}
 					break;
 
 				case MIDI_CC_ALL_SOUND_OFF:
