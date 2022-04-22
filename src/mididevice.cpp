@@ -20,12 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "kernel.h"
 #include "mididevice.h"
 #include "minidexed.h"
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
+#include "actled.h"
 
 #define MIDI_NOTE_OFF		0b1000
 #define MIDI_NOTE_ON		0b1001
@@ -82,7 +82,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 {
 	assert (m_pSynthesizer != 0);
 	
-	mActLED.Blink (1);
+	CActLED.Blink (1, 100, 100);
 
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
