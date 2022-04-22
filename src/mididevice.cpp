@@ -80,6 +80,8 @@ u8 CMIDIDevice::GetChannel (unsigned nTG) const
 void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
 	assert (m_pSynthesizer != 0);
+	
+	mActLED.Blink (1);
 
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
