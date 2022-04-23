@@ -20,6 +20,12 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
+    - name: Use Circle develop branch for WM8960 support until it is merged upstream
+      run: |
+           set -ex
+           cd circle-stdlib/libs/circle
+           git checkout ae22928 # develop
+           cd -
     - name: Install toolchains
       run: |
            set -ex
