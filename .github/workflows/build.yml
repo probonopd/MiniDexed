@@ -20,12 +20,11 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
-    - name: Patch in WM8960 support until Circle PR #286 is merged
+    - name: Use Circle develop branch for WM8960 support until it is merged upstream
       run: |
            set -ex
            cd circle-stdlib/libs/circle
-           patch -p1 < ../../../src/patches/WM8960.diff
-           find . -type f -name "*.orig" -delete
+           git checkout develop
            cd -
     - name: Install toolchains
       run: |
