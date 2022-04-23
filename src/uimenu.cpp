@@ -393,6 +393,11 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetParameter (Param, nValue);
 		break;
+		
+	case MenuEventSelect:
+		// when a parameter is selected --> accept change and return one level up
+		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		return;
 
 	default:
 		return;
@@ -444,6 +449,11 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->TGShortcutHandler (Event);
 		return;
 
+	case MenuEventSelect:
+		// when a parameter is selected --> accept change and return one level up
+		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		return;
+
 	default:
 		return;
 	}
@@ -490,6 +500,11 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 	case MenuEventPressAndStepUp:
 		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	case MenuEventSelect:
+		// when a parameter is selected --> accept change and return one level up
+		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
 		return;
 
 	default:
@@ -542,6 +557,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 	case MenuEventPressAndStepUp:
 		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	case MenuEventSelect:
+		// when a parameter is selected --> accept change and return one level up
+		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
 		return;
 
 	default:
@@ -647,6 +667,11 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 	case MenuEventPressAndStepUp:
 		pUIMenu->OPShortcutHandler (Event);
+		return;
+
+	case MenuEventSelect:
+		// when a parameter is selected --> accept change and return one level up
+		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
 		return;
 
 	default:
