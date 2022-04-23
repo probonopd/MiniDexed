@@ -20,6 +20,12 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
+    - name: Use Circle develop branch for WM8960 support until it is merged upstream
+      run: |
+           set -ex
+           cd circle-stdlib/libs/circle
+           git checkout ae22928 # develop
+           cd -
     - name: Install toolchains
       run: |
            set -ex
@@ -68,12 +74,12 @@ jobs:
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
-           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d).zip *
+           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
+           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - uses: actions/upload-artifact@v3
-      if: ${{ github.ref != 'refs/heads/main' }}
       with:
-        name: Upload to GitHub Artifacts (when not building from main branch)
-        path: ./MiniDexed*.zip
+        name: ${{ env.artifactName }} # Exported above
+        path: ./sdcard/*
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
