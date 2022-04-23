@@ -69,7 +69,7 @@ jobs:
            cd sdcard
            cp ../kernels/* . || true
            zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
-           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip" >> $GITHUB_ENV
+           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
