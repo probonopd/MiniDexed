@@ -11,7 +11,7 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 - [x] Runs on all Raspberry Pi models (except Pico); see below for details
 - [x] Produces sound on the headphone jack, HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) (better), or a [dedicated DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2c-dac) (best)
 - [x] Supports multiple voices through Program Change and Bank Change LSB/MSB MIDI messages
-- [x] Loads `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
+- [x] Loads voices from `.syx` files from SD card (e.g., using `getsysex.sh` or from [Dexed_cart_1.0.zip](http://hsjp.eu/downloads/Dexed/Dexed_cart_1.0.zip))
 - [x] Menu structure on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and rotary encoder
 - [x] Runs up to 8 Dexed instances simultaneously (like in a TX816) and mixes their output together
 - [x] Allows for each Dexed instance to be detuned and stereo shifted
@@ -45,6 +45,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 * Boot
 * Start playing
 * If the system seems to become unresponsive after a few seconds, remove `usbspeed=full` from `cmdline.txt` and repeat ([details](https://github.com/probonopd/MiniDexed/issues/39))
+* Optionally, put voices in `.syx` files onto the SD card (e.g., using `getsysex.sh`)
 * See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
 * If something is unclear or does not work, don't hesitate to [ask](https://github.com/probonopd/MiniDexed/discussions/)!
 
