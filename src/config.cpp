@@ -72,7 +72,7 @@ void CConfig::Load (void)
 
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
-	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 17);
+	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
 	m_nLCDPinRegisterSelect = m_Properties.GetNumber ("LCDPinRegisterSelect", 27);
 	m_nLCDPinReadWrite = m_Properties.GetNumber ("LCDPinReadWrite", 0);
 	m_nLCDPinData4 = m_Properties.GetNumber ("LCDPinData4", 22);
