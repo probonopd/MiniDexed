@@ -59,6 +59,8 @@ void CSerialMIDIDevice::Process (void)
 
 	// Process MIDI messages
 	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message
+	// "Running status" see: https://www.lim.di.unimi.it/IEEE/MIDI/SOT5.HTM#Running-	
+	
 	for (int i = 0; i < nResult; i++)
 	{
 		u8 uchData = Buffer[i];
@@ -76,6 +78,7 @@ void CSerialMIDIDevice::Process (void)
 
 		case 1:
 		case 2:
+		DATABytes:
 			if (uchData & 0x80)			// got status when parameter expected
 			{
 				m_nSerialState = 0;
@@ -90,7 +93,20 @@ void CSerialMIDIDevice::Process (void)
 			{
 				MIDIMessageHandler (m_SerialMessage, m_nSerialState);
 
+				m_nSerialState = 4; // State 4 for test if 4th byte is a status byte or a data byte 
+			}
+			break;
+		case 4:
+			
+			if ((uchData & 0x80) == 0)  // true data byte, false status byte
+			{
+				m_nSerialState = 1;
+				goto DATABytes;
+			}
+			else 
+			{
 				m_nSerialState = 0;
+				goto MIDIRestart; 
 			}
 			break;
 
