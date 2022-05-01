@@ -47,6 +47,7 @@ public:
 
 	void SetChannel (u8 ucChannel, unsigned nTG);
 	u8 GetChannel (unsigned nTG) const;
+	int8_t SearchChannel (uint8_t uMidiChannel) const;
 
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
 
@@ -54,6 +55,8 @@ protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 
 	void AddDevice (const char *pDeviceName);
+
+	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nMidiChannel);
 
 private:
 	CMiniDexed *m_pSynthesizer;

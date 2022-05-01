@@ -20,11 +20,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+#include <circle/logger.h>
 #include "mididevice.h"
 #include "minidexed.h"
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
+
+LOGMODULE ("mididevice");
 
 #define MIDI_NOTE_OFF		0b1000
 #define MIDI_NOTE_ON		0b1001
@@ -45,6 +49,7 @@
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
+#define MIDI_SYSTEM_EXCLUSIVE	0xF0
 #define MIDI_TIMING_CLOCK	0xF8
 #define MIDI_ACTIVE_SENSING	0xFE
 
@@ -77,10 +82,24 @@ u8 CMIDIDevice::GetChannel (unsigned nTG) const
 	return m_ChannelMap[nTG];
 }
 
+int8_t CMIDIDevice::SearchChannel (uint8_t uMidiChannel) const
+{
+  uint8_t nTG;
+  int8_t nResult=-1;
+  for (nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+  {     
+    if (m_ChannelMap[nTG] == uMidiChannel)
+    {
+      nResult=nTG;
+      break;
+    }
+  }
+
+  return(nResult);
+}
+
 void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
-	assert (m_pSynthesizer != 0);
-
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 
@@ -252,6 +271,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				break;
 			}
 		}
+		else if(ucStatus == MIDI_SYSTEM_EXCLUSIVE) // No MIDI channel information in SYSEX
+			HandleSystemExclusive(pMessage, nLength, ucChannel);
 	}
 }
 
@@ -265,3 +286,132 @@ void CMIDIDevice::AddDevice (const char *pDeviceName)
 
 	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
 }
+
+void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nMidiChannel)
+{
+  int16_t sysex_return;
+  int8_t nTG;
+
+  if ((pMessage[2] & 0x0f) != nMidiChannel) // for Yamaha: SysEx channel checking inside message
+    return;
+
+  nTG = SearchChannel(nMidiChannel);
+  if(nTG < 0)
+    return;
+
+  LOGDBG("SysEx data length: [%d]",nLength);
+  LOGDBG("SysEx data:");
+  for (uint16_t i = 0; i < nLength; i++)
+    LOGDBG("%04d : [0x%02h",i,pMessage[i]);
+
+  sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
+  LOGDBG("SYSEX handler return value: %d", sysex_return);
+
+  switch (sysex_return)
+  {
+    case -1:
+      LOGERR("SysEx end status byte not detected.");
+      break;
+    case -2:
+      LOGERR("E: SysEx vendor not Yamaha.");
+      break;
+    case -3:
+      LOGERR("E: Unknown SysEx parameter change.");
+      break;
+    case -4:
+      LOGERR(" Unknown SysEx voice or function.");
+      break;
+    case -5:
+      LOGERR("E: Not a SysEx voice bulk upload.");
+      break;
+    case -6:
+      LOGERR("E: Wrong length for SysEx voice bulk upload (not 155).");
+      break;
+    case -7:
+      LOGERR("E: Checksum error for one voice.");
+      break;
+    case -8:
+      LOGERR("E: Not a SysEx bank bulk upload.");
+      break;
+    case -9:
+      LOGERR("E: Wrong length for SysEx bank bulk upload (not 4096).");
+    case -10:
+      LOGERR("E: Checksum error for bank.");
+      break;
+    case -11:
+      LOGERR("E: Unknown SysEx message.");
+      break;
+    case 64:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setMonoMode(pMessage[5],nTG);
+      break;
+    case 65:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setPitchbendRange(pMessage[5],nTG);
+      break;
+    case 66:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setPitchbendStep(pMessage[5],nTG);
+      break;
+    case 67:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setPortamentoMode(pMessage[5],nTG);
+      break;
+    case 68:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setPortamentoGlissando(pMessage[5],nTG);
+      break;
+    case 69:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setPortamentoTime(pMessage[5],nTG);
+      break;
+    case 70:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setModWheelRange(pMessage[5],nTG);
+      break;
+    case 71:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setModWheelTarget(pMessage[5],nTG);
+      break;
+    case 72:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setFootControllerRange(pMessage[5],nTG);
+      break;
+    case 73:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setFootControllerTarget(pMessage[5],nTG);
+      break;
+    case 74:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setBreathControllerRange(pMessage[5],nTG);
+      break;
+    case 75:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setBreathControllerTarget(pMessage[5],nTG);
+      break;
+    case 76:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setAftertouchRange(pMessage[5],nTG);
+      break;
+    case 77:
+      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+      m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
+      break;
+    case 100:
+      // load sysex-data into voice memory
+      LOGDBG("One Voice bulk upload");
+      m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
+
+      break;
+    case 200:
+      LOGDBG("Bank bulk upload.");
+      //TODO: add code for storing a bank bulk upload
+      LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
+      break;
+    default:
+      LOGDBG("SysEx voice parameter change: %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
+      m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+      break;
+  }
+}
+

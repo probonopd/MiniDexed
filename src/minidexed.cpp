@@ -23,6 +23,7 @@
 #include <circle/pwmsoundbasedevice.h>
 #include <circle/i2ssoundbasedevice.h>
 #include <circle/hdmisoundbasedevice.h>
+#include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
@@ -939,4 +940,180 @@ bool CMiniDexed::SavePerformance (void)
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
 	return m_PerformanceConfig.Save ();
+}
+
+void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setMonoMode(constrain(mono, 0, 1));
+	m_pTG[nTG]->doRefreshVoice();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setPitchbendRange(uint8_t range, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setPitchbendRange(constrain(range, 0, 12));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setPitchbendStep(uint8_t step, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setPitchbendStep(constrain(step, 0, 12));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setPortamentoMode(uint8_t mode, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setPortamentoMode(constrain(mode, 0, 1));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setPortamentoGlissando(uint8_t glissando, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setPortamentoGlissando(constrain(glissando, 0, 1));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setPortamentoTime(uint8_t time, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setPortamentoTime(constrain(time, 0, 99));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setModWheelRange(uint8_t range, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setModWheelRange(constrain(range, 0, 99));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setModWheelTarget(uint8_t target, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setModWheelTarget(constrain(target, 0, 7));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setFootControllerRange(uint8_t range, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setFootControllerRange(constrain(range, 0, 99));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setFootControllerTarget(uint8_t target, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setFootControllerTarget(constrain(target, 0, 7));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setBreathControllerRange(uint8_t range, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setBreathControllerRange(constrain(range, 0, 99));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setAftertouchRange(uint8_t range, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setAftertouchRange(constrain(range, 0, 99));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setAftertouchTarget(constrain(target, 0, 7));
+	m_pTG[nTG]->ControllersRefresh();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	uint8_t voice[161];
+
+	memcpy(voice, data, sizeof(uint8_t)*161);
+
+	// fix voice name
+	for (uint8_t i = 0; i < 10; i++)
+	{
+		if (voice[151 + i] > 126) // filter characters
+			voice[151 + i] = 32;
+	}
+
+	m_pTG[nTG]->loadVoiceParameters(&voice[6]);
+	m_pTG[nTG]->doRefreshVoice();
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->setVoiceDataElement(constrain(data, 0, 155),constrain(number, 0, 99));
+	m_pTG[nTG]->doRefreshVoice();
+	m_UI.ParameterChanged ();
+}
+
+int16_t CMiniDexed::checkSystemExclusive(const uint8_t* pMessage,const  uint16_t nLength, uint8_t nTG)
+{
+	return(m_pTG[nTG]->checkSystemExclusive(pMessage, nLength));
 }
