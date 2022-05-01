@@ -254,9 +254,10 @@ const char CUIMenu::s_NoteName[100][4] =
 };
 static const unsigned NoteC3 = 27;
 
-CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
+CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig)
 :	m_pUI (pUI),
 	m_pMiniDexed (pMiniDexed),
+	m_pConfig (pConfig),
 	m_pParentMenu (s_MenuRoot),
 	m_pCurrentMenu (s_MainMenu),
 	m_nCurrentMenuItem (0),
@@ -395,8 +396,11 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 		
 	case MenuEventSelect:
-		// when a parameter is selected --> accept change and return one level up
-		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:
@@ -450,8 +454,11 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 
 	case MenuEventSelect:
-		// when a parameter is selected --> accept change and return one level up
-		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:
@@ -503,8 +510,11 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 
 	case MenuEventSelect:
-		// when a parameter is selected --> accept change and return one level up
-		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:
@@ -560,8 +570,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 
 	case MenuEventSelect:
-		// when a parameter is selected --> accept change and return one level up
-		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:
@@ -614,6 +627,14 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 	case MenuEventPressAndStepUp:
 		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	case MenuEventSelect:
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:
@@ -670,8 +691,11 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 
 	case MenuEventSelect:
-		// when a parameter is selected --> accept change and return one level up
-		pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		if( pUIMenu->m_pConfig->GetEncoderClickIsConfirm() )
+		{
+			// when a parameter is selected --> accept change and return one level up
+			pUIMenu->EventHandler( CUIMenu::MenuEventBack );
+		}
 		return;
 
 	default:

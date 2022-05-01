@@ -84,6 +84,7 @@ void CConfig::Load (void)
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 5);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 6);
 	m_nEncoderPinSwitch = m_Properties.GetNumber ("EncoderPinSwitch", 26);
+	m_bEncoderClickIsConfirm = m_Properties.GetNumber ("EncoderClickIsConfirm", 0) != 0;
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
@@ -192,6 +193,11 @@ unsigned CConfig::GetEncoderPinData (void) const
 unsigned CConfig::GetEncoderPinSwitch (void) const
 {
 	return m_nEncoderPinSwitch;
+}
+
+bool CConfig::GetEncoderClickIsConfirm (void) const
+{
+	return m_bEncoderClickIsConfirm;
 }
 
 bool CConfig::GetMIDIDumpEnabled (void) const

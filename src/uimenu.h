@@ -28,6 +28,7 @@
 
 class CMiniDexed;
 class CUserInterface;
+class CConfig;
 
 class CUIMenu
 {
@@ -49,7 +50,7 @@ public:
 	};
 
 public:
-	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
+	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
 
 	void EventHandler (TMenuEvent Event);
 
@@ -110,6 +111,7 @@ private:
 private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;
+	CConfig *m_pConfig;
 
 	const TMenuItem *m_pParentMenu;
 	const TMenuItem *m_pCurrentMenu;

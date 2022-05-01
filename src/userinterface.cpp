@@ -35,7 +35,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pLCDBuffered (0),
 	m_pRotaryEncoder (0),
 	m_bSwitchPressed (false),
-	m_Menu (this, pMiniDexed)
+	m_Menu (this, pMiniDexed, pConfig)
 {
 }
 
@@ -91,6 +91,8 @@ bool CUserInterface::Initialize (void)
 		m_pRotaryEncoder->RegisterEventHandler (EncoderEventStub, this);
 
 		LOGDBG ("Rotary encoder initialized");
+		if( m_pConfig->GetEncoderClickIsConfirm() )
+			LOGDBG ("Encoder click is Confirm, dbl click is up");
 	}
 
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
@@ -197,13 +199,19 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventSwitchClick:
-		// m_Menu.EventHandler (CUIMenu::MenuEventBack);
-		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		// Click = Select / Confirm (option) or Back / Up (Default)
+		if( m_pConfig->GetEncoderClickIsConfirm() )
+			m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		else 
+			m_Menu.EventHandler (CUIMenu::MenuEventBack);
 		break;
 
 	case CKY040::EventSwitchDoubleClick:
-		// m_Menu.EventHandler (CUIMenu::MenuEventSelect);
-		m_Menu.EventHandler (CUIMenu::MenuEventBack);
+		// Double Click = Back / Up (option) or Select (Default)
+		if( m_pConfig->GetEncoderClickIsConfirm() )
+			m_Menu.EventHandler (CUIMenu::MenuEventBack);
+		else
+			m_Menu.EventHandler (CUIMenu::MenuEventSelect);
 		break;
 
 	case CKY040::EventSwitchTripleClick:
