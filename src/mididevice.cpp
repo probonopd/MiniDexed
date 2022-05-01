@@ -149,130 +149,133 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
 
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	if(ucStatus == MIDI_SYSTEM_EXCLUSIVE) // No MIDI channel information in SYSEX
+		HandleSystemExclusive(pMessage, nLength, ucChannel);
+	else
 	{
-		if (   m_ChannelMap[nTG] == ucChannel
-		    || m_ChannelMap[nTG] == OmniMode)
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
-			switch (ucType)
+			if (   m_ChannelMap[nTG] == ucChannel
+			    || m_ChannelMap[nTG] == OmniMode)
 			{
-			case MIDI_NOTE_ON:
-				if (nLength < 3)
+				switch (ucType)
 				{
-					break;
-				}
-
-				if (pMessage[2] > 0)
-				{
-					if (pMessage[2] <= 127)
+				case MIDI_NOTE_ON:
+					if (nLength < 3)
 					{
-						m_pSynthesizer->keydown (pMessage[1],
-									 pMessage[2], nTG);
+						break;
 					}
-				}
-				else
-				{
-					m_pSynthesizer->keyup (pMessage[1], nTG);
-				}
-				break;
-
-			case MIDI_NOTE_OFF:
-				if (nLength < 3)
-				{
-					break;
-				}
-
-				m_pSynthesizer->keyup (pMessage[1], nTG);
-				break;
-
-			case MIDI_CONTROL_CHANGE:
-				if (nLength < 3)
-				{
-					break;
-				}
-
-				switch (pMessage[1])
-				{
-				case MIDI_CC_MODULATION:
-					m_pSynthesizer->setModWheel (pMessage[2], nTG);
-					m_pSynthesizer->ControllersRefresh (nTG);
-					break;
-
-				case MIDI_CC_VOLUME:
-					m_pSynthesizer->SetVolume (pMessage[2], nTG);
-					break;
-
-				case MIDI_CC_PAN_POSITION:
-					m_pSynthesizer->SetPan (pMessage[2], nTG);
-					break;
-
-				case MIDI_CC_BANK_SELECT_LSB:
-					m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
-					break;
-
-				case MIDI_CC_BANK_SUSTAIN:
-					m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
-					break;
-
-				case MIDI_CC_RESONANCE:
-					m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-					break;
-					
-				case MIDI_CC_FREQUENCY_CUTOFF:
-					m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-					break;
-
-				case MIDI_CC_REVERB_LEVEL:
-					m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-					break;
-
-				case MIDI_CC_DETUNE_LEVEL:
-					if (pMessage[2] == 0)
+	
+					if (pMessage[2] > 0)
 					{
-						// "0 to 127, with 0 being no celeste (detune) effect applied at all."
-						m_pSynthesizer->SetMasterTune (0, nTG);
+						if (pMessage[2] <= 127)
+						{
+							m_pSynthesizer->keydown (pMessage[1],
+										 pMessage[2], nTG);
+						}
 					}
 					else
 					{
-						m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+						m_pSynthesizer->keyup (pMessage[1], nTG);
 					}
 					break;
-
-				case MIDI_CC_ALL_SOUND_OFF:
-					m_pSynthesizer->panic (pMessage[2], nTG);
+	
+				case MIDI_NOTE_OFF:
+					if (nLength < 3)
+					{
+						break;
+					}
+	
+					m_pSynthesizer->keyup (pMessage[1], nTG);
 					break;
-
-				case MIDI_CC_ALL_NOTES_OFF:
-					m_pSynthesizer->notesOff (pMessage[2], nTG);
+	
+				case MIDI_CONTROL_CHANGE:
+					if (nLength < 3)
+					{
+						break;
+					}
+	
+					switch (pMessage[1])
+					{
+					case MIDI_CC_MODULATION:
+						m_pSynthesizer->setModWheel (pMessage[2], nTG);
+						m_pSynthesizer->ControllersRefresh (nTG);
+						break;
+	
+					case MIDI_CC_VOLUME:
+						m_pSynthesizer->SetVolume (pMessage[2], nTG);
+						break;
+	
+					case MIDI_CC_PAN_POSITION:
+						m_pSynthesizer->SetPan (pMessage[2], nTG);
+						break;
+	
+					case MIDI_CC_BANK_SELECT_LSB:
+						m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+						break;
+	
+					case MIDI_CC_BANK_SUSTAIN:
+						m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+						break;
+	
+					case MIDI_CC_RESONANCE:
+						m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+						break;
+						
+					case MIDI_CC_FREQUENCY_CUTOFF:
+						m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+						break;
+	
+					case MIDI_CC_REVERB_LEVEL:
+						m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+						break;
+	
+					case MIDI_CC_DETUNE_LEVEL:
+						if (pMessage[2] == 0)
+						{
+							// "0 to 127, with 0 being no celeste (detune) effect applied at all."
+							m_pSynthesizer->SetMasterTune (0, nTG);
+						}
+						else
+						{
+							m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+						}
+						break;
+	
+					case MIDI_CC_ALL_SOUND_OFF:
+						m_pSynthesizer->panic (pMessage[2], nTG);
+						break;
+	
+					case MIDI_CC_ALL_NOTES_OFF:
+						m_pSynthesizer->notesOff (pMessage[2], nTG);
+						break;
+					}
+					break;
+	
+				case MIDI_PROGRAM_CHANGE:
+					// do program change only if enabled in config
+					if( m_pConfig->GetMIDIRXProgramChange() )
+						m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+					break;
+	
+				case MIDI_PITCH_BEND: {
+					if (nLength < 3)
+					{
+						break;
+					}
+	
+					s16 nValue = pMessage[1];
+					nValue |= (s16) pMessage[2] << 7;
+					nValue -= 0x2000;
+	
+					m_pSynthesizer->setPitchbend (nValue, nTG);
+					} break;
+	
+				default:
 					break;
 				}
-				break;
-
-			case MIDI_PROGRAM_CHANGE:
-				// do program change only if enabled in config
-				if( m_pConfig->GetMIDIRXProgramChange() )
-					m_pSynthesizer->ProgramChange (pMessage[1], nTG);
-				break;
-
-			case MIDI_PITCH_BEND: {
-				if (nLength < 3)
-				{
-					break;
-				}
-
-				s16 nValue = pMessage[1];
-				nValue |= (s16) pMessage[2] << 7;
-				nValue -= 0x2000;
-
-				m_pSynthesizer->setPitchbend (nValue, nTG);
-				} break;
-
-			default:
-				break;
 			}
 		}
-		else if(ucStatus == MIDI_SYSTEM_EXCLUSIVE) // No MIDI channel information in SYSEX
-			HandleSystemExclusive(pMessage, nLength, ucChannel);
 	}
 }
 
