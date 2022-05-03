@@ -82,22 +82,6 @@ u8 CMIDIDevice::GetChannel (unsigned nTG) const
 	return m_ChannelMap[nTG];
 }
 
-int8_t CMIDIDevice::SearchChannel (uint8_t uMidiChannel) const
-{
-  uint8_t nTG;
-  int8_t nResult=-1;
-  for (nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
-  {     
-    if (m_ChannelMap[nTG] == uMidiChannel)
-    {
-      nResult=nTG;
-      break;
-    }
-  }
-
-  return(nResult);
-}
-
 void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
 	// The packet contents are just normal MIDI data - see
@@ -125,6 +109,23 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
+		default:
+			switch(pMessage[0])
+			{
+				case MIDI_SYSTEM_EXCLUSIVE:
+					printf("SysEx data length: [%d]\n",uint16_t(nLength));
+					printf("SysEx data:\n");
+					for (uint16_t i = 0; i < nLength; i++)
+					{
+						if((i % 8) == 0)
+							printf("%04d: ",i);
+						printf("0x%02x",pMessage[i]);
+						if((i % 8) == 0)
+							printf("\n");
+					}
+					break;
+			}
+
 		}
 	}
 
@@ -149,130 +150,141 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
 
-	if(ucStatus == MIDI_SYSTEM_EXCLUSIVE) // No MIDI channel information in SYSEX
-		HandleSystemExclusive(pMessage, nLength, ucChannel);
+	// GLOBAL MIDI SYSEX
+	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == 0xF7) // MASTER VOLUME
+	{
+		float32_t nMasterVolume=(pMessage[5] & (pMessage[6]<<7))/(1<<14);
+		LOGNOTE("Master volume: %f",nMasterVolume);
+		; // Handle global master volume
+	}
 	else
 	{
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
-			if (   m_ChannelMap[nTG] == ucChannel
-			    || m_ChannelMap[nTG] == OmniMode)
+			// MIDI SYSEX per MIDI channel
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE && m_ChannelMap[nTG] == pMessage[2] & 0x07)
+				HandleSystemExclusive(pMessage, nLength, nTG);
+			else
 			{
-				switch (ucType)
+				if (   m_ChannelMap[nTG] == ucChannel
+				    || m_ChannelMap[nTG] == OmniMode)
 				{
-				case MIDI_NOTE_ON:
-					if (nLength < 3)
+					switch (ucType)
 					{
-						break;
-					}
-	
-					if (pMessage[2] > 0)
-					{
-						if (pMessage[2] <= 127)
+					case MIDI_NOTE_ON:
+						if (nLength < 3)
 						{
-							m_pSynthesizer->keydown (pMessage[1],
-										 pMessage[2], nTG);
+							break;
 						}
-					}
-					else
-					{
-						m_pSynthesizer->keyup (pMessage[1], nTG);
-					}
-					break;
-	
-				case MIDI_NOTE_OFF:
-					if (nLength < 3)
-					{
-						break;
-					}
-	
-					m_pSynthesizer->keyup (pMessage[1], nTG);
-					break;
-	
-				case MIDI_CONTROL_CHANGE:
-					if (nLength < 3)
-					{
-						break;
-					}
-	
-					switch (pMessage[1])
-					{
-					case MIDI_CC_MODULATION:
-						m_pSynthesizer->setModWheel (pMessage[2], nTG);
-						m_pSynthesizer->ControllersRefresh (nTG);
-						break;
-	
-					case MIDI_CC_VOLUME:
-						m_pSynthesizer->SetVolume (pMessage[2], nTG);
-						break;
-	
-					case MIDI_CC_PAN_POSITION:
-						m_pSynthesizer->SetPan (pMessage[2], nTG);
-						break;
-	
-					case MIDI_CC_BANK_SELECT_LSB:
-						m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
-						break;
-	
-					case MIDI_CC_BANK_SUSTAIN:
-						m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
-						break;
-	
-					case MIDI_CC_RESONANCE:
-						m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-						break;
-						
-					case MIDI_CC_FREQUENCY_CUTOFF:
-						m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-						break;
-	
-					case MIDI_CC_REVERB_LEVEL:
-						m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
-						break;
-	
-					case MIDI_CC_DETUNE_LEVEL:
-						if (pMessage[2] == 0)
+		
+						if (pMessage[2] > 0)
 						{
-							// "0 to 127, with 0 being no celeste (detune) effect applied at all."
-							m_pSynthesizer->SetMasterTune (0, nTG);
+							if (pMessage[2] <= 127)
+							{
+								m_pSynthesizer->keydown (pMessage[1],
+											 pMessage[2], nTG);
+							}
 						}
 						else
 						{
-							m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+							m_pSynthesizer->keyup (pMessage[1], nTG);
 						}
 						break;
-	
-					case MIDI_CC_ALL_SOUND_OFF:
-						m_pSynthesizer->panic (pMessage[2], nTG);
+		
+					case MIDI_NOTE_OFF:
+						if (nLength < 3)
+						{
+							break;
+						}
+		
+						m_pSynthesizer->keyup (pMessage[1], nTG);
 						break;
-	
-					case MIDI_CC_ALL_NOTES_OFF:
-						m_pSynthesizer->notesOff (pMessage[2], nTG);
+		
+					case MIDI_CONTROL_CHANGE:
+						if (nLength < 3)
+						{
+							break;
+						}
+		
+						switch (pMessage[1])
+						{
+						case MIDI_CC_MODULATION:
+							m_pSynthesizer->setModWheel (pMessage[2], nTG);
+							m_pSynthesizer->ControllersRefresh (nTG);
+							break;
+		
+						case MIDI_CC_VOLUME:
+							m_pSynthesizer->SetVolume (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_PAN_POSITION:
+							m_pSynthesizer->SetPan (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_BANK_SELECT_LSB:
+							m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_BANK_SUSTAIN:
+							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+							break;
+		
+						case MIDI_CC_RESONANCE:
+							m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							break;
+							
+						case MIDI_CC_FREQUENCY_CUTOFF:
+							m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							break;
+		
+						case MIDI_CC_REVERB_LEVEL:
+							m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							break;
+		
+						case MIDI_CC_DETUNE_LEVEL:
+							if (pMessage[2] == 0)
+							{
+								// "0 to 127, with 0 being no celeste (detune) effect applied at all."
+								m_pSynthesizer->SetMasterTune (0, nTG);
+							}
+							else
+							{
+								m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+							}
+							break;
+		
+						case MIDI_CC_ALL_SOUND_OFF:
+							m_pSynthesizer->panic (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_ALL_NOTES_OFF:
+							m_pSynthesizer->notesOff (pMessage[2], nTG);
+							break;
+						}
+						break;
+		
+					case MIDI_PROGRAM_CHANGE:
+						// do program change only if enabled in config
+						if( m_pConfig->GetMIDIRXProgramChange() )
+							m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+						break;
+		
+					case MIDI_PITCH_BEND: {
+						if (nLength < 3)
+						{
+							break;
+						}
+		
+						s16 nValue = pMessage[1];
+						nValue |= (s16) pMessage[2] << 7;
+						nValue -= 0x2000;
+		
+						m_pSynthesizer->setPitchbend (nValue, nTG);
+						} break;
+		
+					default:
 						break;
 					}
-					break;
-	
-				case MIDI_PROGRAM_CHANGE:
-					// do program change only if enabled in config
-					if( m_pConfig->GetMIDIRXProgramChange() )
-						m_pSynthesizer->ProgramChange (pMessage[1], nTG);
-					break;
-	
-				case MIDI_PITCH_BEND: {
-					if (nLength < 3)
-					{
-						break;
-					}
-	
-					s16 nValue = pMessage[1];
-					nValue |= (s16) pMessage[2] << 7;
-					nValue -= 0x2000;
-	
-					m_pSynthesizer->setPitchbend (nValue, nTG);
-					} break;
-	
-				default:
-					break;
 				}
 			}
 		}
@@ -290,22 +302,9 @@ void CMIDIDevice::AddDevice (const char *pDeviceName)
 	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
 }
 
-void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nMidiChannel)
+void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nTG)
 {
   int16_t sysex_return;
-  int8_t nTG;
-
-  if ((pMessage[2] & 0x0f) != nMidiChannel) // for Yamaha: SysEx channel checking inside message
-    return;
-
-  nTG = SearchChannel(nMidiChannel);
-  if(nTG < 0)
-    return;
-
-  LOGDBG("SysEx data length: [%d]",nLength);
-  LOGDBG("SysEx data:");
-  for (uint16_t i = 0; i < nLength; i++)
-    LOGDBG("%04d : [0x%02h",i,pMessage[i]);
 
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
   LOGDBG("SYSEX handler return value: %d", sysex_return);
