@@ -477,8 +477,9 @@ void CMiniDexed::SetPortaMode (uint8_t nValue, unsigned nTG)
 	m_nPortamentoMode[nTG] = nValue;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setPortamentoMode (nValue);
-
+	// m_pTG[nTG]->setPortamentoMode (nValue); // uncoment and comment following in news version of dexed
+	m_pTG[nTG]->setPortamentoMode (nValue, m_nPortamentoGlissando[nTG], m_nPortamentoTime[nTG]);  // Compile error due to new implementation in Dexed, uncoment above and coment this
+	
 	m_UI.ParameterChanged ();
 }
 
@@ -490,8 +491,9 @@ void CMiniDexed::SetPortaGlissando (uint8_t nValue, unsigned nTG)
 	m_nPortamentoGlissando[nTG] = nValue;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setPortamentoGlissando (nValue);
-
+	// m_pTG[nTG]->setPortamentoGlissando (nValue); // uncoment and comment following in news version of dexed
+	m_pTG[nTG]->setPortamentoMode (m_nPortamentoMode[nTG], nValue, m_nPortamentoTime[nTG]);  // Compile error due to new implementation in Dexed, uncoment above and coment this
+		
 	m_UI.ParameterChanged ();
 }
 
@@ -503,8 +505,9 @@ void CMiniDexed::SetPortaTime (uint8_t nValue, unsigned nTG)
 	m_nPortamentoTime[nTG] = nValue;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setPortamentoTime (nValue);
-
+	// m_pTG[nTG]->setPortamentoTime (nValue); // uncoment and comment following in news version of dexed
+	m_pTG[nTG]->setPortamentoMode (m_nPortamentoMode[nTG], m_nPortamentoGlissando[nTG], nValue);  // Compile error due to new implementation in Dexed, uncoment above and coment this
+			
 	m_UI.ParameterChanged ();
 }
 
