@@ -169,7 +169,7 @@ private:
 	int m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 	unsigned m_nPitchBenderRange[CConfig::ToneGenerators];	
-	unsigned m_nPitchBenderStepRange[CConfig::ToneGenerators];	
+	unsigned m_nPitchBenderStep[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
