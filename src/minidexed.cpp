@@ -193,9 +193,9 @@ bool CMiniDexed::Initialize (void)
 			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
 			SetPitchBenderRange (m_PerformanceConfig.GetPitchBenderRange (nTG), nTG);
 			SetPitchBenderStep (m_PerformanceConfig.GetPitchBenderStep (nTG), nTG);
-			SetPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
-			SetPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
-			SetPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
+			SetPortaMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
+			SetPortaGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
+			SetPortaTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
 
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
@@ -469,7 +469,7 @@ void CMiniDexed::SetPitchBenderStep (uint8_t nValue, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-void CMiniDexed::SetPortamentoMode (uint8_t nValue, unsigned nTG)
+void CMiniDexed::SetPortaMode (uint8_t nValue, unsigned nTG)
 {
 	nValue= constrain (nValue, 0, 1);
 
@@ -482,7 +482,7 @@ void CMiniDexed::SetPortamentoMode (uint8_t nValue, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-void CMiniDexed::SetPortamentoGlissando (uint8_t nValue, unsigned nTG)
+void CMiniDexed::SetPortaGlissando (uint8_t nValue, unsigned nTG)
 {
 	nValue = constrain (nValue, 0, 1);
 
@@ -495,7 +495,7 @@ void CMiniDexed::SetPortamentoGlissando (uint8_t nValue, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-void CMiniDexed::SetPortamentoTime (uint8_t nValue, unsigned nTG)
+void CMiniDexed::SetPortaTime (uint8_t nValue, unsigned nTG)
 {
 	nValue = constrain (nValue, 0, 99);
 
@@ -729,9 +729,9 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
 	case TGParameterPitchBenderRange:	SetPitchBenderRange (nValue, nTG);	break;
 	case TGParameterPitchBenderStep:	SetPitchBenderStep (nValue, nTG);	break;
-	case TGParameterPortamentoMode:		SetPortamentoMode (nValue, nTG);	break;
-	case TGParameterPortamentoGlissando:	SetPortamentoGlissando (nValue, nTG);	break;
-	case TGParameterPortamentoTime:		SetPortamentoTime (nValue, nTG);	break;
+	case TGParameterPortamentoMode:		SetPortaMode (nValue, nTG);	break;
+	case TGParameterPortamentoGlissando:	SetPortaGlissando (nValue, nTG);	break;
+	case TGParameterPortamentoTime:		SetPortaTime (nValue, nTG);	break;
 
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
