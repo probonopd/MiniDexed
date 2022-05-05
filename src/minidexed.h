@@ -75,7 +75,7 @@ public:
 	void SetPitchBenderStep  (uint8_t nValue, unsigned nTG);
 	void SetPortamentoMode (uint8_t nValue, unsigned nTG);
 	void SetPortamentoGlissando (uint8_t nValue, unsigned nTG);
-	void SetPortamentoTime (uint8_t nValuel, unsigned nTG);
+	void SetPortamentoTime (uint8_t nValue, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
