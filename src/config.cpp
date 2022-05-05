@@ -72,18 +72,18 @@ void CConfig::Load (void)
 
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
-	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 17);
+	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
 	m_nLCDPinRegisterSelect = m_Properties.GetNumber ("LCDPinRegisterSelect", 27);
-	m_nLCDPinReadWrite = m_Properties.GetNumber ("LCDPinReadWrite", 16);
+	m_nLCDPinReadWrite = m_Properties.GetNumber ("LCDPinReadWrite", 0);
 	m_nLCDPinData4 = m_Properties.GetNumber ("LCDPinData4", 22);
 	m_nLCDPinData5 = m_Properties.GetNumber ("LCDPinData5", 23);
 	m_nLCDPinData6 = m_Properties.GetNumber ("LCDPinData6", 24);
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
-	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 5);
-	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 6);
-	m_nEncoderPinSwitch = m_Properties.GetNumber ("EncoderPinSwitch", 26);
+	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
+	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
+	m_nEncoderPinSwitch = m_Properties.GetNumber ("EncoderPinSwitch", 11);
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
