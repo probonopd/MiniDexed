@@ -106,7 +106,7 @@ bool CPerformanceConfig::Load (void)
 		m_nPitchBenderStep[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("PortamentoMode%u", nTG+1);
-		m_nPitchPortamentoMode[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		m_nPortamentoMode[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("PortamentoGlissando%u", nTG+1);
 		m_nPortamentoGlissando[nTG] = m_Properties.GetNumber (PropertyName, 0);
