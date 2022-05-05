@@ -132,7 +132,9 @@ private:
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];
-
+	static const TMenuItem s_EditPitchBenderMenu[];
+	static const TMenuItem s_EditPortamentoMenu[];
+	
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
 	static const TParameter s_VoiceParameter[];
