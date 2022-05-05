@@ -68,6 +68,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
+	{"Pitch Bender",	MenuHandler,		s_EditPitchBenderMenu},
+	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -79,6 +81,21 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditPitchBenderMenu[] =
+{
+	{"Bender Range",	EditTGParameter,	0,	CMiniDexed::TGParameterPitchBenderRange},
+	{"Bender Step",		EditTGParameter,	0,	CMiniDexed::TGParameterPitchBenderStep},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
+{
+	{"Mode",		EditTGParameter,	0,	CMiniDexed::TGParameterPortamentoMode},
+	{"Glissando",		EditTGParameter,	0,	CMiniDexed::TGParameterPortamentoGlissando},
+	{"Time",		EditTGParameter,	0,	CMiniDexed::TGParameterPortamentoTime},
 	{0}
 };
 
@@ -187,6 +204,11 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	99,					1},			// TGParameterResonance
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
 	{0, 99, 1}								// TGParameterReverbSend
+	{0,	12,					1},			// TGParameterPitchBenderRange
+	{0,	12,					1},			// TGParameterPitchBenderStep
+	{0,	1,					1},			// TGParameterPortamentoMode
+	{0,	1,					1},			// TGParameterPortamentoGlissando
+	{0,	99,					1}			// TGParameterPortamentoTime
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
