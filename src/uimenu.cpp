@@ -203,7 +203,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
-	{0, 99, 1}								// TGParameterReverbSend
+	{0, 99, 1},								// TGParameterReverbSend
 	{0,	12,					1},			// TGParameterPitchBenderRange
 	{0,	12,					1},			// TGParameterPitchBenderStep
 	{0,	1,					1},			// TGParameterPortamentoMode
