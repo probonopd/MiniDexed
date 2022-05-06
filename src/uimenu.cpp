@@ -206,8 +206,8 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1},								// TGParameterReverbSend
 	{0,	12,					1},			// TGParameterPitchBenderRange
 	{0,	12,					1},			// TGParameterPitchBenderStep
-	{0,	1,					1},			// TGParameterPortamentoMode
-	{0,	1,					1},			// TGParameterPortamentoGlissando
+	{0,	1,					1, ToPortaMode},			// TGParameterPortamentoMode
+	{0,	1,					1, ToPortaGlissando},			// TGParameterPortamentoGlissando
 	{0,	99,					1}			// TGParameterPortamentoTime
 };
 
