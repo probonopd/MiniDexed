@@ -87,11 +87,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 
-			for (uint16_t i = 0; i < nLength; i++)
-			{
-				printf(">>> 0x%02x\n",pMessage[i]);
-			}
-
 	if (m_pConfig->GetMIDIDumpEnabled ())
 	{
 		switch (nLength)

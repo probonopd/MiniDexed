@@ -37,6 +37,7 @@ CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem
 }
 
 CSerialMIDIDevice::~CSerialMIDIDevice (void)
+
 {
 	m_nSerialState = 255;
 }
@@ -58,6 +59,18 @@ void CSerialMIDIDevice::Process (void)
 	{
 		return;
 	}
+
+	printf("Incoming MIDI data:\n");
+	for (uint16_t i = 0; i < nResult; i++)
+	{
+		if((i % 8) == 0)
+			printf("%04d:",i);
+		printf(" 0x%02x",Buffer[i]);
+		if((i > 1 ) && (i % 8) == 0)
+			printf("\n");
+	}
+	printf("\n");
+
 
 	if(Buffer[0] == 0xF0)
 	{
