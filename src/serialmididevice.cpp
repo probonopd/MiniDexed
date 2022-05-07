@@ -69,7 +69,8 @@ void CSerialMIDIDevice::Process (void)
 		if((i > 1 ) && (i % 8) == 0)
 			printf("\n");
 	}
-	printf("\n");
+	if((i % 8) != 0)
+		printf("\n");
 
 
 	if(Buffer[0] == 0xF0)
