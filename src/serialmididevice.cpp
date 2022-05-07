@@ -60,25 +60,19 @@ void CSerialMIDIDevice::Process (void)
 		return;
 	}
 
-	printf("Incoming MIDI data:\n");
-	for (uint16_t i = 0; i < nResult; i++)
+        if (m_pConfig->GetMIDIDumpEnabled ())
 	{
-		if((i % 8) == 0)
-			printf("%04d:",i);
-		printf(" 0x%02x",Buffer[i]);
-		if((i > 1 ) && (i % 8) == 0)
+		printf("Incoming MIDI data:\n");
+		for (uint16_t i = 0; i < nResult; i++)
+		{
+			if((i % 8) == 0)
+				printf("%04d:",i);
+			printf(" 0x%02x",Buffer[i]);
+			if((i > 1 ) && (i % 8) == 0)
+				printf("\n");
+		}
+		if((nResult % 8) != 0)
 			printf("\n");
-	}
-	if((i % 8) != 0)
-		printf("\n");
-
-
-	if(Buffer[0] == 0xF0)
-	{
-		// SYSEX found
-		m_nSysEx=nResult;
-		memcpy(m_SerialMessage, Buffer, nResult);
-		return;
 	}
 
 	// Process MIDI messages
@@ -88,6 +82,13 @@ void CSerialMIDIDevice::Process (void)
 	for (int i = 0; i < nResult; i++)
 	{
 		u8 uchData = Buffer[i];
+
+		if(uchData == 0xF0)
+		{
+			// SYSEX found
+			m_SerialMessage[m_nSysEx++]=uchData;
+			continue;
+		}
 
 		if(m_nSysEx > 0)
 		{
