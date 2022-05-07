@@ -53,36 +53,9 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 
 All devices on Raspberry Pi GPIOs are **optional**.
 
-__CAUTION:__ All GPIO numbers are [chip numbers](https://pinout.xyz/), not header positions.
+![](https://user-images.githubusercontent.com/2480569/166105580-da11481c-8fc7-4375-8ab1-3031ab5c6ad0.png)
 
-|GPIO | Device |  | Function | Direction | Comment|
-|---|---|---|---|---|---|
-|14 | UART |  | TXD |  | OUT |  | serial MIDI|
-|15 | UART |  | RXD |  | IN |  | serial MIDI|
-|18 | DAC |  | CLK |  | OUT|
-|19 | DAC |  | FS |  | OUT|
-|21 | DAC |  | DOUT |  | OUT|
-|02 | I2C |  | SDA |  | IN/OUT |  | used by some DACs|
-|03 | I2C |  | SCL |  | OUT |  | used by some DACs|
-|17 | LCD |  | EN |  | OUT |  | default setting|
-|27 | LCD |  | RS |  | OUT |  | default setting|
-|16 | LCD |  | RW |  | OUT |  | default setting, optional|
-|22 | LCD |  | D4 |  | OUT |  | default setting|
-|23 | LCD |  | D5 |  | OUT |  | default setting|
-|24 | LCD |  | D6 |  | OUT |  | default setting|
-|25 | LCD |  | D7 |  | OUT |  | default setting|
-|05 | ROTARY ENCODER | CLK (ENC A) | IN |  | default setting|
-|06 | ROTARY ENCODER | DT (ENC B) | IN |  | default setting|
-|26 | ROTARY ENCODER | SW |  | IN |  | default setting|
-|12 | PWM AUDIO | PWM0 |  | OUT |  | on Raspberry Pi Zero|
-|13 | PWM AUDIO | PWM1 |  | OUT |  | on Raspberry Pi Zero|
-|07 | SPI |  | /CE1 |  | OUT |  | reserved|
-|08 | SPI |  | /CE0 |  | OUT |  | reserved|
-|09 | SPI |  | MISO |  | IN |  | reserved|
-|10 | SPI |  | MOSI |  | OUT |  | reserved|
-|11 | SPI |  | SCLK |  | OUT |  | reserved|
-|04 | NONE |  |  |  |  |  | can generate clock signal|
-|20 | NONE |  |  |  |  |  | may be used for DAC DIN|
+Please the the [wiki](https://github.com/probonopd/MiniDexed/wiki) for more information.
 
 ## Downloading
 
