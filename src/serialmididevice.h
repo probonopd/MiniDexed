@@ -30,6 +30,9 @@
 #include <circle/writebuffer.h>
 #include <circle/types.h>
 
+#define MAX_DX7_SYSEX_LENGTH 4104
+#define MAX_MIDI_MESSAGE MAX_DX7_SYSEX_LENGTH
+
 class CMiniDexed;
 
 class CSerialMIDIDevice : public CMIDIDevice
@@ -49,7 +52,8 @@ private:
 
 	CSerialDevice m_Serial;
 	unsigned m_nSerialState;
-	u8 m_SerialMessage[3];
+	unsigned m_nSysEx;
+	u8 m_SerialMessage[MAX_MIDI_MESSAGE];
 
 	CWriteBufferDevice m_SendBuffer;
 };

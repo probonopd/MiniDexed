@@ -84,6 +84,25 @@ public:
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
+	void setMonoMode(uint8_t mono, uint8_t nTG);
+	void setPitchbendRange(uint8_t range, uint8_t nTG);
+	void setPitchbendStep(uint8_t step, uint8_t nTG);
+	void setPortamentoMode(uint8_t mode, uint8_t nTG);
+	void setPortamentoGlissando(uint8_t glissando, uint8_t nTG);
+	void setPortamentoTime(uint8_t time, uint8_t nTG);
+	void setModWheelRange(uint8_t range, uint8_t nTG);
+	void setModWheelTarget(uint8_t target, uint8_t nTG);
+	void setFootControllerRange(uint8_t range, uint8_t nTG);
+	void setFootControllerTarget(uint8_t target, uint8_t nTG);
+	void setBreathControllerRange(uint8_t range, uint8_t nTG);
+	void setBreathControllerTarget(uint8_t target, uint8_t nTG);
+	void setAftertouchRange(uint8_t range, uint8_t nTG);
+	void setAftertouchTarget(uint8_t target, uint8_t nTG);
+	void loadVoiceParameters(const uint8_t* data, uint8_t nTG);
+	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
+
+	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
+
 	enum TParameter
 	{
 		ParameterCompressorEnable,
