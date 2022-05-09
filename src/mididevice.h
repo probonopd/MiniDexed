@@ -55,6 +55,8 @@ protected:
 
 	void AddDevice (const char *pDeviceName);
 
+	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nTG);
+
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
