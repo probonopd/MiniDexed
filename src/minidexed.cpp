@@ -1110,7 +1110,7 @@ void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 	assert (m_pTG[nTG]);
 
 	m_pTG[nTG]->setVoiceDataElement(constrain(data, 0, 155),constrain(number, 0, 99));
-	m_pTG[nTG]->doRefreshVoice();
+	//m_pTG[nTG]->doRefreshVoice();
 	m_UI.ParameterChanged ();
 }
 
