@@ -83,70 +83,78 @@ void CSerialMIDIDevice::Process (void)
 	{
 		u8 uchData = Buffer[i];
 
-		if(uchData == 0xF0)
+		switch (m_nSerialState)
 		{
-			// SYSEX found
-			m_SerialMessage[m_nSysEx++]=uchData;
-			continue;
-		}
-
-		if(m_nSysEx > 0)
-		{
-			m_SerialMessage[m_nSysEx++]=uchData;
-			if ((uchData & 0x80) == 0x80 || m_nSysEx >= MAX_MIDI_MESSAGE)
+		case 0:
+		MIDIRestart:
+			if (   (uchData & 0x80) == 0x80		// status byte, all channels
+			    && (uchData & 0xF0) != 0xF0)	// ignore system messages
 			{
-				if(uchData == 0xF7)
-					MIDIMessageHandler (m_SerialMessage, m_nSysEx);
-				m_nSysEx = 0;
-			}
-			continue;
-		}
-		else
-		{
-			switch (m_nSerialState)
-			{
-			case 0:
-			MIDIRestart:
-				if (   (uchData & 0x80) == 0x80		// status byte, all channels
-				    && (uchData & 0xF0) != 0xF0)	// ignore system messages
-				{
-					m_SerialMessage[m_nSerialState++] = uchData;
-				}
-				break;
-	
-			case 1:
-			case 2:
-			DATABytes:
-				if (uchData & 0x80)			// got status when parameter expected
-				{
-					m_nSerialState = 0;
-	
-					goto MIDIRestart;
-				}
-	
 				m_SerialMessage[m_nSerialState++] = uchData;
-	
-				if (   (m_SerialMessage[0] & 0xE0) == 0xC0
-				    || m_nSerialState == 3)		// message is complete
-				{
-					MIDIMessageHandler (m_SerialMessage, m_nSerialState);
-	
-					m_nSerialState = 4; // State 4 for test if 4th byte is a status byte or a data byte 
-				}
-	
-				break;
-			case 4:
-				
-				if ((uchData & 0x80) == 0)  // true data byte, false status byte
-				{
-					m_nSerialState = 1;
-					goto DATABytes;
-				}
-				break;
-			default:
-				assert (0);
-				break;
 			}
+			
+			if (uchData == 0xF0) // SysEx status Byte jumps to m_nSerialState=5 and iniciate reading
+			{
+				m_nSerialState = 5;
+				m_nSysEx = 0; 
+				goto MIDISysEx;
+			}
+			
+			break;
+
+		case 1:
+		case 2:
+		DATABytes:
+			if (uchData & 0x80)			// got status when parameter expected
+			{
+				m_nSerialState = 0;
+
+				goto MIDIRestart;
+			}
+
+			m_SerialMessage[m_nSerialState++] = uchData;
+
+			if (   (m_SerialMessage[0] & 0xE0) == 0xC0
+			    || m_nSerialState == 3)		// message is complete
+			{
+				MIDIMessageHandler (m_SerialMessage, m_nSerialState);
+
+				m_nSerialState = 4; // State 4 for test if 4th byte is a status byte or a data byte 
+			}
+			break;
+		case 4: // Running Status evaluation
+			
+			if ((uchData & 0x80) == 0)  // true data byte, false status byte
+			{
+				m_nSerialState = 1; // Byte 0 not change on Running Status
+				goto DATABytes;
+			}
+			else 
+			{
+				m_nSerialState = 0;
+				goto MIDIRestart;  // This is necessary in order to not miss the first byte
+				
+			}
+			break;
+		case 5: // SyxEx reading
+			MIDISysEx:
+			m_SerialMessage[m_nSysEx++] = uchData;
+			if (((uchData & 0x80) && m_nSysEx > 1 ) || m_nSysEx >= MAX_MIDI_MESSAGE)		
+			{
+				m_nSerialState = 0; //New Status byte ends SerialState 5 (SysEx reading)
+				if (uchData == 0xF7)
+				{
+					MIDIMessageHandler (m_SerialMessage, m_nSysEx);
+				}
+				else
+				{
+					goto MIDIRestart; //other status byte abort SysEx process and jump to MIDIRestart in order to not miss the byte
+				}
+			}
+			break;
+		default:
+			assert (0);
+			break;
 		}
 	}
 }
