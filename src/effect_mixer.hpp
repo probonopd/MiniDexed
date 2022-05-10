@@ -52,7 +52,7 @@ public:
 			gain = MAX_GAIN;
 		else if (gain < MIN_GAIN)
 			gain = MIN_GAIN;
-		multiplier[channel] = gain;
+		multiplier[channel] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
 	}
 
 	void gain(float32_t gain)
