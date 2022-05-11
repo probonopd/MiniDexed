@@ -52,7 +52,7 @@ public:
 			gain = MAX_GAIN;
 		else if (gain < MIN_GAIN)
 			gain = MIN_GAIN;
-		multiplier[channel] = gain;
+		multiplier[channel] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
 	}
 
 	void gain(float32_t gain)
@@ -63,7 +63,7 @@ public:
 				gain = MAX_GAIN;
 			else if (gain < MIN_GAIN)
 				gain = MIN_GAIN;
-			multiplier[i] = gain;
+			multiplier[i] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
 		} 
 	}
 
@@ -114,16 +114,22 @@ public:
 	void doAddMix(uint8_t channel, float32_t* in)
 	{
 		float32_t tmp[buffer_length];
+		float32_t sin_pan;
+		float32_t cos_pan;
 
 		assert(in);
 
+		// From: https://stackoverflow.com/questions/67062207/how-to-pan-audio-sample-data-naturally
+		sin_pan=arm_sin_f32(mapfloat(panorama[channel], MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+		cos_pan=arm_cos_f32(mapfloat(panorama[channel], MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+
 		// left
-		arm_scale_f32(in, 1.0f-panorama[channel], tmp, buffer_length);
+		arm_scale_f32(in, sin_pan, tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
-		arm_scale_f32(in, panorama[channel], tmp, buffer_length);
+		arm_scale_f32(in, cos_pan, tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
