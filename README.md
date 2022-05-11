@@ -18,6 +18,7 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 - [x] Allows to configure multiple Dexed instances through `performance.ini` files
 - [x] Compressor effect
 - [x] Reverb effect
+- [x] Voices can be edited over MIDI, e.g., using the [synthmata](https://synthmata.github.io/volca-fm/) online editor (requires [additional hardware](https://github.com/probonopd/MiniDexed/wiki/Hardware#usb-midi-device))
 
 ## Introduction
 
