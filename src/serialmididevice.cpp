@@ -57,6 +57,8 @@ void CSerialMIDIDevice::Process (void)
 	int nResult = m_Serial.Read (Buffer, sizeof Buffer);
 	if (nResult <= 0)
 	{
+		if(nResult!=0)
+			printf("Serial-Read: %d\n",nResult);
 		return;
 	}
 
