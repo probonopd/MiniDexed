@@ -256,7 +256,6 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bUseSerial)
 	{
 		m_SerialMIDI.Process ();
-		m_SerialMIDI.Process ();
 	}
 
 	m_UI.Process ();

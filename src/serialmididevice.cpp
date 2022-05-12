@@ -144,6 +144,11 @@ void CSerialMIDIDevice::Process (void)
 					m_nSerialState = 1;
 					goto DATABytes;
 				}
+				else 
+				{
+					m_nSerialState = 0;
+					goto MIDIRestart; 
+				}
 				break;
 			default:
 				assert (0);
