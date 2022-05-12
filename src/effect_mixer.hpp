@@ -89,7 +89,10 @@ public:
 	AudioStereoMixer(uint16_t len) : AudioMixer<NN>(len)
 	{
 		for (uint8_t i=0; i<NN; i++)
-			panorama[i] = UNITY_PANORAMA;
+		{
+			panorama[i][0] = UNITY_PANORAMA;
+			panorama[i][1] = UNITY_PANORAMA;
+		}
 
 		sumbufR=new float32_t[buffer_length];
 		arm_fill_f32(0.0f, sumbufR, buffer_length);
@@ -108,28 +111,25 @@ public:
 			pan = MAX_PANORAMA;
 		else if (pan < MIN_PANORAMA)
 			pan = MIN_PANORAMA;
-		panorama[channel] = pan;
+
+		// From: https://stackoverflow.com/questions/67062207/how-to-pan-audio-sample-data-naturally
+		panorama[channel][0]=arm_sin_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+		panorama[channel][1]=arm_cos_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
 	}
 
 	void doAddMix(uint8_t channel, float32_t* in)
 	{
 		float32_t tmp[buffer_length];
-		float32_t sin_pan;
-		float32_t cos_pan;
 
 		assert(in);
 
-		// From: https://stackoverflow.com/questions/67062207/how-to-pan-audio-sample-data-naturally
-		sin_pan=arm_sin_f32(mapfloat(panorama[channel], MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
-		cos_pan=arm_cos_f32(mapfloat(panorama[channel], MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
-
 		// left
-		arm_scale_f32(in, sin_pan, tmp, buffer_length);
+		arm_scale_f32(in, panorama[channel][0], tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
-		arm_scale_f32(in, cos_pan, tmp, buffer_length);
+		arm_scale_f32(in, panorama[channel][1], tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
@@ -172,7 +172,7 @@ protected:
 	using AudioMixer<NN>::sumbufL;
 	using AudioMixer<NN>::multiplier;
 	using AudioMixer<NN>::buffer_length;
-	float32_t panorama[NN];
+	float32_t panorama[NN][2];
 	float32_t* sumbufR;
 };
 
