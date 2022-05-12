@@ -49,7 +49,8 @@ LOGMODULE ("mididevice");
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
-#define MIDI_SYSTEM_EXCLUSIVE	0xF0
+#define MIDI_SYSTEM_EXCLUSIVE_BEGIN	0xF0
+#define MIDI_SYSTEM_EXCLUSIVE_END	0xF7
 #define MIDI_TIMING_CLOCK	0xF8
 #define MIDI_ACTIVE_SENSING	0xFE
 
@@ -112,7 +113,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		default:
 			switch(pMessage[0])
 			{
-				case MIDI_SYSTEM_EXCLUSIVE:
+				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
 					printf("SysEx data length: [%d]\n",uint16_t(nLength));
 					printf("SysEx data:\n");
 					for (uint16_t i = 0; i < nLength; i++)
@@ -145,6 +146,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 	if (nLength < 2)
 	{
+		LOGERR("MIDI message is shorter than 2 bytes!");
 		return;
 	}
 
@@ -153,7 +155,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucType    = ucStatus >> 4;
 
 	// GLOBAL MIDI SYSEX
-	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == 0xF7) // MASTER VOLUME
+	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == MIDI_SYSTEM_EXCLUSIVE_END) // MASTER VOLUME
 	{
 		float32_t nMasterVolume=(pMessage[5] & (pMessage[6]<<7))/(1<<14);
 		LOGNOTE("Master volume: %f",nMasterVolume);
@@ -164,7 +166,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			// MIDI SYSEX per MIDI channel
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE && m_ChannelMap[nTG] == pMessage[2] & 0x07)
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && m_ChannelMap[nTG] == pMessage[2] & 0x07)
 				HandleSystemExclusive(pMessage, nLength, nTG);
 			else
 			{
