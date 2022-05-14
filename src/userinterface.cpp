@@ -25,8 +25,6 @@
 #include <string.h>
 #include <assert.h>
 
-#define I2C_MASTER_DEVICE (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster))
-
 LOGMODULE ("ui");
 
 CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig)
@@ -54,8 +52,7 @@ bool CUserInterface::Initialize (void)
 
 	if (m_pConfig->GetLCDEnabled ())
 	{
-		m_pI2CMaster = new CI2CMaster(I2C_MASTER_DEVICE);
-		m_pLCD = new CHD44780Device (&I2CMaster, CConfig::LCDI2CAddress, CConfig::LCDColumns, CConfig::LCDRows);
+		m_pLCD = new CHD44780Device (&m_I2CMaster, CConfig::LCDI2CAddress, CConfig::LCDColumns, CConfig::LCDRows);
 		/* TODO: Read configuration file to see whether i2c should be used for the display. Otherwise run:
 		m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
 					     m_pConfig->GetLCDPinData4 (),
