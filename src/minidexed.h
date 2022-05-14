@@ -71,11 +71,6 @@ public:
 	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
 	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
-	void SetPitchBenderRange (uint8_t nValue, unsigned nTG);
-	void SetPitchBenderStep  (uint8_t nValue, unsigned nTG);
-	void SetPortaMode (uint8_t nValue, unsigned nTG);
-	void SetPortaGlissando (uint8_t nValue, unsigned nTG);
-	void SetPortaTime (uint8_t nValue, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
@@ -135,8 +130,8 @@ public:
 		TGParameterResonance,
 		TGParameterMIDIChannel,
 		TGParameterReverbSend,
-		TGParameterPitchBenderRange, 
-		TGParameterPitchBenderStep,
+		TGParameterPitchBendRange, 
+		TGParameterPitchBendStep,
 		TGParameterPortamentoMode,
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
@@ -187,8 +182,8 @@ private:
 	int m_nCutoff[CConfig::ToneGenerators];
 	int m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
-	unsigned m_nPitchBenderRange[CConfig::ToneGenerators];	
-	unsigned m_nPitchBenderStep[CConfig::ToneGenerators];	
+	unsigned m_nPitchBendRange[CConfig::ToneGenerators];	
+	unsigned m_nPitchBendStep[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
