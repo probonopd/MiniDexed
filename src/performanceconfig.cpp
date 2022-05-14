@@ -100,10 +100,10 @@ bool CPerformanceConfig::Load (void)
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
 		
 		PropertyName.Format ("PitchBendRange%u", nTG+1);
-		m_nPitchBenderRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
+		m_nPitchBendRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
 
 		PropertyName.Format ("PitchBendStep%u", nTG+1);
-		m_nPitchBenderStep[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		m_nPitchBendStep[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("PortamentoMode%u", nTG+1);
 		m_nPortamentoMode[nTG] = m_Properties.GetNumber (PropertyName, 0);
