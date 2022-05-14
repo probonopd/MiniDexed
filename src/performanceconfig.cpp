@@ -99,10 +99,10 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
 		
-		PropertyName.Format ("PitchBenderRange%u", nTG+1);
+		PropertyName.Format ("PitchBendRange%u", nTG+1);
 		m_nPitchBenderRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
 
-		PropertyName.Format ("PitchBenderStep%u", nTG+1);
+		PropertyName.Format ("PitchBendStep%u", nTG+1);
 		m_nPitchBenderStep[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("PortamentoMode%u", nTG+1);
@@ -185,11 +185,11 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
 		
-		PropertyName.Format ("PitchBenderRange%u", nTG+1);
-		m_Properties.SetNumber (PropertyName, m_nPitchBenderRange[nTG]);
+		PropertyName.Format ("PitchBendRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPitchBendRange[nTG]);
 
-		PropertyName.Format ("PitchBenderStep%u", nTG+1);
-		m_Properties.SetNumber (PropertyName, m_nPitchBenderStep[nTG]);
+		PropertyName.Format ("PitchBendStep%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPitchBendStep[nTG]);
 
 		PropertyName.Format ("PortamentoMode%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nPortamentoMode[nTG]);
@@ -438,29 +438,29 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 	m_nReverbLevel = nValue;
 }
 // Pitch bender and portamento:
-void CPerformanceConfig::SetPitchBenderRange (unsigned nValue, unsigned nTG)
+void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
-	m_nPitchBenderRange[nTG] = nValue;
+	m_nPitchBendRange[nTG] = nValue;
 }
 
-unsigned CPerformanceConfig::GetPitchBenderRange (unsigned nTG) const
+unsigned CPerformanceConfig::GetPitchBendRange (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
-	return m_nPitchBenderRange[nTG];
+	return m_nPitchBendRange[nTG];
 }
 
 
-void CPerformanceConfig::SetPitchBenderStep (unsigned nValue, unsigned nTG)
+void CPerformanceConfig::SetPitchBendStep (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
-	m_nPitchBenderStep[nTG] = nValue;
+	m_nPitchBendStep[nTG] = nValue;
 }
 
-unsigned CPerformanceConfig::GetPitchBenderStep (unsigned nTG) const
+unsigned CPerformanceConfig::GetPitchBendStep (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
-	return m_nPitchBenderStep[nTG];
+	return m_nPitchBendStep[nTG];
 }
 
 
