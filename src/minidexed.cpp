@@ -698,8 +698,8 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterResonance:	return m_nResonance[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
-	case TGParameterPitchBenderRange:	return m_nPitchBenderRange[nTG];
-	case TGParameterPitchBenderStep:	return m_nPitchBenderStep[nTG];
+	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
+	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
 	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
