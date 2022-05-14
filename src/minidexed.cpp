@@ -192,8 +192,8 @@ bool CMiniDexed::Initialize (void)
 			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
 			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
 			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
-			SetPitchBendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
-			SetPitchBendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
+			SetPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
+			SetPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
 			SetPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
 			SetPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
 			SetPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
@@ -664,8 +664,8 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
 	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
 	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
-	case TGParameterPitchBendRange:	SetPitchBendRange (nValue, nTG);	break;
-	case TGParameterPitchBendStep:	SetPitchBendStep (nValue, nTG);	break;
+	case TGParameterPitchBendRange:	SetPitchbendRange (nValue, nTG);	break;
+	case TGParameterPitchBendStep:	SetPitchbendStep (nValue, nTG);	break;
 	case TGParameterPortamentoMode:		SetPortamentoMode (nValue, nTG);	break;
 	case TGParameterPortamentoGlissando:	SetPortamentoGlissando (nValue, nTG);	break;
 	case TGParameterPortamentoTime:		SetPortamentoTime (nValue, nTG);	break;
