@@ -55,6 +55,8 @@ public:
 
 	static const unsigned LCDColumns = 16;		// HD44780 LCD
 	static const unsigned LCDRows = 2;
+	
+	static const unsigned LCDI2CAddress = 0x27;
 
 public:
 	CConfig (FATFS *pFileSystem);
