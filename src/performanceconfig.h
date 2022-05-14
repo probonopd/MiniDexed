@@ -50,8 +50,8 @@ public:
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
 	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
-	unsigned GetPitchBenderRange (unsigned nTG) const;		// 0 .. 12
-	unsigned GetPitchBenderStep (unsigned nTG) const;		// 0 .. 12
+	unsigned GetPitchBendRange (unsigned nTG) const;		// 0 .. 12
+	unsigned GetPitchBendStep (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoGlissando (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoTime (unsigned nTG) const;		// 0 .. 99
@@ -68,8 +68,8 @@ public:
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
 	void SetReverbSend (unsigned nValue, unsigned nTG);
-	void SetPitchBenderRange (unsigned nValue, unsigned nTG);
-	void SetPitchBenderStep (unsigned nValue, unsigned nTG);
+	void SetPitchBendRange (unsigned nValue, unsigned nTG);
+	void SetPitchBendStep (unsigned nValue, unsigned nTG);
 	void SetPortamentoMode (unsigned nValue, unsigned nTG);
 	void SetPortamentoGlissando (unsigned nValue, unsigned nTG);
 	void SetPortamentoTime (unsigned nValue, unsigned nTG);
@@ -108,8 +108,8 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 	int m_nReverbSend[CConfig::ToneGenerators];
-	unsigned m_nPitchBenderRange[CConfig::ToneGenerators];
-	unsigned m_nPitchBenderStep[CConfig::ToneGenerators];
+	unsigned m_nPitchBendRange[CConfig::ToneGenerators];
+	unsigned m_nPitchBendStep[CConfig::ToneGenerators];
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];
