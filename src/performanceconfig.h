@@ -26,6 +26,7 @@
 #include "config.h"
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
+#define NUM_VOICE_PARAM 156 
 
 class CPerformanceConfig	// Performance configuration
 {
@@ -55,6 +56,8 @@ public:
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoGlissando (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoTime (unsigned nTG) const;		// 0 .. 99
+	void SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG); 
+	uint8_t *GetVoiceDataFromTxt (unsigned nTG); 
 	
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
@@ -113,6 +116,7 @@ private:
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];
+	std::string m_nVoiceDataTxt[CConfig::ToneGenerators];
 
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
