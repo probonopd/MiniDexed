@@ -37,7 +37,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
-	m_UI (this, pGPIOManager, pConfig),
+	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig),
 	m_SerialMIDI (this, pInterrupt, pConfig),

@@ -27,9 +27,10 @@
 
 LOGMODULE ("ui");
 
-CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig)
+CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
 	m_pGPIOManager (pGPIOManager),
+	m_pI2CMaster (pI2CMaster),
 	m_pConfig (pConfig),
 	m_pLCD (0),
 	m_pLCDBuffered (0),
@@ -52,14 +53,23 @@ bool CUserInterface::Initialize (void)
 
 	if (m_pConfig->GetLCDEnabled ())
 	{
-		m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
-					     m_pConfig->GetLCDPinData4 (),
-					     m_pConfig->GetLCDPinData5 (),
-					     m_pConfig->GetLCDPinData6 (),
-					     m_pConfig->GetLCDPinData7 (),
-					     m_pConfig->GetLCDPinEnable (),
-					     m_pConfig->GetLCDPinRegisterSelect (),
-					     m_pConfig->GetLCDPinReadWrite ());
+		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
+		if (i2caddr == 0)
+		{
+			m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
+							 m_pConfig->GetLCDPinData4 (),
+							 m_pConfig->GetLCDPinData5 (),
+							 m_pConfig->GetLCDPinData6 (),
+							 m_pConfig->GetLCDPinData7 (),
+							 m_pConfig->GetLCDPinEnable (),
+							 m_pConfig->GetLCDPinRegisterSelect (),
+							 m_pConfig->GetLCDPinReadWrite ());
+		}
+		else
+		{
+			m_pLCD = new CHD44780Device (m_pI2CMaster, i2caddr,
+							CConfig::LCDColumns, CConfig::LCDRows);
+		}
 		assert (m_pLCD);
 
 		if (!m_pLCD->Initialize ())
