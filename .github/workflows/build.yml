@@ -20,7 +20,7 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
-    - name: Use Circle develop branch for WM8960 support until it is merged upstream
+    - name: Use Circle develop branch for WM8960 and i2c display support until it is merged upstream
       run: |
            set -ex
            cd circle-stdlib/libs/circle
