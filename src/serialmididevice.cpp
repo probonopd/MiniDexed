@@ -157,7 +157,6 @@ void CSerialMIDIDevice::Process (void)
 		}
 	}
 }
-
 void CSerialMIDIDevice::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
 	m_SendBuffer.Write (pMessage, nLength);

@@ -130,6 +130,11 @@ public:
 		TGParameterResonance,
 		TGParameterMIDIChannel,
 		TGParameterReverbSend,
+		TGParameterPitchBendRange, 
+		TGParameterPitchBendStep,
+		TGParameterPortamentoMode,
+		TGParameterPortamentoGlissando,
+		TGParameterPortamentoTime,
 		TGParameterUnknown
 	};
 
@@ -177,6 +182,11 @@ private:
 	int m_nCutoff[CConfig::ToneGenerators];
 	int m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
+	unsigned m_nPitchBendRange[CConfig::ToneGenerators];	
+	unsigned m_nPitchBendStep[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];

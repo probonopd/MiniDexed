@@ -98,7 +98,22 @@ bool CPerformanceConfig::Load (void)
 
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
-	}
+		
+		PropertyName.Format ("PitchBendRange%u", nTG+1);
+		m_nPitchBendRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
+
+		PropertyName.Format ("PitchBendStep%u", nTG+1);
+		m_nPitchBendStep[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("PortamentoMode%u", nTG+1);
+		m_nPortamentoMode[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("PortamentoGlissando%u", nTG+1);
+		m_nPortamentoGlissando[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("PortamentoTime%u", nTG+1);
+		m_nPortamentoTime[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
@@ -169,7 +184,22 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
-	}
+		
+		PropertyName.Format ("PitchBendRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPitchBendRange[nTG]);
+
+		PropertyName.Format ("PitchBendStep%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPitchBendStep[nTG]);
+
+		PropertyName.Format ("PortamentoMode%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPortamentoMode[nTG]);
+
+		PropertyName.Format ("PortamentoGlissando%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPortamentoGlissando[nTG]);
+
+		PropertyName.Format ("PortamentoTime%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nPortamentoTime[nTG]);
+		}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
@@ -406,4 +436,68 @@ void CPerformanceConfig::SetReverbDiffusion (unsigned nValue)
 void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
 	m_nReverbLevel = nValue;
+}
+// Pitch bender and portamento:
+void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPitchBendRange[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetPitchBendRange (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nPitchBendRange[nTG];
+}
+
+
+void CPerformanceConfig::SetPitchBendStep (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPitchBendStep[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetPitchBendStep (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nPitchBendStep[nTG];
+}
+
+
+void CPerformanceConfig::SetPortamentoMode (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPortamentoMode[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetPortamentoMode (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nPortamentoMode[nTG];
+}
+
+
+void CPerformanceConfig::SetPortamentoGlissando (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPortamentoGlissando[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetPortamentoGlissando (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nPortamentoGlissando[nTG];
+}
+
+
+void CPerformanceConfig::SetPortamentoTime (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nPortamentoTime[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetPortamentoTime (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nPortamentoTime[nTG];
 }

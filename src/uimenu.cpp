@@ -68,6 +68,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
+	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
+	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -79,6 +81,21 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditPitchBendMenu[] =
+{
+	{"Bend Range",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendRange},
+	{"Bend Step",		EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
+{
+	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
+	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
+	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
 	{0}
 };
 
@@ -186,7 +203,12 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
-	{0, 99, 1}								// TGParameterReverbSend
+	{0, 99, 1},								// TGParameterReverbSend
+	{0,	12,					1},			// TGParameterPitchBendRange
+	{0,	12,					1},			// TGParameterPitchBendStep
+	{0,	1,					1, ToPortaMode},			// TGParameterPortamentoMode
+	{0,	1,					1, ToPortaGlissando},			// TGParameterPortamentoGlissando
+	{0,	99,					1}			// TGParameterPortamentoTime
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -559,6 +581,60 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
+void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second menu level. Redundant code but in order to not modified original code
+{
+
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
+
+	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_TGParameter[Param];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				   
+}
+
 void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
@@ -921,6 +997,26 @@ string CUIMenu::ToOscillatorDetune (int nValue)
 
 	return Result;
 }
+
+string CUIMenu::ToPortaMode (int nValue)
+{
+	switch (nValue)
+	{
+	case 0:		return "Fingered";
+	case 1:		return "Full time";
+	default:	return to_string (nValue);
+	}
+};
+
+string CUIMenu::ToPortaGlissando (int nValue)
+{
+	switch (nValue)
+	{
+	case 0:		return "Off";
+	case 1:		return "On";
+	default:	return to_string (nValue);
+	}
+};
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 {

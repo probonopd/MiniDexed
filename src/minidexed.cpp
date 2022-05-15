@@ -63,6 +63,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nCutoff[i] = 99;
 		m_nResonance[i] = 0;
 		m_nMIDIChannel[i] = CMIDIDevice::Disabled;
+		m_nPitchBendRange[i] = 2;
+		m_nPitchBendStep[i] = 0;
+		m_nPortamentoMode[i] = 0;
+		m_nPortamentoGlissando[i] = 0;
+		m_nPortamentoTime[i] = 0;
 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
@@ -166,7 +171,7 @@ bool CMiniDexed::Initialize (void)
 
 		m_pTG[i]->setTranspose (24);
 
-		m_pTG[i]->setPBController (12, 1);
+		m_pTG[i]->setPBController (2, 0);
 		m_pTG[i]->setMWController (99, 7, 0);
 
 		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
@@ -187,6 +192,11 @@ bool CMiniDexed::Initialize (void)
 			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
 			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
 			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
+			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
+			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
+			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
+			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
+			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
 
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
@@ -434,6 +444,8 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+
+
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -652,6 +664,11 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
 	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
 	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
+	case TGParameterPitchBendRange:	setPitchbendRange (nValue, nTG);	break;
+	case TGParameterPitchBendStep:	setPitchbendStep (nValue, nTG);	break;
+	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
+	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
+	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
 
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
@@ -681,6 +698,11 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterResonance:	return m_nResonance[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
+	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
+	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
+	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
+	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
+	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
 
 	default:
 		assert (0);
@@ -922,6 +944,11 @@ bool CMiniDexed::SavePerformance (void)
 		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
 		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
 		m_PerformanceConfig.SetResonance (m_nResonance[nTG], nTG);
+		m_PerformanceConfig.SetPitchBendRange (m_nPitchBendRange[nTG], nTG);
+		m_PerformanceConfig.SetPitchBendStep	(m_nPitchBendStep[nTG], nTG);
+		m_PerformanceConfig.SetPortamentoMode (m_nPortamentoMode[nTG], nTG);
+		m_PerformanceConfig.SetPortamentoGlissando (m_nPortamentoGlissando[nTG], nTG);
+		m_PerformanceConfig.SetPortamentoTime (m_nPortamentoTime[nTG], nTG);
 
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
@@ -954,50 +981,61 @@ void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 
 void CMiniDexed::setPitchbendRange(uint8_t range, uint8_t nTG)
 {
+	range = constrain (range, 0, 12);
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->setPitchbendRange(constrain(range, 0, 12));
+	m_nPitchBendRange[nTG] = range;
+	
+	m_pTG[nTG]->setPitchbendRange(range);
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::setPitchbendStep(uint8_t step, uint8_t nTG)
 {
+	step= constrain (step, 0, 12);
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->setPitchbendStep(constrain(step, 0, 12));
+	m_nPitchBendStep[nTG] = step;
+	
+	m_pTG[nTG]->setPitchbendStep(step);
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::setPortamentoMode(uint8_t mode, uint8_t nTG)
 {
+	mode= constrain (mode, 0, 1);
+
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->setPortamentoMode(constrain(mode, 0, 1));
+	m_nPortamentoMode[nTG] = mode;
+	
+	m_pTG[nTG]->setPortamentoMode(mode);
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::setPortamentoGlissando(uint8_t glissando, uint8_t nTG)
 {
+	glissando = constrain (glissando, 0, 1);
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->setPortamentoGlissando(constrain(glissando, 0, 1));
+	m_nPortamentoGlissando[nTG] = glissando;
+	
+	m_pTG[nTG]->setPortamentoGlissando(glissando);
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::setPortamentoTime(uint8_t time, uint8_t nTG)
 {
+	time = constrain (time, 0, 99);
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->setPortamentoTime(constrain(time, 0, 99));
+	m_nPortamentoTime[nTG] = time;
+	
+	m_pTG[nTG]->setPortamentoTime(time);
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
