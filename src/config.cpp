@@ -79,6 +79,7 @@ void CConfig::Load (void)
 	m_nLCDPinData5 = m_Properties.GetNumber ("LCDPinData5", 23);
 	m_nLCDPinData6 = m_Properties.GetNumber ("LCDPinData6", 24);
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
+	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
@@ -172,6 +173,11 @@ unsigned CConfig::GetLCDPinData6 (void) const
 unsigned CConfig::GetLCDPinData7 (void) const
 {
 	return m_nLCDPinData7;
+}
+
+unsigned CConfig::GetLCDI2CAddress (void) const
+{
+	return m_nLCDI2CAddress;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

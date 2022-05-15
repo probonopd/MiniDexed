@@ -86,6 +86,7 @@ public:
 	unsigned GetLCDPinData5 (void) const;
 	unsigned GetLCDPinData6 (void) const;
 	unsigned GetLCDPinData7 (void) const;
+	unsigned GetLCDI2CAddress (void) const;
 
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
@@ -120,6 +121,7 @@ private:
 	unsigned m_nLCDPinData5;
 	unsigned m_nLCDPinData6;
 	unsigned m_nLCDPinData7;
+	unsigned m_nLCDI2CAddress;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
