@@ -113,6 +113,9 @@ bool CPerformanceConfig::Load (void)
 
 		PropertyName.Format ("PortamentoTime%u", nTG+1);
 		m_nPortamentoTime[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		
+		PropertyName.Format ("VoiceData%u", nTG+1); 
+		m_nVoiceDataTxt[nTG] = m_Properties.GetString (PropertyName, 0); 
 		}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
@@ -199,6 +202,10 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("PortamentoTime%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nPortamentoTime[nTG]);
+		
+		PropertyName.Format ("VoiceData%u", nTG+1); 
+		char *cstr = &m_nVoiceDataTxt[nTG][0];
+		m_Properties.SetString (PropertyName, cstr);
 		}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
@@ -500,4 +507,34 @@ unsigned CPerformanceConfig::GetPortamentoTime (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nPortamentoTime[nTG];
+}
+
+void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG) 
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nVoiceDataTxt[nTG] = "";
+	char nDtoH[]="0123456789ABCDEF";
+	for (int i = 0; i < NUM_VOICE_PARAM; i++)
+	{
+	m_nVoiceDataTxt[nTG]  += nDtoH[(pData[i] & 0xF0)/16];
+	m_nVoiceDataTxt[nTG]  += nDtoH[pData[i] & 0x0F]  ;
+	if ( i < (NUM_VOICE_PARAM-1)  ) 
+    	{
+     	 m_nVoiceDataTxt[nTG] += " ";
+    	}
+	}
+}
+
+uint8_t *CPerformanceConfig::GetVoiceDataFromTxt (unsigned nTG) 
+{
+	assert (nTG < CConfig::ToneGenerators);
+	static uint8_t pData[NUM_VOICE_PARAM];
+	std::string nHtoD="0123456789ABCDEF";
+	 
+ 	for (int i=0; i<NUM_VOICE_PARAM * 3; i=i+3)
+	{
+  	pData[i/3] = ((nHtoD.find(toupper(m_nVoiceDataTxt[nTG][i]),0) * 16 + nHtoD.find(toupper(m_nVoiceDataTxt[nTG][i+1]),0))) & 0xFF ;
+	} 
+  
+	return pData;
 }

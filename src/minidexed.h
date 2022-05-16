@@ -193,6 +193,8 @@ private:
 	int m_nNoteShift[CConfig::ToneGenerators];
 
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
+	
+	uint8_t m_nRawVoiceData[156]; 
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
