@@ -201,8 +201,11 @@ bool CMiniDexed::Initialize (void)
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
-
+			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
+			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
+			
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
+		
 		}
 
 		// Effects
@@ -953,7 +956,9 @@ bool CMiniDexed::SavePerformance (void)
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
-
+		m_pTG[nTG]->getVoiceData(m_nRawVoiceData);  
+ 		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
+		
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 	}
 
