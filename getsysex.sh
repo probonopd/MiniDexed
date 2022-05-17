@@ -41,3 +41,7 @@ wget -c "${DIR}"/vrc111a.syx -O sysex/voice/000023_vrc111a.syx
 wget -c "${DIR}"/vrc111b.syx -O sysex/voice/000024_vrc111b.syx
 wget -c "${DIR}"/vrc112a.syx -O sysex/voice/000025_vrc112a.syx
 wget -c "${DIR}"/vrc112b.syx -O sysex/voice/000026_vrc112b.syx
+
+wget -c "${DIR}"/2.syx -O sysex/voice/000027_greymatter2.syx
+wget -c "${DIR}"/5.syx -O sysex/voice/000028_greymatter5.syx
+wget -c "${DIR}"/7.syx -O sysex/voice/000029_greymatter7.syx
