@@ -20,9 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+#include <circle/logger.h>
 #include <cstring>
 #include "serialmididevice.h"
 #include <assert.h>
+
+LOGMODULE("serialmididevice");
 
 CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem *pInterrupt,
 				      CConfig *pConfig)
@@ -58,10 +62,11 @@ void CSerialMIDIDevice::Process (void)
 	if (nResult <= 0)
 	{
 		if(nResult!=0)
-			printf("Serial-Read: %d\n",nResult);
+			LOGERR("Serial.Read() error: %d\n",nResult);
 		return;
 	}
 
+	/*
         if (m_pConfig->GetMIDIDumpEnabled ())
 	{
 		printf("Incoming MIDI data:");
@@ -73,6 +78,7 @@ void CSerialMIDIDevice::Process (void)
 		}
 		printf("\n");
 	}
+	*/
 
 	// Process MIDI messages
 	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message

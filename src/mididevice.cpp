@@ -114,8 +114,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					printf("SysEx data length: [%d]\n",uint16_t(nLength));
-					printf("SysEx data:");
+					printf("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 8) == 0)
@@ -125,7 +124,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					printf("\n");
 					break;
 				default:
-					printf("Unhandled MIDI event type %0x02x\n",pMessage[0]);
+					printf("MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
 			}
 			break;
 		}
@@ -165,8 +164,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			// MIDI SYSEX per MIDI channel
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && (m_ChannelMap[nTG] == ((pMessage[2] & 0x07) + 1) || (m_ChannelMap[nTG] > 16 )))
+			uint8_t ucSysExChannel = (pMessage[2] & 0x07) + 1;
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && 
+				(ucSysExChannel == m_ChannelMap[nTG] || 
+				ucSysExChannel == OmniMode)
+			)
+			{
+				LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nTG);
 				HandleSystemExclusive(pMessage, nLength, nTG);
+			}
 			else
 			{
 				if (   m_ChannelMap[nTG] == ucChannel
