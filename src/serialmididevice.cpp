@@ -64,17 +64,14 @@ void CSerialMIDIDevice::Process (void)
 
         if (m_pConfig->GetMIDIDumpEnabled ())
 	{
-		printf("Incoming MIDI data:\n");
+		printf("Incoming MIDI data:");
 		for (uint16_t i = 0; i < nResult; i++)
 		{
 			if((i % 8) == 0)
-				printf("%04d:",i);
+				printf("\n%04d:",i);
 			printf(" 0x%02x",Buffer[i]);
-			if((i > 1 ) && (i % 8) == 0)
-				printf("\n");
 		}
-		if((nResult % 8) != 0)
-			printf("\n");
+		printf("\n");
 	}
 
 	// Process MIDI messages

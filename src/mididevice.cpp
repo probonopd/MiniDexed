@@ -115,15 +115,14 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
 					printf("SysEx data length: [%d]\n",uint16_t(nLength));
-					printf("SysEx data:\n");
+					printf("SysEx data:");
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 8) == 0)
-							printf("%04d:",i);
+							printf("\n%04d:",i);
 						printf(" 0x%02x",pMessage[i]);
-						if((i % 8) == 0)
-							printf("\n");
 					}
+					printf("\n");
 					break;
 				default:
 					printf("Unhandled MIDI event type %0x02x\n",pMessage[0]);
@@ -166,7 +165,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			// MIDI SYSEX per MIDI channel
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && m_ChannelMap[nTG] == pMessage[2] & 0x07)
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && (m_ChannelMap[nTG] == ((pMessage[2] & 0x07) + 1) || (m_ChannelMap[nTG] > 16 )))
 				HandleSystemExclusive(pMessage, nLength, nTG);
 			else
 			{
@@ -415,7 +414,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
       break;
     default:
-      LOGDBG("SysEx voice parameter change: %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
+      LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
       m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
       break;
   }
