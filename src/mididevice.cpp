@@ -166,8 +166,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			// MIDI SYSEX per MIDI channel
 			uint8_t ucSysExChannel = (pMessage[2] & 0x07) + 1;
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && 
-				(ucSysExChannel == m_ChannelMap[nTG] || 
-				ucSysExChannel == OmniMode)
+				(m_ChannelMap[nTG] == ucSysExChannel || 
+				m_ChannelMap[nTG] == OmniMode)
 			)
 			{
 				LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nTG);
