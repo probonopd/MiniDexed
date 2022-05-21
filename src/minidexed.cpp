@@ -49,7 +49,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
-	m_bProfileEnabled (m_pConfig->GetProfileEnabled ())
+	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
+	m_bSavePerformance (false)
 {
 	assert (m_pConfig);
 
@@ -269,6 +270,13 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	}
 
 	m_UI.Process ();
+
+	if (m_bSavePerformance)
+	{
+		DoSavePerformance ();
+
+		m_bSavePerformance = false;
+	}
 
 	if (m_bProfileEnabled)
 	{
@@ -933,6 +941,13 @@ void CMiniDexed::ProcessSound (void)
 #endif
 
 bool CMiniDexed::SavePerformance (void)
+{
+	m_bSavePerformance = true;
+
+	return true;
+}
+
+bool CMiniDexed::DoSavePerformance (void)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
