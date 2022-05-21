@@ -100,6 +100,7 @@ public:
 	void setAftertouchTarget(uint8_t target, uint8_t nTG);
 	void loadVoiceParameters(const uint8_t* data, uint8_t nTG);
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
+	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
 
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
