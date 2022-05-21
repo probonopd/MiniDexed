@@ -163,15 +163,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	{
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
-			// MIDI SYSEX per MIDI channel
-			uint8_t ucSysExChannel = (pMessage[2] & 0x07) + 1;
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && 
-				(m_ChannelMap[nTG] == ucSysExChannel || 
-				m_ChannelMap[nTG] == OmniMode)
-			)
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
-				LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nTG);
-				HandleSystemExclusive(pMessage, nLength, nTG);
+				// MIDI SYSEX per MIDI channel
+				uint8_t ucSysExChannel = (pMessage[2] & 0x07);
+				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
+				{
+					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+					HandleSystemExclusive(pMessage, nLength, nTG);
+				}
 			}
 			else
 			{
