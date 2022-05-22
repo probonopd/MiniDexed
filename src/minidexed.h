@@ -112,7 +112,7 @@ public:
 	bool SavePerformanceNewFile ();
 	unsigned GetMenuSelectedPerformanceID();
 	void SetMenuSelectedPerformanceID(unsigned nID);
-	bool DoSavePerformance (void);
+	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
 	
