@@ -22,10 +22,12 @@
 //
 #include "performanceconfig.h"
 #include "mididevice.h"
+#include <cstring> 
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties ("performance.ini", pFileSystem)
 {
+	m_pFileSystem = pFileSystem; 
 }
 
 CPerformanceConfig::~CPerformanceConfig (void)
@@ -115,7 +117,7 @@ bool CPerformanceConfig::Load (void)
 		m_nPortamentoTime[nTG] = m_Properties.GetNumber (PropertyName, 0);
 		
 		PropertyName.Format ("VoiceData%u", nTG+1); 
-		m_nVoiceDataTxt[nTG] = m_Properties.GetString (PropertyName, 0); 
+		m_nVoiceDataTxt[nTG] = m_Properties.GetString (PropertyName, "");
 		}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
@@ -509,7 +511,7 @@ unsigned CPerformanceConfig::GetPortamentoTime (unsigned nTG) const
 	return m_nPortamentoTime[nTG];
 }
 
-void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  /////################################## guardar voice Data ################3333
+void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceDataTxt[nTG] = "";
@@ -525,7 +527,7 @@ void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG) 
 	}
 }
 
-uint8_t *CPerformanceConfig::GetVoiceDataFromTxt (unsigned nTG) /////################################## guardar voice Data ################3333
+uint8_t *CPerformanceConfig::GetVoiceDataFromTxt (unsigned nTG) 
 {
 	assert (nTG < CConfig::ToneGenerators);
 	static uint8_t pData[NUM_VOICE_PARAM];
@@ -537,4 +539,151 @@ uint8_t *CPerformanceConfig::GetVoiceDataFromTxt (unsigned nTG) /////###########
 	} 
   
 	return pData;
+}
+
+bool CPerformanceConfig::VoiceDataFilled(unsigned nTG) 
+{
+	return (strcmp(m_nVoiceDataTxt[nTG].c_str(),"") != 0) ;
+}
+
+std::string CPerformanceConfig::GetPerformanceFileName(unsigned nID)
+{
+	return m_nPerformanceFileName[nID];
+}
+
+std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
+{
+	if(nID == 0) // in order to assure retrocompatibility
+	{
+		return "Default";
+	}
+	else
+	{
+		return m_nPerformanceFileName[nID].substr(0,m_nPerformanceFileName[nID].length()-4).substr(7,14);
+	}
+}
+
+unsigned CPerformanceConfig::GetLastPerformance()
+{
+	return nLastPerformance;
+}
+
+unsigned CPerformanceConfig::GetActualPerformanceID()
+{
+	return nActualPerformance;
+}
+
+void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
+{
+	nActualPerformance = nID;
+}
+
+unsigned CPerformanceConfig::GetMenuSelectedPerformanceID()
+{
+	return nMenuSelectedPerformance;
+}
+
+void CPerformanceConfig::SetMenuSelectedPerformanceID(unsigned nID)
+{
+	nMenuSelectedPerformance = nID;
+}
+
+
+
+bool CPerformanceConfig::CreateNewPerformanceFile(std::string sPerformanceName)
+{
+	// sPerformanceName for future improvements when user can enter a name via UI
+	
+	nActualPerformance=nLastPerformance;
+	std::string nFileName;
+	std::string nPath;
+	std::string nIndex = "000000";
+	nIndex += std::to_string(++nLastFileIndex);
+	nIndex = nIndex.substr(nIndex.length()-6,6);
+	
+
+	nFileName = nIndex;
+	nFileName += "_";
+	if (strcmp(sPerformanceName.c_str(),"") == 0)
+	{
+		nFileName += "Perf";
+		nFileName += nIndex;
+	}		
+	else
+	{
+		nFileName +=sPerformanceName.substr(0,14);
+	}
+	nFileName += ".ini";
+	m_nPerformanceFileName[nLastPerformance]= nFileName;
+	
+	nPath = "SD:/" ;
+	nPath += PERFORMANCE_DIR;
+	nPath += "/";
+	nFileName = nPath + nFileName;
+	
+	FIL File;
+	FRESULT Result = f_open (&File, nFileName.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
+	if (Result != FR_OK)
+	{
+		m_nPerformanceFileName[nLastPerformance]=nullptr;
+		return false;
+	}
+
+	if (f_close (&File) != FR_OK)
+	{
+		m_nPerformanceFileName[nLastPerformance]=nullptr;
+		return false;
+	}
+	
+	nLastPerformance++;
+	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
+	
+	return true;
+}
+
+void CPerformanceConfig::ListPerformances()
+{
+	nLastPerformance=0;
+	nLastFileIndex=0;
+    m_nPerformanceFileName[nLastPerformance++]="performance.ini"; // in order to assure retrocompatibility
+	unsigned nPIndex;
+    DIR Directory;
+	FILINFO FileInfo;
+	
+	FRESULT Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
+    	for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
+	{
+		if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+		{
+			std::string FileName = FileInfo.fname;
+			size_t nLen = FileName.length();
+			if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
+			{			
+				nPIndex=stoi(FileName.substr(0,6));
+				if(nPIndex > nLastFileIndex)
+				{
+					nLastFileIndex=nPIndex;
+				}
+	
+				m_nPerformanceFileName[nLastPerformance++]= FileName;
+			}
+		}
+
+		Result = f_findnext (&Directory, &FileInfo);
+	}
+}   
+    
+
+void CPerformanceConfig::SetNewPerformance (unsigned nID)
+{
+		nActualPerformance=nID;
+		std::string FileN = "";
+		if (nID != 0) // in order to assure retrocompatibility
+		{
+			FileN += PERFORMANCE_DIR;
+			FileN += "/";
+		}
+		FileN += m_nPerformanceFileName[nID];
+		new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
+		
 }
