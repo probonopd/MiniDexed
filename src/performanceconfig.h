@@ -27,6 +27,7 @@
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
+#define PERFORMANCE_DIR "performance" 
 
 class CPerformanceConfig	// Performance configuration
 {
@@ -96,6 +97,19 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
+	bool VoiceDataFilled(unsigned nTG);
+	void ListPerformances();
+	//std::string m_DirName;
+	void SetNewPerformance (unsigned nID);
+	std::string GetPerformanceFileName(unsigned nID);
+	std::string GetPerformanceName(unsigned nID);
+	unsigned GetLastPerformance();
+	void SetActualPerformanceID(unsigned nID);
+	unsigned GetActualPerformanceID();
+	void SetMenuSelectedPerformanceID(unsigned nID);
+	unsigned GetMenuSelectedPerformanceID();
+	bool CreateNewPerformanceFile(std::string sPerformanceName);
+
 private:
 	CPropertiesFatFsFile m_Properties;
 
@@ -117,6 +131,13 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];
 	std::string m_nVoiceDataTxt[CConfig::ToneGenerators]; 
+	
+	unsigned nLastPerformance;  
+	unsigned nLastFileIndex;
+	unsigned nActualPerformance = 0;  
+	unsigned nMenuSelectedPerformance = 0;
+	std::string m_nPerformanceFileName[40];
+	FATFS *m_pFileSystem; 
 	
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
