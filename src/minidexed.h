@@ -210,7 +210,7 @@ private:
 	
 	uint8_t m_nRawVoiceData[156]; 
 	
-	bool m_bSavePerformance;
+	
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;
