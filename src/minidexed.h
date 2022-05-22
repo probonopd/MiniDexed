@@ -150,8 +150,9 @@ public:
 	std::string GetVoiceName (unsigned nTG);
 
 	bool SavePerformance (void);
-	void setMasterVolume (float32_t vol);
 	bool DoSavePerformance (void);
+
+	void setMasterVolume (float32_t vol);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
