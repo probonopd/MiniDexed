@@ -103,6 +103,19 @@ public:
 
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
+	std::string GetPerformanceFileName(unsigned nID);
+	std::string GetPerformanceName(unsigned nID);
+	unsigned GetLastPerformance();
+	unsigned GetActualPerformanceID();
+	void SetActualPerformanceID(unsigned nID);
+	bool SetNewPerformance(unsigned nID);
+	bool SavePerformanceNewFile ();
+	unsigned GetMenuSelectedPerformanceID();
+	void SetMenuSelectedPerformanceID(unsigned nID);
+	bool DoSavePerformance (void);
+	bool DoSavePerformanceNewFile (void);
+	bool DoSetNewPerformance (void);
+	
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -154,7 +167,7 @@ public:
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::ToneGenerators];
-	
+	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -196,7 +209,12 @@ private:
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
 	
 	uint8_t m_nRawVoiceData[156]; 
-
+	
+	bool m_bSavePerformance;
+	bool m_bSavePerformanceNewFile;
+	bool m_bSetNewPerformance;
+	unsigned m_nSetNewPerformanceID;
+	
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
 	CPerformanceConfig m_PerformanceConfig;
