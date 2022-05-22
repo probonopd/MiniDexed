@@ -149,6 +149,7 @@ public:
 	std::string GetVoiceName (unsigned nTG);
 
 	bool SavePerformance (void);
+	bool DoSavePerformance (void);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
@@ -224,6 +225,8 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+
+	bool m_bSavePerformance;
 };
 
 #endif
