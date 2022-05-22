@@ -363,6 +363,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
+	m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
 
 	m_UI.ParameterChanged ();
 }
@@ -867,56 +868,70 @@ void CMiniDexed::ProcessSound (void)
 		}
 		
 		// BEGIN TG mixing
-		for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
-		{
-			tg_mixer->doAddMix(i,m_OutputLevel[i]);
-			reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
-		}
-		// END TG mixing
-
-		// BEGIN create SampleBuffer for holding audio data
-		float32_t SampleBuffer[2][nFrames];
-		// END create SampleBuffer for holding audio data
-
-		// get the mix of all TGs
-                tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
-
-		// BEGIN adding reverb
-		if (m_nParameter[ParameterReverbEnable])
-		{
-			float32_t ReverbBuffer[2][nFrames];
-			float32_t ReverbSendBuffer[2][nFrames];
-
-			arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-			arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-			arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-			arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-
-			m_ReverbSpinLock.Acquire ();
-
-                	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-			reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-
-			// scale down and add left reverb buffer by reverb level 
-			arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-			arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-			// scale down and add right reverb buffer by reverb level 
-			arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-			arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
-
-			m_ReverbSpinLock.Release ();
-		}
-		// END adding reverb
-
-		// Convert dual float array (left, right) to single int16 array (left/right)
 		float32_t tmp_float[nFrames*2];
 		int16_t tmp_int[nFrames*2];
-		for(uint16_t i=0; i<nFrames;i++)
+
+		if(nMasterVolume > 0.0)
 		{
-			tmp_float[i*2]=SampleBuffer[indexL][i];
-			tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+			{
+				tg_mixer->doAddMix(i,m_OutputLevel[i]);
+				reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+			}
+			// END TG mixing
+	
+			// BEGIN create SampleBuffer for holding audio data
+			float32_t SampleBuffer[2][nFrames];
+			// END create SampleBuffer for holding audio data
+
+			// get the mix of all TGs
+			tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
+
+			// BEGIN adding reverb
+			if (m_nParameter[ParameterReverbEnable])
+			{
+				float32_t ReverbBuffer[2][nFrames];
+				float32_t ReverbSendBuffer[2][nFrames];
+
+				arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+				arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+	
+				m_ReverbSpinLock.Acquire ();
+	
+       		         	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+	
+				// scale down and add left reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+				// scale down and add right reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+	
+				m_ReverbSpinLock.Release ();
+			}
+			// END adding reverb
+	
+			// Convert dual float array (left, right) to single int16 array (left/right)
+			for(uint16_t i=0; i<nFrames;i++)
+			{
+				if(nMasterVolume >0.0 && nMasterVolume <1.0)
+				{
+					tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
+					tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+				}
+				else if(nMasterVolume == 1.0)
+				{
+					tmp_float[i*2]=SampleBuffer[indexL][i];
+					tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+				}
+			}
+			arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
 		}
-		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+		else
+			arm_fill_q15(0, tmp_int, nFrames * 2);
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
@@ -1183,3 +1198,14 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	dest[161] = checksum & 0x7f; // Checksum
 	dest[162] = 0xF7; // SysEx end
 }
+
+void CMiniDexed::setMasterVolume (float32_t vol)
+{
+	if(vol < 0.0)
+		vol = 0.0;
+	else if(vol > 1.0)
+		vol = 1.0;
+
+	nMasterVolume=vol;
+}
+

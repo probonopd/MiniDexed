@@ -170,9 +170,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// GLOBAL MIDI SYSEX
 	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == MIDI_SYSTEM_EXCLUSIVE_END) // MASTER VOLUME
 	{
-		float32_t nMasterVolume=(pMessage[5] & (pMessage[6]<<7))/(1<<14);
+		float32_t nMasterVolume=((pMessage[5] & 0x7c) & ((pMessage[6] & 0x7c) <<7))/(1<<14);
 		LOGNOTE("Master volume: %f",nMasterVolume);
-		// TODO: Handle global master volume
+		m_pSynthesizer->setMasterVolume(nMasterVolume);
 	}
 	else
 	{
@@ -427,7 +427,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       // load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
       m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
-
       break;
     case 200:
       LOGDBG("Bank bulk upload.");

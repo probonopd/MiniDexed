@@ -150,6 +150,7 @@ public:
 	std::string GetVoiceName (unsigned nTG);
 
 	bool SavePerformance (void);
+	void setMasterVolume (float32_t vol);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
@@ -194,6 +195,8 @@ private:
 	int m_nNoteShift[CConfig::ToneGenerators];
 
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
+
+	float32_t nMasterVolume;
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
