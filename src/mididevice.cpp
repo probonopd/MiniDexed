@@ -458,14 +458,12 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
   // Get voice sysex dump from TG
   m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
 
-  if (m_DeviceName.compare (m_pConfig->GetMIDIThruIn ()) == 0)
-  {
-    TDeviceMap::const_iterator Iterator;
+  TDeviceMap::const_iterator Iterator;
 
-    Iterator = s_DeviceMap.find (m_pConfig->GetMIDIThruOut ());
-    if (Iterator != s_DeviceMap.end ())
-    {
-	Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t), nCable);
-    }
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t), nCable);
+    LOGNOTE("Send SYSEX voice dump to \"%s\"\n",Iterator->first);
   }
 } 
