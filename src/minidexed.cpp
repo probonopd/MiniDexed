@@ -50,7 +50,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
-	m_bSavePerformance (false)
+	m_bSavePerformance (false),
+	m_bSavePerformanceNewFile (false),
+	m_bSetNewPerformance (false) 
 {
 	assert (m_pConfig);
 
@@ -183,47 +185,16 @@ bool CMiniDexed::Initialize (void)
 
 	if (m_PerformanceConfig.Load ())
 	{
-		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
-		{
-			BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
-			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
-			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
-			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
-			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
-			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
-			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
-			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
-			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
-			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
-			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
-			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
-			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
-
-			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
-			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
-			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
-			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
-			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
-			
-			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
-		
-		}
-
-		// Effects
-		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
-		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
-		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
-		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
-		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
-		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
-		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
-		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+		LoadPerformanceParameters(); 
 	}
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
 	}
-
+	
+	// load performances
+	m_PerformanceConfig.ListPerformances();
+	
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
 	{
@@ -281,6 +252,18 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformance = false;
 	}
 
+	if (m_bSavePerformanceNewFile)
+	{
+		DoSavePerformanceNewFile ();
+		m_bSavePerformanceNewFile = false;
+	}
+	
+	if (m_bSetNewPerformance)
+	{
+		DoSetNewPerformance ();
+		m_bSetNewPerformance = false;
+	}
+	
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
@@ -1174,4 +1157,143 @@ void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 int16_t CMiniDexed::checkSystemExclusive(const uint8_t* pMessage,const  uint16_t nLength, uint8_t nTG)
 {
 	return(m_pTG[nTG]->checkSystemExclusive(pMessage, nLength));
+}
+
+std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
+{
+	return m_PerformanceConfig.GetPerformanceFileName(nID);
+}
+
+std::string CMiniDexed::GetPerformanceName(unsigned nID)
+{
+	return m_PerformanceConfig.GetPerformanceName(nID);
+}
+
+unsigned CMiniDexed::GetLastPerformance()
+{
+	return m_PerformanceConfig.GetLastPerformance();
+}
+
+
+
+unsigned CMiniDexed::GetActualPerformanceID()
+{
+	return m_PerformanceConfig.GetActualPerformanceID();
+}
+
+void CMiniDexed::SetActualPerformanceID(unsigned nID)
+{
+	m_PerformanceConfig.SetActualPerformanceID(nID);
+}
+
+unsigned CMiniDexed::GetMenuSelectedPerformanceID()
+{
+	return m_PerformanceConfig.GetMenuSelectedPerformanceID();
+}
+
+void CMiniDexed::SetMenuSelectedPerformanceID(unsigned nID)
+{
+	m_PerformanceConfig.SetMenuSelectedPerformanceID(nID);
+}
+
+
+bool CMiniDexed::SetNewPerformance(unsigned nID)
+{
+	m_bSetNewPerformance = true;
+	m_nSetNewPerformanceID = nID;
+
+	return true;
+}
+
+bool CMiniDexed::DoSetNewPerformance (void)
+{
+	unsigned nID = m_nSetNewPerformanceID;
+	m_PerformanceConfig.SetNewPerformance(nID);
+	
+	if (m_PerformanceConfig.Load ())
+	{
+		LoadPerformanceParameters();
+		
+		LOGDBG ("Performance %s successfully loaded", m_PerformanceConfig.GetPerformanceName(nID)); 
+		return true;
+	}
+	else
+	{
+		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+		LOGDBG ("Error loading performance %s", m_PerformanceConfig.GetPerformanceName(nID)); 
+		return false;
+	}
+}
+
+bool CMiniDexed::SavePerformanceNewFile ()
+{
+	m_bSavePerformanceNewFile = true;
+
+	return true;
+}
+
+bool CMiniDexed::DoSavePerformanceNewFile (void)
+{
+	std::string nPerformanceName=""; // for future enhacements: capability to write performance name
+	if (m_PerformanceConfig.CreateNewPerformanceFile(nPerformanceName))
+	{
+		if(SavePerformance())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return false;
+	}
+	
+}
+
+
+void CMiniDexed::LoadPerformanceParameters(void)
+{
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		{
+			
+			BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
+			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
+			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
+			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
+			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
+			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
+			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
+			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
+			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
+			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
+			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
+
+			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
+			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
+			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+			
+			if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
+			{
+			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
+			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
+			}
+			
+			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
+		
+		}
+
+		// Effects
+		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 }
