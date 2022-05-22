@@ -124,6 +124,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
+	setMasterVolume(1.0);
+
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
