@@ -192,8 +192,11 @@ bool CMiniDexed::Initialize (void)
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
 	}
 	
-	// load performances
-	m_PerformanceConfig.ListPerformances();
+	// load performances file list, and attempt to create the performance folder
+	if (!m_PerformanceConfig.ListPerformances()) 
+	{
+		LOGERR ("Cannot create internal Performance folder, new performances can't be created");
+	}
 	
 	// setup and start the sound device
 	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
@@ -1213,23 +1216,19 @@ bool CMiniDexed::DoSetNewPerformance (void)
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters();
-		
-		LOGDBG ("Performance %s successfully loaded", m_PerformanceConfig.GetPerformanceName(nID)); 
 		return true;
 	}
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
-		LOGDBG ("Error loading performance %s", m_PerformanceConfig.GetPerformanceName(nID)); 
 		return false;
 	}
 }
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
-	m_bSavePerformanceNewFile = true;
-
-	return true;
+	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk();
+	return m_bSavePerformanceNewFile;
 }
 
 bool CMiniDexed::DoSavePerformanceNewFile (void)
