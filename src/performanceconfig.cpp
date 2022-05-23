@@ -23,6 +23,7 @@
 #include "performanceconfig.h"
 #include "mididevice.h"
 #include <cstring> 
+#include <algorithm> 
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties ("performance.ini", pFileSystem)
@@ -588,7 +589,10 @@ void CPerformanceConfig::SetMenuSelectedPerformanceID(unsigned nID)
 	nMenuSelectedPerformance = nID;
 }
 
-
+bool CPerformanceConfig::GetInternalFolderOk()
+{
+	return nInternalFolderOk;
+}
 
 bool CPerformanceConfig::CreateNewPerformanceFile(std::string sPerformanceName)
 {
@@ -641,36 +645,63 @@ bool CPerformanceConfig::CreateNewPerformanceFile(std::string sPerformanceName)
 	return true;
 }
 
-void CPerformanceConfig::ListPerformances()
+bool CPerformanceConfig::ListPerformances()
 {
+	nInternalFolderOk=false;
+	nExternalFolderOk=false; // for future USB implementation
 	nLastPerformance=0;
 	nLastFileIndex=0;
-    m_nPerformanceFileName[nLastPerformance++]="performance.ini"; // in order to assure retrocompatibility
+   	m_nPerformanceFileName[nLastPerformance++]="performance.ini"; // in order to assure retrocompatibility
+	
 	unsigned nPIndex;
     DIR Directory;
 	FILINFO FileInfo;
-	
-	FRESULT Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
-    	for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
+	FRESULT Result;
+	//Check if internal "performance" directory exists
+	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
+	if (Result == FR_OK)
 	{
-		if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
-		{
-			std::string FileName = FileInfo.fname;
-			size_t nLen = FileName.length();
-			if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
-			{			
-				nPIndex=stoi(FileName.substr(0,6));
-				if(nPIndex > nLastFileIndex)
-				{
-					nLastFileIndex=nPIndex;
-				}
-	
-				m_nPerformanceFileName[nLastPerformance++]= FileName;
-			}
-		}
-
-		Result = f_findnext (&Directory, &FileInfo);
+		nInternalFolderOk=true;		
+//		Result = f_closedir (&Directory);
 	}
+	else
+	{
+		// attenpt to create the folder
+		Result = f_mkdir("SD:/" PERFORMANCE_DIR);
+		nInternalFolderOk = (Result == FR_OK);
+	}
+	
+	if (nInternalFolderOk)
+	{
+	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
+		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
+		{
+			if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+			{
+				std::string FileName = FileInfo.fname;
+				size_t nLen = FileName.length();
+				if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
+				{			
+					nPIndex=stoi(FileName.substr(0,6));
+					if(nPIndex > nLastFileIndex)
+					{
+						nLastFileIndex=nPIndex;
+					}
+		
+					m_nPerformanceFileName[nLastPerformance++]= FileName;
+				}
+			}
+
+			Result = f_findnext (&Directory, &FileInfo);
+		}
+		// sort by performance number-name
+		if (nLastPerformance > 2)
+		{
+		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance - 1); // default is always on first place. 
+		}
+	}
+	
+	return nInternalFolderOk;
 }   
     
 
