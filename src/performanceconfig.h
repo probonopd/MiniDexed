@@ -98,7 +98,7 @@ public:
 	void SetReverbLevel (unsigned nValue);
 
 	bool VoiceDataFilled(unsigned nTG);
-	void ListPerformances();
+	bool ListPerformances(); 
 	//std::string m_DirName;
 	void SetNewPerformance (unsigned nID);
 	std::string GetPerformanceFileName(unsigned nID);
@@ -109,6 +109,7 @@ public:
 	void SetMenuSelectedPerformanceID(unsigned nID);
 	unsigned GetMenuSelectedPerformanceID();
 	bool CreateNewPerformanceFile(std::string sPerformanceName);
+	bool GetInternalFolderOk(); 
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -138,7 +139,10 @@ private:
 	unsigned nMenuSelectedPerformance = 0;
 	std::string m_nPerformanceFileName[40];
 	FATFS *m_pFileSystem; 
-	
+
+	bool nInternalFolderOk=false;
+	bool nExternalFolderOk=false; // for future USB implementation
+
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
