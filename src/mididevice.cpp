@@ -163,6 +163,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		return;
 	}
 
+	m_MIDISpinLock.Acquire ();
+
 	u8 ucStatus  = pMessage[0];
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
@@ -313,6 +315,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 		}
 	}
+	m_MIDISpinLock.Release ();
 }
 
 void CMIDIDevice::AddDevice (const char *pDeviceName)

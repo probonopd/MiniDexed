@@ -27,6 +27,7 @@
 #include <string>
 #include <unordered_map>
 #include <circle/types.h>
+#include <circle/spinlock.h>
 
 class CMiniDexed;
 
@@ -65,6 +66,8 @@ private:
 
 	typedef std::unordered_map<std::string, CMIDIDevice *> TDeviceMap;
 	static TDeviceMap s_DeviceMap;
+
+	CSpinLock m_MIDISpinLock;
 };
 
 #endif
