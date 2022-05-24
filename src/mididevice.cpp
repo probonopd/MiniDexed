@@ -114,23 +114,36 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					printf("SysEx data length: [%d]\n",uint16_t(nLength));
-					printf("SysEx data:\n");
+					printf("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
-						if((i % 8) == 0)
-							printf("%04d:",i);
+						if((i % 16) == 0)
+							printf("\n%04d:",i);
 						printf(" 0x%02x",pMessage[i]);
-						if((i % 8) == 0)
-							printf("\n");
 					}
+					printf("\n");
 					break;
 				default:
-					printf("Unhandled MIDI event type %0x02x\n",pMessage[0]);
+					printf("MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
 			}
 			break;
 		}
 	}
+
+	// Only for debugging:
+/*
+	if(pMessage[0]==MIDI_SYSTEM_EXCLUSIVE_BEGIN)
+	{
+		printf("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+		for (uint16_t i = 0; i < nLength; i++)
+		{
+			if((i % 16) == 0)
+				printf("\n%04d:",i);
+			printf(" 0x%02x",pMessage[i]);
+		}
+		printf("\n");
+	}
+*/
 
 	// Handle MIDI Thru
 	if (m_DeviceName.compare (m_pConfig->GetMIDIThruIn ()) == 0)
@@ -150,6 +163,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		return;
 	}
 
+	m_MIDISpinLock.Acquire ();
+
 	u8 ucStatus  = pMessage[0];
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
@@ -157,17 +172,24 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// GLOBAL MIDI SYSEX
 	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == MIDI_SYSTEM_EXCLUSIVE_END) // MASTER VOLUME
 	{
-		float32_t nMasterVolume=(pMessage[5] & (pMessage[6]<<7))/(1<<14);
+		float32_t nMasterVolume=((pMessage[5] & 0x7c) & ((pMessage[6] & 0x7c) <<7))/(1<<14);
 		LOGNOTE("Master volume: %f",nMasterVolume);
-		// TODO: Handle global master volume
+		m_pSynthesizer->setMasterVolume(nMasterVolume);
 	}
 	else
 	{
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
-			// MIDI SYSEX per MIDI channel
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN && m_ChannelMap[nTG] == pMessage[2] & 0x07)
-				HandleSystemExclusive(pMessage, nLength, nTG);
+			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
+			{
+				// MIDI SYSEX per MIDI channel
+				uint8_t ucSysExChannel = (pMessage[2] & 0x07);
+				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
+				{
+					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+				}
+			}
 			else
 			{
 				if (   m_ChannelMap[nTG] == ucChannel
@@ -293,6 +315,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 		}
 	}
+	m_MIDISpinLock.Release ();
 }
 
 void CMIDIDevice::AddDevice (const char *pDeviceName)
@@ -306,7 +329,7 @@ void CMIDIDevice::AddDevice (const char *pDeviceName)
 	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
 }
 
-void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nTG)
+void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
   int16_t sysex_return;
 
@@ -319,33 +342,33 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGERR("SysEx end status byte not detected.");
       break;
     case -2:
-      LOGERR("E: SysEx vendor not Yamaha.");
+      LOGERR("SysEx vendor not Yamaha.");
       break;
     case -3:
-      LOGERR("E: Unknown SysEx parameter change.");
+      LOGERR("Unknown SysEx parameter change.");
       break;
     case -4:
-      LOGERR(" Unknown SysEx voice or function.");
+      LOGERR("Unknown SysEx voice or function.");
       break;
     case -5:
-      LOGERR("E: Not a SysEx voice bulk upload.");
+      LOGERR("Not a SysEx voice bulk upload.");
       break;
     case -6:
-      LOGERR("E: Wrong length for SysEx voice bulk upload (not 155).");
+      LOGERR("Wrong length for SysEx voice bulk upload (not 155).");
       break;
     case -7:
-      LOGERR("E: Checksum error for one voice.");
+      LOGERR("Checksum error for one voice.");
       break;
     case -8:
-      LOGERR("E: Not a SysEx bank bulk upload.");
+      LOGERR("Not a SysEx bank bulk upload.");
       break;
     case -9:
-      LOGERR("E: Wrong length for SysEx bank bulk upload (not 4096).");
+      LOGERR("Wrong length for SysEx bank bulk upload (not 4096).");
     case -10:
-      LOGERR("E: Checksum error for bank.");
+      LOGERR("Checksum error for bank.");
       break;
     case -11:
-      LOGERR("E: Unknown SysEx message.");
+      LOGERR("Unknown SysEx message.");
       break;
     case 64:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
@@ -407,7 +430,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       // load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
       m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
-
       break;
     case 200:
       LOGDBG("Bank bulk upload.");
@@ -415,9 +437,41 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
       break;
     default:
-      LOGDBG("SysEx voice parameter change: %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
-      m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+      if(sysex_return >= 300 && sysex_return < 500)
+      {
+        LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
+        m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+        switch(pMessage[4] + ((pMessage[3] & 0x03) * 128))
+        {
+          case 134:
+            m_pSynthesizer->notesOff(0,nTG);
+            break;
+        }
+      }
+      else if(sysex_return >= 500 && sysex_return < 600)
+      {
+        LOGDBG("SysEx send voice %u request",sysex_return-500);
+        SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
+      }
       break;
   }
 }
 
+void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
+{
+  uint8_t voicedump[163];
+
+  LOGDBG("Sending SysEx voice %u ",nVoice);
+
+  // Get voice sysex dump from TG
+  m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
+
+  TDeviceMap::const_iterator Iterator;
+
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t), nCable);
+    LOGNOTE("Send SYSEX voice dump to \"%s\"\n",Iterator->first);
+  }
+} 
