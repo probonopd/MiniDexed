@@ -81,6 +81,13 @@ void CConfig::Load (void)
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
+	m_bBTNEnabled = m_Properties.GetNumber ("BTNEnabled", 0) != 0;
+	m_nBTNPinLeft = m_Properties.GetNumber ("BTNPinLeft", 5);
+	m_nBTNPinRight = m_Properties.GetNumber ("BTNPinRight", 6);
+	m_nBTNPinUp = m_Properties.GetNumber ("BTNPinUp", 10);
+	m_nBTNPinDown = m_Properties.GetNumber ("BTNPinDown", 9);
+	m_nBTNPinSelect = m_Properties.GetNumber ("BTNPinSelect", 11);
+
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
@@ -178,6 +185,36 @@ unsigned CConfig::GetLCDPinData7 (void) const
 unsigned CConfig::GetLCDI2CAddress (void) const
 {
 	return m_nLCDI2CAddress;
+}
+
+bool CConfig::GetBTNEnabled (void) const
+{
+	return m_bBTNEnabled;
+}
+
+unsigned CConfig::GetBTNPinLeft (void) const
+{
+	return m_nBTNPinLeft;
+}
+
+unsigned CConfig::GetBTNPinRight (void) const
+{
+	return m_nBTNPinRight;
+}
+
+unsigned CConfig::GetBTNPinUp (void) const
+{
+	return m_nBTNPinUp;
+}
+
+unsigned CConfig::GetBTNPinDown (void) const
+{
+	return m_nBTNPinDown;
+}
+
+unsigned CConfig::GetBTNPinSelect (void) const
+{
+	return m_nBTNPinSelect;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

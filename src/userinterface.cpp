@@ -34,6 +34,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pConfig (pConfig),
 	m_pLCD (0),
 	m_pLCDBuffered (0),
+	m_pUIButtons (0),
 	m_pRotaryEncoder (0),
 	m_bSwitchPressed (false),
 	m_Menu (this, pMiniDexed)
@@ -43,6 +44,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 CUserInterface::~CUserInterface (void)
 {
 	delete m_pRotaryEncoder;
+	delete m_pUIButtons;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
 }
@@ -85,6 +87,25 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
+	if (m_pConfig->GetBTNEnabled ())
+	{
+		m_pUIButtons = new CUIButtons (m_pConfig->GetBTNPinLeft (),
+					    	m_pConfig->GetBTNPinRight (),
+					       	m_pConfig->GetBTNPinUp (),
+							m_pConfig->GetBTNPinDown (),
+							m_pConfig->GetBTNPinSelect ());
+		assert (m_pUIButtons);
+
+		if (!m_pUIButtons->Initialize ())
+		{
+			return false;
+		}
+
+		m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+
+		LOGDBG ("Button User Interface initialized");
+	}
+
 	if (m_pConfig->GetEncoderEnabled ())
 	{
 		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
@@ -113,6 +134,10 @@ void CUserInterface::Process (void)
 	if (m_pLCDBuffered)
 	{
 		m_pLCDBuffered->Update ();
+	}
+	if (m_pUIButtons)
+	{
+		m_pUIButtons->Update();
 	}
 }
 
@@ -238,4 +263,41 @@ void CUserInterface::EncoderEventStub (CKY040::TEvent Event, void *pParam)
 	assert (pThis != 0);
 
 	pThis->EncoderEventHandler (Event);
+}
+
+void CUserInterface::UIButtonsEventHandler (CUIButtons::TBtnEvent Event)
+{
+	switch (Event)
+	{
+	case CUIButtons::BtnEventUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
+		break;
+
+	case CUIButtons::BtnEventDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
+		break;
+
+	case CUIButtons::BtnEventLeft:
+		m_Menu.EventHandler (CUIMenu::MenuEventBack);
+		break;
+
+	case CUIButtons::BtnEventRight:
+		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		break;
+
+	case CUIButtons::BtnEventSelect:
+		m_Menu.EventHandler (CUIMenu::MenuEventHome);
+		break;
+
+	default:
+		break;
+	}
+}
+
+void CUserInterface::UIButtonsEventStub (CUIButtons::TBtnEvent Event, void *pParam)
+{
+	CUserInterface *pThis = static_cast<CUserInterface *> (pParam);
+	assert (pThis != 0);
+
+	pThis->UIButtonsEventHandler (Event);
 }
