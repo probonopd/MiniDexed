@@ -441,6 +441,12 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       {
         LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
         m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+        switch(pMessage[4] + ((pMessage[3] & 0x03) * 128))
+        {
+          case 134:
+            m_pSynthesizer->notesOff(0,nTG);
+            break;
+        }
       }
       else if(sysex_return >= 500 && sysex_return < 600)
       {
