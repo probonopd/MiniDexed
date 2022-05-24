@@ -87,6 +87,15 @@ public:
 	unsigned GetLCDPinData6 (void) const;
 	unsigned GetLCDPinData7 (void) const;
 	unsigned GetLCDI2CAddress (void) const;
+	
+	// GPIO Button Navigation
+	// GPIO pin numbers are chip numbers, not header positions
+	bool GetBTNEnabled (void) const;
+	unsigned GetBTNPinLeft (void) const;
+	unsigned GetBTNPinRight (void) const;
+	unsigned GetBTNPinUp (void) const;
+	unsigned GetBTNPinDown (void) const;
+	unsigned GetBTNPinSelect (void) const;
 
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
@@ -122,6 +131,13 @@ private:
 	unsigned m_nLCDPinData6;
 	unsigned m_nLCDPinData7;
 	unsigned m_nLCDI2CAddress;
+	
+	bool m_bBTNEnabled;
+	unsigned m_nBTNPinLeft;
+	unsigned m_nBTNPinRight;
+	unsigned m_nBTNPinUp;
+	unsigned m_nBTNPinDown;
+	unsigned m_nBTNPinSelect;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
