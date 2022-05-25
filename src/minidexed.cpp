@@ -1296,3 +1296,38 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 }
+
+void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
+{
+	uint8_t checksum = 0;
+	uint8_t data[155];
+
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+
+	m_pTG[nTG]->getVoiceData(data);
+
+	dest[0] = 0xF0; // SysEx start
+	dest[1] = 0x43; // ID=Yamaha
+	dest[2] = GetTGParameter(TGParameterMIDIChannel, nTG); // Sub-status and MIDI channel
+	dest[3] = 0x00; // Format number (0=1 voice)
+	dest[4] = 0x01; // Byte count MSB
+	dest[5] = 0x1B; // Byte count LSB
+	for (uint8_t n = 0; n < 155; n++)
+	{
+		checksum -= data[n];
+		dest[6 + n] = data[n];
+	}
+	dest[161] = checksum & 0x7f; // Checksum
+	dest[162] = 0xF7; // SysEx end
+}
+
+void CMiniDexed::setMasterVolume (float32_t vol)
+{
+	if(vol < 0.0)
+		vol = 0.0;
+	else if(vol > 1.0)
+		vol = 1.0;
+
+	nMasterVolume=vol;
+}
