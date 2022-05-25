@@ -215,6 +215,8 @@ private:
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;
 	
+	float32_t nMasterVolume;
+	
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
 	CPerformanceConfig m_PerformanceConfig;
