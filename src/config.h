@@ -28,6 +28,9 @@
 #include <circle/sysconfig.h>
 #include <string>
 
+// This has to match the value mentioned in minidexed.ini
+#define NOPIN 255
+
 class CConfig		// Configuration for MiniDexed
 {
 public:
@@ -90,12 +93,12 @@ public:
 	
 	// GPIO Button Navigation
 	// GPIO pin numbers are chip numbers, not header positions
-	bool GetBTNEnabled (void) const;
-	unsigned GetBTNPinLeft (void) const;
-	unsigned GetBTNPinRight (void) const;
-	unsigned GetBTNPinUp (void) const;
-	unsigned GetBTNPinDown (void) const;
-	unsigned GetBTNPinSelect (void) const;
+	bool GetButtonEnabled (void) const;
+	unsigned GetButtonPinPrev (void) const;
+	unsigned GetButtonPinNext (void) const;
+	unsigned GetButtonPinBack (void) const;
+	unsigned GetButtonPinSelect (void) const;
+	unsigned GetButtonPinHome (void) const;
 
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
@@ -132,12 +135,12 @@ private:
 	unsigned m_nLCDPinData7;
 	unsigned m_nLCDI2CAddress;
 	
-	bool m_bBTNEnabled;
-	unsigned m_nBTNPinLeft;
-	unsigned m_nBTNPinRight;
-	unsigned m_nBTNPinUp;
-	unsigned m_nBTNPinDown;
-	unsigned m_nBTNPinSelect;
+	bool m_bButtonEnabled;
+	unsigned m_nButtonPinPrev;
+	unsigned m_nButtonPinNext;
+	unsigned m_nButtonPinBack;
+	unsigned m_nButtonPinSelect;
+	unsigned m_nButtonPinHome;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;

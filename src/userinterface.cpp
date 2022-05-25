@@ -87,13 +87,13 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
-	if (m_pConfig->GetBTNEnabled ())
+	if (m_pConfig->GetButtonEnabled ())
 	{
-		m_pUIButtons = new CUIButtons (m_pConfig->GetBTNPinLeft (),
-					    	m_pConfig->GetBTNPinRight (),
-					       	m_pConfig->GetBTNPinUp (),
-							m_pConfig->GetBTNPinDown (),
-							m_pConfig->GetBTNPinSelect ());
+		m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
+										m_pConfig->GetButtonPinNext (),
+										m_pConfig->GetButtonPinBack (),
+										m_pConfig->GetButtonPinSelect (),
+										m_pConfig->GetButtonPinHome ());
 		assert (m_pUIButtons);
 
 		if (!m_pUIButtons->Initialize ())
@@ -269,23 +269,23 @@ void CUserInterface::UIButtonsEventHandler (CUIButtons::TBtnEvent Event)
 {
 	switch (Event)
 	{
-	case CUIButtons::BtnEventUp:
-		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
-		break;
-
-	case CUIButtons::BtnEventDown:
+	case CUIButtons::BtnEventPrev:
 		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
 		break;
 
-	case CUIButtons::BtnEventLeft:
+	case CUIButtons::BtnEventNext:
+		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
+		break;
+
+	case CUIButtons::BtnEventBack:
 		m_Menu.EventHandler (CUIMenu::MenuEventBack);
 		break;
 
-	case CUIButtons::BtnEventRight:
+	case CUIButtons::BtnEventSelect:
 		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
 		break;
 
-	case CUIButtons::BtnEventSelect:
+	case CUIButtons::BtnEventHome:
 		m_Menu.EventHandler (CUIMenu::MenuEventHome);
 		break;
 

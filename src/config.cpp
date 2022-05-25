@@ -81,12 +81,12 @@ void CConfig::Load (void)
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
-	m_bBTNEnabled = m_Properties.GetNumber ("BTNEnabled", 0) != 0;
-	m_nBTNPinLeft = m_Properties.GetNumber ("BTNPinLeft", 5);
-	m_nBTNPinRight = m_Properties.GetNumber ("BTNPinRight", 6);
-	m_nBTNPinUp = m_Properties.GetNumber ("BTNPinUp", 10);
-	m_nBTNPinDown = m_Properties.GetNumber ("BTNPinDown", 9);
-	m_nBTNPinSelect = m_Properties.GetNumber ("BTNPinSelect", 11);
+	m_bButtonEnabled = m_Properties.GetNumber ("ButtonEnabled", 0) != 0;
+	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", NOPIN);
+	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", NOPIN);
+	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", NOPIN);
+	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", NOPIN);
+	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", NOPIN);
 
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
@@ -187,34 +187,34 @@ unsigned CConfig::GetLCDI2CAddress (void) const
 	return m_nLCDI2CAddress;
 }
 
-bool CConfig::GetBTNEnabled (void) const
+bool CConfig::GetButtonEnabled (void) const
 {
-	return m_bBTNEnabled;
+	return m_bButtonEnabled;
 }
 
-unsigned CConfig::GetBTNPinLeft (void) const
+unsigned CConfig::GetButtonPinPrev (void) const
 {
-	return m_nBTNPinLeft;
+	return m_nButtonPinPrev;
 }
 
-unsigned CConfig::GetBTNPinRight (void) const
+unsigned CConfig::GetButtonPinNext (void) const
 {
-	return m_nBTNPinRight;
+	return m_nButtonPinNext;
 }
 
-unsigned CConfig::GetBTNPinUp (void) const
+unsigned CConfig::GetButtonPinBack (void) const
 {
-	return m_nBTNPinUp;
+	return m_nButtonPinBack;
 }
 
-unsigned CConfig::GetBTNPinDown (void) const
+unsigned CConfig::GetButtonPinSelect (void) const
 {
-	return m_nBTNPinDown;
+	return m_nButtonPinSelect;
 }
 
-unsigned CConfig::GetBTNPinSelect (void) const
+unsigned CConfig::GetButtonPinHome (void) const
 {
-	return m_nBTNPinSelect;
+	return m_nButtonPinHome;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

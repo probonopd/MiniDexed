@@ -27,17 +27,28 @@
 LOGMODULE ("uibuttons");
 
 CUIButton::CUIButton (unsigned nPin)
-:	m_Pin (nPin, GPIOModeInputPullUp),
+:	m_nPin (nPin),
+	m_pPin (0),
 	m_nLastValue (0)
 {
 }
 
 CUIButton::~CUIButton (void)
 {
+	if (m_pPin)
+	{
+		delete m_pPin;
+	}
 }
 
 boolean CUIButton::Initialize (void)
 {
+	assert (!m_pPin);
+
+	if (m_nPin != NOPIN)
+	{
+		m_pPin = new CGPIOPin (m_nPin, GPIOModeInputPullUp);
+	}
 	return TRUE;
 }
 
@@ -45,9 +56,16 @@ boolean CUIButton::Initialize (void)
 
 boolean CUIButton::Read (void)
 {
-	unsigned nValue = m_Pin.Read();
+	if (!m_pPin)
+	{
+		// Always return "not pressed" if not configured
+		return FALSE;
+	}
+
+	unsigned nValue = m_pPin->Read();
 	
-	if (nValue != 0)
+	// Buttons in PULL UP mode are "active low"
+	if (nValue == 0)
 	{
 		// Some simple debouncing...
 		if (m_nLastValue < DEBOUNCER)
@@ -73,12 +91,12 @@ boolean CUIButton::Read (void)
 }
 
 
-CUIButtons::CUIButtons (unsigned nLeftPin, unsigned nRightPin, unsigned nUpPin, unsigned nDownPin, unsigned nSelectPin)
-:	m_LeftButton (nLeftPin),
-	m_RightButton (nRightPin),
-	m_UpButton (nUpPin),
-	m_DownButton (nDownPin),
-	m_SelectButton (nSelectPin)
+CUIButtons::CUIButtons (unsigned nPrevPin, unsigned nNextPin, unsigned nBackPin, unsigned nSelectPin, unsigned nHomePin)
+:	m_PrevButton (nPrevPin),
+	m_NextButton (nNextPin),
+	m_BackButton (nBackPin),
+	m_SelectButton (nSelectPin),
+	m_HomeButton (nHomePin)
 {
 }
 
@@ -88,6 +106,12 @@ CUIButtons::~CUIButtons (void)
 
 boolean CUIButtons::Initialize (void)
 {
+	m_PrevButton.Initialize ();
+	m_NextButton.Initialize ();
+	m_BackButton.Initialize ();
+	m_SelectButton.Initialize ();
+	m_HomeButton.Initialize ();
+
 	return TRUE;
 }
 
@@ -103,30 +127,30 @@ void CUIButtons::Update (void)
 {
 	assert (m_pEventHandler);
 
-	if (m_LeftButton.Read ())
+	if (m_PrevButton.Read ())
 	{
-		LOGNOTE ("Left");
-		(*m_pEventHandler) (BtnEventLeft, m_pEventParam);
+		LOGDBG ("Prev");
+		(*m_pEventHandler) (BtnEventPrev, m_pEventParam);
 	}
-	if (m_RightButton.Read ())
+	if (m_NextButton.Read ())
 	{
-		LOGNOTE ("Right");
-		(*m_pEventHandler) (BtnEventRight, m_pEventParam);
+		LOGDBG ("Next");
+		(*m_pEventHandler) (BtnEventNext, m_pEventParam);
 	}
-	if (m_UpButton.Read ())
+	if (m_BackButton.Read ())
 	{
-		LOGNOTE ("Up");
-		(*m_pEventHandler) (BtnEventUp, m_pEventParam);
-	}
-	if (m_DownButton.Read ())
-	{
-		LOGNOTE ("Down");
-		(*m_pEventHandler) (BtnEventDown, m_pEventParam);
+		LOGDBG ("Back");
+		(*m_pEventHandler) (BtnEventBack, m_pEventParam);
 	}
 	if (m_SelectButton.Read ())
 	{
-		LOGNOTE ("Select");
+		LOGDBG ("Select");
 		(*m_pEventHandler) (BtnEventSelect, m_pEventParam);
+	}
+	if (m_HomeButton.Read ())
+	{
+		LOGDBG ("Home");
+		(*m_pEventHandler) (BtnEventHome, m_pEventParam);
 	}
 }
 

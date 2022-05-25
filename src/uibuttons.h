@@ -38,28 +38,28 @@ public:
 	boolean Read (void);
 
 private:
-	CGPIOPin m_Pin;
+	unsigned m_nPin;
+	CGPIOPin *m_pPin;
 	unsigned m_nLastValue;
 };
-
 
 class CUIButtons
 {
 public:
 	enum TBtnEvent
 	{
-		BtnEventLeft,
-		BtnEventRight,
-		BtnEventUp,
-		BtnEventDown,
+		BtnEventPrev,
+		BtnEventNext,
+		BtnEventBack,
 		BtnEventSelect,
+		BtnEventHome,
 		BtnEventUnknown
 	};
 	
 	typedef void TBtnEventHandler (TBtnEvent Event, void *pParam);
 
 public:
-	CUIButtons (unsigned nLeftPin, unsigned nRightPin, unsigned nUpPin, unsigned nDownPin, unsigned nSelectPin);
+	CUIButtons (unsigned nPrevPin = NOPIN, unsigned nNextPin = NOPIN, unsigned nBackPin = NOPIN, unsigned nSelectPin = NOPIN, unsigned nHomePin = NOPIN);
 	~CUIButtons (void);
 	
 	boolean Initialize (void);
@@ -69,11 +69,11 @@ public:
 	void Update (void);
 	
 private:
-	CUIButton m_LeftButton;
-	CUIButton m_RightButton;
-	CUIButton m_UpButton;
-	CUIButton m_DownButton;
+	CUIButton m_PrevButton;
+	CUIButton m_NextButton;
+	CUIButton m_BackButton;
 	CUIButton m_SelectButton;
+	CUIButton m_HomeButton;
 
 	TBtnEventHandler *m_pEventHandler;
 	void *m_pEventParam;
