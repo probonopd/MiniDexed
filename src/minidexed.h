@@ -100,6 +100,7 @@ public:
 	void setAftertouchTarget(uint8_t target, uint8_t nTG);
 	void loadVoiceParameters(const uint8_t* data, uint8_t nTG);
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
+	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
 
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
@@ -164,6 +165,8 @@ public:
 	bool SavePerformance (void);
 	bool DoSavePerformance (void);
 
+	void setMasterVolume (float32_t vol);
+
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::ToneGenerators];
@@ -206,8 +209,8 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
-	unsigned m_nReverbSend[CConfig::ToneGenerators];
-	
+	unsigned m_nReverbSend[CConfig::ToneGenerators]
+  
 	uint8_t m_nRawVoiceData[156]; 
 	
 	
@@ -216,7 +219,9 @@ private:
 	unsigned m_nSetNewPerformanceID;
 	
 	float32_t nMasterVolume;
-	
+
+
+
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
 	CPerformanceConfig m_PerformanceConfig;

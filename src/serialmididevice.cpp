@@ -20,9 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+
+#include <circle/logger.h>
 #include <cstring>
 #include "serialmididevice.h"
 #include <assert.h>
+
+LOGMODULE("serialmididevice");
 
 CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem *pInterrupt,
 				      CConfig *pConfig)
@@ -58,23 +62,20 @@ void CSerialMIDIDevice::Process (void)
 	if (nResult <= 0)
 	{
 		if(nResult!=0)
-			printf("Serial-Read: %d\n",nResult);
+			LOGERR("Serial.Read() error: %d\n",nResult);
 		return;
 	}
 
         if (m_pConfig->GetMIDIDumpEnabled ())
 	{
-		printf("Incoming MIDI data:\n");
+		printf("Incoming MIDI data:");
 		for (uint16_t i = 0; i < nResult; i++)
 		{
 			if((i % 8) == 0)
-				printf("%04d:",i);
+				printf("\n%04d:",i);
 			printf(" 0x%02x",Buffer[i]);
-			if((i > 1 ) && (i % 8) == 0)
-				printf("\n");
 		}
-		if((nResult % 8) != 0)
-			printf("\n");
+		printf("\n");
 	}
 
 	// Process MIDI messages
@@ -157,6 +158,7 @@ void CSerialMIDIDevice::Process (void)
 		}
 	}
 }
+
 void CSerialMIDIDevice::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
 	m_SendBuffer.Write (pMessage, nLength);

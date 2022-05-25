@@ -27,6 +27,7 @@
 #include <string>
 #include <unordered_map>
 #include <circle/types.h>
+#include <circle/spinlock.h>
 
 class CMiniDexed;
 
@@ -49,14 +50,12 @@ public:
 	u8 GetChannel (unsigned nTG) const;
 
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
+	virtual void SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG);
 
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
-
 	void AddDevice (const char *pDeviceName);
-
-	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const uint8_t nTG);
-
+	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG);
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
@@ -67,6 +66,8 @@ private:
 
 	typedef std::unordered_map<std::string, CMIDIDevice *> TDeviceMap;
 	static TDeviceMap s_DeviceMap;
+
+	CSpinLock m_MIDISpinLock;
 };
 
 #endif
