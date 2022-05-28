@@ -84,7 +84,10 @@ private:
 	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event);
-
+	
+	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
+	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
 	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
