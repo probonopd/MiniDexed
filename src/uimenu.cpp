@@ -52,6 +52,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Performance",	PerformanceMenu}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{0}
 };
@@ -175,7 +176,8 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
-	{"Performance",	SavePerformance},
+	{"Overwrite",	SavePerformance}, 
+	{"New",	SavePerformanceNewFile},
 	{0}
 };
 
@@ -1084,4 +1086,81 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 	assert (pThis);
 
 	pThis->EventHandler (MenuEventBack);
+}
+
+void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	
+	unsigned nValue = pUIMenu->m_pMiniDexed->GetMenuSelectedPerformanceID();
+		
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		if (nValue > 0)
+		{
+			--nValue;
+		}
+		pUIMenu->m_pMiniDexed->SetMenuSelectedPerformanceID (nValue);
+		break;
+
+	case MenuEventStepUp:
+		if (++nValue > (unsigned) pUIMenu->m_pMiniDexed->GetLastPerformance()-1)
+		{
+			nValue = pUIMenu->m_pMiniDexed->GetLastPerformance()-1;
+		}
+		pUIMenu->m_pMiniDexed->SetMenuSelectedPerformanceID (nValue);
+		break;
+
+	case MenuEventSelect:	
+		pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+	
+		break;
+	
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+	
+	string Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
+	
+
+	std::string nPSelected = "";
+	if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
+	{
+		nPSelected="[Ld]";
+	}
+				
+	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
+				      Value.c_str (),
+				     (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance()-1);
+	
+}
+
+void CUIMenu::SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != MenuEventUpdate)
+	{
+		return;
+	}
+
+	bool bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
+
+	const char *pMenuName =
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+
+	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      bOK ? "Completed" : "Error",
+				      false, false);
+
+	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 }
