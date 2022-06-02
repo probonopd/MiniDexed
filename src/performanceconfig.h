@@ -106,11 +106,15 @@ public:
 	unsigned GetLastPerformance();
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceID();
-	void SetMenuSelectedPerformanceID(unsigned nID);
-	unsigned GetMenuSelectedPerformanceID();
+	//void SetMenuSelectedPerformanceID(unsigned nID); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5 Deleted
+	//unsigned GetMenuSelectedPerformanceID(); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5 Deleted
 	bool CreateNewPerformanceFile(std::string sPerformanceName);
 	bool GetInternalFolderOk(); 
-
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	std::string GetNewPerformanceDefaultName(void);
+	void SetNewPerformanceName(std::string nName);
+	bool DeletePerformance(unsigned nID);
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 private:
 	CPropertiesFatFsFile m_Properties;
 
@@ -136,13 +140,15 @@ private:
 	unsigned nLastPerformance;  
 	unsigned nLastFileIndex;
 	unsigned nActualPerformance = 0;  
-	unsigned nMenuSelectedPerformance = 0;
+	//unsigned nMenuSelectedPerformance = 0; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	std::string m_nPerformanceFileName[40];
 	FATFS *m_pFileSystem; 
 
 	bool nInternalFolderOk=false;
 	bool nExternalFolderOk=false; // for future USB implementation
-
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	std::string NewPerformanceName="";
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
