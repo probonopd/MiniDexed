@@ -106,7 +106,7 @@ public:
 	unsigned GetLastPerformance();
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceID();
-	bool CreateNewPerformanceFile(std::string sPerformanceName);
+	bool CreateNewPerformanceFile(void);
 	bool GetInternalFolderOk(); 
 	std::string GetNewPerformanceDefaultName(void);
 	void SetNewPerformanceName(std::string nName);
