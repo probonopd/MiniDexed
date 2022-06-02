@@ -579,29 +579,15 @@ void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
 	nActualPerformance = nID;
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% have to be deleted
-unsigned CPerformanceConfig::GetMenuSelectedPerformanceID()
-{
-	return nMenuSelectedPerformance;
-}
-
-void CPerformanceConfig::SetMenuSelectedPerformanceID(unsigned nID)
-{
-	nMenuSelectedPerformance = nID;
-}
-*/ 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% have to be deleted
-
 bool CPerformanceConfig::GetInternalFolderOk()
 {
 	return nInternalFolderOk;
 }
 
-bool CPerformanceConfig::CreateNewPerformanceFile(std::string sPerformanceName)
+bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
-	// sPerformanceName for future improvements when user can enter a name via UI
-	sPerformanceName = NewPerformanceName; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	NewPerformanceName=""; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	std::string sPerformanceName = NewPerformanceName;
+	NewPerformanceName=""; 
 	nActualPerformance=nLastPerformance;
 	std::string nFileName;
 	std::string nPath;
@@ -722,7 +708,6 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 		new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
 		
 }
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 
 std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
 {
