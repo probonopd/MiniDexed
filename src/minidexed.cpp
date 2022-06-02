@@ -1283,8 +1283,7 @@ bool CMiniDexed::SavePerformanceNewFile ()
 
 bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
-	std::string nPerformanceName=""; // for future enhacements: capability to write performance name - Not implemented, delete and modify CreateNewPerformanceFile(Name) to CreateNewPerformanceFile(void)
-	if (m_PerformanceConfig.CreateNewPerformanceFile(nPerformanceName))
+	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
 		if(SavePerformance())
 		{
