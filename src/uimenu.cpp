@@ -144,7 +144,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 	{"LFO Wave",	EditVoiceParameter,	0,		DEXED_LFO_WAVE},
 	{"P Mod Sens.",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_SENS},
 	{"Transpose",	EditVoiceParameter,	0,		DEXED_TRANSPOSE},
-	{"\E[?25lName",	InputTxt,0 , 3}, //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	{"\E[?25lName",	InputTxt,0 , 3}, // escape code \E[?25l is for turnoff cursor
 	{0}
 };
 
@@ -178,7 +178,7 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
 	{"Overwrite",	SavePerformance}, 
-	{"\E[?25lNew",	InputTxt,0 , 1}, //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	{"\E[?25lNew",	InputTxt,0 , 1}, // escape code \E[?25l is for turnoff cursor
 	{0}
 };
 
@@ -236,7 +236,7 @@ const CUIMenu::TParameter CUIMenu::s_VoiceParameter[] =
 	{0,	5,	1,	ToLFOWaveform},		// DEXED_LFO_WAVE
 	{0,	7,	1},				// DEXED_LFO_PITCH_MOD_SENS
 	{0,	48,	1,	ToTransposeNote},	// DEXED_TRANSPOSE
-	{0,	1,	1}				// Voice Name - Dummy parameters for in case new item would be added in future %%%%%%%%%%%%%%%%%%%%%%
+	{0,	1,	1}				// Voice Name - Dummy parameters for in case new item would be added in future 
 };
 
 // must match DexedVoiceOPParameters in Synth_Dexed
@@ -1090,7 +1090,6 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 	pThis->EventHandler (MenuEventBack);
 }
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext)
 {
 	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
@@ -1101,7 +1100,7 @@ void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void 
 	pThis->EventHandler (MenuEventUpdate);
 }
 
-void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event) //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	std::string Value;
@@ -1211,28 +1210,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event) //%%%%%%%%%%%
 		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
 }
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5 delete it
-void CUIMenu::SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event)
-{
-	if (Event != MenuEventUpdate)
-	{
-		return;
-	}
-
-	bool bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
-
-	const char *pMenuName =
-		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
-			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
-
-	pUIMenu->m_pUI->DisplayWrite (pMenuName,
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      bOK ? "Completed" : "Error",
-				      false, false);
-
-	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
-}
-*/
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 {
@@ -1336,7 +1313,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		
 		
 	case MenuEventSelect:	
-		if(pUIMenu->m_nCurrentParameter == 1 || pUIMenu->m_nCurrentParameter == 2)
+		if(pUIMenu->m_nCurrentParameter == 1)
 		{	
 			pUIMenu->m_pMiniDexed->SetNewPerformanceName(pUIMenu->m_InputText);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
@@ -1347,7 +1324,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		else
 		{
-			break;
+			break; // Voice Name Edit
 		}
 	
 	case MenuEventPressAndStepDown:
@@ -1377,7 +1354,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 	// \E[?25h	Normal cursor visible
 	// \E[?25l	Cursor invisible
 	
-	std::string escCursor="\E[?25h\E[2;";
+	std::string escCursor="\E[?25h\E[2;"; // this is to locate cursor
 	escCursor += to_string(nPosition + 2);
 	escCursor += "H";
 	
