@@ -111,8 +111,8 @@ public:
 	void SetActualPerformanceID(unsigned nID);
 	bool SetNewPerformance(unsigned nID);
 	bool SavePerformanceNewFile ();
-	unsigned GetMenuSelectedPerformanceID();
-	void SetMenuSelectedPerformanceID(unsigned nID);
+	// unsigned GetMenuSelectedPerformanceID(); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	// void SetMenuSelectedPerformanceID(unsigned nID); %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
@@ -132,7 +132,13 @@ public:
 
 	void SetParameter (TParameter Parameter, int nValue);
 	int GetParameter (TParameter Parameter);
-
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	std::string GetNewPerformanceDefaultName(void);
+	void SetNewPerformanceName(std::string nName);
+	void SetVoiceName (std::string VoiceName, unsigned nTG);
+	bool DeletePerformance(unsigned nID);
+	bool DoDeletePerformance(void);
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,
@@ -220,7 +226,10 @@ private:
 	
 	float32_t nMasterVolume;
 
-
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	bool	m_bDeletePerformance;
+	unsigned m_nDeletePerformanceID;
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
