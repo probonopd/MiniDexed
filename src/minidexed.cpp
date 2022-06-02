@@ -268,6 +268,13 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		DoSetNewPerformance ();
 		m_bSetNewPerformance = false;
 	}
+	// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	if(m_bDeletePerformance)
+	{
+		DoDeletePerformance ();
+		m_bDeletePerformance = false;
+	}
+	// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	
 	if (m_bProfileEnabled)
 	{
@@ -1244,6 +1251,7 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 unsigned CMiniDexed::GetMenuSelectedPerformanceID()
 {
 	return m_PerformanceConfig.GetMenuSelectedPerformanceID();
@@ -1253,7 +1261,8 @@ void CMiniDexed::SetMenuSelectedPerformanceID(unsigned nID)
 {
 	m_PerformanceConfig.SetMenuSelectedPerformanceID(nID);
 }
-
+/* 
+//  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
@@ -1288,7 +1297,7 @@ bool CMiniDexed::SavePerformanceNewFile ()
 
 bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
-	std::string nPerformanceName=""; // for future enhacements: capability to write performance name
+	std::string nPerformanceName=""; // for future enhacements: capability to write performance name - %%%%%%%%%%%%%%%5 Not implemented delete and modify CreateNewPerformanceFile
 	if (m_PerformanceConfig.CreateNewPerformanceFile(nPerformanceName))
 	{
 		if(SavePerformance())
@@ -1351,4 +1360,52 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 }
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Name
+std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
+{
+	return m_PerformanceConfig.GetNewPerformanceDefaultName();
+}
+
+void CMiniDexed::SetNewPerformanceName(std::string nName)
+{
+	m_PerformanceConfig.SetNewPerformanceName(nName);
+}
+
+void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	char Name[10];
+	strncpy(Name, VoiceName.c_str(),10);
+	m_pTG[nTG]->getName (Name);
+}
+
+bool CMiniDexed::DeletePerformance(unsigned nID)
+{
+	m_bDeletePerformance = true;
+	m_nDeletePerformanceID = nID;
+
+	return true;
+}
+
+bool CMiniDexed::DoDeletePerformance(void)
+{
+	unsigned nID = m_nDeletePerformanceID;
+	if(m_PerformanceConfig.DeletePerformance(nID))
+	{
+		if (m_PerformanceConfig.Load ())
+		{
+			LoadPerformanceParameters();
+			return true;
+		}
+		else
+		{
+			SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+		}
+	}
+	
+	return false;
+}
+
 
