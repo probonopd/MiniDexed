@@ -1261,7 +1261,7 @@ void CMiniDexed::SetMenuSelectedPerformanceID(unsigned nID)
 {
 	m_PerformanceConfig.SetMenuSelectedPerformanceID(nID);
 }
-/* 
+*/ 
 //  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
 bool CMiniDexed::SetNewPerformance(unsigned nID)
