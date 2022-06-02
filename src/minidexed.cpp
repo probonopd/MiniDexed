@@ -268,14 +268,13 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		DoSetNewPerformance ();
 		m_bSetNewPerformance = false;
 	}
-	// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
 	if(m_bDeletePerformance)
 	{
 		DoDeletePerformance ();
 		m_bDeletePerformance = false;
 	}
-	// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	
+		
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
@@ -1251,19 +1250,6 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
-/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-unsigned CMiniDexed::GetMenuSelectedPerformanceID()
-{
-	return m_PerformanceConfig.GetMenuSelectedPerformanceID();
-}
-
-void CMiniDexed::SetMenuSelectedPerformanceID(unsigned nID)
-{
-	m_PerformanceConfig.SetMenuSelectedPerformanceID(nID);
-}
-*/ 
-//  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
@@ -1297,7 +1283,7 @@ bool CMiniDexed::SavePerformanceNewFile ()
 
 bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
-	std::string nPerformanceName=""; // for future enhacements: capability to write performance name - %%%%%%%%%%%%%%%5 Not implemented delete and modify CreateNewPerformanceFile
+	std::string nPerformanceName=""; // for future enhacements: capability to write performance name - Not implemented, delete and modify CreateNewPerformanceFile(Name) to CreateNewPerformanceFile(void)
 	if (m_PerformanceConfig.CreateNewPerformanceFile(nPerformanceName))
 	{
 		if(SavePerformance())
@@ -1361,7 +1347,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 }
 
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Name
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
 {
 	return m_PerformanceConfig.GetNewPerformanceDefaultName();
