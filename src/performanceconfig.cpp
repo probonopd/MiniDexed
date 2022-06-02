@@ -579,6 +579,7 @@ void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
 	nActualPerformance = nID;
 }
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% have to be deleted
 unsigned CPerformanceConfig::GetMenuSelectedPerformanceID()
 {
 	return nMenuSelectedPerformance;
@@ -588,6 +589,8 @@ void CPerformanceConfig::SetMenuSelectedPerformanceID(unsigned nID)
 {
 	nMenuSelectedPerformance = nID;
 }
+*/ 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% have to be deleted
 
 bool CPerformanceConfig::GetInternalFolderOk()
 {
@@ -597,7 +600,8 @@ bool CPerformanceConfig::GetInternalFolderOk()
 bool CPerformanceConfig::CreateNewPerformanceFile(std::string sPerformanceName)
 {
 	// sPerformanceName for future improvements when user can enter a name via UI
-	
+	sPerformanceName = NewPerformanceName; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	NewPerformanceName=""; //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	nActualPerformance=nLastPerformance;
 	std::string nFileName;
 	std::string nPath;
@@ -697,7 +701,7 @@ bool CPerformanceConfig::ListPerformances()
 		// sort by performance number-name
 		if (nLastPerformance > 2)
 		{
-		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance - 1); // default is always on first place. 
+		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
 		}
 	}
 	
@@ -717,4 +721,57 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 		FileN += m_nPerformanceFileName[nID];
 		new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
 		
+}
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
+
+std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
+{
+	std::string nIndex = "000000";
+	nIndex += std::to_string(nLastFileIndex+1);
+	nIndex = nIndex.substr(nIndex.length()-6,6);
+	return "Perf" + nIndex;
+}
+
+void CPerformanceConfig::SetNewPerformanceName(std::string nName)
+{
+	int  i = nName.length();
+	do
+	{
+		--i;
+	}
+	while (i>=0 && nName[i] == 32);
+	nName=nName.substr(0,i+1)  ;
+	
+	NewPerformanceName = nName;
+}
+
+bool CPerformanceConfig::DeletePerformance(unsigned nID)
+{
+	bool bOK = false;
+	if(nID == 0){return bOK;} // default (performance.ini at root directory) can't be deleted
+	DIR Directory;
+	FILINFO FileInfo;
+	std::string FileN = "SD:/";
+	FileN += PERFORMANCE_DIR;
+
+	
+	FRESULT Result = f_findfirst (&Directory, &FileInfo, FileN.c_str(), m_nPerformanceFileName[nID].c_str());
+	if (Result == FR_OK && FileInfo.fname[0])
+	{
+		FileN += "/";
+		FileN += m_nPerformanceFileName[nID];
+		Result=f_unlink (FileN.c_str());
+		if (Result == FR_OK)
+		{
+			SetNewPerformance(0);
+			nActualPerformance =0;
+			//nMenuSelectedPerformance=0;
+			m_nPerformanceFileName[nID]="ZZZZZZ";
+			sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // test si va con -1 o no
+			--nLastPerformance;
+			m_nPerformanceFileName[nLastPerformance]=nullptr;
+			bOK=true;
+		}
+	}
+	return bOK;
 }
