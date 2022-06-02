@@ -112,7 +112,11 @@ private:
 	void OPShortcutHandler (TMenuEvent Event);
 
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
-
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext);
+	 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;
@@ -147,6 +151,15 @@ private:
 	static const TParameter s_OPParameter[];
 
 	static const char s_NoteName[100][4];
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+	std::string m_InputText="1234567890ABCD";
+	unsigned m_InputTextPosition=0;
+	unsigned m_InputTextChar=32;
+	bool m_bPerformanceDeleteMode=false;
+	bool m_bConfirmDeletePerformance=false;
+	unsigned m_nSelectedPerformanceID =0;
+	bool m_bSplashShow=false;
+	//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 };
 
 #endif
