@@ -52,7 +52,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
-	m_bSetNewPerformance (false) 
+	m_bSetNewPerformance (false),
+	m_bDeletePerformance (false)
 {
 	assert (m_pConfig);
 
