@@ -57,6 +57,7 @@ public:
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoGlissando (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoTime (unsigned nTG) const;		// 0 .. 99
+	bool GetMonoMode (unsigned nTG) const; 				// 0 .. 1
 	
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
@@ -77,6 +78,7 @@ public:
 	void SetPortamentoTime (unsigned nValue, unsigned nTG);
 	void SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG); 
 	uint8_t *GetVoiceDataFromTxt (unsigned nTG);
+	void SetMonoMode (bool bOKValue, unsigned nTG); 
 	
 	// Effects
 	bool GetCompressorEnable (void) const;
@@ -133,6 +135,7 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];
 	std::string m_nVoiceDataTxt[CConfig::ToneGenerators]; 
+	bool m_bMonoMode[CConfig::ToneGenerators]; 
 	
 	unsigned nLastPerformance;  
 	unsigned nLastFileIndex;
