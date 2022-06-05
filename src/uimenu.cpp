@@ -71,6 +71,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
+	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -209,9 +210,10 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1},								// TGParameterReverbSend
 	{0,	12,					1},			// TGParameterPitchBendRange
 	{0,	12,					1},			// TGParameterPitchBendStep
-	{0,	1,					1, ToPortaMode},			// TGParameterPortamentoMode
-	{0,	1,					1, ToPortaGlissando},			// TGParameterPortamentoGlissando
-	{0,	99,					1}			// TGParameterPortamentoTime
+	{0,	1,					1, ToPortaMode},	// TGParameterPortamentoMode
+	{0,	1,					1, ToPortaGlissando},	// TGParameterPortamentoGlissando
+	{0,	99,					1},			// TGParameterPortamentoTime
+	{0,	1,					1, ToPolyMono} 		// TGParameterMonoMode 
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1021,6 +1023,16 @@ string CUIMenu::ToPortaGlissando (int nValue)
 	default:	return to_string (nValue);
 	}
 };
+
+string CUIMenu::ToPolyMono (int nValue)
+{
+	switch (nValue)
+	{
+	case 0:		return "Poly";
+	case 1:		return "Mono";
+	default:	return to_string (nValue);
+	}
+}
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 {
