@@ -81,7 +81,6 @@ void CConfig::Load (void)
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
-	m_bButtonEnabled = m_Properties.GetNumber ("ButtonEnabled", 0) != 0;
 	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", NOPIN);
 	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", NOPIN);
 	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", NOPIN);
@@ -185,11 +184,6 @@ unsigned CConfig::GetLCDPinData7 (void) const
 unsigned CConfig::GetLCDI2CAddress (void) const
 {
 	return m_nLCDI2CAddress;
-}
-
-bool CConfig::GetButtonEnabled (void) const
-{
-	return m_bButtonEnabled;
 }
 
 unsigned CConfig::GetButtonPinPrev (void) const

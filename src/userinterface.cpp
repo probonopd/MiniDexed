@@ -87,24 +87,21 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
-	if (m_pConfig->GetButtonEnabled ())
+	m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
+									m_pConfig->GetButtonPinNext (),
+									m_pConfig->GetButtonPinBack (),
+									m_pConfig->GetButtonPinSelect (),
+									m_pConfig->GetButtonPinHome ());
+	assert (m_pUIButtons);
+
+	if (!m_pUIButtons->Initialize ())
 	{
-		m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
-										m_pConfig->GetButtonPinNext (),
-										m_pConfig->GetButtonPinBack (),
-										m_pConfig->GetButtonPinSelect (),
-										m_pConfig->GetButtonPinHome ());
-		assert (m_pUIButtons);
-
-		if (!m_pUIButtons->Initialize ())
-		{
-			return false;
-		}
-
-		m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-
-		LOGDBG ("Button User Interface initialized");
+		return false;
 	}
+
+	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+
+	LOGDBG ("Button User Interface initialized");
 
 	if (m_pConfig->GetEncoderEnabled ())
 	{

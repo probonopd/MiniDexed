@@ -93,7 +93,6 @@ public:
 	
 	// GPIO Button Navigation
 	// GPIO pin numbers are chip numbers, not header positions
-	bool GetButtonEnabled (void) const;
 	unsigned GetButtonPinPrev (void) const;
 	unsigned GetButtonPinNext (void) const;
 	unsigned GetButtonPinBack (void) const;
@@ -135,7 +134,6 @@ private:
 	unsigned m_nLCDPinData7;
 	unsigned m_nLCDI2CAddress;
 	
-	bool m_bButtonEnabled;
 	unsigned m_nButtonPinPrev;
 	unsigned m_nButtonPinNext;
 	unsigned m_nButtonPinBack;
