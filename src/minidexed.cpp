@@ -72,7 +72,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nPortamentoMode[i] = 0;
 		m_nPortamentoGlissando[i] = 0;
 		m_nPortamentoTime[i] = 0;
-
+		m_bMonoMode[i]=0; 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
@@ -676,6 +676,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
 	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
 	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
+	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
 
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
@@ -710,7 +711,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
 	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
-
+	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
 	default:
 		assert (0);
 		return 0;
@@ -983,6 +984,7 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
 		m_pTG[nTG]->getVoiceData(m_nRawVoiceData);  
  		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
+		m_PerformanceConfig.SetMonoMode (m_bMonoMode[nTG], nTG); 
 		
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 	}
@@ -1003,7 +1005,7 @@ void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
+	m_bMonoMode[nTG]= mono != 0; 
 	m_pTG[nTG]->setMonoMode(constrain(mono, 0, 1));
 	m_pTG[nTG]->doRefreshVoice();
 	m_UI.ParameterChanged ();
@@ -1331,7 +1333,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 			}
-			
+			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 		
 		}
