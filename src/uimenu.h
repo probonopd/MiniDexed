@@ -107,6 +107,7 @@ private:
 	static std::string ToOscillatorDetune (int nValue);
 	static std::string ToPortaMode (int nValue);  
 	static std::string ToPortaGlissando (int nValue);   
+	static std::string ToPolyMono (int nValue);
 
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
