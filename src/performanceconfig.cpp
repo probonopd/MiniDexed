@@ -119,6 +119,10 @@ bool CPerformanceConfig::Load (void)
 		
 		PropertyName.Format ("VoiceData%u", nTG+1); 
 		m_nVoiceDataTxt[nTG] = m_Properties.GetString (PropertyName, "");
+		
+		PropertyName.Format ("MonoMode%u", nTG+1);
+		m_bMonoMode[nTG] = m_Properties.GetNumber (PropertyName, 0) != 0;
+		
 		}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
@@ -209,6 +213,10 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("VoiceData%u", nTG+1);
 		char *cstr = &m_nVoiceDataTxt[nTG][0];
 		m_Properties.SetString (PropertyName, cstr);
+		
+		PropertyName.Format ("MonoMode%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_bMonoMode[nTG] ? 1 : 0);
+		
 		}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
@@ -510,6 +518,17 @@ unsigned CPerformanceConfig::GetPortamentoTime (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nPortamentoTime[nTG];
+}
+
+void CPerformanceConfig::SetMonoMode (bool bValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_bMonoMode[nTG] = bValue;
+}
+
+bool CPerformanceConfig::GetMonoMode (unsigned nTG) const
+{
+	return m_bMonoMode[nTG];
 }
 
 void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  
