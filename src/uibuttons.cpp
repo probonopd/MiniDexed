@@ -45,7 +45,7 @@ boolean CUIButton::Initialize (void)
 {
 	assert (!m_pPin);
 
-	if (m_nPin != NOPIN)
+	if (m_nPin != 0)
 	{
 		m_pPin = new CGPIOPin (m_nPin, GPIOModeInputPullUp);
 	}

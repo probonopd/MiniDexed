@@ -28,9 +28,6 @@
 #include <circle/sysconfig.h>
 #include <string>
 
-// This has to match the value mentioned in minidexed.ini
-#define NOPIN 255
-
 class CConfig		// Configuration for MiniDexed
 {
 public:

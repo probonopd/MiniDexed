@@ -59,7 +59,7 @@ public:
 	typedef void TBtnEventHandler (TBtnEvent Event, void *pParam);
 
 public:
-	CUIButtons (unsigned nPrevPin = NOPIN, unsigned nNextPin = NOPIN, unsigned nBackPin = NOPIN, unsigned nSelectPin = NOPIN, unsigned nHomePin = NOPIN);
+	CUIButtons (unsigned nPrevPin = 0, unsigned nNextPin = 0, unsigned nBackPin = 0, unsigned nSelectPin = 0, unsigned nHomePin = 0);
 	~CUIButtons (void);
 	
 	boolean Initialize (void);

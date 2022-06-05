@@ -81,11 +81,11 @@ void CConfig::Load (void)
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
-	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", NOPIN);
-	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", NOPIN);
-	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", NOPIN);
-	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", NOPIN);
-	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", NOPIN);
+	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", 0);
+	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", 0);
+	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", 0);
+	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", 0);
+	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", 0);
 
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
