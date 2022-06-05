@@ -153,6 +153,7 @@ public:
 		TGParameterPortamentoMode,
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
+		TGParameterMonoMode,  
 		TGParameterUnknown
 	};
 
@@ -208,7 +209,8 @@ private:
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
-
+	bool m_bMonoMode[CConfig::ToneGenerators]; 
+	
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
