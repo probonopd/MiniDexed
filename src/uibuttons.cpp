@@ -96,7 +96,8 @@ CUIButtons::CUIButtons (unsigned nPrevPin, unsigned nNextPin, unsigned nBackPin,
 	m_NextButton (nNextPin),
 	m_BackButton (nBackPin),
 	m_SelectButton (nSelectPin),
-	m_HomeButton (nHomePin)
+	m_HomeButton (nHomePin),
+	m_pEventHandler (0)
 {
 }
 
