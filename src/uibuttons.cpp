@@ -165,7 +165,13 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			m_debounceTimer = 0;
 			LOGDBG ("Up");
 
-			if (m_timer >= DOUBLE_CLICK_TIME && m_timer < LONG_PRESS_TIME && m_numClicks == 1) {
+			if (m_numClicks == 1 &&
+					(m_doubleClickEvent == BtnEventNone ||
+					 m_timer >= DOUBLE_CLICK_TIME && m_timer < LONG_PRESS_TIME)
+			) {
+				// Either the user released the button when there is no double
+				// click mapped
+				// OR:
 				// The user released the button after the double click
 				// timeout, but before the long press timeout
 				reset();
