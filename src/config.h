@@ -96,6 +96,13 @@ public:
 	unsigned GetButtonPinSelect (void) const;
 	unsigned GetButtonPinHome (void) const;
 
+	// Action type for buttons: "click", "doubleclick", "longpress", ""
+	const char *GetButtonActionPrev (void) const;
+	const char *GetButtonActionNext (void) const;
+	const char *GetButtonActionBack (void) const;
+	const char *GetButtonActionSelect (void) const;
+	const char *GetButtonActionHome (void) const;
+
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
 	bool GetEncoderEnabled (void) const;
@@ -136,6 +143,12 @@ private:
 	unsigned m_nButtonPinBack;
 	unsigned m_nButtonPinSelect;
 	unsigned m_nButtonPinHome;
+
+	std::string m_ButtonActionPrev;
+	std::string m_ButtonActionNext;
+	std::string m_ButtonActionBack;
+	std::string m_ButtonActionSelect;
+	std::string m_ButtonActionHome;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;

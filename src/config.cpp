@@ -83,9 +83,15 @@ void CConfig::Load (void)
 
 	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", 0);
 	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", 0);
-	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", 0);
-	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", 0);
-	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", 0);
+	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", 11);
+	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", 11);
+	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", 11);
+
+	m_ButtonActionPrev = m_Properties.GetString ("ButtonActionPrev", "");
+	m_ButtonActionNext = m_Properties.GetString ("ButtonActionNext", "");
+	m_ButtonActionBack = m_Properties.GetString ("ButtonActionBack", "doubleclick");
+	m_ButtonActionSelect = m_Properties.GetString ("ButtonActionSelect", "click");
+	m_ButtonActionHome = m_Properties.GetString ("ButtonActionHome", "longpress");
 
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
@@ -209,6 +215,31 @@ unsigned CConfig::GetButtonPinSelect (void) const
 unsigned CConfig::GetButtonPinHome (void) const
 {
 	return m_nButtonPinHome;
+}
+
+const char *CConfig::GetButtonActionPrev (void) const
+{
+	return m_ButtonActionPrev.c_str();
+}
+
+const char *CConfig::GetButtonActionNext (void) const
+{
+	return m_ButtonActionNext.c_str();
+}
+
+const char *CConfig::GetButtonActionBack (void) const
+{
+	return m_ButtonActionBack.c_str();
+}
+
+const char *CConfig::GetButtonActionSelect (void) const
+{
+	return m_ButtonActionSelect.c_str();
+}
+
+const char *CConfig::GetButtonActionHome (void) const
+{
+	return m_ButtonActionHome.c_str();
 }
 
 bool CConfig::GetEncoderEnabled (void) const

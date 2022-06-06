@@ -88,10 +88,15 @@ bool CUserInterface::Initialize (void)
 	}
 
 	m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
+									m_pConfig->GetButtonActionPrev (),
 									m_pConfig->GetButtonPinNext (),
+									m_pConfig->GetButtonActionNext (),
 									m_pConfig->GetButtonPinBack (),
+									m_pConfig->GetButtonActionBack (),
 									m_pConfig->GetButtonPinSelect (),
-									m_pConfig->GetButtonPinHome ());
+									m_pConfig->GetButtonActionSelect (),
+									m_pConfig->GetButtonPinHome (),
+									m_pConfig->GetButtonActionHome ());
 	assert (m_pUIButtons);
 
 	if (!m_pUIButtons->Initialize ())
@@ -262,27 +267,27 @@ void CUserInterface::EncoderEventStub (CKY040::TEvent Event, void *pParam)
 	pThis->EncoderEventHandler (Event);
 }
 
-void CUserInterface::UIButtonsEventHandler (CUIButtons::TBtnEvent Event)
+void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 {
 	switch (Event)
 	{
-	case CUIButtons::BtnEventPrev:
+	case CUIButton::BtnEventPrev:
 		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
 		break;
 
-	case CUIButtons::BtnEventNext:
+	case CUIButton::BtnEventNext:
 		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
 		break;
 
-	case CUIButtons::BtnEventBack:
+	case CUIButton::BtnEventBack:
 		m_Menu.EventHandler (CUIMenu::MenuEventBack);
 		break;
 
-	case CUIButtons::BtnEventSelect:
+	case CUIButton::BtnEventSelect:
 		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
 		break;
 
-	case CUIButtons::BtnEventHome:
+	case CUIButton::BtnEventHome:
 		m_Menu.EventHandler (CUIMenu::MenuEventHome);
 		break;
 
@@ -291,7 +296,7 @@ void CUserInterface::UIButtonsEventHandler (CUIButtons::TBtnEvent Event)
 	}
 }
 
-void CUserInterface::UIButtonsEventStub (CUIButtons::TBtnEvent Event, void *pParam)
+void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam)
 {
 	CUserInterface *pThis = static_cast<CUserInterface *> (pParam);
 	assert (pThis != 0);

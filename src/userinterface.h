@@ -56,8 +56,8 @@ private:
 
 	void EncoderEventHandler (CKY040::TEvent Event);
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
-	void UIButtonsEventHandler (CUIButtons::TBtnEvent Event);
-	static void UIButtonsEventStub (CUIButtons::TBtnEvent Event, void *pParam);
+	void UIButtonsEventHandler (CUIButton::BtnEvent Event);
+	static void UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam);
 
 private:
 	CMiniDexed *m_pMiniDexed;

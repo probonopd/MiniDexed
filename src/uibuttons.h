@@ -27,56 +27,117 @@
 #include <circle/types.h>
 #include "config.h"
 
+#define BUTTONS_UPDATE_NUM_TICKS 100
+#define DEBOUNCE_TIME 50
+#define DOUBLE_CLICK_TIME 1700
+#define LONG_PRESS_TIME 4500
+#define MAX_BUTTONS 5
+
 class CUIButton
 {
 public:
-	CUIButton (unsigned nPin);
+	enum BtnTrigger
+	{
+		BtnTriggerNone = 0,
+		BtnTriggerClick = 1,
+		BtnTriggerDoubleClick = 2,
+		BtnTriggerLongPress = 3
+	};
+
+	enum BtnEvent
+	{
+		BtnEventNone = 0,
+		BtnEventPrev = 1,
+		BtnEventNext = 2,
+		BtnEventBack = 3,
+		BtnEventSelect = 4,
+		BtnEventHome = 5,
+		BtnEventUnknown = 6
+	};
+	
+	CUIButton (void);
 	~CUIButton (void);
 	
-	boolean Initialize (void);
+	void reset (void);
+	boolean Initialize (unsigned pinNumber);
+
+	void setClickEvent(BtnEvent clickEvent);
+	void setDoubleClickEvent(BtnEvent doubleClickEvent);
+	void setLongPressEvent(BtnEvent longPressEvent);
+
+	unsigned getPinNumber(void);
 	
-	boolean Read (void);
+	BtnTrigger ReadTrigger (void);
+	BtnEvent Read (void);
+
+	static BtnTrigger triggerTypeFromString(const char* triggerString);
 
 private:
-	unsigned m_nPin;
-	CGPIOPin *m_pPin;
-	unsigned m_nLastValue;
+	// Pin number
+	unsigned m_pinNumber;
+	// GPIO pin
+	CGPIOPin *m_pin;
+	unsigned m_lastValue;
+	// Set to 0 on press, increment each read, use to trigger events
+	uint16_t m_timer;
+	// Debounce timer
+	uint16_t m_debounceTimer;
+	// Number of clicks recorded since last timer reset
+	uint8_t m_numClicks;
+
+public:
+	// Event to fire on click
+	BtnEvent m_clickEvent;
+	// Event to fire on double click
+	BtnEvent m_doubleClickEvent;
+	// Event to fire on long press
+	BtnEvent m_longPressEvent;
+	// The value of the pin at the end of the last loop
 };
 
 class CUIButtons
 {
 public:
-	enum TBtnEvent
-	{
-		BtnEventPrev,
-		BtnEventNext,
-		BtnEventBack,
-		BtnEventSelect,
-		BtnEventHome,
-		BtnEventUnknown
-	};
-	
-	typedef void TBtnEventHandler (TBtnEvent Event, void *pParam);
+	typedef void BtnEventHandler (CUIButton::BtnEvent Event, void *param);
 
 public:
-	CUIButtons (unsigned nPrevPin = 0, unsigned nNextPin = 0, unsigned nBackPin = 0, unsigned nSelectPin = 0, unsigned nHomePin = 0);
+	CUIButtons (
+			unsigned prevPin, const char *prevAction,
+			unsigned nextPin, const char *nextAction,
+			unsigned backPin, const char *backAction,
+			unsigned selectPin, const char *selectAction,
+			unsigned homePin, const char *homeAction
+	);
 	~CUIButtons (void);
 	
 	boolean Initialize (void);
 	
-	void RegisterEventHandler (TBtnEventHandler *pHandler, void *pParam = 0);
+	void RegisterEventHandler (BtnEventHandler *handler, void *param = 0);
 	
 	void Update (void);
 	
 private:
-	CUIButton m_PrevButton;
-	CUIButton m_NextButton;
-	CUIButton m_BackButton;
-	CUIButton m_SelectButton;
-	CUIButton m_HomeButton;
+	// Up to 5 buttons can be defined
+	CUIButton m_buttons[5];
+	
+	// Configuration for buttons
+	unsigned m_prevPin;
+	CUIButton::BtnTrigger m_prevAction;
+	unsigned m_nextPin;
+	CUIButton::BtnTrigger m_nextAction;
+	unsigned m_backPin;
+	CUIButton::BtnTrigger m_backAction;
+	unsigned m_selectPin;
+	CUIButton::BtnTrigger m_selectAction;
+	unsigned m_homePin;
+	CUIButton::BtnTrigger m_homeAction;
 
-	TBtnEventHandler *m_pEventHandler;
-	void *m_pEventParam;
+	BtnEventHandler *m_eventHandler;
+	void *m_eventParam;
+
+	unsigned m_lastTick;
+
+	void bindButton(unsigned pinNumber, CUIButton::BtnTrigger trigger, CUIButton::BtnEvent event);
 };
 
 #endif
