@@ -36,7 +36,6 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pLCDBuffered (0),
 	m_pUIButtons (0),
 	m_pRotaryEncoder (0),
-	m_bSwitchPressed (false),
 	m_Menu (this, pMiniDexed)
 {
 }
@@ -110,9 +109,12 @@ bool CUserInterface::Initialize (void)
 
 	if (m_pConfig->GetEncoderEnabled ())
 	{
+		// NOTE: There is no way to disable the switch pin with this driver
+		// so I have set it to 0 which is a reserved pin used by pi hats.
+		// Even if this pin triggers it shouldn't cause any real issues.
 		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
 					       m_pConfig->GetEncoderPinData (),
-					       m_pConfig->GetEncoderPinSwitch (),
+					       0,
 					       m_pGPIOManager);
 		assert (m_pRotaryEncoder);
 
@@ -215,43 +217,12 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 {
 	switch (Event)
 	{
-	case CKY040::EventSwitchDown:
-		m_bSwitchPressed = true;
-		break;
-
-	case CKY040::EventSwitchUp:
-		m_bSwitchPressed = false;
-		break;
-
 	case CKY040::EventClockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepUp
-						      : CUIMenu::MenuEventStepUp);
+		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
 		break;
 
 	case CKY040::EventCounterclockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepDown
-						      : CUIMenu::MenuEventStepDown);
-		break;
-
-	case CKY040::EventSwitchClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventBack);
-		break;
-
-	case CKY040::EventSwitchDoubleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
-		break;
-
-	case CKY040::EventSwitchTripleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventHome);
-		break;
-
-	case CKY040::EventSwitchHold:
-		if (m_pRotaryEncoder->GetHoldSeconds () >= 120)
-		{
-			delete m_pLCD;		// reset LCD
-
-			reboot ();
-		}
+		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
 		break;
 
 	default:

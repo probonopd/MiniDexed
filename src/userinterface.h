@@ -71,7 +71,6 @@ private:
 	CUIButtons *m_pUIButtons;
 
 	CKY040 *m_pRotaryEncoder;
-	bool m_bSwitchPressed;
 
 	CUIMenu m_Menu;
 };

@@ -108,7 +108,6 @@ public:
 	bool GetEncoderEnabled (void) const;
 	unsigned GetEncoderPinClock (void) const;
 	unsigned GetEncoderPinData (void) const;
-	unsigned GetEncoderPinSwitch (void) const;
 
 	// Debug
 	bool GetMIDIDumpEnabled (void) const;
@@ -153,7 +152,6 @@ private:
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
 	unsigned m_nEncoderPinData;
-	unsigned m_nEncoderPinSwitch;
 
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;
