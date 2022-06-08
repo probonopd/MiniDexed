@@ -41,3 +41,6 @@ MiniDexed*
 sdcard
 *.zip
 *.img
+
+# Visual Studio artefacts
+.vs

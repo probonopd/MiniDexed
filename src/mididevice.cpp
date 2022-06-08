@@ -174,6 +174,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	{
 		float32_t nMasterVolume=((pMessage[5] & 0x7c) & ((pMessage[6] & 0x7c) <<7))/(1<<14);
 		LOGNOTE("Master volume: %f",nMasterVolume);
+		printf("Master volume: %f",nMasterVolume);
 		m_pSynthesizer->setMasterVolume(nMasterVolume);
 	}
 	else
@@ -187,6 +188,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+					printf("MIDI-SYSEX: channel: %lu, len: %lu, TG: %lu\n",m_ChannelMap[nTG],nLength,nTG);
 					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
 				}
 			}
@@ -334,8 +336,11 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   int16_t sysex_return;
 
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
+  uint8_t instanceID = pMessage[2]&0xF;
   LOGDBG("SYSEX handler return value: %d", sysex_return);
-
+  printf("SYSEX handler return value: %d\n", sysex_return);
+  printf("TG %i\n", nTG);
+  printf("%02X\n", instanceID);
   switch (sysex_return)
   {
     case -1:
@@ -426,6 +431,39 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
       m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
       break;
+/* BeZo patches */
+    case 80:						// Set midi channel
+	m_ChannelMap[instanceID] = pMessage[5];
+	break;
+    case 81:						// Reverb level
+        m_pSynthesizer->SetReverbSend (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
+	break;
+    case 82:						// Compressor toggle
+	break;
+    case 83:						// Transpose
+	break;
+    case 84:						// Detune
+	if (pMessage[5] == 0)
+        {
+        	// "0 to 127, with 0 being no celeste (detune) effect applied at all."
+                m_pSynthesizer->SetMasterTune (0, instanceID);
+        }
+        else
+        {
+                m_pSynthesizer->SetMasterTune (maplong (pMessage[5], 1, 127, -99, 99), instanceID);
+        }
+	break;
+    case 85:						// Panning
+        m_pSynthesizer->SetPan(pMessage[5], instanceID);
+	break;
+    case 86:						// Volume
+        m_pSynthesizer->SetVol(pMessage[5], instanceID);
+	break;
+    case 87:						// Pitch Bend
+	break;
+    case 88:						// Portamento
+	break;
+/* End of BeZo patches */
     case 100:
       // load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");

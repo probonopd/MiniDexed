@@ -3,6 +3,7 @@
 set -e 
 set -x
 
+echo "Clean: ${CLEAN}"
 if [ -z "${RPI}" ] ; then
   echo "\$RPI missing, exting"
   exit 1
@@ -22,19 +23,27 @@ fi
 
 # Build circle-stdlib library
 cd circle-stdlib/
+if [ ! -z "${CLEAN}" ] ; then
 make mrproper || true
+fi
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
 make -j
 
 # Build additional libraries
 cd libs/circle/addon/display/
+if [ ! -z "${CLEAN}" ] ; then
 make clean || true
+fi
 make -j
 cd ../sensor/
+if [ ! -z "${CLEAN}" ] ; then
 make clean || true
+fi
 make -j
 cd ../Properties/
+if [ ! -z "${CLEAN}" ] ; then
 make clean || true
+fi
 make -j
 cd ../../../..
 
@@ -42,7 +51,9 @@ cd ..
 
 # Build MiniDexed
 cd src
+if [ ! -z "${CLEAN}" ] ; then
 make clean || true
+fi
 make -j
 ls *.img
 cd ..
