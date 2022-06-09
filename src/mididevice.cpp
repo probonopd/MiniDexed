@@ -187,6 +187,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+					printf("MIDI-SYSEX: channel: %u, len: %lu, TG: %u",m_ChannelMap[nTG],nLength,nTG);
 					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
 				}
 			}
@@ -490,6 +491,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if(sysex_return >= 500 && sysex_return < 600)
       {
         LOGDBG("SysEx send voice %u request",sysex_return-500);
+        printf("SysEx send voice %u request",sysex_return-500);
         SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
       }
       break;
