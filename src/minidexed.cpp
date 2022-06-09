@@ -1194,7 +1194,8 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 
 	dest[0] = 0xF0; // SysEx start
 	dest[1] = 0x43; // ID=Yamaha
-	dest[2] = GetTGParameter(TGParameterMIDIChannel, nTG); // Sub-status and MIDI channel
+//	dest[2] = GetTGParameter(TGParameterMIDIChannel, nTG); // Sub-status and MIDI channel
+	dest[2] = nTG; // Sub-status and MIDI channel/Instance ID
 	dest[3] = 0x00; // Format number (0=1 voice)
 	dest[4] = 0x01; // Byte count MSB
 	dest[5] = 0x1B; // Byte count LSB

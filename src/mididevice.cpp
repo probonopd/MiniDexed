@@ -184,11 +184,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				// MIDI SYSEX per MIDI channel
 				uint8_t ucSysExChannel = (pMessage[2] & 0x07);
-				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
+				if ( nTG == ucSysExChannel || m_ChannelMap[nTG] == OmniMode )
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
-					printf("MIDI-SYSEX: channel: %u, len: %lu, TG: %u",m_ChannelMap[nTG],nLength,nTG);
-					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+					//printf("MIDI-SYSEX: channel: %u, len: %lu, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+					HandleSystemExclusive(pMessage, nLength, nCable, ucSysExChannel);
 				}
 			}
 			else
@@ -334,9 +334,15 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 {
   int16_t sysex_return;
 
+  if ( nTG >= CConfig::ToneGenerators ) return;
+ 
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
   uint8_t instanceID = pMessage[2]&0xF;
+
+  if ( instanceID != nTG ) { printf("WARNING instanceID and nTG do not match!!!!!\n"); }
+
   LOGDBG("SYSEX handler return value: %d", sysex_return);
+  //printf("SYSEX handler return value: %d for TG %i", sysex_return, instanceID);
 
   switch (sysex_return)
   {
@@ -429,6 +435,14 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
       break;
 /* BeZo patches */
+    case 78:						// bank select
+	LOGDBG("Bank Select for TG %i\n", instanceID);
+	m_pSynthesizer->BankSelectLSB (pMessage[5], instanceID);
+	break;
+    case 79:						// pgm select
+	LOGDBG("Patch Select for TG %i\n", instanceID);
+	m_pSynthesizer->ProgramChange (pMessage[5], instanceID);
+	break;
     case 80:						// Set midi channel
 	LOGDBG("Set midi channel for TG %i", instanceID);
 	m_pSynthesizer->SetMIDIChannel(pMessage[5], instanceID);
@@ -438,8 +452,12 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
         m_pSynthesizer->SetReverbSend (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
 	break;
     case 82:						// Compressor toggle
+	LOGDBG("Set Compressor ");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterCompressorEnable, maplong (pMessage[5], 0, 127, 0, 1) );
 	break;
     case 83:						// Transpose
+	LOGDBG("Set Transpose for TG %i", instanceID);
+//        m_pSynthesizer->SetTranspose (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
 	break;
     case 84:						// Detune
 	LOGDBG("Set detune for TG %i", instanceID);
@@ -464,6 +482,16 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
     case 87:						// Pitch Bend
 	break;
     case 88:						// Portamento
+	LOGDBG("Set portamento mode for TG %i", instanceID);
+        m_pSynthesizer->setPortamentoMode(pMessage[5],instanceID);
+	break;
+    case 89:						// Mono Mode
+	LOGDBG("Set Mono mode for TG %i", instanceID);
+        m_pSynthesizer->setMonoMode(pMessage[5],instanceID);
+	break;
+    case 600:						// Config requestnTG
+        LOGDBG("Config request received\n");
+	SendSystemExclusiveConfig(nCable);
 	break;
 /* End of BeZo patches */
     case 100:
@@ -480,7 +508,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       if(sysex_return >= 300 && sysex_return < 500)
       {
         LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
-        m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+        m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],instanceID);
         switch(pMessage[4] + ((pMessage[3] & 0x03) * 128))
         {
           case 134:
@@ -491,8 +519,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if(sysex_return >= 500 && sysex_return < 600)
       {
         LOGDBG("SysEx send voice %u request",sysex_return-500);
-        printf("SysEx send voice %u request",sysex_return-500);
-        SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
+        SendSystemExclusiveVoice(sysex_return-500, nCable, instanceID);
       }
       break;
   }
@@ -514,3 +541,58 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
     LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
 } 
+
+void CMIDIDevice::SendSystemExclusiveConfig(const unsigned nCable)
+{
+  uint8_t count = 0;
+  uint8_t configdump[196];
+
+  configdump[count++] = 0xF0;
+  configdump[count++] = 0x43;
+  configdump[count++] = 0x31;
+
+  for ( uint8_t instance = 0 ; instance < CConfig::ToneGenerators; instance++)
+  {
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterVoiceBank, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterProgram, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterMIDIChannel, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterVolume, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPan, instance) & 0x7F;
+    int16_t mastertune = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterMasterTune, instance);
+    configdump[count++] = (mastertune >> 9)&0x7f;
+    configdump[count++] = (mastertune & 0x7f);
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterCutoff, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterResonance, instance) & 0x7F;
+    configdump[count++] = 0; // Note limit low
+    configdump[count++] = 127; // Note limit high
+    configdump[count++] = 0; // Note shift
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterReverbSend, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPitchBendRange, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPitchBendStep, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPortamentoMode, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPortamentoGlissando, instance) & 0x7F;
+    configdump[count++] = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterPortamentoTime, instance) & 0x7F;
+    configdump[count++] = 0;
+    configdump[count++] = 0;
+    configdump[count++] = 0;
+    configdump[count++] = 0;
+    configdump[count++] = 0;
+    configdump[count++] = 0;
+  }
+  configdump[count++] = 0xF7;
+
+//  for ( size_t i=0 ; i< count; i++)
+//  {
+//    printf("%02X, ", configdump[i]);
+//    if ( (i+1) % 16 == 0 ) printf ("\n");
+//  }
+
+  TDeviceMap::const_iterator Iterator;
+
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (configdump, sizeof(configdump)*sizeof(uint8_t));
+    LOGDBG("Send SYSEX config dump to \"%s\"",Iterator->first.c_str());
+  }
+}

@@ -22,32 +22,32 @@ if [ "${RPI}" -gt "1" ]; then
 fi
 
 # Build circle-stdlib library
-cd circle-stdlib/
-if [ ! -z "${CLEAN}" ] ; then
-make mrproper || true
-fi
-./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
-make -j
+#cd circle-stdlib/
+#if [ ! -z "${CLEAN}" ] ; then
+#make mrproper || true
+#fi
+#./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
+#make -j
 
 # Build additional libraries
-cd libs/circle/addon/display/
-if [ ! -z "${CLEAN}" ] ; then
-make clean || true
-fi
-make -j
-cd ../sensor/
-if [ ! -z "${CLEAN}" ] ; then
-make clean || true
-fi
-make -j
-cd ../Properties/
-if [ ! -z "${CLEAN}" ] ; then
-make clean || true
-fi
-make -j
-cd ../../../..
+#cd libs/circle/addon/display/
+#if [ ! -z "${CLEAN}" ] ; then
+#make clean || true
+#fi
+#make -j
+#cd ../sensor/
+#if [ ! -z "${CLEAN}" ] ; then
+#make clean || true
+#fi
+#make -j
+#cd ../Properties/
+#if [ ! -z "${CLEAN}" ] ; then
+#make clean || true
+#fi
+#make -j
+#cd ../../../..
 
-cd ..
+#cd ..
 
 # Build MiniDexed
 echo "Build MiniDexed"

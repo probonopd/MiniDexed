@@ -51,6 +51,7 @@ public:
 
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
 	virtual void SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG);
+	virtual void SendSystemExclusiveConfig(const unsigned nCable);
 
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
