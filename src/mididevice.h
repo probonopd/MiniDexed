@@ -50,9 +50,11 @@ public:
 	u8 GetChannel (unsigned nTG) const;
 
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
-	virtual void SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG);
-	virtual void SendSystemExclusiveConfig(const unsigned nCable);
-
+	virtual void SendSystemExclusiveVoice(uint8_t nVoice, uint8_t nTG);
+	virtual void SendSystemExclusiveConfig();
+	virtual void SendProgramChange(uint8_t pgm, uint8_t nTG);
+	virtual void SendBankChange(uint8_t bank, uint8_t nTG);
+	virtual void SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG);
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 	void AddDevice (const char *pDeviceName);

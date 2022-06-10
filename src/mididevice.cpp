@@ -489,10 +489,22 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 	LOGDBG("Set Mono mode for TG %i", instanceID);
         m_pSynthesizer->setMonoMode(pMessage[5],instanceID);
 	break;
+    case 90:						// Set Cutoff
+	LOGDBG("Set Cutoff for TG %i", instanceID);
+        m_pSynthesizer->SetCutoff(pMessage[5], instanceID);
+	break;
+    case 91:						// Set Reso
+	LOGDBG("Set Resonanece for TG %i", instanceID);
+        m_pSynthesizer->SetResonance(pMessage[5], instanceID);
+        break;
     case 600:						// Config requestnTG
         LOGDBG("Config request received\n");
-	SendSystemExclusiveConfig(nCable);
+	SendSystemExclusiveConfig();
 	break;
+//    case 601:
+//        printf("Get Bank Name\n");
+//	std::string Value =  pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nValue);
+//	break;
 /* End of BeZo patches */
     case 100:
       // load sysex-data into voice memory
@@ -519,13 +531,13 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if(sysex_return >= 500 && sysex_return < 600)
       {
         LOGDBG("SysEx send voice %u request",sysex_return-500);
-        SendSystemExclusiveVoice(sysex_return-500, nCable, instanceID);
+        SendSystemExclusiveVoice(sysex_return-500, instanceID);
       }
       break;
   }
 }
 
-void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
+void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, uint8_t nTG)
 {
   uint8_t voicedump[163];
 
@@ -542,7 +554,7 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
   }
 } 
 
-void CMIDIDevice::SendSystemExclusiveConfig(const unsigned nCable)
+void CMIDIDevice::SendSystemExclusiveConfig()
 {
   uint8_t count = 0;
   uint8_t configdump[196];
@@ -594,5 +606,37 @@ void CMIDIDevice::SendSystemExclusiveConfig(const unsigned nCable)
   {
     Iterator->second->Send (configdump, sizeof(configdump)*sizeof(uint8_t));
     LOGDBG("Send SYSEX config dump to \"%s\"",Iterator->first.c_str());
+  }
+}
+
+void CMIDIDevice::SendProgramChange(uint8_t pgm, uint8_t nTG)
+{
+  uint8_t PgmChange[2] = { 0xC0|(nTG & 0x0F), (pgm & 0x7f) };
+
+  TDeviceMap::const_iterator Iterator;
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (PgmChange, sizeof(PgmChange)*sizeof(uint8_t));
+    LOGDBG("Send Program Change %i to \"%s\"",pgm&0x7f,Iterator->first.c_str());
+  }
+}
+
+void CMIDIDevice::SendBankChange(uint8_t bank, uint8_t nTG)
+{
+  SendCtrlChange(0xB0,32, (bank&0x7f));
+}
+
+void CMIDIDevice::SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG)
+{
+  uint8_t CtrlMsg[3] = { 0xB0|(nTG & 0x0F), ctrl&0x7f, val&0x7f };
+
+  TDeviceMap::const_iterator Iterator;
+
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (CtrlMsg, sizeof(CtrlMsg)*sizeof(uint8_t));
+    LOGDBG("Send Ctrl change %02X = %i to \"%s\"",ctrl&0x7f, val&0x7f,Iterator->first.c_str());
   }
 }

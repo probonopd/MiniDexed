@@ -346,6 +346,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceBankID[nTG] = nBankLSB;
+	m_SerialMIDI.SendBankChange(nBankLSB,nTG);
 
 	m_UI.ParameterChanged ();
 }
@@ -362,7 +363,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
-	m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
+	m_SerialMIDI.SendProgramChange(nProgram,nTG);
 
 	m_UI.ParameterChanged ();
 }
