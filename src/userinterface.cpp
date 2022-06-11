@@ -233,18 +233,6 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 						      : CUIMenu::MenuEventStepDown);
 		break;
 
-	case CKY040::EventSwitchClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventBack);
-		break;
-
-	case CKY040::EventSwitchDoubleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
-		break;
-
-	case CKY040::EventSwitchTripleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventHome);
-		break;
-
 	case CKY040::EventSwitchHold:
 		if (m_pRotaryEncoder->GetHoldSeconds () >= 120)
 		{

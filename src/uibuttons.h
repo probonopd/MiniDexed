@@ -84,8 +84,6 @@ private:
 	uint16_t m_debounceTimer;
 	// Number of clicks recorded since last timer reset
 	uint8_t m_numClicks;
-
-public:
 	// Event to fire on click
 	BtnEvent m_clickEvent;
 	// Event to fire on double click
