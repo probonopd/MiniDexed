@@ -53,7 +53,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
-	m_bDeletePerformance (false)
+	m_bDeletePerformance (false),
+	m_bLoadPerformanceBusy(false)
 {
 	assert (m_pConfig);
 
@@ -226,7 +227,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-
+	
 	return true;
 }
 
@@ -264,10 +265,14 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance)
+	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
 	{
 		DoSetNewPerformance ();
-		m_bSetNewPerformance = false;
+		if (m_nSetNewPerformanceID == GetActualPerformanceID())
+		{
+			m_bSetNewPerformance = false;
+		}
+		
 	}
 	
 	if(m_bDeletePerformance)
@@ -954,9 +959,10 @@ void CMiniDexed::ProcessSound (void)
 
 #endif
 
-bool CMiniDexed::SavePerformance (void)
+bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
 	m_bSavePerformance = true;
+	m_bSaveAsDeault=bSaveAsDeault;
 
 	return true;
 }
@@ -998,6 +1004,11 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
+	if(m_bSaveAsDeault)
+	{
+		m_PerformanceConfig.SetNewPerformance(0);
+		
+	}
 	return m_PerformanceConfig.Save ();
 }
 
@@ -1263,17 +1274,21 @@ bool CMiniDexed::SetNewPerformance(unsigned nID)
 
 bool CMiniDexed::DoSetNewPerformance (void)
 {
+	m_bLoadPerformanceBusy = true;
+	
 	unsigned nID = m_nSetNewPerformanceID;
 	m_PerformanceConfig.SetNewPerformance(nID);
 	
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters();
+		m_bLoadPerformanceBusy = false;
 		return true;
 	}
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+		m_bLoadPerformanceBusy = false;
 		return false;
 	}
 }
@@ -1288,7 +1303,7 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
 	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
-		if(SavePerformance())
+		if(SavePerformance(false))
 		{
 			return true;
 		}
@@ -1395,4 +1410,7 @@ bool CMiniDexed::DoDeletePerformance(void)
 	return false;
 }
 
-
+bool CMiniDexed::GetPerformanceSelectToLoad(void)
+{
+	return m_pConfig->GetPerformanceSelectToLoad();
+}
