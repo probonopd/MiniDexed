@@ -114,6 +114,8 @@ public:
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool GetPerformanceSelectToLoad(void);
+	bool SavePerformance (bool bSaveAsDeault);
 	
 	enum TParameter
 	{
@@ -259,6 +261,8 @@ private:
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
+	bool m_bLoadPerformanceBusy;
+	bool m_bSaveAsDeault;
 };
 
 #endif
