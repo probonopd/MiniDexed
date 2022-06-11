@@ -52,7 +52,7 @@ public:
 	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
 
 	void EventHandler (TMenuEvent Event);
-
+	
 private:
 	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 
@@ -144,6 +144,7 @@ private:
 	static const TMenuItem s_SaveMenu[];
 	static const TMenuItem s_EditPitchBendMenu[];
 	static const TMenuItem s_EditPortamentoMenu[];
+	static const TMenuItem s_PerformanceMenu[];
 		
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
