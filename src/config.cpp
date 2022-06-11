@@ -88,6 +88,7 @@ void CConfig::Load (void)
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
+	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 0) != 0;
 }
 
 const char *CConfig::GetSoundDevice (void) const
@@ -208,4 +209,9 @@ bool CConfig::GetMIDIDumpEnabled (void) const
 bool CConfig::GetProfileEnabled (void) const
 {
 	return m_bProfileEnabled;
+}
+
+bool CConfig::GetPerformanceSelectToLoad (void) const
+{
+	return m_bPerformanceSelectToLoad;
 }
