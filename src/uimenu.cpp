@@ -52,8 +52,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
-	{"Performance",	PerformanceMenu}, 
-	{"Save",	MenuHandler,	s_SaveMenu},
+	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
 
@@ -145,7 +144,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 	{"LFO Wave",	EditVoiceParameter,	0,		DEXED_LFO_WAVE},
 	{"P Mod Sens.",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_SENS},
 	{"Transpose",	EditVoiceParameter,	0,		DEXED_TRANSPOSE},
-	{"\E[?25lName",	InputTxt,0 , 3}, // escape code \E[?25l is for turnoff cursor
+	{"Name",	InputTxt,0 , 3}, 
 	{0}
 };
 
@@ -178,8 +177,9 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
-	{"Overwrite",	SavePerformance}, 
-	{"\E[?25lNew",	InputTxt,0 , 1}, // escape code \E[?25l is for turnoff cursor
+	{"Overwrite",	SavePerformance, 0, 0}, 
+	{"New",	InputTxt,0 , 1}, 
+	{"Save as deault",	SavePerformance, 0, 1}, 
 	{0}
 };
 
@@ -281,6 +281,15 @@ const char CUIMenu::s_NoteName[100][4] =
 	"A9", "A#9", "B9", "C9"
 };
 static const unsigned NoteC3 = 27;
+
+const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
+{
+	{"Load",	PerformanceMenu, 0, 0}, 
+	{"Save",	MenuHandler,	s_SaveMenu},
+	{"Delete",	PerformanceMenu, 0, 1}, 
+	{0}
+};
+
 
 CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 :	m_pUI (pUI),
@@ -803,7 +812,7 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance ();
+	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
 
 	const char *pMenuName =
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
@@ -1114,6 +1123,7 @@ void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void 
 
 void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 {
+	bool bPerformanceSelectToLoad = pUIMenu->m_pMiniDexed->GetPerformanceSelectToLoad();
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	std::string Value;
 		
@@ -1140,6 +1150,10 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				--nValue;
 			}
 			pUIMenu->m_nSelectedPerformanceID = nValue;
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+			}
 			break;
 
 		case MenuEventStepUp:
@@ -1148,20 +1162,33 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				nValue = pUIMenu->m_pMiniDexed->GetLastPerformance()-1;
 			}
 			pUIMenu->m_nSelectedPerformanceID = nValue;
-			break;
-
-		case MenuEventSelect:	
-			if(pUIMenu->m_pMiniDexed->GetActualPerformanceID() != nValue || pUIMenu->m_pMiniDexed->GetActualPerformanceID() == 0 )
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
 			}
-			else
-			{
-				pUIMenu->m_bPerformanceDeleteMode=true;
-				pUIMenu->m_bConfirmDeletePerformance=false;
-			}	
 			break;
-		
+
+		case MenuEventSelect:	
+			switch (pUIMenu->m_nCurrentParameter)
+			{
+			case 0:
+				if (bPerformanceSelectToLoad)
+				{
+				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+				}
+
+				break;
+			case 1:
+				if (pUIMenu->m_nSelectedPerformanceID != 0)
+				{
+					pUIMenu->m_bPerformanceDeleteMode=true;
+					pUIMenu->m_bConfirmDeletePerformance=false;
+				}
+				break;
+			default:
+				break;
+			}
+			break;
 		default:
 			return;
 		}
@@ -1210,7 +1237,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		std::string nPSelected = "";
 		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
 		{
-			nPSelected= "[Ld]";
+			nPSelected= "[L]";
 		}
 					
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
@@ -1243,7 +1270,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			MaxChars=14;
 			MenuTitleL="Performance Name";
 			MenuTitleR="";
-			OkTitleL="\E[?25lNew Performance";
+			OkTitleL="New Performance"; // \E[?25l
 			OkTitleR="";
 		 break;
 		 
@@ -1252,7 +1279,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			MaxChars=14;
 			MenuTitleL="Performance Name";
 			MenuTitleR="";
-			OkTitleL="\E[?25lRename Perf.";
+			OkTitleL="Rename Perf."; // \E[?25l
 			OkTitleR="";
 		break;
 		
@@ -1380,7 +1407,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			pUIMenu->m_pMiniDexed->SetVoiceName(pUIMenu->m_InputText, nTG);
 		}	
 		
-	Value = Value + escCursor;
+	Value = Value + " " + escCursor ;
 	pUIMenu->m_pUI->DisplayWrite (MenuTitleR.c_str(),MenuTitleL.c_str(), Value.c_str(), false, false);
 	
 	
