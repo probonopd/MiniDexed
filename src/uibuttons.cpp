@@ -364,3 +364,11 @@ void CUIButtons::Update (void)
 	}
 }
 
+void CUIButtons::ResetButton (unsigned pinNumber)
+{
+	for (unsigned i=0; i<MAX_BUTTONS; i++) {
+		if (m_buttons[i].getPinNumber() == pinNumber) {
+			m_buttons[i].reset();
+		}
+	}
+}

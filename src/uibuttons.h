@@ -113,6 +113,8 @@ public:
 	void RegisterEventHandler (BtnEventHandler *handler, void *param = 0);
 	
 	void Update (void);
+
+	void ResetButton (unsigned pinNumber);
 	
 private:
 	// Up to 5 buttons can be defined

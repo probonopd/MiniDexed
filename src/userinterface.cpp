@@ -224,13 +224,26 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventClockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepUp
-						      : CUIMenu::MenuEventStepUp);
+		if (m_bSwitchPressed) {
+			// We must reset the encoder switch button to prevent events from being
+			// triggered after the encoder is rotated
+			m_pUIButtons->ResetButton(m_pConfig->GetEncoderPinSwitch());
+			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepUp);
+
+		}
+		else {
+			m_Menu.EventHandler(CUIMenu::MenuEventStepUp);
+		}
 		break;
 
 	case CKY040::EventCounterclockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepDown
-						      : CUIMenu::MenuEventStepDown);
+		if (m_bSwitchPressed) {
+			m_pUIButtons->ResetButton(m_pConfig->GetEncoderPinSwitch());
+			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepDown);
+		}
+		else {
+			m_Menu.EventHandler(CUIMenu::MenuEventStepDown);
+		}
 		break;
 
 	case CKY040::EventSwitchHold:
