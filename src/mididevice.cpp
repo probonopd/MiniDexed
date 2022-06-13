@@ -34,18 +34,6 @@ LOGMODULE ("mididevice");
 #define MIDI_NOTE_ON		0b1001
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
-	#define MIDI_CC_MODULATION			1
-	#define MIDI_CC_VOLUME				7
-	#define MIDI_CC_PAN_POSITION		10
-	#define MIDI_CC_BANK_SELECT_LSB		32
-	#define MIDI_CC_BANK_SUSTAIN		64
-	#define MIDI_CC_RESONANCE			71
-	#define MIDI_CC_FREQUENCY_CUTOFF	74
-	#define MIDI_CC_REVERB_LEVEL		91
-	#define MIDI_CC_DETUNE_LEVEL		94
-	#define MIDI_CC_ALL_SOUND_OFF		120
-	#define MIDI_CC_ALL_NOTES_OFF		123
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -268,7 +256,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 							break;
 		
-						case MIDI_CC_DETUNE_LEVEL:
+						case MIDI_CC_DETUNE_LEVEL+32:
 							if (pMessage[2] == 0)
 							{
 								// "0 to 127, with 0 being no celeste (detune) effect applied at all."
@@ -342,7 +330,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   if ( instanceID != nTG ) { printf("WARNING instanceID and nTG do not match!!!!!\n"); }
 
   LOGDBG("SYSEX handler return value: %d", sysex_return);
-  //printf("SYSEX handler return value: %d for TG %i", sysex_return, instanceID);
+  //printf("SYSEX handler return value: %d for TG %i\n", sysex_return, instanceID);
 
   switch (sysex_return)
   {
@@ -501,10 +489,10 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
         LOGDBG("Config request received\n");
 	SendSystemExclusiveConfig();
 	break;
-//    case 601:
-//        printf("Get Bank Name\n");
-//	std::string Value =  pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nValue);
-//	break;
+    case 601:
+        LOGDBG("Get Bank Name request received\n");
+	SendBankName(instanceID);
+	break;
 /* End of BeZo patches */
     case 100:
       // load sysex-data into voice memory
@@ -593,12 +581,6 @@ void CMIDIDevice::SendSystemExclusiveConfig()
   }
   configdump[count++] = 0xF7;
 
-//  for ( size_t i=0 ; i< count; i++)
-//  {
-//    printf("%02X, ", configdump[i]);
-//    if ( (i+1) % 16 == 0 ) printf ("\n");
-//  }
-
   TDeviceMap::const_iterator Iterator;
 
   // send voice dump to all MIDI interfaces
@@ -611,7 +593,7 @@ void CMIDIDevice::SendSystemExclusiveConfig()
 
 void CMIDIDevice::SendProgramChange(uint8_t pgm, uint8_t nTG)
 {
-  uint8_t PgmChange[2] = { 0xC0|(nTG & 0x0F), (pgm & 0x7f) };
+  uint8_t PgmChange[2] = { (uint8_t)(0xC0|(nTG & 0x0F)), (uint8_t)(pgm & 0x7f) };
 
   TDeviceMap::const_iterator Iterator;
   // send voice dump to all MIDI interfaces
@@ -624,12 +606,12 @@ void CMIDIDevice::SendProgramChange(uint8_t pgm, uint8_t nTG)
 
 void CMIDIDevice::SendBankChange(uint8_t bank, uint8_t nTG)
 {
-  SendCtrlChange(0xB0,32, (bank&0x7f));
+  SendCtrlChange14Bit(0, bank, nTG);
 }
 
 void CMIDIDevice::SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG)
 {
-  uint8_t CtrlMsg[3] = { 0xB0|(nTG & 0x0F), ctrl&0x7f, val&0x7f };
+  uint8_t CtrlMsg[3] = { (uint8_t)(0xB0|(nTG & 0x0F)), (uint8_t)(ctrl&0x7f), (uint8_t)(val&0x7f) };
 
   TDeviceMap::const_iterator Iterator;
 
@@ -640,3 +622,30 @@ void CMIDIDevice::SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG)
     LOGDBG("Send Ctrl change %02X = %i to \"%s\"",ctrl&0x7f, val&0x7f,Iterator->first.c_str());
   }
 }
+
+void CMIDIDevice::SendCtrlChange14Bit(uint8_t ctrl, int16_t val, uint8_t nTG)
+{
+    uint8_t lsb = (val & 0x7f);
+    uint8_t msb = (val >> 9)&0x7f;
+    SendCtrlChange(ctrl,msb,nTG);
+    SendCtrlChange(ctrl+32, lsb, nTG);
+}
+
+void CMIDIDevice::SendBankName(uint8_t nTG)
+{
+  char *bankname = (char*)calloc(32,sizeof(char));
+  snprintf(bankname,sizeof(bankname), "%s", m_pSynthesizer->GetSysExFileLoader()->GetBankName(m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterVoiceBank,nTG)).c_str());
+  uint8_t banksysex[40] =  { 0xF0, 0x43, (uint8_t)(0x50|nTG), 0,0,32 };
+  memcpy(banksysex+6,bankname,32);
+  banksysex[38] = 00;
+  banksysex[39] = 0xF7;
+  TDeviceMap::const_iterator Iterator;
+
+  // send voice dump to all MIDI interfaces
+  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
+  {
+    Iterator->second->Send (banksysex, sizeof(banksysex)*sizeof(uint8_t));
+    LOGDBG("Send Bank Name Sysex to \"%s\"",Iterator->first.c_str());
+  }
+}
+

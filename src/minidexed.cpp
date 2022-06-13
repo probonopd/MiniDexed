@@ -346,7 +346,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nVoiceBankID[nTG] = nBankLSB;
-	m_SerialMIDI.SendBankChange(nBankLSB,nTG);
+	m_SerialMIDI.SendBankChange(m_nVoiceBankID[nTG],nTG);
 
 	m_UI.ParameterChanged ();
 }
@@ -363,7 +363,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
-	m_SerialMIDI.SendProgramChange(nProgram,nTG);
+	m_SerialMIDI.SendProgramChange(m_nProgram[nTG],nTG);
 
 	m_UI.ParameterChanged ();
 }
@@ -377,7 +377,7 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setGain (nVolume / 127.0f);
-
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_VOLUME, m_nVolume[nTG], nTG);
 	m_UI.ParameterChanged ();
 }
 
@@ -391,6 +391,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_PAN_POSITION, nPan, nTG);
 	m_UI.ParameterChanged ();
 }
 
@@ -403,6 +404,8 @@ void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 
 	reverb_send_mixer->gain(nTG,mapfloat(nReverbSend,0,99,0.0f,1.0f));
 	
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_REVERB_LEVEL, m_nReverbSend[nTG], nTG);
+
 	m_UI.ParameterChanged ();
 }
 
@@ -415,6 +418,8 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setMasterTune ((int8_t) nMasterTune);
+
+	m_SerialMIDI.SendCtrlChange14Bit(MIDI_CC_DETUNE_LEVEL, m_nMasterTune[nTG], nTG);
 
 	m_UI.ParameterChanged ();
 }
@@ -429,6 +434,8 @@ void CMiniDexed::SetCutoff (int nCutoff, unsigned nTG)
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setFilterCutoff (mapfloat (nCutoff, 0, 99, 0.0f, 1.0f));
 
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_FREQUENCY_CUTOFF, m_nCutoff[nTG], nTG);
+
 	m_UI.ParameterChanged ();
 }
 
@@ -441,6 +448,8 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setFilterResonance (mapfloat (nResonance, 0, 99, 0.0f, 1.0f));
+
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_RESONANCE, m_nResonance[nTG], nTG);
 
 	m_UI.ParameterChanged ();
 }
