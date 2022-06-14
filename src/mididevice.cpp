@@ -368,59 +368,59 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       break;
     case 64:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setMonoMode(pMessage[5],nTG);
+      m_pSynthesizer->setMonoMode(pMessage[5], instanceID);
       break;
     case 65:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendRange(pMessage[5],nTG);
+      m_pSynthesizer->setPitchbendRange(pMessage[5],instanceID);
       break;
     case 66:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendStep(pMessage[5],nTG);
+      m_pSynthesizer->setPitchbendStep(pMessage[5],instanceID);
       break;
     case 67:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoMode(pMessage[5],nTG);
+      m_pSynthesizer->setPortamentoMode(pMessage[5],instanceID);
       break;
     case 68:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoGlissando(pMessage[5],nTG);
+      m_pSynthesizer->setPortamentoGlissando(pMessage[5],instanceID);
       break;
     case 69:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoTime(pMessage[5],nTG);
+      m_pSynthesizer->setPortamentoTime(pMessage[5],instanceID);
       break;
     case 70:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelRange(pMessage[5],nTG);
+      m_pSynthesizer->setModWheelRange(pMessage[5],instanceID);
       break;
     case 71:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelTarget(pMessage[5],nTG);
+      m_pSynthesizer->setModWheelTarget(pMessage[5],instanceID);
       break;
     case 72:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerRange(pMessage[5],nTG);
+      m_pSynthesizer->setFootControllerRange(pMessage[5],instanceID);
       break;
     case 73:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerTarget(pMessage[5],nTG);
+      m_pSynthesizer->setFootControllerTarget(pMessage[5],instanceID);
       break;
     case 74:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerRange(pMessage[5],nTG);
+      m_pSynthesizer->setBreathControllerRange(pMessage[5],instanceID);
       break;
     case 75:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerTarget(pMessage[5],nTG);
+      m_pSynthesizer->setBreathControllerTarget(pMessage[5],instanceID);
       break;
     case 76:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchRange(pMessage[5],nTG);
+      m_pSynthesizer->setAftertouchRange(pMessage[5],instanceID);
       break;
     case 77:
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
+      m_pSynthesizer->setAftertouchTarget(pMessage[5],instanceID);
       break;
 /* BeZo patches */
     case 78:						// bank select
@@ -435,19 +435,23 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 	LOGDBG("Set midi channel for TG %i", instanceID);
 	m_pSynthesizer->SetMIDIChannel(pMessage[5], instanceID);
 	break;
-    case 81:						// Reverb level
+    case 81:						// Set Cutoff
+	LOGDBG("Set Cutoff for TG %i", instanceID);
+        m_pSynthesizer->SetCutoff(pMessage[5], instanceID);
+	break;
+    case 82:						// Set Reso
+	LOGDBG("Set Resonanece for TG %i", instanceID);
+        m_pSynthesizer->SetResonance(pMessage[5], instanceID);
+        break;
+    case 83:						// Reverb level
 	LOGDBG("Set Reverb Level for TG %i", instanceID);
-        m_pSynthesizer->SetReverbSend (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
+        m_pSynthesizer->SetReverbSend (pMessage[5], instanceID);
 	break;
-    case 82:						// Compressor toggle
-	LOGDBG("Set Compressor ");
-        m_pSynthesizer->SetParameter (CMiniDexed::ParameterCompressorEnable, maplong (pMessage[5], 0, 127, 0, 1) );
-	break;
-    case 83:						// Transpose
+    case 84:						// Transpose
 	LOGDBG("Set Transpose for TG %i", instanceID);
-//        m_pSynthesizer->SetTranspose (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
+//        m_pSynthesizer->SetTranspose (pMessage[5], instanceID);
 	break;
-    case 84:						// Detune
+    case 85:						// Detune
 	LOGDBG("Set detune for TG %i", instanceID);
 	if (pMessage[5] == 0)
         {
@@ -459,32 +463,48 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
                 m_pSynthesizer->SetMasterTune (maplong (pMessage[5], 1, 127, -99, 99), instanceID);
         }
 	break;
-    case 85:						// Panning
+    case 86:						// Panning
 	LOGDBG("Set panning for TG %i", instanceID);
         m_pSynthesizer->SetPan(pMessage[5], instanceID);
 	break;
-    case 86:						// Volume
-	LOGDBG("Set volume for TG %i", instanceID);
-        m_pSynthesizer->SetVolume(pMessage[5], instanceID);
+    case 87:						// Note Limit Low 
+	LOGDBG("Set Note Limit High mode for TG %i", instanceID);
 	break;
-    case 87:						// Pitch Bend
+    case 88:						// Note Limit High
+	LOGDBG("Set Note Limit High mode for TG %i", instanceID);
 	break;
-    case 88:						// Portamento
-	LOGDBG("Set portamento mode for TG %i", instanceID);
-        m_pSynthesizer->setPortamentoMode(pMessage[5],instanceID);
+    case 89:						// Compressor toggle
+	LOGDBG("Set Compressor ");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterCompressorEnable, pMessage[5] );
 	break;
-    case 89:						// Mono Mode
-	LOGDBG("Set Mono mode for TG %i", instanceID);
-        m_pSynthesizer->setMonoMode(pMessage[5],instanceID);
+    case 90:						// Reverb toggle
+	LOGDBG("Set Reverb Enable");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbEnable, pMessage[5] );
 	break;
-    case 90:						// Set Cutoff
-	LOGDBG("Set Cutoff for TG %i", instanceID);
-        m_pSynthesizer->SetCutoff(pMessage[5], instanceID);
+    case 91:						// Reverb Size
+	LOGDBG("Set Reverb Size");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbSize, pMessage[5] );
 	break;
-    case 91:						// Set Reso
-	LOGDBG("Set Resonanece for TG %i", instanceID);
-        m_pSynthesizer->SetResonance(pMessage[5], instanceID);
-        break;
+    case 92:						// Reverb Low Damp
+	LOGDBG("Set Reverb Low Damp");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbLowDamp, pMessage[5]);
+	break;
+    case 93:						// Reverb High Damp
+	LOGDBG("Set Reverb High Damp");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbHighDamp, pMessage[5] );
+	break;
+    case 94:						// Reverb Lowpass
+	LOGDBG("Set Reverb Low pass");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbLowPass, pMessage[5]);
+	break;
+    case 95:						// Reverb Diffusion
+	LOGDBG("Set Reverb Diffusion");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbDiffusion, pMessage[5] );
+	break;
+    case 96:						// Reverb Master Level
+	LOGDBG("Set Reverb Master Level");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterReverbLevel, pMessage[5] );
+	break;
     case 600:						// Config requestnTG
         LOGDBG("Config request received\n");
 	SendSystemExclusiveConfig();
@@ -545,11 +565,21 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, uint8_t nTG)
 void CMIDIDevice::SendSystemExclusiveConfig()
 {
   uint8_t count = 0;
-  uint8_t configdump[196];
+  uint8_t configdump[204];
 
   configdump[count++] = 0xF0;
   configdump[count++] = 0x43;
   configdump[count++] = 0x31;
+
+  // FX Settings
+  configdump[count++] = ((m_pSynthesizer->GetParameter(CMiniDexed::ParameterCompressorEnable) & 0x7F)<<1) |
+			 m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbEnable) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbSize) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbHighDamp) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbLowDamp) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbLowPass) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbDiffusion) & 0x7F;
+  configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbLevel) & 0x7F;
 
   for ( uint8_t instance = 0 ; instance < CConfig::ToneGenerators; instance++)
   {
