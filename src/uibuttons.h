@@ -28,9 +28,9 @@
 #include "config.h"
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
-#define DEBOUNCE_TIME 50
-#define DOUBLE_CLICK_TIME 1700
-#define LONG_PRESS_TIME 4500
+#define DEBOUNCE_TIME 100
+#define DOUBLE_CLICK_TIME 4000
+#define LONG_PRESS_TIME 10000
 #define MAX_BUTTONS 5
 
 class CUIButton
