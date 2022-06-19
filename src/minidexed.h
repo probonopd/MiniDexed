@@ -166,6 +166,7 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+	uint8_t getMasterVolume() { return (127*nMasterVolume); }
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note

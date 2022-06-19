@@ -391,7 +391,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 
-	m_SerialMIDI.SendCtrlChange(MIDI_CC_PAN_POSITION, nPan, nTG);
+	m_SerialMIDI.SendCtrlChange(MIDI_CC_PAN_POSITION, m_nPan[nTG], nTG);
 	m_UI.ParameterChanged ();
 }
 

@@ -580,6 +580,7 @@ void CMIDIDevice::SendSystemExclusiveConfig()
   configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbLowPass) & 0x7F;
   configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbDiffusion) & 0x7F;
   configdump[count++] = m_pSynthesizer->GetParameter(CMiniDexed::ParameterReverbLevel) & 0x7F;
+  configdump[count++] = m_pSynthesizer->getMasterVolume() & 0x7F;
 
   for ( uint8_t instance = 0 ; instance < CConfig::ToneGenerators; instance++)
   {
@@ -616,7 +617,7 @@ void CMIDIDevice::SendSystemExclusiveConfig()
   // send voice dump to all MIDI interfaces
   for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
   {
-    Iterator->second->Send (configdump, sizeof(configdump)*sizeof(uint8_t));
+    Iterator->second->Send (configdump, count);
     LOGDBG("Send SYSEX config dump to \"%s\"",Iterator->first.c_str());
   }
 }
@@ -629,7 +630,7 @@ void CMIDIDevice::SendProgramChange(uint8_t pgm, uint8_t nTG)
   // send voice dump to all MIDI interfaces
   for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
   {
-    Iterator->second->Send (PgmChange, sizeof(PgmChange)*sizeof(uint8_t));
+    Iterator->second->Send (PgmChange, 2);
     LOGDBG("Send Program Change %i to \"%s\"",pgm&0x7f,Iterator->first.c_str());
   }
 }
@@ -648,7 +649,7 @@ void CMIDIDevice::SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG)
   // send voice dump to all MIDI interfaces
   for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
   {
-    Iterator->second->Send (CtrlMsg, sizeof(CtrlMsg)*sizeof(uint8_t));
+    Iterator->second->Send (CtrlMsg, 3);
     LOGDBG("Send Ctrl change %02X = %i to \"%s\"",ctrl&0x7f, val&0x7f,Iterator->first.c_str());
   }
 }
