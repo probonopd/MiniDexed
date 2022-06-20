@@ -5,9 +5,9 @@ env:
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main | SysExControl ]
   pull_request:
-    branches: [ main ]
+    branches: [ main | SysExControl ]
 
 jobs:
   Build:
