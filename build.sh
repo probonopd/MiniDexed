@@ -1,4 +1,9 @@
-f [ -z "${RPI}" ] ; then
+#!/bin/bash
+
+set -e 
+set -x
+
+if [ -z "${RPI}" ] ; then
   echo "\$RPI missing, exting"
   exit 1
 fi
