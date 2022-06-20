@@ -1,10 +1,4 @@
-#!/bin/bash
-
-set -e 
-set -x
-
-echo "Clean: ${CLEAN}"
-if [ -z "${RPI}" ] ; then
+f [ -z "${RPI}" ] ; then
   echo "\$RPI missing, exting"
   exit 1
 fi
@@ -21,42 +15,29 @@ if [ "${RPI}" -gt "1" ]; then
     OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
 fi
 
-if [ ! -z "${BUILDCIRCLE}" ] ; then
 # Build circle-stdlib library
 cd circle-stdlib/
-if [ ! -z "${CLEAN}" ] ; then
 make mrproper || true
-fi
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
 make -j
 
 # Build additional libraries
 cd libs/circle/addon/display/
-if [ ! -z "${CLEAN}" ] ; then
 make clean || true
-fi
 make -j
 cd ../sensor/
-if [ ! -z "${CLEAN}" ] ; then
 make clean || true
-fi
 make -j
 cd ../Properties/
-if [ ! -z "${CLEAN}" ] ; then
 make clean || true
-fi
 make -j
 cd ../../../..
 
 cd ..
-fi
 
 # Build MiniDexed
-echo "Build MiniDexed"
 cd src
-if [ ! -z "${CLEAN}" ] ; then
 make clean || true
-fi
 make -j
 ls *.img
 cd ..
