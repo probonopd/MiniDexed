@@ -1,4 +1,10 @@
-# MiniDexed ![](https://github.com/probonopd/MiniDexed/actions/workflows/build.yml/badge.svg)
+# MaxiDexed ![](https://github.com/probonopd/MiniDexed/actions/workflows/build.yml/badge.svg)
+
+This project aims at increasing the marvelous job done with MiniDexed focusing on the user interface as I believe that FM synthesis is difficult enough to deserve a simple but more confortable user interface to replace the 2x16 chars displays and the one button with click, double clicks and triple clicks! As you guessed it, I want to make it autonomous from computer assistance.
+
+I added at the tip of the feature list the few features I would like to contribute in this fork.
+
+For the moment this fork will concentrate on Raspberry PI 4B and potentialy above. I do not intent to test the code on any other lower versions.
 
 ![minidexed](https://user-images.githubusercontent.com/2480569/161813414-bb156a1c-efec-44c0-802a-8926412a08e0.jpg)
 
@@ -6,6 +12,32 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 
 ## Features
 
+### Maxi Dexed features backlog
+- [ ] DEV01 - Change build structure so that object and other bin files go away from the sources directories
+- [x] PRESET01 - Preset browsing: changing bak automaticallw when reaching the left or right preset boundary so that:
+```
+    - Bank 1 Preset  1 + 1 -> Bank   1 Preset  2
+    - Bank 1 Preset  1 - 1 -> Bank   1 Preset  1
+    - Bank n Preset 32 + 1 -> Bank n+1 Preset  1
+    - Bank n Preset  1 - 1 -> Bank n-1 Preset 32
+```
+- [x] PRESET02 - Support more than 127 banks adding the support MIDI CC0 [Bank Select (MSB)] et MIDI CC32 [Bank Select (LSB)] to allow a maximum of 2^14 = 16384 so that:
+```
+    - Bank ID bin: nn nnnn nnnn nnnn
+    - MIDI CC  0:  nn nnnn nxxx xxxx
+    - MIDI CC 32:  xx xxxx xnnn nnnn
+```
+- [x] PRESET03 - Add bank sysex material to complement the current one
+- [ ] PRESET04 - Add performance support and edit to leverage the 8 Tone Generators
+- [ ] SYNTH01 - Add Delay FX
+- [ ] SYNTH02 - Add Chorus FX
+- [ ] SYNTH03 - Add Flanger FX
+- [ ] SYNTH04 - Add Distortion FX
+- [-] HW01 - Create a 3D printable enclosure for the synth that uses the Raspaudio option
+- [ ] HW02 - Add support for I2C screen interface (4pins)
+- [ ] HW03 - Build PCB to ease the inclusion of all encoders, the screen and the audio sound card and include passive heat dissipation (OOTS Raspberry PI heatsink such as [GeeekPi Raspberry Pi 4](https://www.amazon.fr/gp/product/B07WQT1RRZ/ref=sw_img_1?smid=A187Y4UVM6ZA0X&th=1))
+- [ ] HW04 - Design a metal enclosure with real size inputs and outputs
+### MiniDexed feature backlog
 - [x] Uses [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
 - [x] SD card contents can be downloaded from [GitHub Releases](../../releases)
 - [x] Runs on all Raspberry Pi models (except Pico); see below for details

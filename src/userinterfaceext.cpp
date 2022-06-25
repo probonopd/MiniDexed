@@ -17,7 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#include "userinterface.h"
+#include "userinterfaceext.h"
 #include "minidexed.h"
 #include <circle/logger.h>
 #include <circle/string.h>
@@ -25,9 +25,9 @@
 #include <string.h>
 #include <assert.h>
 
-LOGMODULE ("ui");
+LOGMODULE ("uiext");
 
-CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig)
+CUserInterfaceExt::CUserInterfaceExt (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
 	m_pGPIOManager (pGPIOManager),
 	m_pConfig (pConfig),
@@ -39,14 +39,14 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 {
 }
 
-CUserInterface::~CUserInterface (void)
+CUserInterfaceExt::~CUserInterfaceExt (void)
 {
 	delete m_pRotaryEncoder;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
 }
 
-bool CUserInterface::Initialize (void)
+bool CUserInterfaceExt::Initialize (void)
 {
 	assert (m_pConfig);
 
@@ -98,7 +98,7 @@ bool CUserInterface::Initialize (void)
 	return true;
 }
 
-void CUserInterface::Process (void)
+void CUserInterfaceExt::Process (void)
 {
 	if (m_pLCDBuffered)
 	{
@@ -106,12 +106,12 @@ void CUserInterface::Process (void)
 	}
 }
 
-void CUserInterface::ParameterChanged (void)
+void CUserInterfaceExt::ParameterChanged (void)
 {
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
 }
 
-void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+void CUserInterfaceExt::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
 				   bool bArrowDown, bool bArrowUp)
 {
 	assert (pMenu);
@@ -166,13 +166,13 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	LCDWrite (Msg);
 }
 
-void CUserInterface::ImmediateLCDWrite (const char *pString)
+void CUserInterfaceExt::ImmediateLCDWrite (const char *pString)
 {
 	this->LCDWrite(pString);
 	this->Process();
 }
 
-void CUserInterface::LCDWrite (const char *pString)
+void CUserInterfaceExt::LCDWrite (const char *pString)
 {
 	if (m_pLCDBuffered)
 	{
@@ -180,7 +180,7 @@ void CUserInterface::LCDWrite (const char *pString)
 	}
 }
 
-void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
+void CUserInterfaceExt::EncoderEventHandler (CKY040::TEvent Event)
 {
 	switch (Event)
 	{
@@ -228,9 +228,9 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 	}
 }
 
-void CUserInterface::EncoderEventStub (CKY040::TEvent Event, void *pParam)
+void CUserInterfaceExt::EncoderEventStub (CKY040::TEvent Event, void *pParam)
 {
-	CUserInterface *pThis = static_cast<CUserInterface *> (pParam);
+	CUserInterfaceExt *pThis = static_cast<CUserInterfaceExt *> (pParam);
 	assert (pThis != 0);
 
 	pThis->EncoderEventHandler (Event);

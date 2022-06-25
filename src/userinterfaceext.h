@@ -29,11 +29,11 @@
 
 class CMiniDexed;
 
-class CUserInterface
+class CUserInterfaceExt
 {
 public:
-	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig);
-	~CUserInterface (void);
+	CUserInterfaceExt (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig);
+	~CUserInterfaceExt (void);
 
 	bool Initialize (void);
 
