@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 set +x
 
 # this script install the dev environment and assume that the repository is alreadw cloned
@@ -16,7 +17,8 @@ usage()
    echo "                  Set Raspberry PI version"
    echo "  -prepenv        Prepare the development environment"
    echo "  -build          Run build"
-   echo "  -FETCH_SYSEX          Fetch all FETCH_SYSEX"
+   echo "  -boot           Fetch boot files"
+   echo "  -sysex          Fetch all System Exclusive cartridge"
    echo "  -zip            Create the resulting zip file"
    echo "  -opt            Run RUN_OPTIONALITIES"
    echo
@@ -25,6 +27,7 @@ usage()
 export RPI=4
 export SETUP_ENV=0
 export BUILD=0
+export FETCH_BOOT=0
 export CREATE_ZIP=0
 export FETCH_SYSEX=0
 export RUN_OPTIONALITIES=0
@@ -36,12 +39,18 @@ while true ; do
 	-r|-RPI|--raspberrypi) export RPI=$2 ; shift 2;;
 	-prepenv) export SETUP_ENV=1 ; shift;;
 	-build) export BUILD=1 ; shift;;
-	-FETCH_SYSEX) export FETCH_SYSEX=1 ; shift;;
+	-boot) export FETCH_BOOT=1 ; shift;;
+	-sysex) export FETCH_SYSEX=1 ; shift;;
 	-zip) export CREATE_ZIP=1 ; shift;;
 	-opt) export RUN_OPTIONALITIES=1 ; shift;;
 	--) shift ; break ;;
-	*) break ;;
-	# *) echo "Internal error! Remaining params: #$*#" ; exit 1;;
+	*)  if [ $1 ]
+		then
+			echo "Error processing param #$1#"
+			exit 1
+		else
+			break
+		fi;;
     esac
 done
 
@@ -58,6 +67,10 @@ then
 
 	# Recursively pull git submodules
 	git submodule update --init --recursive
+
+	cd circle-stdlib/libs/circle
+	git checkout develop # move to develop branch
+	cd -
 
 	# Install toolchain
 	if [ "${RPI}" -gt 2 ]
@@ -76,28 +89,27 @@ then
 
 		wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
 	fi
-	tar xvf gcc-arm-*-*.tar.xz 
+	echo "Unpacking"
+	tar xf --checkpoint gcc-arm-*-*.tar.xz 
 fi
 
 if [ ${BUILD} -eq 1 ]
 then
-	export PATH=$(readlink -f ./gcc-*/bin/):$PATH
-
 	# Build dependencies and MiniDexed
-	./build.sh -clean -all
+	./build.sh -RPI ${RPI} -clean -all
 	cp ./src/kernel*.img ./kernels/
+fi
 
-	if [ ${SETUP_ENV} -eq 1 ]
+if [ ${FETCH_BOOT} -eq 1 ]
+then
+	# Get Raspberry Pi boot files
+	cd ./circle-stdlib/libs/circle/boot
+	make
+	if [ "${RPI}" -gt 2 ]
 	then
-		# Get Raspberry Pi boot files
-		cd ./circle-stdlib/libs/circle/boot
-		make
-		if [ "${RPI}" -gt 2 ]
-		then
-			make armstub64
-		fi
-		cd -
+		make armstub64
 	fi
+	cd -
 fi
 
 if [ ${CREATE_ZIP} -eq 1 ]

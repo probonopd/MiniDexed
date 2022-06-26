@@ -26,13 +26,14 @@
 #include <display/hd44780device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
+#include <circle/i2cmaster.h>
 
 class CMiniDexed;
 
 class CUserInterface
 {
 public:
-	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CConfig *pConfig);
+	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig);
 	~CUserInterface (void);
 
 	bool Initialize (void);
@@ -53,12 +54,14 @@ public:
 
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
+
 	void EncoderEventHandler (CKY040::TEvent Event);
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
 
 private:
 	CMiniDexed *m_pMiniDexed;
 	CGPIOManager *m_pGPIOManager;
+	CI2CMaster *m_pI2CMaster;
 	CConfig *m_pConfig;
 
 	CHD44780Device *m_pLCD;

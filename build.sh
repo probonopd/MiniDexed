@@ -1,36 +1,47 @@
 #!/bin/bash
 
+set +x
+
 usage()
 {
    # Display Help
    echo "This script launch the build of the code."
    echo
    echo "options:"
-   echo "-h				Print this Help."
-   echo "-RPI <version>	Set Raspberry PI version"
-   echo "-clean			Run clean before building"
-   echo "-full          Run full build"
-   echo "-all           Run the entire build"
+   echo "  -h               Print this Help."
+   echo "  -d|--debug       Set the debug mode"
+   echo "  -RPI <version>   Set Raspberry PI version"
+   echo "  -clean           Run clean before building"
+   echo "  -full            Run full build"
+   echo "  -all             Run the entire build"
 }
 
-export clean=0;
-export minimal=1
+export PATH=$(readlink -f ./gcc-*/bin/):$PATH
+
+export CLEAN=0;
+export INCREMENTAL_BUILD=1
 
 while true
 do
     case "$1" in
-		-h|--help) usage ; exit 0;;
-		-RPI) export RPI=$2 ; shift;;
-        -clean) export clean=1 ; shift;;
-        -all) export minimal=0 ; shift;;
+		-h|--help) usage ; shift ; exit 0;;
+        -d|--debug) set -x ; shift;;
+		-RPI) export RPI=$2 ; shift 2;;
+        -clean) export CLEAN=1 ; shift;;
+        -all) export INCREMENTAL_BUILD=0 ; shift;;
 		--) shift ; break;;
-	   	*) break;;
+	   	*)  if [ $1 ]
+            then
+                echo "Error processing param #$1#"
+                exit 1
+            else
+                break
+            fi;;
     esac
 done
 
-
 if [ -z "${RPI}" ] ; then
-  echo "\$RPI missing, exting"
+  echo "\$RPI missing, exiting"
   exit 1
 fi
 
@@ -46,12 +57,12 @@ if [ "${RPI}" -gt "1" ]; then
     OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
 fi
 
-if [ ${minimal} -eq 1 ]
+if [ ${INCREMENTAL_BUILD} -eq 0 ]
 then
 
     # Build circle-stdlib library
     cd circle-stdlib/
-    if [ ${clean} -eq 1 ]
+    if [ ${CLEAN} -eq 1 ]
     then
         make mrproper || true
     fi
@@ -61,21 +72,21 @@ then
 
     # Build additional libraries
     cd libs/circle/addon/display/
-    if [ ${clean} -eq 1 ]
+    if [ ${CLEAN} -eq 1 ]
     then
         make clean || true
     fi
     make -j
 
     cd ../sensor/
-    if [ ${clean} -eq 1 ]
+    if [ ${CLEAN} -eq 1 ]
     then
         make clean || true
     fi
     make -j
 
     cd ../Properties/
-    if [ ${clean} -eq 1 ]
+    if [ ${CLEAN} -eq 1 ]
     then
         make clean || true
     fi
@@ -86,9 +97,9 @@ then
     cd ..
 fi
 
-# Build MiniDexed
+# Build MaxiDexed
 cd src
-if [ ${clean} -eq 1 ]
+if [ ${CLEAN} -eq 1 ]
 then
     make clean || true
 fi

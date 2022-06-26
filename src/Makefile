@@ -9,20 +9,26 @@ SYNTH_DEXED_DIR = ../Synth_Dexed/src
 CMSIS_DIR = ../CMSIS_5/CMSIS
 U8G2_DIR = ../u8g2
 
-BUILD_DIR = ../build
+# BUILD_DIR = ../build
 
-MAXIDEXED_BUILD_DIR = $(BUILD_DIR)/maxi-dexed
+# MAXIDEXED_BUILD_DIR = $(BUILD_DIR)/maxi-dexed
 
-CIRCLE_STDLIB_BUILD_DIR = $(BUILD_DIR)/circle-stdlib
-SYNTH_DEXED_BUILD_DIR = $(BUILD_DIR)/Synth_Dexed/src
-CMSIS_BUILD_DIR = $(BUILD_DIR)/CMSIS_5/CMSIS
-U8G2_BUILD_DIR = $(BUILD_DIR)/u8g2
+# CIRCLE_STDLIB_BUILD_DIR = $(BUILD_DIR)/circle-stdlib
+# SYNTH_DEXED_BUILD_DIR = $(BUILD_DIR)/Synth_Dexed/src
+# CMSIS_BUILD_DIR = $(BUILD_DIR)/CMSIS_5/CMSIS
+# U8G2_BUILD_DIR = $(BUILD_DIR)/u8g2
 
-SOURCES = $(wildcard $(MAXIDEXED_SRC_DIR)/*.cpp)
-OBJECTS = $(patsubst $(MAXIDEXED_SRC_DIR)/%.cpp,$(MAXIDEXED_BUILD_DIR)/%.o,$(SOURCES))
+# SOURCES = $(wildcard $(MAXIDEXED_SRC_DIR)/*.cpp)
+# OBJECTS = $(patsubst $(MAXIDEXED_SRC_DIR)/%.cpp,$(MAXIDEXED_BUILD_DIR)/%.o,$(SOURCES))
 
-dir:
-	mkdir -p $(MAXIDEXED_BUILD_DIR)
+# dir:
+# 	mkdir -p $(MAXIDEXED_BUILD_DIR)
+
+OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
+       mididevice.o midikeyboard.o serialmididevice.o pckeyboard.o \
+       sysexfileloader.o performanceconfig.o perftimer.o \
+       effect_compressor.o effect_platervbstereo.o
+#       ui.o screens.o userinterfaceext.o
 
 OPTIMIZE = -O3
 

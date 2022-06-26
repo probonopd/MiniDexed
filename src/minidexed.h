@@ -76,12 +76,47 @@ public:
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
 	void setSustain (bool sustain, unsigned nTG);
+	void panic (uint8_t value, unsigned nTG);
+	void notesOff (uint8_t value, unsigned nTG);
 	void setModWheel (uint8_t value, unsigned nTG);
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
+	void setMonoMode(uint8_t mono, uint8_t nTG);
+	void setPitchbendRange(uint8_t range, uint8_t nTG);
+	void setPitchbendStep(uint8_t step, uint8_t nTG);
+	void setPortamentoMode(uint8_t mode, uint8_t nTG);
+	void setPortamentoGlissando(uint8_t glissando, uint8_t nTG);
+	void setPortamentoTime(uint8_t time, uint8_t nTG);
+	void setModWheelRange(uint8_t range, uint8_t nTG);
+	void setModWheelTarget(uint8_t target, uint8_t nTG);
+	void setFootControllerRange(uint8_t range, uint8_t nTG);
+	void setFootControllerTarget(uint8_t target, uint8_t nTG);
+	void setBreathControllerRange(uint8_t range, uint8_t nTG);
+	void setBreathControllerTarget(uint8_t target, uint8_t nTG);
+	void setAftertouchRange(uint8_t range, uint8_t nTG);
+	void setAftertouchTarget(uint8_t target, uint8_t nTG);
+	void loadVoiceParameters(const uint8_t* data, uint8_t nTG);
+	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
+	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
+
+	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
+
+	std::string GetPerformanceFileName(unsigned nID);
+	std::string GetPerformanceName(unsigned nID);
+	unsigned GetLastPerformance();
+	unsigned GetActualPerformanceID();
+	void SetActualPerformanceID(unsigned nID);
+	bool SetNewPerformance(unsigned nID);
+	bool SavePerformanceNewFile ();
+	unsigned GetMenuSelectedPerformanceID();
+	void SetMenuSelectedPerformanceID(unsigned nID);
+	
+	bool DoSavePerformanceNewFile (void);
+	bool DoSetNewPerformance (void);
+	
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -109,6 +144,11 @@ public:
 		TGParameterResonance,
 		TGParameterMIDIChannel,
 		TGParameterReverbSend,
+		TGParameterPitchBendRange, 
+		TGParameterPitchBendStep,
+		TGParameterPortamentoMode,
+		TGParameterPortamentoGlissando,
+		TGParameterPortamentoTime,
 		TGParameterUnknown
 	};
 
@@ -123,10 +163,14 @@ public:
 	std::string GetVoiceName (unsigned nTG);
 
 	bool SavePerformance (void);
+	bool DoSavePerformance (void);
+
+	void setMasterVolume (float32_t vol);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
-
+	uint8_t m_uchOPMask[CConfig::ToneGenerators];
+	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -155,12 +199,28 @@ private:
 	int m_nCutoff[CConfig::ToneGenerators];
 	int m_nResonance[CConfig::ToneGenerators];
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
+	unsigned m_nPitchBendRange[CConfig::ToneGenerators];	
+	unsigned m_nPitchBendStep[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
+	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
 
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
+  
+	uint8_t m_nRawVoiceData[156]; 
+	
+	
+	bool m_bSavePerformanceNewFile;
+	bool m_bSetNewPerformance;
+	unsigned m_nSetNewPerformanceID;
+	
+	float32_t nMasterVolume;
+
+
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -190,6 +250,8 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+
+	bool m_bSavePerformance;
 };
 
 #endif
