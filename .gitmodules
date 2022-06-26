@@ -7,3 +7,6 @@
 [submodule "CMSIS_5"]
 	path = CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5
+[submodule "u8g2"]
+	path = u8g2
+	url = https://github.com/olikraus/u8g2.git

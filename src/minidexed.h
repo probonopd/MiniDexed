@@ -63,7 +63,7 @@ public:
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
-	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
+	void BankSelect (unsigned nBank, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127

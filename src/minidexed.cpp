@@ -37,6 +37,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
+	m_bSavePerformanceNewFile (false),
+	m_bSetNewPerformance (false),
 	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig),
@@ -47,12 +49,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #ifdef ARM_ALLOW_MULTI_CORE
 	m_nActiveTGsLog2 (0),
 #endif
-	m_GetChunkTimer ("GetChunk",
-			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
+	m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
-	m_bSavePerformance (false),
-	m_bSavePerformanceNewFile (false),
-	m_bSetNewPerformance (false) 
+	m_bSavePerformance (false)
 {
 	assert (m_pConfig);
 
@@ -158,6 +157,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
+	m_UI.ImmediateLCDWrite("Loading all     banks & presets.");
 	m_SysExFileLoader.Load ();
 
 	if (m_SerialMIDI.Initialize ())
@@ -340,12 +340,12 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
-void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
+void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
-	nBankLSB=constrain((int)nBankLSB,0,127);
+	nBank=constrain((int)nBank,0,1 << 14 - 1);
 
 	assert (nTG < CConfig::ToneGenerators);
-	m_nVoiceBankID[nTG] = nBankLSB;
+	m_nVoiceBankID[nTG] = nBank;
 
 	m_UI.ParameterChanged ();
 }
@@ -657,7 +657,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+	case TGParameterVoiceBank:	BankSelect (nValue, nTG);	break;
 	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
 	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
 	case TGParameterPan:		SetPan (nValue, nTG);		break;
@@ -1313,7 +1313,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			
-			BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
 			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
 			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
 			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);

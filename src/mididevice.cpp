@@ -34,7 +34,7 @@ LOGMODULE ("mididevice");
 #define MIDI_NOTE_ON		0b1001
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
+	#define MIDI_CC_BANK_SELECT_MSB		0
 	#define MIDI_CC_MODULATION			1
 	#define MIDI_CC_VOLUME				7
 	#define MIDI_CC_PAN_POSITION		10
@@ -247,8 +247,22 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->SetPan (pMessage[2], nTG);
 							break;
 		
+						case MIDI_CC_BANK_SELECT_MSB:
+							{
+								int nBank = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+								nBank &= 0b00000001111111; // keep the LSB and zeroes the MSB
+								nBank += pMessage[2] << 7;
+								m_pSynthesizer->BankSelect (nBank, nTG);
+							}
+							break;
+
 						case MIDI_CC_BANK_SELECT_LSB:
-							m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+							{
+								int nBank = m_pSynthesizer->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+								nBank &= 0b11111110000000; // keep the MSB and zeroes the LSB
+								nBank += pMessage[2];
+								m_pSynthesizer->BankSelect (nBank, nTG);
+							}
 							break;
 		
 						case MIDI_CC_BANK_SUSTAIN:
