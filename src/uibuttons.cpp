@@ -97,7 +97,7 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 
 	unsigned value = m_pin->Read();
 
-	// TODO: handle long press
+	// TODO: long press time from config
 	if (m_timer < LONG_PRESS_TIME) {
 		m_timer++;
 
@@ -147,11 +147,6 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			if (m_numClicks < 2) {
 				m_numClicks++;
 			}
-			if (m_numClicks == 2) {
-				reset();
-				LOGDBG ("Double Click");
-				return BtnTriggerDoubleClick;
-			}
 		}
 	}
 	else
@@ -160,7 +155,7 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			// 1 -> 1 : Button is not pressed, was already not pressed
 		}
 		else {
-			// 0 -> 1 : Button was pressed but is now not pressed
+			// 0 -> 1 : Button was pressed but is now not pressed (it was released)
 			m_lastValue = 1;
 			m_debounceTimer = 0;
 			LOGDBG ("Up");
@@ -177,6 +172,12 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 				reset();
 				LOGDBG ("Click");
 				return BtnTriggerClick;
+			}
+			else if (m_numClicks == 2) {
+				// This is the second release in a short period of time
+				reset();
+				LOGDBG ("Double Click");
+				return BtnTriggerDoubleClick;
 			}
 		}
 	}
