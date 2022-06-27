@@ -96,7 +96,9 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetButtonPinSelect (),
 									m_pConfig->GetButtonActionSelect (),
 									m_pConfig->GetButtonPinHome (),
-									m_pConfig->GetButtonActionHome ());
+									m_pConfig->GetButtonActionHome (),
+									m_pConfig->GetDoubleClickTimeout (),
+									m_pConfig->GetLongPressTimeout () );
 	assert (m_pUIButtons);
 
 	if (!m_pUIButtons->Initialize ())

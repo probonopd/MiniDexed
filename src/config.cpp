@@ -94,6 +94,9 @@ void CConfig::Load (void)
 	m_ButtonActionSelect = m_Properties.GetString ("ButtonActionSelect", "click");
 	m_ButtonActionHome = m_Properties.GetString ("ButtonActionHome", "longpress");
 
+	m_nDoubleClickTimeout = m_Properties.GetNumber ("DoubleClickTimeout", 400);
+	m_nLongPressTimeout = m_Properties.GetNumber ("LongPressTimeout", 600);
+
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
@@ -245,6 +248,16 @@ const char *CConfig::GetButtonActionSelect (void) const
 const char *CConfig::GetButtonActionHome (void) const
 {
 	return m_ButtonActionHome.c_str();
+}
+
+unsigned CConfig::GetDoubleClickTimeout (void) const
+{
+	return m_nDoubleClickTimeout;
+}
+
+unsigned CConfig::GetLongPressTimeout (void) const
+{
+	return m_nLongPressTimeout;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

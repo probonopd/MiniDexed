@@ -103,6 +103,10 @@ public:
 	const char *GetButtonActionBack (void) const;
 	const char *GetButtonActionSelect (void) const;
 	const char *GetButtonActionHome (void) const;
+	
+	// Timeouts for button events in milliseconds
+	unsigned GetDoubleClickTimeout (void) const;
+	unsigned GetLongPressTimeout (void) const;
 
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
@@ -150,6 +154,9 @@ private:
 	std::string m_ButtonActionBack;
 	std::string m_ButtonActionSelect;
 	std::string m_ButtonActionHome;
+	
+	unsigned m_nDoubleClickTimeout;
+	unsigned m_nLongPressTimeout;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;

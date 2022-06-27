@@ -32,12 +32,15 @@ CUIButton::CUIButton (void)
 :	m_pinNumber (0),
 	m_pin (0),
 	m_lastValue (1),
-	m_timer (LONG_PRESS_TIME),
-	m_debounceTimer (DEBOUNCE_TIME),
+	m_timer (0),
+	m_debounceTimer (0),
 	m_numClicks (0),
 	m_clickEvent(BtnEventNone),
 	m_doubleClickEvent(BtnEventNone),
-	m_longPressEvent(BtnEventNone) {
+	m_longPressEvent(BtnEventNone),
+	m_doubleClickTimeout(0),
+	m_longPressTimeout(0)
+{
 }
 
 CUIButton::~CUIButton (void)
@@ -50,15 +53,22 @@ CUIButton::~CUIButton (void)
 
 void CUIButton::reset (void)
 {
-	m_timer = LONG_PRESS_TIME;
+	m_timer = m_longPressTimeout;
 	m_numClicks = 0;
 }
 
-boolean CUIButton::Initialize (unsigned pinNumber)
+boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout)
 {
 	assert (!m_pin);
+	assert(longPressTimeout >= doubleClickTimeout);
 
 	m_pinNumber = pinNumber;
+	m_doubleClickTimeout = doubleClickTimeout;
+	m_longPressTimeout = longPressTimeout;
+	
+	// Initialise timing values
+	m_timer = m_longPressTimeout;
+	m_debounceTimer = DEBOUNCE_TIME;
 
 	if (m_pinNumber != 0)
 	{
@@ -98,17 +108,17 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 	unsigned value = m_pin->Read();
 
 	// TODO: long press time from config
-	if (m_timer < LONG_PRESS_TIME) {
+	if (m_timer < m_longPressTimeout) {
 		m_timer++;
 
-		if (m_timer == DOUBLE_CLICK_TIME && m_lastValue == 1 && m_numClicks == 1) {
+		if (m_timer == m_doubleClickTimeout && m_lastValue == 1 && m_numClicks == 1) {
 			// The user has clicked and released the button once within the
 			// timeout - this must be a single click
 			reset();
 			LOGDBG ("Click");
 			return BtnTriggerClick;
 		}
-		if (m_timer == LONG_PRESS_TIME) {
+		if (m_timer == m_longPressTimeout) {
 			if (m_lastValue == 0 && m_numClicks == 1) {
 				// Single long press
 				reset();
@@ -162,7 +172,7 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 
 			if (m_numClicks == 1 &&
 					(m_doubleClickEvent == BtnEventNone ||
-					 m_timer >= DOUBLE_CLICK_TIME && m_timer < LONG_PRESS_TIME)
+					 m_timer >= m_doubleClickTimeout && m_timer < m_longPressTimeout)
 			) {
 				// Either the user released the button when there is no double
 				// click mapped
@@ -229,9 +239,12 @@ CUIButtons::CUIButtons (
 			unsigned nextPin, const char *nextAction,
 			unsigned backPin, const char *backAction,
 			unsigned selectPin, const char *selectAction,
-			unsigned homePin, const char *homeAction
+			unsigned homePin, const char *homeAction,
+			unsigned doubleClickTimeout, unsigned longPressTimeout
 )
-:	m_prevPin(prevPin),
+:	m_doubleClickTimeout(doubleClickTimeout),
+	m_longPressTimeout(longPressTimeout),
+	m_prevPin(prevPin),
 	m_prevAction(CUIButton::triggerTypeFromString(prevAction)),
 	m_nextPin(nextPin),
 	m_nextAction(CUIButton::triggerTypeFromString(nextAction)),
@@ -252,6 +265,22 @@ CUIButtons::~CUIButtons (void)
 
 boolean CUIButtons::Initialize (void)
 {
+	// First sanity check and convert the timeouts:
+	// Internally values are in tenths of a millisecond, but config values
+	// are in milliseconds
+	unsigned doubleClickTimeout = m_doubleClickTimeout * 10;
+	unsigned longPressTimeout = m_longPressTimeout * 10;
+
+	if (longPressTimeout < doubleClickTimeout) {
+		// This is invalid - long press must be longest timeout
+		LOGERR("LongPressTimeout (%u) should not be shorter than DoubleClickTimeout (%u)",
+				m_longPressTimeout,
+				m_doubleClickTimeout);
+
+		// Just make long press as long as double click
+		longPressTimeout = doubleClickTimeout;
+	}
+
 	// Each button can be assigned up to 3 actions: click, doubleclick and
 	// longpress. We may not initialise all of the buttons
 	unsigned pins[MAX_BUTTONS] = {
@@ -259,11 +288,6 @@ boolean CUIButtons::Initialize (void)
 	};
 	CUIButton::BtnTrigger triggers[MAX_BUTTONS] = {
 		m_prevAction, m_nextAction, m_backAction, m_selectAction, m_homeAction
-		// CUIButton::BtnTriggerNone,
-		// CUIButton::BtnTriggerNone,
-		// CUIButton::BtnTriggerDoubleClick,
-		// CUIButton::BtnTriggerClick,
-		// CUIButton::BtnTriggerLongPress
 	};
 	CUIButton::BtnEvent events[MAX_BUTTONS] = {
 		CUIButton::BtnEventPrev,
@@ -289,7 +313,7 @@ boolean CUIButtons::Initialize (void)
 			}
 			else if (m_buttons[j].getPinNumber() == 0) {
 				// This is un-initialised so can be assigned
-				m_buttons[j].Initialize(pins[i]);
+				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout);
 				break;
 			}
 		}

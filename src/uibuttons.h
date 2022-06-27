@@ -29,9 +29,9 @@
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
 #define DEBOUNCE_TIME 100
-#define DOUBLE_CLICK_TIME 4000
-#define LONG_PRESS_TIME 10000
 #define MAX_BUTTONS 5
+
+class CUIButtons;
 
 class CUIButton
 {
@@ -59,7 +59,7 @@ public:
 	~CUIButton (void);
 	
 	void reset (void);
-	boolean Initialize (unsigned pinNumber);
+	boolean Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout);
 
 	void setClickEvent(BtnEvent clickEvent);
 	void setDoubleClickEvent(BtnEvent doubleClickEvent);
@@ -77,6 +77,7 @@ private:
 	unsigned m_pinNumber;
 	// GPIO pin
 	CGPIOPin *m_pin;
+	// The value of the pin at the end of the last loop
 	unsigned m_lastValue;
 	// Set to 0 on press, increment each read, use to trigger events
 	uint16_t m_timer;
@@ -90,7 +91,11 @@ private:
 	BtnEvent m_doubleClickEvent;
 	// Event to fire on long press
 	BtnEvent m_longPressEvent;
-	// The value of the pin at the end of the last loop
+	
+	// Timeout for double click in tenths of a millisecond
+	unsigned m_doubleClickTimeout;
+	// Timeout for long press in tenths of a millisecond
+	unsigned m_longPressTimeout;
 };
 
 class CUIButtons
@@ -104,7 +109,8 @@ public:
 			unsigned nextPin, const char *nextAction,
 			unsigned backPin, const char *backAction,
 			unsigned selectPin, const char *selectAction,
-			unsigned homePin, const char *homeAction
+			unsigned homePin, const char *homeAction,
+			unsigned doubleClickTimeout, unsigned longPressTimeout
 	);
 	~CUIButtons (void);
 	
@@ -117,8 +123,13 @@ public:
 	void ResetButton (unsigned pinNumber);
 	
 private:
-	// Up to 5 buttons can be defined
-	CUIButton m_buttons[5];
+	// Array of 5 buttons
+	CUIButton m_buttons[MAX_BUTTONS];
+	
+	// Timeout for double click in tenths of a millisecond
+	unsigned m_doubleClickTimeout;
+	// Timeout for long press in tenths of a millisecond
+	unsigned m_longPressTimeout;
 	
 	// Configuration for buttons
 	unsigned m_prevPin;
