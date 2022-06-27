@@ -112,7 +112,7 @@ bool CUserInterface::Initialize (void)
 	{
 		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
 					       m_pConfig->GetEncoderPinData (),
-					       m_pConfig->GetEncoderPinSwitch (),
+					       m_pConfig->GetButtonPinShortcut (),
 					       m_pGPIOManager);
 		assert (m_pRotaryEncoder);
 
@@ -227,7 +227,7 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		if (m_bSwitchPressed) {
 			// We must reset the encoder switch button to prevent events from being
 			// triggered after the encoder is rotated
-			m_pUIButtons->ResetButton(m_pConfig->GetEncoderPinSwitch());
+			m_pUIButtons->ResetButton(m_pConfig->GetButtonPinShortcut());
 			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepUp);
 
 		}
@@ -238,7 +238,7 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 
 	case CKY040::EventCounterclockwise:
 		if (m_bSwitchPressed) {
-			m_pUIButtons->ResetButton(m_pConfig->GetEncoderPinSwitch());
+			m_pUIButtons->ResetButton(m_pConfig->GetButtonPinShortcut());
 			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepDown);
 		}
 		else {

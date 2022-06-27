@@ -95,6 +95,7 @@ public:
 	unsigned GetButtonPinBack (void) const;
 	unsigned GetButtonPinSelect (void) const;
 	unsigned GetButtonPinHome (void) const;
+	unsigned GetButtonPinShortcut (void) const;
 
 	// Action type for buttons: "click", "doubleclick", "longpress", ""
 	const char *GetButtonActionPrev (void) const;
@@ -108,7 +109,6 @@ public:
 	bool GetEncoderEnabled (void) const;
 	unsigned GetEncoderPinClock (void) const;
 	unsigned GetEncoderPinData (void) const;
-	unsigned GetEncoderPinSwitch (void) const;
 
 	// Debug
 	bool GetMIDIDumpEnabled (void) const;
@@ -143,6 +143,7 @@ private:
 	unsigned m_nButtonPinBack;
 	unsigned m_nButtonPinSelect;
 	unsigned m_nButtonPinHome;
+	unsigned m_nButtonPinShortcut;
 
 	std::string m_ButtonActionPrev;
 	std::string m_ButtonActionNext;
@@ -153,7 +154,6 @@ private:
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
 	unsigned m_nEncoderPinData;
-	unsigned m_nEncoderPinSwitch;
 
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;

@@ -86,6 +86,7 @@ void CConfig::Load (void)
 	m_nButtonPinBack = m_Properties.GetNumber ("ButtonPinBack", 11);
 	m_nButtonPinSelect = m_Properties.GetNumber ("ButtonPinSelect", 11);
 	m_nButtonPinHome = m_Properties.GetNumber ("ButtonPinHome", 11);
+	m_nButtonPinShortcut = m_Properties.GetNumber ("ButtonPinShortcut", 11);
 
 	m_ButtonActionPrev = m_Properties.GetString ("ButtonActionPrev", "");
 	m_ButtonActionNext = m_Properties.GetString ("ButtonActionNext", "");
@@ -96,7 +97,6 @@ void CConfig::Load (void)
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
-	m_nEncoderPinSwitch = m_Properties.GetNumber ("EncoderPinSwitch", 11);
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
@@ -217,6 +217,11 @@ unsigned CConfig::GetButtonPinHome (void) const
 	return m_nButtonPinHome;
 }
 
+unsigned CConfig::GetButtonPinShortcut (void) const
+{
+	return m_nButtonPinShortcut;
+}
+
 const char *CConfig::GetButtonActionPrev (void) const
 {
 	return m_ButtonActionPrev.c_str();
@@ -255,11 +260,6 @@ unsigned CConfig::GetEncoderPinClock (void) const
 unsigned CConfig::GetEncoderPinData (void) const
 {
 	return m_nEncoderPinData;
-}
-
-unsigned CConfig::GetEncoderPinSwitch (void) const
-{
-	return m_nEncoderPinSwitch;
 }
 
 bool CConfig::GetMIDIDumpEnabled (void) const
