@@ -107,7 +107,6 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 
 	unsigned value = m_pin->Read();
 
-	// TODO: long press time from config
 	if (m_timer < m_longPressTimeout) {
 		m_timer++;
 
@@ -115,14 +114,12 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			// The user has clicked and released the button once within the
 			// timeout - this must be a single click
 			reset();
-			LOGDBG ("Click");
 			return BtnTriggerClick;
 		}
 		if (m_timer == m_longPressTimeout) {
 			if (m_lastValue == 0 && m_numClicks == 1) {
 				// Single long press
 				reset();
-				LOGDBG ("Long Press");
 				return BtnTriggerLongPress;
 			}
 			else {
@@ -148,7 +145,6 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			// 1 -> 0 : Button was not pressed but is now pressed
 			m_lastValue = 0;
 			m_debounceTimer = 0;
-			LOGDBG ("Down");
 
 			if (m_numClicks == 0) {
 				// No clicks recorded - start a new timer
@@ -168,7 +164,6 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			// 0 -> 1 : Button was pressed but is now not pressed (it was released)
 			m_lastValue = 1;
 			m_debounceTimer = 0;
-			LOGDBG ("Up");
 
 			if (m_numClicks == 1 &&
 					(m_doubleClickEvent == BtnEventNone ||
@@ -180,13 +175,11 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 				// The user released the button after the double click
 				// timeout, but before the long press timeout
 				reset();
-				LOGDBG ("Click");
 				return BtnTriggerClick;
 			}
 			else if (m_numClicks == 2) {
 				// This is the second release in a short period of time
 				reset();
-				LOGDBG ("Double Click");
 				return BtnTriggerDoubleClick;
 			}
 		}
