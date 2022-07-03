@@ -71,6 +71,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
+	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -97,6 +98,24 @@ const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
 	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
 	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_ModulationMenu[] =
+{
+	{"Mod. Wheel",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
+	{"Foot Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
+	{"Breath Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
+	{"Aftertouch",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_ModulationMenuParameters[] =
+{
+	{"Range",		EditTGParameterModulation,	0, 0},
+	{"Pitch",		EditTGParameterModulation,	0, 1},
+	{"Amplitude",	EditTGParameterModulation,	0, 2},
+	{"EG Bias",		EditTGParameterModulation,	0, 3},
 	{0}
 };
 
@@ -179,7 +198,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
 	{"Overwrite",	SavePerformance, 0, 0}, 
 	{"New",	InputTxt,0 , 1}, 
-	{"Save as deault",	SavePerformance, 0, 1}, 
+	{"Save as default",	SavePerformance, 0, 1}, 
 	{0}
 };
 
@@ -213,7 +232,24 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	1,					1, ToPortaMode},	// TGParameterPortamentoMode
 	{0,	1,					1, ToPortaGlissando},	// TGParameterPortamentoGlissando
 	{0,	99,					1},			// TGParameterPortamentoTime
-	{0,	1,					1, ToPolyMono} 		// TGParameterMonoMode 
+	{0,	1,					1, ToPolyMono}, 		// TGParameterMonoMode 
+	{0, 99, 1}, //MW Range
+	{0, 1, 1, ToOnOff}, //MW Pitch
+	{0, 1, 1, ToOnOff}, //MW Amp
+	{0, 1, 1, ToOnOff}, //MW EGBias
+	{0, 99, 1}, //FC Range
+	{0, 1, 1, ToOnOff}, //FC Pitch
+	{0, 1, 1, ToOnOff}, //FC Amp
+	{0, 1, 1, ToOnOff}, //FC EGBias
+	{0, 99, 1}, //BC Range
+	{0, 1, 1, ToOnOff}, //BC Pitch
+	{0, 1, 1, ToOnOff}, //BC Amp
+	{0, 1, 1, ToOnOff}, //BC EGBias
+	{0, 99, 1}, //AT Range
+	{0, 1, 1, ToOnOff}, //AT Pitch
+	{0, 1, 1, ToOnOff}, //AT Amp
+	{0, 1, 1, ToOnOff} //AT EGBias	
+	
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1412,4 +1448,63 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 	
 	
 }
+
+void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event) 
+{
+
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-3]; 
+	unsigned nController = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
+	unsigned nParameter = pUIMenu->m_nCurrentParameter + nController;
+	
+
+	
+	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) nParameter;
+	const TParameter &rParam = s_TGParameter[Param];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				   
+}
+
 
