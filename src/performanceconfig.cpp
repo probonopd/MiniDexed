@@ -122,6 +122,30 @@ bool CPerformanceConfig::Load (void)
 		
 		PropertyName.Format ("MonoMode%u", nTG+1);
 		m_bMonoMode[nTG] = m_Properties.GetNumber (PropertyName, 0) != 0;
+				
+		PropertyName.Format ("ModulationWheelRange%u", nTG+1);
+		m_nModulationWheelRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
+		
+		PropertyName.Format ("ModulationWheelTarget%u", nTG+1);
+		m_nModulationWheelTarget[nTG] = m_Properties.GetNumber (PropertyName, 7);
+		
+		PropertyName.Format ("FootControlRange%u", nTG+1);
+		m_nFootControlRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
+		
+		PropertyName.Format ("FootControlTarget%u", nTG+1);
+		m_nFootControlTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		
+		PropertyName.Format ("BreathControlRange%u", nTG+1);
+		m_nBreathControlRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
+		
+		PropertyName.Format ("BreathControlTarget%u", nTG+1);
+		m_nBreathControlTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		
+		PropertyName.Format ("AftertouchRange%u", nTG+1);
+		m_nAftertouchRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
+		
+		PropertyName.Format ("AftertouchTarget%u", nTG+1);
+		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
 		
 		}
 
@@ -216,7 +240,31 @@ bool CPerformanceConfig::Save (void)
 		
 		PropertyName.Format ("MonoMode%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_bMonoMode[nTG] ? 1 : 0);
+				
+		PropertyName.Format ("ModulationWheelRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nModulationWheelRange[nTG]);
+	
+		PropertyName.Format ("ModulationWheelTarget%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nModulationWheelTarget[nTG]);	
+			
+		PropertyName.Format ("FootControlRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nFootControlRange[nTG]);	
 		
+		PropertyName.Format ("FootControlTarget%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nFootControlTarget[nTG]);	
+		
+		PropertyName.Format ("BreathControlRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nBreathControlRange[nTG]);	
+		
+		PropertyName.Format ("BreathControlTarget%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nBreathControlTarget[nTG]);	
+		
+		PropertyName.Format ("AftertouchRange%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nAftertouchRange[nTG]);	
+		
+		PropertyName.Format ("AftertouchTarget%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nAftertouchTarget[nTG]);			
+
 		}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
@@ -529,6 +577,102 @@ void CPerformanceConfig::SetMonoMode (bool bValue, unsigned nTG)
 bool CPerformanceConfig::GetMonoMode (unsigned nTG) const
 {
 	return m_bMonoMode[nTG];
+}
+
+void CPerformanceConfig::SetModulationWheelRange (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nModulationWheelRange[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetModulationWheelRange (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nModulationWheelRange[nTG];
+}
+
+void CPerformanceConfig::SetModulationWheelTarget (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nModulationWheelTarget[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetModulationWheelTarget (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nModulationWheelTarget[nTG];
+}
+
+void CPerformanceConfig::SetFootControlRange (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nFootControlRange[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetFootControlRange (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nFootControlRange[nTG];
+}
+
+void CPerformanceConfig::SetFootControlTarget (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nFootControlTarget[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetFootControlTarget (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nFootControlTarget[nTG];
+}
+
+void CPerformanceConfig::SetBreathControlRange (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nBreathControlRange[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetBreathControlRange (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nBreathControlRange[nTG];
+}
+
+void CPerformanceConfig::SetBreathControlTarget (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nBreathControlTarget[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetBreathControlTarget (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nBreathControlTarget[nTG];
+}
+
+void CPerformanceConfig::SetAftertouchRange (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nAftertouchRange[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetAftertouchRange (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nAftertouchRange[nTG];
+}
+
+void CPerformanceConfig::SetAftertouchTarget (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nAftertouchTarget[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetAftertouchTarget (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nAftertouchTarget[nTG];
 }
 
 void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  
