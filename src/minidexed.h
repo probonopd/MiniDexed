@@ -102,6 +102,9 @@ public:
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
 	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
 
+	void setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG);
+	unsigned getModController (unsigned controller, unsigned parameter, uint8_t nTG);
+
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
 	std::string GetPerformanceFileName(unsigned nID);
@@ -156,6 +159,27 @@ public:
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
 		TGParameterMonoMode,  
+				
+		TGParameterMWRange,
+		TGParameterMWPitch,
+		TGParameterMWAmplitude,
+		TGParameterMWEGBias,
+		
+		TGParameterFCRange,
+		TGParameterFCPitch,
+		TGParameterFCAmplitude,
+		TGParameterFCEGBias,
+		
+		TGParameterBCRange,
+		TGParameterBCPitch,
+		TGParameterBCAmplitude,
+		TGParameterBCEGBias,
+		
+		TGParameterATRange,
+		TGParameterATPitch,
+		TGParameterATAmplitude,
+		TGParameterATEGBias,
+		
 		TGParameterUnknown
 	};
 
@@ -212,7 +236,16 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
 	bool m_bMonoMode[CConfig::ToneGenerators]; 
-	
+				
+	unsigned m_nModulationWheelRange[CConfig::ToneGenerators];
+	unsigned m_nModulationWheelTarget[CConfig::ToneGenerators];
+	unsigned m_nFootControlRange[CConfig::ToneGenerators];
+	unsigned m_nFootControlTarget[CConfig::ToneGenerators];
+	unsigned m_nBreathControlRange[CConfig::ToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];
+		
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
