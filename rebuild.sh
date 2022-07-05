@@ -1,6 +1,6 @@
 export RPI=3
 
-export CLEAN="true"
+export CLEAN="false"
 export BUILDCIRCLE="true"
 export PATH=$(readlink -f ./gcc-*/bin/):$PATH
 
