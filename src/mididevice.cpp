@@ -327,7 +327,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
   uint8_t instanceID = pMessage[2]&0xF;
 
-  if ( sysex_return == -11 && (pMessage[0] == 0xF0 && (pMessage[1] == 0x43 && nLength == 4 )
+  if ( sysex_return == -11 && pMessage[0] == 0xF0 && pMessage[1] == 0x43 && nLength == 4 )
   {
 	if ((pMessage[2] & 0x30) == 0x30) // Send config request
 		sysex_return = 600;
