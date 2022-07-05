@@ -324,7 +324,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 
   if ( nTG >= CConfig::ToneGenerators ) return;
  
-  sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
+  sysex_return = checkSystemExclusive(pMessage, nLength, nTG);
   uint8_t instanceID = pMessage[2]&0xF;
 
   if ( instanceID != nTG ) { printf("WARNING instanceID and nTG do not match!!!!!\n"); }
