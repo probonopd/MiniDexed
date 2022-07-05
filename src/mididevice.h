@@ -74,6 +74,7 @@ protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 	void AddDevice (const char *pDeviceName);
 	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG);
+	int16_t checkSystemExclusive(const uint8_t* sysex, const uint16_t len);
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;

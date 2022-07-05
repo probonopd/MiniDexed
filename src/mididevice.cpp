@@ -680,3 +680,103 @@ void CMIDIDevice::SendBankName(uint8_t nTG)
   }
 }
 
+int16_t CMidiDevice::checkSystemExclusive(const uint8_t* sysex, const uint16_t len)
+/*
+        -1:     	SysEx end status byte not detected.
+        -2:     	SysEx vendor not Yamaha.
+        -3:     	Unknown SysEx parameter change.
+        -4:     	Unknown SysEx voice or function.
+        -5:     	Not a SysEx voice bulk upload.
+        -6:     	Wrong length for SysEx voice bulk upload (not 155).
+        -7:     	Checksum error for one voice.
+        -8:     	Not a SysEx bank bulk upload.
+        -9:     	Wrong length for SysEx bank bulk upload (not 4096).
+        -10:    	Checksum error for bank.
+        -11:    	Unknown SysEx message.
+	64-77:		Function parameter changed.
+	100:		Voice loaded.
+	200:		Bank loaded.
+	300-455:	Voice parameter changed.
+	500-531:	Send patch request.
+	600		Send config request
+        601		Send Bank Name
+*/
+{
+  int32_t bulk_checksum_calc = 0;
+  const int8_t bulk_checksum = sysex[161];
+
+  // Check for SYSEX end byte
+  if (sysex[len - 1] != 0xf7)
+    return(-1);
+
+  // check for Yamaha sysex
+  if (sysex[1] != 0x43)
+    return(-2);
+
+  // Decode SYSEX by means of length
+  switch (len)
+  {
+    case 4:
+      if ((sysex[2] & 0x30) == 0x30) // Send config request
+        return 600;
+      if ((sysex[2] & 0x70) == 0x40) // Send config request
+        return 601;
+      break;
+    case 5:
+      if ((sysex[2] & 0x70) == 0x20) // Send voice request
+        return(500 + (sysex[3] & 0x7c));
+      break;
+    case 7: // parse parameter change
+      if (((sysex[3] & 0x7c) >> 2) != 0 && ((sysex[3] & 0x7c) >> 2) != 2)
+        return(-3);
+
+      if ((sysex[3] & 0x7c) >> 2 == 0) // Voice parameter
+      {
+        setVoiceDataElement((sysex[4] & 0x7f) + ((sysex[3] & 0x03) * 128), sysex[5]);
+	doRefreshVoice();
+	return((sysex[4] & 0x7f) + ((sysex[3] & 0x03) * 128)+300);
+      }
+      else if ((sysex[3] & 0x7c) >> 2 == 2) // Function parameter
+        return(sysex[4]);
+      else
+	return(-4);
+      break;
+    case 163: // 1 Voice bulk upload
+      if ((sysex[3] & 0x7f) != 0)
+        return(-5);
+
+      if (((sysex[4] << 7) | sysex[5]) != 0x9b)
+        return(-6);
+
+      // checksum calculation
+      for (uint8_t i = 0; i < 155 ; i++)
+        bulk_checksum_calc -= sysex[i + 6];
+      bulk_checksum_calc &= 0x7f;
+
+      if (bulk_checksum_calc != bulk_checksum)
+        return(-7);
+
+      return(100);
+      break;
+    case 4104: // 1 Bank bulk upload
+      if ((sysex[3] & 0x7f) != 9)
+        return(-8);
+
+      if (((sysex[4] << 7) | sysex[5]) != 0x1000)
+        return(-9);
+
+      // checksum calculation
+      for (uint16_t i = 0; i < 4096 ; i++)
+        bulk_checksum_calc -= sysex[i + 6];
+      bulk_checksum_calc &= 0x7f;
+
+      if (bulk_checksum_calc != bulk_checksum)
+        return(-10);
+
+      return(200);
+      break;
+    default:
+      return(-11);
+  }
+  return(SHRT_MIN);
+}
