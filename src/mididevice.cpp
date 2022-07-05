@@ -337,7 +337,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   if ( instanceID != nTG ) { printf("WARNING instanceID and nTG do not match!!!!!\n"); }
 
   LOGDBG("SYSEX handler return value: %d", sysex_return);
-  printf("SYSEX handler return value: %d for TG %i\n", sysex_return, instanceID);
 
   switch (sysex_return)
   {
