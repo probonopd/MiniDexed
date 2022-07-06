@@ -329,7 +329,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 
   if ( sysex_return == -11 && pMessage[0] == 0xF0 && pMessage[1] == 0x43 && nLength == 4 )
   {
-	if ((pMessage[2] & 0x30) == 0x30) // Send config request
+	if ((pMessage[2] & 0x70) == 0x30) // Send config request
 		sysex_return = 600;
 	if ((pMessage[2] & 0x70) == 0x40) // Send Bank Name request
 		sysex_return = 601;
