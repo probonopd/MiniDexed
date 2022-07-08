@@ -130,7 +130,8 @@ void CSerialMIDIDevice::Process (void)
 				m_SerialMessage[m_nSerialState++] = uchData;
 	
 				if (   (m_SerialMessage[0] & 0xE0) == 0xC0
-				    || m_nSerialState == 3)		// message is complete
+				    || m_nSerialState == 3		// message is complete
+				    || (m_SerialMessage[0] & 0xF0) == 0xD0)   // channel aftertouch
 				{
 					MIDIMessageHandler (m_SerialMessage, m_nSerialState);
 	
