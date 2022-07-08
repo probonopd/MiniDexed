@@ -190,6 +190,10 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setPBController (2, 0);
 		m_pTG[i]->setMWController (99, 1, 0); 
 
+		m_pTG[i]->setFCController (99, 1, 0); 
+		m_pTG[i]->setBCController (99, 1, 0);
+		m_pTG[i]->setATController (99, 1, 0);
+		
 		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
 		tg_mixer->gain(i,1.0f);
 		reverb_send_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
@@ -578,6 +582,28 @@ void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setModWheel (value);
+}
+
+
+void CMiniDexed::setFootController (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setFootController (value);
+}
+
+void CMiniDexed::setBreathController (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setBreathController (value);
+}
+
+void CMiniDexed::setAftertouch (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setAftertouch (value);
 }
 
 void CMiniDexed::setPitchbend (int16_t value, unsigned nTG)
