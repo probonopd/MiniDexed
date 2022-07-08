@@ -82,6 +82,10 @@ public:
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
+	void setFootController (uint8_t value, unsigned nTG);
+	void setBreathController (uint8_t value, unsigned nTG);
+	void setAftertouch (uint8_t value, unsigned nTG);
+
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
