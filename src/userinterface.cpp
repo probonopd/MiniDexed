@@ -34,6 +34,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pConfig (pConfig),
 	m_pLCD (0),
 	m_pLCDBuffered (0),
+	m_pUIButtons (0),
 	m_pRotaryEncoder (0),
 	m_bSwitchPressed (false),
 	m_Menu (this, pMiniDexed)
@@ -43,6 +44,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 CUserInterface::~CUserInterface (void)
 {
 	delete m_pRotaryEncoder;
+	delete m_pUIButtons;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
 }
@@ -85,11 +87,34 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
+	m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
+									m_pConfig->GetButtonActionPrev (),
+									m_pConfig->GetButtonPinNext (),
+									m_pConfig->GetButtonActionNext (),
+									m_pConfig->GetButtonPinBack (),
+									m_pConfig->GetButtonActionBack (),
+									m_pConfig->GetButtonPinSelect (),
+									m_pConfig->GetButtonActionSelect (),
+									m_pConfig->GetButtonPinHome (),
+									m_pConfig->GetButtonActionHome (),
+									m_pConfig->GetDoubleClickTimeout (),
+									m_pConfig->GetLongPressTimeout () );
+	assert (m_pUIButtons);
+
+	if (!m_pUIButtons->Initialize ())
+	{
+		return false;
+	}
+
+	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+
+	LOGDBG ("Button User Interface initialized");
+
 	if (m_pConfig->GetEncoderEnabled ())
 	{
 		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
 					       m_pConfig->GetEncoderPinData (),
-					       m_pConfig->GetEncoderPinSwitch (),
+					       m_pConfig->GetButtonPinShortcut (),
 					       m_pGPIOManager);
 		assert (m_pRotaryEncoder);
 
@@ -113,6 +138,10 @@ void CUserInterface::Process (void)
 	if (m_pLCDBuffered)
 	{
 		m_pLCDBuffered->Update ();
+	}
+	if (m_pUIButtons)
+	{
+		m_pUIButtons->Update();
 	}
 }
 
@@ -197,25 +226,26 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventClockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepUp
-						      : CUIMenu::MenuEventStepUp);
+		if (m_bSwitchPressed) {
+			// We must reset the encoder switch button to prevent events from being
+			// triggered after the encoder is rotated
+			m_pUIButtons->ResetButton(m_pConfig->GetButtonPinShortcut());
+			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepUp);
+
+		}
+		else {
+			m_Menu.EventHandler(CUIMenu::MenuEventStepUp);
+		}
 		break;
 
 	case CKY040::EventCounterclockwise:
-		m_Menu.EventHandler (m_bSwitchPressed ? CUIMenu::MenuEventPressAndStepDown
-						      : CUIMenu::MenuEventStepDown);
-		break;
-
-	case CKY040::EventSwitchClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventBack);
-		break;
-
-	case CKY040::EventSwitchDoubleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
-		break;
-
-	case CKY040::EventSwitchTripleClick:
-		m_Menu.EventHandler (CUIMenu::MenuEventHome);
+		if (m_bSwitchPressed) {
+			m_pUIButtons->ResetButton(m_pConfig->GetButtonPinShortcut());
+			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepDown);
+		}
+		else {
+			m_Menu.EventHandler(CUIMenu::MenuEventStepDown);
+		}
 		break;
 
 	case CKY040::EventSwitchHold:
@@ -238,4 +268,41 @@ void CUserInterface::EncoderEventStub (CKY040::TEvent Event, void *pParam)
 	assert (pThis != 0);
 
 	pThis->EncoderEventHandler (Event);
+}
+
+void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
+{
+	switch (Event)
+	{
+	case CUIButton::BtnEventPrev:
+		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
+		break;
+
+	case CUIButton::BtnEventNext:
+		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
+		break;
+
+	case CUIButton::BtnEventBack:
+		m_Menu.EventHandler (CUIMenu::MenuEventBack);
+		break;
+
+	case CUIButton::BtnEventSelect:
+		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		break;
+
+	case CUIButton::BtnEventHome:
+		m_Menu.EventHandler (CUIMenu::MenuEventHome);
+		break;
+
+	default:
+		break;
+	}
+}
+
+void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam)
+{
+	CUserInterface *pThis = static_cast<CUserInterface *> (pParam);
+	assert (pThis != 0);
+
+	pThis->UIButtonsEventHandler (Event);
 }

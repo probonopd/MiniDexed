@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "uimenu.h"
+#include "uibuttons.h"
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <circle/gpiomanager.h>
@@ -55,6 +56,8 @@ private:
 
 	void EncoderEventHandler (CKY040::TEvent Event);
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
+	void UIButtonsEventHandler (CUIButton::BtnEvent Event);
+	static void UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam);
 
 private:
 	CMiniDexed *m_pMiniDexed;
@@ -64,6 +67,8 @@ private:
 
 	CHD44780Device *m_pLCD;
 	CWriteBufferDevice *m_pLCDBuffered;
+	
+	CUIButtons *m_pUIButtons;
 
 	CKY040 *m_pRotaryEncoder;
 	bool m_bSwitchPressed;
