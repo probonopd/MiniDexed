@@ -41,3 +41,7 @@ MiniDexed*
 sdcard
 *.zip
 *.img
+
+# Editor related files
+*.swp
+*.swo
