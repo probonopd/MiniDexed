@@ -564,7 +564,7 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, uint8_t nTG)
   for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
   {
     Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
-    LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
+    // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
 } 
 

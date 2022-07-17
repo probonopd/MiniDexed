@@ -44,3 +44,7 @@ sdcard
 
 # Visual Studio artefacts
 .vs
+
+# Editor related files
+*.swp
+*.swo
