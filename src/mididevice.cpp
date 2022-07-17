@@ -426,6 +426,64 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
       m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
       break;
+    case 78:                                                // bank select
+        printf("Bank Select for TG %i\n", instanceID);
+        m_pSynthesizer->BankSelectLSB (pMessage[5], instanceID);
+        break;
+    case 79:                                                // pgm select
+        printf("Patch Select for TG %i\n", instanceID);
+        m_pSynthesizer->ProgramChange (pMessage[5], instanceID);
+        break;
+    case 80:                                                // Set midi channel
+        LOGDBG("Set midi channel for TG %i", instanceID);
+        printf("Set midi channel for TG %i\n", instanceID);
+        m_pSynthesizer->SetMIDIChannel(pMessage[5], instanceID);
+        break;
+    case 81:                                                // Reverb level
+        LOGDBG("Set Reverb Level for TG %i", instanceID);
+        m_pSynthesizer->SetReverbSend (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
+        break;
+    case 82:                                                // Compressor toggle
+        LOGDBG("Set Compressor ");
+        m_pSynthesizer->SetParameter (CMiniDexed::ParameterCompressorEnable, maplong (pMessage[5], 0, 127, 0, 1) );
+        break;
+    case 83:                                                // Transpose
+        LOGDBG("Set Transpose for TG %i", instanceID);
+        // NOTE: The next line was commented out in
+        // https://github.com/BenZonneveld/MiniDexed/blob/main/src/mididevice.cpp
+        // Does it not work?
+        m_pSynthesizer->SetTranspose (maplong (pMessage[5], 0, 127, 0, 99), instanceID);
+        break;
+    case 84:                                                // Detune
+        LOGDBG("Set detune for TG %i", instanceID);
+        if (pMessage[5] == 0)
+        {
+                // "0 to 127, with 0 being no celeste (detune) effect applied at all."
+                m_pSynthesizer->SetMasterTune (0, instanceID);
+        }
+        else
+        {
+                m_pSynthesizer->SetMasterTune (maplong (pMessage[5], 1, 127, -99, 99), instanceID);
+        }
+        break;
+    case 85:                                                // Panning
+        LOGDBG("Set panning for TG %i", instanceID);
+        m_pSynthesizer->SetPan(pMessage[5], instanceID);
+        break;
+    case 86:                                                // Volume
+        LOGDBG("Set volume for TG %i", instanceID);
+        m_pSynthesizer->SetVolume(pMessage[5], instanceID);
+        break;
+    case 87:                                                // Pitch Bend
+        break;
+    case 88:                                                // Portamento
+        LOGDBG("Set portamento mode for TG %i", instanceID);
+        m_pSynthesizer->setPortamentoMode(pMessage[5],instanceID);
+        break;
+    case 89:                                                // Mono Mode
+        LOGDBG("Set Mono mode for TG %i", instanceID);
+        m_pSynthesizer->setMonoMode(pMessage[5],instanceID);
+        break;		  
     case 100:
       // load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
