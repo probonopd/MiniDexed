@@ -127,7 +127,7 @@ bool CPerformanceConfig::Load (void)
 		m_nModulationWheelRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
 		
 		PropertyName.Format ("ModulationWheelTarget%u", nTG+1);
-		m_nModulationWheelTarget[nTG] = m_Properties.GetNumber (PropertyName, 7);
+		m_nModulationWheelTarget[nTG] = m_Properties.GetNumber (PropertyName, 1);
 		
 		PropertyName.Format ("FootControlRange%u", nTG+1);
 		m_nFootControlRange[nTG] = m_Properties.GetNumber (PropertyName, 99); 
