@@ -161,5 +161,11 @@ void CSerialMIDIDevice::Process (void)
 
 void CSerialMIDIDevice::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
+//        for (size_t i= 0; i < nLength; i++)
+//        {
+//          printf("%02X, ",pMessage[i]);
+//          if ( (i+1)%16 == 0 ) printf("\n");
+//        }
+//        printf("\n");
 	m_SendBuffer.Write (pMessage, nLength);
 }

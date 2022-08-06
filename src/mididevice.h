@@ -29,6 +29,19 @@
 #include <circle/types.h>
 #include <circle/spinlock.h>
 
+#define MIDI_CC_BANK_SELECT_MSB         0       // TODO
+#define MIDI_CC_MODULATION                      1
+#define MIDI_CC_VOLUME                          7
+#define MIDI_CC_PAN_POSITION            10
+#define MIDI_CC_BANK_SELECT_LSB         32
+#define MIDI_CC_BANK_SUSTAIN            64
+#define MIDI_CC_RESONANCE                       71
+#define MIDI_CC_FREQUENCY_CUTOFF        74
+#define MIDI_CC_REVERB_LEVEL            91
+#define MIDI_CC_DETUNE_LEVEL            94
+#define MIDI_CC_ALL_SOUND_OFF           120
+#define MIDI_CC_ALL_NOTES_OFF           123
+
 class CMiniDexed;
 
 class CMIDIDevice
@@ -50,8 +63,13 @@ public:
 	u8 GetChannel (unsigned nTG) const;
 
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
-	virtual void SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG);
-
+	virtual void SendSystemExclusiveVoice(uint8_t nVoice, uint8_t nTG);
+	virtual void SendSystemExclusiveConfig();
+	virtual void SendProgramChange(uint8_t pgm, uint8_t nTG);
+	virtual void SendBankChange(uint8_t bank, uint8_t nTG);
+	virtual void SendBankName( uint8_t nTG);
+	virtual void SendCtrlChange(uint8_t ctrl, uint8_t val, uint8_t nTG);
+	virtual void SendCtrlChange14Bit(uint8_t ctrl, int16_t val, uint8_t nTG);
 protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 	void AddDevice (const char *pDeviceName);
