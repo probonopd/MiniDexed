@@ -33,9 +33,12 @@ LOGMODULE ("mididevice");
 #define MIDI_NOTE_OFF		0b1000
 #define MIDI_NOTE_ON		0b1001
 #define MIDI_AFTERTOUCH		0b1010			// TODO
+#define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
 #define MIDI_CONTROL_CHANGE	0b1011
 	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
 	#define MIDI_CC_MODULATION			1
+	#define MIDI_CC_BREATH_CONTROLLER	2 
+	#define MIDI_CC_FOOT_PEDAL 		4
 	#define MIDI_CC_VOLUME				7
 	#define MIDI_CC_PAN_POSITION		10
 	#define MIDI_CC_BANK_SELECT_LSB		32
@@ -226,6 +229,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						m_pSynthesizer->keyup (pMessage[1], nTG);
 						break;
 		
+					case MIDI_CHANNEL_AFTERTOUCH:
+						
+						m_pSynthesizer->setAftertouch (pMessage[1], nTG);
+						m_pSynthesizer->ControllersRefresh (nTG);
+						break;
+							
 					case MIDI_CONTROL_CHANGE:
 						if (nLength < 3)
 						{
@@ -238,7 +247,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->setModWheel (pMessage[2], nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
-		
+								
+						case MIDI_CC_FOOT_PEDAL:
+							m_pSynthesizer->setFootController (pMessage[2], nTG);
+							m_pSynthesizer->ControllersRefresh (nTG);
+							break;
+
+						case MIDI_CC_BREATH_CONTROLLER:
+							m_pSynthesizer->setBreathController (pMessage[2], nTG);
+							m_pSynthesizer->ControllersRefresh (nTG);
+							break;
+								
 						case MIDI_CC_VOLUME:
 							m_pSynthesizer->SetVolume (pMessage[2], nTG);
 							break;

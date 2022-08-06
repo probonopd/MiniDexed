@@ -173,7 +173,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	assert (pParam);
 	assert (pValue);
 
-	CString Msg ("\x1B[H");		// cursor home
+	CString Msg ("\x1B[H\E[?25l");		// cursor home and off
 
 	// first line
 	Msg.Append (pParam);

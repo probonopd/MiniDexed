@@ -52,7 +52,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
-	m_bSetNewPerformance (false) 
+	m_bSetNewPerformance (false),
+	m_bDeletePerformance (false),
+	m_bLoadPerformanceBusy(false)
 {
 	assert (m_pConfig);
 
@@ -71,11 +73,20 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nPortamentoMode[i] = 0;
 		m_nPortamentoGlissando[i] = 0;
 		m_nPortamentoTime[i] = 0;
-
+		m_bMonoMode[i]=0; 
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
-
+		
+		m_nModulationWheelRange[i]=99;
+		m_nModulationWheelTarget[i]=7;
+		m_nFootControlRange[i]=99;
+		m_nFootControlTarget[i]=0;	
+		m_nBreathControlRange[i]=99;	
+		m_nBreathControlTarget[i]=0;	
+		m_nAftertouchRange[i]=99;	
+		m_nAftertouchTarget[i]=0;
+		
 		m_nReverbSend[i] = 0;
 		m_uchOPMask[i] = 0b111111;	// All operators on
 
@@ -177,8 +188,12 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setTranspose (24);
 
 		m_pTG[i]->setPBController (2, 0);
-		m_pTG[i]->setMWController (99, 7, 0);
+		m_pTG[i]->setMWController (99, 1, 0); 
 
+		m_pTG[i]->setFCController (99, 1, 0); 
+		m_pTG[i]->setBCController (99, 1, 0);
+		m_pTG[i]->setATController (99, 1, 0);
+		
 		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
 		tg_mixer->gain(i,1.0f);
 		reverb_send_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
@@ -225,7 +240,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-
+	
 	return true;
 }
 
@@ -263,12 +278,22 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance)
+	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
 	{
 		DoSetNewPerformance ();
-		m_bSetNewPerformance = false;
+		if (m_nSetNewPerformanceID == GetActualPerformanceID())
+		{
+			m_bSetNewPerformance = false;
+		}
+		
 	}
 	
+	if(m_bDeletePerformance)
+	{
+		DoDeletePerformance ();
+		m_bDeletePerformance = false;
+	}
+		
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
@@ -559,6 +584,28 @@ void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 	m_pTG[nTG]->setModWheel (value);
 }
 
+
+void CMiniDexed::setFootController (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setFootController (value);
+}
+
+void CMiniDexed::setBreathController (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setBreathController (value);
+}
+
+void CMiniDexed::setAftertouch (uint8_t value, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setAftertouch (value);
+}
+
 void CMiniDexed::setPitchbend (int16_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -669,7 +716,28 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
 	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
 	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
-
+	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+	
+	case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
+	case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
+	case TGParameterMWAmplitude:				setModController(0, 2, nValue, nTG); break;
+	case TGParameterMWEGBias:					setModController(0, 3, nValue, nTG); break;
+	
+	case TGParameterFCRange:					setModController(1, 0, nValue, nTG); break;
+	case TGParameterFCPitch:					setModController(1, 1, nValue, nTG); break;
+	case TGParameterFCAmplitude:				setModController(1, 2, nValue, nTG); break;
+	case TGParameterFCEGBias:					setModController(1, 3, nValue, nTG); break;
+	
+	case TGParameterBCRange:					setModController(2, 0, nValue, nTG); break;
+	case TGParameterBCPitch:					setModController(2, 1, nValue, nTG); break;
+	case TGParameterBCAmplitude:				setModController(2, 2, nValue, nTG); break;
+	case TGParameterBCEGBias:					setModController(2, 3, nValue, nTG); break;
+	
+	case TGParameterATRange:					setModController(3, 0, nValue, nTG); break;
+	case TGParameterATPitch:					setModController(3, 1, nValue, nTG); break;
+	case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
+	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
+	
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
 		SetMIDIChannel ((uint8_t) nValue, nTG);
@@ -703,7 +771,29 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
 	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
-
+	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
+	
+	case TGParameterMWRange:					return getModController(0, 0, nTG);
+	case TGParameterMWPitch:					return getModController(0, 1, nTG);
+	case TGParameterMWAmplitude:				return getModController(0, 2, nTG); 
+	case TGParameterMWEGBias:					return getModController(0, 3, nTG); 
+	
+	case TGParameterFCRange:					return getModController(1, 0,  nTG); 
+	case TGParameterFCPitch:					return getModController(1, 1,  nTG); 
+	case TGParameterFCAmplitude:				return getModController(1, 2,  nTG); 
+	case TGParameterFCEGBias:					return getModController(1, 3,  nTG); 
+	
+	case TGParameterBCRange:					return getModController(2, 0,  nTG); 
+	case TGParameterBCPitch:					return getModController(2, 1,  nTG); 
+	case TGParameterBCAmplitude:				return getModController(2, 2,  nTG); 
+	case TGParameterBCEGBias:					return getModController(2, 3,  nTG); 
+	
+	case TGParameterATRange:					return getModController(3, 0,  nTG); 
+	case TGParameterATPitch:					return getModController(3, 1,  nTG); 
+	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
+	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
+	
+	
 	default:
 		assert (0);
 		return 0;
@@ -946,9 +1036,10 @@ void CMiniDexed::ProcessSound (void)
 
 #endif
 
-bool CMiniDexed::SavePerformance (void)
+bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
 	m_bSavePerformance = true;
+	m_bSaveAsDeault=bSaveAsDeault;
 
 	return true;
 }
@@ -976,6 +1067,16 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
 		m_pTG[nTG]->getVoiceData(m_nRawVoiceData);  
  		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
+		m_PerformanceConfig.SetMonoMode (m_bMonoMode[nTG], nTG); 
+				
+		m_PerformanceConfig.SetModulationWheelRange (m_nModulationWheelRange[nTG], nTG);
+		m_PerformanceConfig.SetModulationWheelTarget (m_nModulationWheelTarget[nTG], nTG);
+		m_PerformanceConfig.SetFootControlRange (m_nFootControlRange[nTG], nTG);
+		m_PerformanceConfig.SetFootControlTarget (m_nFootControlTarget[nTG], nTG);
+		m_PerformanceConfig.SetBreathControlRange (m_nBreathControlRange[nTG], nTG);
+		m_PerformanceConfig.SetBreathControlTarget (m_nBreathControlTarget[nTG], nTG);
+		m_PerformanceConfig.SetAftertouchRange (m_nAftertouchRange[nTG], nTG);
+		m_PerformanceConfig.SetAftertouchTarget (m_nAftertouchTarget[nTG], nTG);
 		
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 	}
@@ -989,6 +1090,11 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
+	if(m_bSaveAsDeault)
+	{
+		m_PerformanceConfig.SetNewPerformance(0);
+		
+	}
 	return m_PerformanceConfig.Save ();
 }
 
@@ -996,7 +1102,7 @@ void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-
+	m_bMonoMode[nTG]= mono != 0; 
 	m_pTG[nTG]->setMonoMode(constrain(mono, 0, 1));
 	m_pTG[nTG]->doRefreshVoice();
 	m_UI.ParameterChanged ();
@@ -1068,7 +1174,10 @@ void CMiniDexed::setModWheelRange(uint8_t range, uint8_t nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 
-	m_pTG[nTG]->setModWheelRange(constrain(range, 0, 99));
+	m_nModulationWheelRange[nTG] = range;
+	m_pTG[nTG]->setMWController(range, m_pTG[nTG]->getModWheelTarget(), 0);
+//	m_pTG[nTG]->setModWheelRange(constrain(range, 0, 99));  replaces with the above due to wrong constrain on dexed_synth module. 
+
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
@@ -1077,6 +1186,8 @@ void CMiniDexed::setModWheelTarget(uint8_t target, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
+
+	m_nModulationWheelTarget[nTG] = target;
 
 	m_pTG[nTG]->setModWheelTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1088,7 +1199,10 @@ void CMiniDexed::setFootControllerRange(uint8_t range, uint8_t nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 
-	m_pTG[nTG]->setFootControllerRange(constrain(range, 0, 99));
+	m_nFootControlRange[nTG]=range;
+	m_pTG[nTG]->setFCController(range, m_pTG[nTG]->getFootControllerTarget(), 0);
+//	m_pTG[nTG]->setFootControllerRange(constrain(range, 0, 99));  replaces with the above due to wrong constrain on dexed_synth module. 
+
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
@@ -1097,6 +1211,8 @@ void CMiniDexed::setFootControllerTarget(uint8_t target, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
+
+	m_nFootControlTarget[nTG] = target;
 
 	m_pTG[nTG]->setFootControllerTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1108,7 +1224,10 @@ void CMiniDexed::setBreathControllerRange(uint8_t range, uint8_t nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 
-	m_pTG[nTG]->setBreathControllerRange(constrain(range, 0, 99));
+	m_nBreathControlRange[nTG]=range;
+	m_pTG[nTG]->setBCController(range, m_pTG[nTG]->getBreathControllerTarget(), 0);
+	//m_pTG[nTG]->setBreathControllerRange(constrain(range, 0, 99));
+
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
@@ -1117,6 +1236,8 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
+
+	m_nBreathControlTarget[nTG]=target;
 
 	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1128,7 +1249,10 @@ void CMiniDexed::setAftertouchRange(uint8_t range, uint8_t nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
 
-	m_pTG[nTG]->setAftertouchRange(constrain(range, 0, 99));
+	m_nAftertouchRange[nTG]=range;
+	m_pTG[nTG]->setATController(range, m_pTG[nTG]->getAftertouchTarget(), 0);
+//	m_pTG[nTG]->setAftertouchRange(constrain(range, 0, 99));
+
 	m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
@@ -1137,6 +1261,8 @@ void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
+
+	m_nAftertouchTarget[nTG]=target;
 
 	m_pTG[nTG]->setAftertouchTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1244,17 +1370,6 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
-unsigned CMiniDexed::GetMenuSelectedPerformanceID()
-{
-	return m_PerformanceConfig.GetMenuSelectedPerformanceID();
-}
-
-void CMiniDexed::SetMenuSelectedPerformanceID(unsigned nID)
-{
-	m_PerformanceConfig.SetMenuSelectedPerformanceID(nID);
-}
-
-
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
@@ -1265,17 +1380,21 @@ bool CMiniDexed::SetNewPerformance(unsigned nID)
 
 bool CMiniDexed::DoSetNewPerformance (void)
 {
+	m_bLoadPerformanceBusy = true;
+	
 	unsigned nID = m_nSetNewPerformanceID;
 	m_PerformanceConfig.SetNewPerformance(nID);
 	
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters();
+		m_bLoadPerformanceBusy = false;
 		return true;
 	}
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+		m_bLoadPerformanceBusy = false;
 		return false;
 	}
 }
@@ -1288,10 +1407,9 @@ bool CMiniDexed::SavePerformanceNewFile ()
 
 bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
-	std::string nPerformanceName=""; // for future enhacements: capability to write performance name
-	if (m_PerformanceConfig.CreateNewPerformanceFile(nPerformanceName))
+	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
-		if(SavePerformance())
+		if(SavePerformance(false))
 		{
 			return true;
 		}
@@ -1336,8 +1454,18 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 			}
-			
+			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
+					
+			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
+			setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
+			setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
+			setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
+			setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
+			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
+			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
+			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
+			
 		
 		}
 
@@ -1352,3 +1480,184 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 }
 
+std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
+{
+	return m_PerformanceConfig.GetNewPerformanceDefaultName();
+}
+
+void CMiniDexed::SetNewPerformanceName(std::string nName)
+{
+	m_PerformanceConfig.SetNewPerformanceName(nName);
+}
+
+void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	char Name[10];
+	strncpy(Name, VoiceName.c_str(),10);
+	m_pTG[nTG]->getName (Name);
+}
+
+bool CMiniDexed::DeletePerformance(unsigned nID)
+{
+	m_bDeletePerformance = true;
+	m_nDeletePerformanceID = nID;
+
+	return true;
+}
+
+bool CMiniDexed::DoDeletePerformance(void)
+{
+	unsigned nID = m_nDeletePerformanceID;
+	if(m_PerformanceConfig.DeletePerformance(nID))
+	{
+		if (m_PerformanceConfig.Load ())
+		{
+			LoadPerformanceParameters();
+			return true;
+		}
+		else
+		{
+			SetMIDIChannel (CMIDIDevice::OmniMode, 0);
+		}
+	}
+	
+	return false;
+}
+
+bool CMiniDexed::GetPerformanceSelectToLoad(void)
+{
+	return m_pConfig->GetPerformanceSelectToLoad();
+}
+
+void CMiniDexed::setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG)
+{
+	 uint8_t nBits;
+	
+	switch (controller)
+	{
+		case 0:
+			if (parameter == 0)
+			{
+				setModWheelRange(value, nTG);
+			}
+			else
+			{
+				value=constrain(value, 0, 1);
+				nBits=m_nModulationWheelTarget[nTG];
+				value == 1 ?  nBits |= 1 << (parameter-1) : nBits &= ~(1 << (parameter-1)); 
+				setModWheelTarget(nBits , nTG); 
+			}
+		break;
+		
+		case 1:
+			if (parameter == 0)
+			{
+				setFootControllerRange(value, nTG);
+			}
+			else
+			{
+				value=constrain(value, 0, 1);
+				nBits=m_nFootControlTarget[nTG];
+				value == 1 ?  nBits |= 1 << (parameter-1) : nBits &= ~(1 << (parameter-1)); 
+				setFootControllerTarget(nBits , nTG); 
+			}
+		break;	
+
+		case 2:
+			if (parameter == 0)
+			{
+				setBreathControllerRange(value, nTG);
+			}
+			else
+			{
+				value=constrain(value, 0, 1);
+				nBits=m_nBreathControlTarget[nTG];
+				value == 1 ?  nBits |= 1 << (parameter-1) : nBits &= ~(1 << (parameter-1));
+				setBreathControllerTarget(nBits , nTG); 
+			}
+		break;			
+		
+		case 3:
+			if (parameter == 0)
+			{
+				setAftertouchRange(value, nTG);
+			}
+			else
+			{
+				value=constrain(value, 0, 1);
+				nBits=m_nAftertouchTarget[nTG];
+				value == 1 ?  nBits |= 1 << (parameter-1) : nBits &= ~(1 << (parameter-1));
+				setAftertouchTarget(nBits , nTG); 
+			}
+		break;	
+		default:
+		break;
+	}
+}
+
+unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, uint8_t nTG)
+{
+	unsigned nBits;
+	switch (controller)
+	{
+		case 0:
+			if (parameter == 0)
+			{
+			    return m_nModulationWheelRange[nTG];
+			}
+			else
+			{
+	
+				nBits=m_nModulationWheelTarget[nTG];
+				nBits &= 1 << (parameter-1);				
+				return (nBits != 0 ? 1 : 0) ; 
+			}
+		break;
+		
+		case 1:
+			if (parameter == 0)
+			{
+				return m_nFootControlRange[nTG];
+			}
+			else
+			{
+				nBits=m_nFootControlTarget[nTG];
+				nBits &= 1 << (parameter-1)	;			
+				return (nBits != 0 ? 1 : 0) ; 
+			}
+		break;	
+
+		case 2:
+			if (parameter == 0)
+			{
+				return m_nBreathControlRange[nTG];
+			}
+			else
+			{
+				nBits=m_nBreathControlTarget[nTG];	
+				nBits &= 1 << (parameter-1)	;			
+				return (nBits != 0 ? 1 : 0) ; 
+			}
+		break;			
+		
+		case 3:
+			if (parameter == 0)
+			{
+				return m_nAftertouchRange[nTG];
+			}
+			else
+			{
+				nBits=m_nAftertouchTarget[nTG];
+				nBits &= 1 << (parameter-1)	;			
+				return (nBits != 0 ? 1 : 0) ; 
+			}
+		break;	
+		
+		default:
+			return 0;
+		break;
+	}
+	
+}
