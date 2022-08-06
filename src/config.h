@@ -53,6 +53,7 @@ public:
 	static const unsigned MaxUSBMIDIDevices = 4;
 #endif
 
+	// TODO - Leave this for uimenu.cpp for now, but it will need to be dynamic at some point...
 	static const unsigned LCDColumns = 16;		// HD44780 LCD
 	static const unsigned LCDRows = 2;
 
@@ -88,6 +89,14 @@ public:
 	unsigned GetLCDPinData7 (void) const;
 	unsigned GetLCDI2CAddress (void) const;
 	
+	// SSD1306 LCD
+	unsigned GetSSD1306LCDI2CAddress (void) const;
+	unsigned GetSSD1306LCDWidth (void) const;
+	unsigned GetSSD1306LCDHeight (void) const;
+
+	unsigned GetLCDColumns (void) const;
+	unsigned GetLCDRows (void) const;
+
 	// GPIO Button Navigation
 	// GPIO pin numbers are chip numbers, not header positions
 	unsigned GetButtonPinPrev (void) const;
@@ -141,6 +150,13 @@ private:
 	unsigned m_nLCDPinData6;
 	unsigned m_nLCDPinData7;
 	unsigned m_nLCDI2CAddress;
+	
+	unsigned m_nSSD1306LCDI2CAddress;
+	unsigned m_nSSD1306LCDWidth;
+	unsigned m_nSSD1306LCDHeight;
+	
+	unsigned m_nLCDColumns;
+	unsigned m_nLCDRows;
 	
 	unsigned m_nButtonPinPrev;
 	unsigned m_nButtonPinNext;

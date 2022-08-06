@@ -56,9 +56,18 @@ bool CUserInterface::Initialize (void)
 	if (m_pConfig->GetLCDEnabled ())
 	{
 		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
-		if (i2caddr == 0)
+		unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
+		if (ssd1306addr != 0) {
+			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (), m_pI2CMaster, ssd1306addr);
+			LOGDBG ("LCD: SSD1306");
+			if (!m_pSSD1306->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pSSD1306;
+		} else if (i2caddr == 0)
 		{
-			m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
+			m_pHD44780 = new CHD44780Device (m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows (),
 							 m_pConfig->GetLCDPinData4 (),
 							 m_pConfig->GetLCDPinData5 (),
 							 m_pConfig->GetLCDPinData6 (),
@@ -66,18 +75,25 @@ bool CUserInterface::Initialize (void)
 							 m_pConfig->GetLCDPinEnable (),
 							 m_pConfig->GetLCDPinRegisterSelect (),
 							 m_pConfig->GetLCDPinReadWrite ());
+			LOGDBG ("LCD: HD44780");
+			if (!m_pHD44780->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pHD44780;
 		}
 		else
 		{
-			m_pLCD = new CHD44780Device (m_pI2CMaster, i2caddr,
-							CConfig::LCDColumns, CConfig::LCDRows);
+			m_pHD44780 = new CHD44780Device (m_pI2CMaster, i2caddr,
+							m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
+			LOGDBG ("LCD: HD44780 I2C");
+			if (!m_pHD44780->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pHD44780;
 		}
 		assert (m_pLCD);
-
-		if (!m_pLCD->Initialize ())
-		{
-			return false;
-		}
 
 		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
@@ -163,9 +179,9 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	Msg.Append (pParam);
 
 	size_t nLen = strlen (pParam) + strlen (pMenu);
-	if (nLen < CConfig::LCDColumns)
+	if (nLen < m_pConfig->GetLCDColumns ())
 	{
-		for (unsigned i = CConfig::LCDColumns-nLen; i > 0; i--)
+		for (unsigned i = m_pConfig->GetLCDColumns ()-nLen; i > 0; i--)
 		{
 			Msg.Append (" ");
 		}
@@ -184,9 +200,9 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 
 	if (bArrowUp)
 	{
-		if (Value.GetLength () < CConfig::LCDColumns-1)
+		if (Value.GetLength () < m_pConfig->GetLCDColumns ()-1)
 		{
-			for (unsigned i = CConfig::LCDColumns-Value.GetLength ()-1; i > 0; i--)
+			for (unsigned i = m_pConfig->GetLCDColumns ()-Value.GetLength ()-1; i > 0; i--)
 			{
 				Value.Append (" ");
 			}
@@ -197,7 +213,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 
 	Msg.Append (Value);
 
-	if (Value.GetLength () < CConfig::LCDColumns)
+	if (Value.GetLength () < m_pConfig->GetLCDColumns ())
 	{
 		Msg.Append ("\x1B[K");		// clear end of line
 	}
