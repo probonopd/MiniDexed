@@ -25,6 +25,7 @@
 #include "uibuttons.h"
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
+#include <display/ssd1306device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
 #include <circle/i2cmaster.h>
@@ -65,7 +66,9 @@ private:
 	CI2CMaster *m_pI2CMaster;
 	CConfig *m_pConfig;
 
-	CHD44780Device *m_pLCD;
+	CCharDevice    *m_pLCD;
+	CHD44780Device *m_pHD44780;
+	CSSD1306Device *m_pSSD1306;
 	CWriteBufferDevice *m_pLCDBuffered;
 	
 	CUIButtons *m_pUIButtons;
