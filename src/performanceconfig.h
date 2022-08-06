@@ -57,7 +57,17 @@ public:
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoGlissando (unsigned nTG) const;		// 0 .. 1
 	unsigned GetPortamentoTime (unsigned nTG) const;		// 0 .. 99
+	bool GetMonoMode (unsigned nTG) const; 				// 0 .. 1
 	
+	unsigned GetModulationWheelRange (unsigned nTG) const; // 0 .. 99
+	unsigned GetModulationWheelTarget (unsigned nTG) const; // 0 .. 7
+	unsigned GetFootControlRange (unsigned nTG) const; // 0 .. 99
+	unsigned GetFootControlTarget (unsigned nTG) const;  // 0 .. 7
+	unsigned GetBreathControlRange (unsigned nTG) const; // 0 .. 99
+	unsigned GetBreathControlTarget (unsigned nTG) const;  // 0 .. 7
+	unsigned GetAftertouchRange (unsigned nTG) const; // 0 .. 99
+	unsigned GetAftertouchTarget (unsigned nTG) const;  // 0 .. 7
+
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
 	void SetMIDIChannel (unsigned nValue, unsigned nTG);
@@ -77,7 +87,17 @@ public:
 	void SetPortamentoTime (unsigned nValue, unsigned nTG);
 	void SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG); 
 	uint8_t *GetVoiceDataFromTxt (unsigned nTG);
-	
+	void SetMonoMode (bool bOKValue, unsigned nTG); 
+
+	void SetModulationWheelRange (unsigned nValue, unsigned nTG);
+	void SetModulationWheelTarget (unsigned nValue, unsigned nTG);
+	void SetFootControlRange (unsigned nValue, unsigned nTG);
+	void SetFootControlTarget (unsigned nValue, unsigned nTG);
+	void SetBreathControlRange (unsigned nValue, unsigned nTG);
+	void SetBreathControlTarget (unsigned nValue, unsigned nTG);
+	void SetAftertouchRange (unsigned nValue, unsigned nTG);
+	void SetAftertouchTarget (unsigned nValue, unsigned nTG);
+
 	// Effects
 	bool GetCompressorEnable (void) const;
 	bool GetReverbEnable (void) const;
@@ -106,10 +126,11 @@ public:
 	unsigned GetLastPerformance();
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceID();
-	void SetMenuSelectedPerformanceID(unsigned nID);
-	unsigned GetMenuSelectedPerformanceID();
-	bool CreateNewPerformanceFile(std::string sPerformanceName);
+	bool CreateNewPerformanceFile(void);
 	bool GetInternalFolderOk(); 
+	std::string GetNewPerformanceDefaultName(void);
+	void SetNewPerformanceName(std::string nName);
+	bool DeletePerformance(unsigned nID);
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -132,17 +153,28 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];
 	std::string m_nVoiceDataTxt[CConfig::ToneGenerators]; 
-	
+	bool m_bMonoMode[CConfig::ToneGenerators]; 
+
+	unsigned m_nModulationWheelRange[CConfig::ToneGenerators];
+	unsigned m_nModulationWheelTarget[CConfig::ToneGenerators];
+	unsigned m_nFootControlRange[CConfig::ToneGenerators];	
+	unsigned m_nFootControlTarget[CConfig::ToneGenerators];	
+	unsigned m_nBreathControlRange[CConfig::ToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];	
+
 	unsigned nLastPerformance;  
 	unsigned nLastFileIndex;
 	unsigned nActualPerformance = 0;  
-	unsigned nMenuSelectedPerformance = 0;
+	//unsigned nMenuSelectedPerformance = 0; 
 	std::string m_nPerformanceFileName[40];
 	FATFS *m_pFileSystem; 
 
 	bool nInternalFolderOk=false;
 	bool nExternalFolderOk=false; // for future USB implementation
-
+	std::string NewPerformanceName="";
+	
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;

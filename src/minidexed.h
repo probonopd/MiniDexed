@@ -82,6 +82,10 @@ public:
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
 
+	void setFootController (uint8_t value, unsigned nTG);
+	void setBreathController (uint8_t value, unsigned nTG);
+	void setAftertouch (uint8_t value, unsigned nTG);
+
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
@@ -102,6 +106,9 @@ public:
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
 	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
 
+	void setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG);
+	unsigned getModController (unsigned controller, unsigned parameter, uint8_t nTG);
+
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
 	std::string GetPerformanceFileName(unsigned nID);
@@ -111,11 +118,11 @@ public:
 	void SetActualPerformanceID(unsigned nID);
 	bool SetNewPerformance(unsigned nID);
 	bool SavePerformanceNewFile ();
-	unsigned GetMenuSelectedPerformanceID();
-	void SetMenuSelectedPerformanceID(unsigned nID);
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool GetPerformanceSelectToLoad(void);
+	bool SavePerformance (bool bSaveAsDeault);
 	
 	enum TParameter
 	{
@@ -133,6 +140,12 @@ public:
 	void SetParameter (TParameter Parameter, int nValue);
 	int GetParameter (TParameter Parameter);
 
+	std::string GetNewPerformanceDefaultName(void);
+	void SetNewPerformanceName(std::string nName);
+	void SetVoiceName (std::string VoiceName, unsigned nTG);
+	bool DeletePerformance(unsigned nID);
+	bool DoDeletePerformance(void);
+
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,
@@ -149,6 +162,28 @@ public:
 		TGParameterPortamentoMode,
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
+		TGParameterMonoMode,  
+				
+		TGParameterMWRange,
+		TGParameterMWPitch,
+		TGParameterMWAmplitude,
+		TGParameterMWEGBias,
+		
+		TGParameterFCRange,
+		TGParameterFCPitch,
+		TGParameterFCAmplitude,
+		TGParameterFCEGBias,
+		
+		TGParameterBCRange,
+		TGParameterBCPitch,
+		TGParameterBCAmplitude,
+		TGParameterBCEGBias,
+		
+		TGParameterATRange,
+		TGParameterATPitch,
+		TGParameterATAmplitude,
+		TGParameterATEGBias,
+		
 		TGParameterUnknown
 	};
 
@@ -204,7 +239,17 @@ private:
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
-
+	bool m_bMonoMode[CConfig::ToneGenerators]; 
+				
+	unsigned m_nModulationWheelRange[CConfig::ToneGenerators];
+	unsigned m_nModulationWheelTarget[CConfig::ToneGenerators];
+	unsigned m_nFootControlRange[CConfig::ToneGenerators];
+	unsigned m_nFootControlTarget[CConfig::ToneGenerators];
+	unsigned m_nBreathControlRange[CConfig::ToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];
+		
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
@@ -220,7 +265,8 @@ private:
 	
 	float32_t nMasterVolume;
 
-
+	bool	m_bDeletePerformance;
+	unsigned m_nDeletePerformanceID;
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -252,6 +298,8 @@ private:
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
+	bool m_bLoadPerformanceBusy;
+	bool m_bSaveAsDeault;
 };
 
 #endif
