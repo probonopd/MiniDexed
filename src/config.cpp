@@ -104,6 +104,13 @@ void CConfig::Load (void)
 	m_nDoubleClickTimeout = m_Properties.GetNumber ("DoubleClickTimeout", 400);
 	m_nLongPressTimeout = m_Properties.GetNumber ("LongPressTimeout", 600);
 
+	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 255);
+	m_nMIDIButtonPrev = m_Properties.GetNumber ("MIDIButtonPrev", 0);
+	m_nMIDIButtonNext = m_Properties.GetNumber ("MIDIButtonNext", 0);
+	m_nMIDIButtonBack = m_Properties.GetNumber ("MIDIButtonBack", 0);
+	m_nMIDIButtonSelect = m_Properties.GetNumber ("MIDIButtonSelect", 0);
+	m_nMIDIButtonHome = m_Properties.GetNumber ("MIDIButtonHome", 0);
+
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
@@ -291,6 +298,36 @@ unsigned CConfig::GetDoubleClickTimeout (void) const
 unsigned CConfig::GetLongPressTimeout (void) const
 {
 	return m_nLongPressTimeout;
+}
+
+unsigned CConfig::GetMIDIButtonCh (void) const
+{
+	return m_nMIDIButtonCh;
+}
+
+unsigned CConfig::GetMIDIButtonPrev (void) const
+{
+	return m_nMIDIButtonPrev;
+}
+
+unsigned CConfig::GetMIDIButtonNext (void) const
+{
+	return m_nMIDIButtonNext;
+}
+
+unsigned CConfig::GetMIDIButtonBack (void) const
+{
+	return m_nMIDIButtonBack;
+}
+
+unsigned CConfig::GetMIDIButtonSelect (void) const
+{
+	return m_nMIDIButtonSelect;
+}
+
+unsigned CConfig::GetMIDIButtonHome (void) const
+{
+	return m_nMIDIButtonHome;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

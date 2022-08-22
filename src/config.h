@@ -117,6 +117,14 @@ public:
 	unsigned GetDoubleClickTimeout (void) const;
 	unsigned GetLongPressTimeout (void) const;
 
+	// MIDI Button Navigation
+	unsigned GetMIDIButtonCh   (void) const;
+	unsigned GetMIDIButtonPrev (void) const;
+	unsigned GetMIDIButtonNext (void) const;
+	unsigned GetMIDIButtonBack (void) const;
+	unsigned GetMIDIButtonSelect (void) const;
+	unsigned GetMIDIButtonHome (void) const;
+	
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
 	bool GetEncoderEnabled (void) const;
@@ -176,6 +184,13 @@ private:
 	
 	unsigned m_nDoubleClickTimeout;
 	unsigned m_nLongPressTimeout;
+
+	unsigned m_nMIDIButtonCh;
+	unsigned m_nMIDIButtonPrev;
+	unsigned m_nMIDIButtonNext;
+	unsigned m_nMIDIButtonBack;
+	unsigned m_nMIDIButtonSelect;
+	unsigned m_nMIDIButtonHome;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
