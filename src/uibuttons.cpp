@@ -190,6 +190,19 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 	return BtnTriggerNone;
 }
 
+void CUIButton::Write (unsigned nValue) {
+	// This only makes sense for MIDI buttons.
+	unsigned pin = getPinNumber();
+	if (isMidiPin(pin))
+	{
+		if (m_pin)
+		{
+			// Update the "MIDI Pin"
+			m_pin->Write(nValue);
+		}
+	}
+}
+
 CUIButton::BtnEvent CUIButton::Read (void) {
 	BtnTrigger trigger = ReadTrigger();
 
@@ -422,4 +435,15 @@ void CUIButtons::ResetButton (unsigned pinNumber)
 			m_buttons[i].reset();
 		}
 	}
+}
+
+void CUIButtons::BtnMIDICCHandler (unsigned nMidiCC, unsigned nMidiData)
+{
+	unsigned midiPin = ccToMidiPin(nMidiCC);
+	for (unsigned i=0; i<MAX_BUTTONS; i++) {
+		if (m_buttons[i].getPinNumber() == midiPin) {
+			m_buttons[i].Write (nMidiData);
+		}
+	}
+	
 }

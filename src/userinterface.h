@@ -53,7 +53,7 @@ public:
 			   bool bArrowDown, bool bArrowUp);
 
 	// To be called from the MIDI device on reception of a MIDI CC message
-	static void UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData);
+	void UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData);
 
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
@@ -76,7 +76,7 @@ private:
 	
 	CUIButtons *m_pUIButtons;
 
-	static unsigned nMIDIButtonCh;
+	unsigned m_nMIDIButtonCh;
 
 	CKY040 *m_pRotaryEncoder;
 	bool m_bSwitchPressed;

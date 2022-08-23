@@ -35,8 +35,8 @@ TMIDIPacketHandler * const CMIDIKeyboard::s_pMIDIPacketHandler[MaxInstances] =
 	MIDIPacketHandler3
 };
 
-CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, unsigned nInstance)
-:	CMIDIDevice (pSynthesizer, pConfig),
+CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI, unsigned nInstance)
+:	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_nInstance (nInstance),
 	m_pMIDIDevice (0)
 {

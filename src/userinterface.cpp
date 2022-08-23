@@ -27,8 +27,6 @@
 
 LOGMODULE ("ui");
 
-unsigned CUserInterface::nMIDIButtonCh = 255;
-
 CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
 	m_pGPIOManager (pGPIOManager),
@@ -131,7 +129,7 @@ bool CUserInterface::Initialize (void)
 	}
 
 	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-	nMIDIButtonCh = m_pConfig->GetMIDIButtonCh ();
+	m_nMIDIButtonCh = m_pConfig->GetMIDIButtonCh ();
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -334,9 +332,14 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 
 void CUserInterface::UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData)
 {
-	if ((nMIDIButtonCh != nMidiCh) && (nMIDIButtonCh != 0))
+	if ((m_nMIDIButtonCh != nMidiCh) && (m_nMIDIButtonCh != 0))
 	{
 		// Message not on the MIDI Button channel and MIDI buttons not in OMNI mode
 		return;
+	}
+	
+	if (m_pUIButtons)
+	{
+		m_pUIButtons->BtnMIDICCHandler (nMidiCC, nMidiData);
 	}
 }

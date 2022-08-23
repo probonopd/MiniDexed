@@ -69,9 +69,10 @@ public:
 	
 	BtnTrigger ReadTrigger (void);
 	BtnEvent Read (void);
+	void Write (unsigned nValue); // MIDI buttons only!
 
 	static BtnTrigger triggerTypeFromString(const char* triggerString);
-
+	
 private:
 	// Pin number
 	unsigned m_pinNumber;
@@ -122,6 +123,8 @@ public:
 	void Update (void);
 
 	void ResetButton (unsigned pinNumber);
+
+	void BtnMIDICCHandler (unsigned nMidiCC, unsigned nMidiData);
 	
 private:
 	// Array of normal GPIO buttons and "MIDI buttons"

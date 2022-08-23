@@ -60,9 +60,10 @@ LOGMODULE ("mididevice");
 
 CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 
-CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
+CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	m_pSynthesizer (pSynthesizer),
-	m_pConfig (pConfig)
+	m_pConfig (pConfig),
+	m_pUI (pUI)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
@@ -190,7 +191,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				break;
 			}
-			CUserInterface::UIMIDICCHandler (ucChannel, pMessage[1], pMessage[2]);
+			m_pUI->UIMIDICCHandler (ucChannel, pMessage[1], pMessage[2]);
 			break;
 		}
 
