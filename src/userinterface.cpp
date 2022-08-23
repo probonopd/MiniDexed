@@ -129,7 +129,7 @@ bool CUserInterface::Initialize (void)
 	}
 
 	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-	m_nMIDIButtonCh = m_pConfig->GetMIDIButtonCh ();
+	UISetMIDICCChannel (m_pConfig->GetMIDIButtonCh ());
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -332,7 +332,12 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 
 void CUserInterface::UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData)
 {
-	if ((m_nMIDIButtonCh != nMidiCh) && (m_nMIDIButtonCh != 0))
+	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
+	{
+		// MIDI buttons are not enabled
+		return;
+	}
+	if ((m_nMIDIButtonCh != nMidiCh) && (m_nMIDIButtonCh != CMIDIDevice::OmniMode))
 	{
 		// Message not on the MIDI Button channel and MIDI buttons not in OMNI mode
 		return;
@@ -341,5 +346,22 @@ void CUserInterface::UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsign
 	if (m_pUIButtons)
 	{
 		m_pUIButtons->BtnMIDICCHandler (nMidiCC, nMidiData);
+	}
+}
+
+void CUserInterface::UISetMIDICCChannel (unsigned uCh)
+{
+	// Mirrors the logic in Performance Config for handling MIDI channel configuration
+	if (uCh == 0)
+	{
+		m_nMIDIButtonCh = CMIDIDevice::Disabled;
+	}
+	else if (uCh < CMIDIDevice::Channels)
+	{
+		m_nMIDIButtonCh = uCh - 1;
+	}
+	else
+	{
+		m_nMIDIButtonCh = CMIDIDevice::OmniMode;
 	}
 }

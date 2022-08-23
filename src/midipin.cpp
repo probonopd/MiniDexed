@@ -33,12 +33,12 @@ CMIDIPin::~CMIDIPin (void)
 {
 }
 		
-unsigned CMIDIPin::read (void)
+unsigned CMIDIPin::Read (void)
 {
 	return m_nValue;
 }
 
-void CMIDIPin::write (unsigned nValue)
+void CMIDIPin::Write (unsigned nValue)
 {
 	// Takes values in the MIDI controller range 0 to 127
 	// and OFF < 64 < ON.

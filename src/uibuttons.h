@@ -78,6 +78,8 @@ private:
 	unsigned m_pinNumber;
 	// GPIO pin
 	CGPIOPin *m_pin;
+	// MIDI pin
+	CMIDIPin *m_midipin;
 	// The value of the pin at the end of the last loop
 	unsigned m_lastValue;
 	// Set to 0 on press, increment each read, use to trigger events

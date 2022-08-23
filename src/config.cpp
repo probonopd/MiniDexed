@@ -104,7 +104,7 @@ void CConfig::Load (void)
 	m_nDoubleClickTimeout = m_Properties.GetNumber ("DoubleClickTimeout", 400);
 	m_nLongPressTimeout = m_Properties.GetNumber ("LongPressTimeout", 600);
 
-	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 255);
+	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 0);
 	m_nMIDIButtonPrev = m_Properties.GetNumber ("MIDIButtonPrev", 0);
 	m_nMIDIButtonNext = m_Properties.GetNumber ("MIDIButtonNext", 0);
 	m_nMIDIButtonBack = m_Properties.GetNumber ("MIDIButtonBack", 0);

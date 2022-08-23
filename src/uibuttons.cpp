@@ -28,6 +28,7 @@ LOGMODULE ("uibuttons");
 CUIButton::CUIButton (void)
 :	m_pinNumber (0),
 	m_pin (0),
+	m_midipin (0),
 	m_lastValue (1),
 	m_timer (0),
 	m_debounceTimer (0),
@@ -45,6 +46,10 @@ CUIButton::~CUIButton (void)
 	if (m_pin)
 	{
 		delete m_pin;
+	}
+	if (m_midipin)
+	{
+		delete m_midipin;
 	}
 }
 
@@ -71,8 +76,10 @@ boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, 
 	{
 		if (isMidiPin(m_pinNumber))
 		{
-			m_pin = new CMIDIPin (m_pinNumber);
+			LOGDBG("MIDI Button on pin: %d (%x)", m_pinNumber, m_pinNumber);
+			m_midipin = new CMIDIPin (m_pinNumber);
 		} else {
+			LOGDBG("GPIO Button on pin: %d (%x)", m_pinNumber, m_pinNumber);
 			m_pin = new CGPIOPin (m_pinNumber, GPIOModeInputPullUp);
 		}
 	}
@@ -101,13 +108,25 @@ unsigned CUIButton::getPinNumber(void)
 	
 CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 {
-	if (!m_pin)
+	unsigned value;
+	if (isMidiPin(m_pinNumber))
 	{
-		// Always return "not pressed" if not configured
-		return BtnTriggerNone;
+		if (!m_midipin)
+		{
+			// Always return "not pressed" if not configured
+			return BtnTriggerNone;
+		}
+		value = m_midipin->Read();
 	}
-
-	unsigned value = m_pin->Read();
+	else
+	{
+		if (!m_pin)
+		{
+			// Always return "not pressed" if not configured
+			return BtnTriggerNone;
+		}
+		value = m_pin->Read();
+	}
 
 	if (m_timer < m_longPressTimeout) {
 		m_timer++;
@@ -192,14 +211,10 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 
 void CUIButton::Write (unsigned nValue) {
 	// This only makes sense for MIDI buttons.
-	unsigned pin = getPinNumber();
-	if (isMidiPin(pin))
+	if (m_midipin && isMidiPin(m_pinNumber))
 	{
-		if (m_pin)
-		{
-			// Update the "MIDI Pin"
-			m_pin->Write(nValue);
-		}
+		// Update the "MIDI Pin"
+		m_midipin->Write(nValue);
 	}
 }
 
@@ -263,11 +278,11 @@ CUIButtons::CUIButtons (
 	m_selectAction(CUIButton::triggerTypeFromString(selectAction)),
 	m_homePin(homePin),
 	m_homeAction(CUIButton::triggerTypeFromString(homeAction)),
-	m_prevMidi(prevMidi),
-	m_nextMidi(nextMidi),
-	m_backMidi(backMidi),
-	m_selectMidi(selectMidi),
-	m_homeMidi(homeMidi),
+	m_prevMidi(ccToMidiPin(prevMidi)),
+	m_nextMidi(ccToMidiPin(nextMidi)),
+	m_backMidi(ccToMidiPin(backMidi)),
+	m_selectMidi(ccToMidiPin(selectMidi)),
+	m_homeMidi(ccToMidiPin(homeMidi)),
 	m_eventHandler (0),
 	m_lastTick (0)
 {
@@ -354,9 +369,16 @@ boolean CUIButtons::Initialize (void)
 			continue;
 		}
 
-		// doubleClickTimeout and longPressTimeout are ignored for MIDI buttons at present
-		m_buttons[i].Initialize(pins[i], doubleClickTimeout, longPressTimeout);
-	}	
+		// Carry on in the list from where GPIO buttons left off
+		for (unsigned j=0; j<MAX_BUTTONS; j++) {
+			if (m_buttons[j].getPinNumber() == 0) {
+				// This is un-initialised so can be assigned
+				// doubleClickTimeout and longPressTimeout are ignored for MIDI buttons at present
+				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout);
+				break;
+			}
+		}
+	}
 
 	// All of the buttons are now initialised, they just need to have their
 	// events assigned to them
