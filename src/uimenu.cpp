@@ -538,7 +538,10 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
-
+	
+	bool bAutoBankSkip=true; 
+	int nBankNumber = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
+	
 	switch (Event)
 	{
 	case MenuEventUpdate:
@@ -547,7 +550,15 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventStepDown:
 		if (--nValue < 0)
 		{
-			nValue = 0;
+			if(bAutoBankSkip && nBankNumber > 0)
+			{
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBankNumber-1, nTG);
+				nValue=(int) CSysExFileLoader::VoicesPerBank-1;
+			}
+			else
+			{
+				nValue = 0;
+			}
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;
@@ -555,7 +566,15 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventStepUp:
 		if (++nValue > (int) CSysExFileLoader::VoicesPerBank-1)
 		{
-			nValue = CSysExFileLoader::VoicesPerBank-1;
+			if(bAutoBankSkip && nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID)
+			{
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBankNumber+1, nTG);
+				nValue=(int) CSysExFileLoader::VoicesPerBank-1;	
+			}
+			else
+			{
+				nValue = CSysExFileLoader::VoicesPerBank-1;
+			}
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;
@@ -574,10 +593,23 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
+	if(bAutoBankSkip)
+	{
+	string uchBankName = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankNumber);
+	uchBankName = uchBankName.substr(0,11);
+	
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      uchBankName,
+				      Value.c_str (),
+				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1) && nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID);	
+	}
+	else
+	{
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+	}
 }
 
 void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
