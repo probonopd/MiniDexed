@@ -596,11 +596,11 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if(bAutoBankSkip)
 	{
-	string uchBankName = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankNumber);
+	string uchBankName = "" + pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankNumber);
 	uchBankName = uchBankName.substr(0,11);
 	
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      uchBankName,
+				      uchBankName.c_str(),
 				      Value.c_str (),
 				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1) && nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID);	
 	}
