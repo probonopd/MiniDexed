@@ -553,7 +553,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		{
 			if(bAutoBankSkip && nBankNumber > 0)
 			{
-				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBankNumber-1, nTG);
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, --nBankNumber, nTG);
 				nValue=(int) CSysExFileLoader::VoicesPerBank-1;
 			}
 			else
@@ -569,8 +569,8 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		{
 			if(bAutoBankSkip && nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID)
 			{
-				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBankNumber+1, nTG);
-				nValue=(int) CSysExFileLoader::VoicesPerBank-1;	
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, ++nBankNumber, nTG);
+				nValue=0;	
 			}
 			else
 			{
@@ -596,13 +596,13 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if(bAutoBankSkip)
 	{
-	string uchBankName = "" + pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankNumber);
-	uchBankName = uchBankName.substr(0,11);
+	string uchBankName = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nBankNumber);
+	uchBankName = uchBankName.substr(0,12);
 	
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      uchBankName,
+				      uchBankName.c_str (),
 				      Value.c_str (),
-				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1) && nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID);	
+				      nValue > 0 || nBankNumber > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1 || nBankNumber < (int) CSysExFileLoader::MaxVoiceBankID);	
 	}
 	else
 	{
