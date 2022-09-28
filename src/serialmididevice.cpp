@@ -49,7 +49,12 @@ CSerialMIDIDevice::~CSerialMIDIDevice (void)
 boolean CSerialMIDIDevice::Initialize (void)
 {
 	assert (m_pConfig);
-	return m_Serial.Initialize (m_pConfig->GetMIDIBaudRate ());
+	boolean res = m_Serial.Initialize (m_pConfig->GetMIDIBaudRate ());
+	unsigned ser_options = m_Serial.GetOptions();
+	// Ensure CR->CRLF translation is disabled for MIDI links
+	ser_options &= ~(SERIAL_OPTION_ONLCR);
+	m_Serial.SetOptions(ser_options);
+	return res;
 }
 
 void CSerialMIDIDevice::Process (void)

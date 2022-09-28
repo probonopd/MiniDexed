@@ -24,7 +24,7 @@ jobs:
       run: |
            set -ex
            cd circle-stdlib/libs/circle
-           git checkout a8e8c9f # develop
+           git checkout 646c362 # develop
            cd -
     - name: Install toolchains
       run: |
