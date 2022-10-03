@@ -39,8 +39,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_pConfig (pConfig),
 	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
-	m_PCKeyboard (this, pConfig),
-	m_SerialMIDI (this, pInterrupt, pConfig),
+	m_PCKeyboard (this, pConfig, &m_UI),
+	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
 	m_bUseSerial (false),
 	m_pSoundDevice (0),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
@@ -98,7 +98,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
-		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, i);
+		m_pMIDIKeyboard[i] = new CMIDIKeyboard (this, pConfig, &m_UI, i);
 		assert (m_pMIDIKeyboard[i]);
 	}
 
