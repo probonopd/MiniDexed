@@ -27,6 +27,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
+#include "userinterface.h"
 
 LOGMODULE ("mididevice");
 
@@ -59,9 +60,10 @@ LOGMODULE ("mididevice");
 
 CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 
-CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
+CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	m_pSynthesizer (pSynthesizer),
-	m_pConfig (pConfig)
+	m_pConfig (pConfig),
+	m_pUI (pUI)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
@@ -181,6 +183,19 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
+		// Perform any MiniDexed level MIDI handling before specific Tone Generators
+		switch (ucType)
+		{
+		case MIDI_CONTROL_CHANGE:
+			if (nLength < 3)
+			{
+				break;
+			}
+			m_pUI->UIMIDICCHandler (ucChannel, pMessage[1], pMessage[2]);
+			break;
+		}
+
+		// Process MIDI for each Tone Generator
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
