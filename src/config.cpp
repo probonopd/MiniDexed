@@ -69,7 +69,7 @@ void CConfig::Load (void)
 	}
 	
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
-
+	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -156,6 +156,11 @@ const char *CConfig::GetMIDIThruOut (void) const
 bool CConfig::GetMIDIRXProgramChange (void) const
 {
 	return m_bMIDIRXProgramChange;
+}
+
+bool CConfig::GetIgnoreAllNotesOff (void) const
+{
+	return m_bIgnoreAllNotesOff;
 }
 
 bool CConfig::GetLCDEnabled (void) const
