@@ -115,8 +115,8 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetButtonActionHome (),
 									m_pConfig->GetDoubleClickTimeout (),
 									m_pConfig->GetLongPressTimeout (),
-									m_pConfig->GetMIDIButtonNext (),
 									m_pConfig->GetMIDIButtonPrev (),
+									m_pConfig->GetMIDIButtonNext (),
 									m_pConfig->GetMIDIButtonBack (),
 									m_pConfig->GetMIDIButtonSelect (),
 									m_pConfig->GetMIDIButtonHome ()
