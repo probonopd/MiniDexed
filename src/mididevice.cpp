@@ -187,11 +187,13 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		switch (ucType)
 		{
 		case MIDI_CONTROL_CHANGE:
+		case MIDI_NOTE_OFF:
+		case MIDI_NOTE_ON:
 			if (nLength < 3)
 			{
-				break;
+				break;	
 			}
-			m_pUI->UIMIDICCHandler (ucChannel, pMessage[1], pMessage[2]);
+			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
 			break;
 		}
 
