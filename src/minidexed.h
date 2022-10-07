@@ -123,6 +123,7 @@ public:
 	bool DoSetNewPerformance (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
+	bool GetAutoBankSkip(void);
 	
 	enum TParameter
 	{
