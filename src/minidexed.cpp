@@ -1531,6 +1531,11 @@ bool CMiniDexed::GetPerformanceSelectToLoad(void)
 	return m_pConfig->GetPerformanceSelectToLoad();
 }
 
+bool CMiniDexed::GetAutoBankSkip(void)
+{
+	return m_pConfig->GetAutoBankSkip ();
+}
+
 void CMiniDexed::setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG)
 {
 	 uint8_t nBits;
