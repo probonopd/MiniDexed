@@ -539,7 +539,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
 	
-	bool bAutoBankSkip = pUIMenu->m_pMiniDexed-GetAutoBankSkip(); 
+	bool bAutoBankSkip = pUIMenu->m_pMiniDexed->GetAutoBankSkip(); 
 	
 	int nBankNumber = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
 	
