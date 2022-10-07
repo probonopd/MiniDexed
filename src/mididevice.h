@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <circle/types.h>
 #include <circle/spinlock.h>
+#include "userinterface.h"
 
 class CMiniDexed;
 
@@ -43,7 +44,7 @@ public:
 	};
 
 public:
-	CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig);
+	CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI);
 	virtual ~CMIDIDevice (void);
 
 	void SetChannel (u8 ucChannel, unsigned nTG);
@@ -59,6 +60,7 @@ protected:
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
+	CUserInterface *m_pUI;
 
 	u8 m_ChannelMap[CConfig::ToneGenerators];
 

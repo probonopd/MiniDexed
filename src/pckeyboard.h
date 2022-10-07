@@ -31,7 +31,7 @@ class CMiniDexed;
 class CPCKeyboard : public CMIDIDevice
 {
 public:
-	CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig);
+	CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI);
 	~CPCKeyboard (void);
 
 	void Process (boolean bPlugAndPlayUpdated);

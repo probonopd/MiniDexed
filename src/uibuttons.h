@@ -4,9 +4,6 @@
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
 // Copyright (C) 2022  The MiniDexed Team
 //
-// Original author of this class:
-//	R. Stange <rsta2@o2online.de>
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -25,11 +22,14 @@
 
 #include <circle/gpiopin.h>
 #include <circle/types.h>
+#include "midipin.h"
 #include "config.h"
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
 #define DEBOUNCE_TIME 100
-#define MAX_BUTTONS 5
+#define MAX_GPIO_BUTTONS 5
+#define MAX_MIDI_BUTTONS 5
+#define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
 
 class CUIButtons;
 
@@ -69,14 +69,17 @@ public:
 	
 	BtnTrigger ReadTrigger (void);
 	BtnEvent Read (void);
+	void Write (unsigned nValue); // MIDI buttons only!
 
 	static BtnTrigger triggerTypeFromString(const char* triggerString);
-
+	
 private:
 	// Pin number
 	unsigned m_pinNumber;
 	// GPIO pin
 	CGPIOPin *m_pin;
+	// MIDI pin
+	CMIDIPin *m_midipin;
 	// The value of the pin at the end of the last loop
 	unsigned m_lastValue;
 	// Set to 0 on press, increment each read, use to trigger events
@@ -110,7 +113,8 @@ public:
 			unsigned backPin, const char *backAction,
 			unsigned selectPin, const char *selectAction,
 			unsigned homePin, const char *homeAction,
-			unsigned doubleClickTimeout, unsigned longPressTimeout
+			unsigned doubleClickTimeout, unsigned longPressTimeout,
+			unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
 	);
 	~CUIButtons (void);
 	
@@ -121,9 +125,11 @@ public:
 	void Update (void);
 
 	void ResetButton (unsigned pinNumber);
+
+	void BtnMIDICCHandler (unsigned nMidiCC, unsigned nMidiData);
 	
 private:
-	// Array of 5 buttons
+	// Array of normal GPIO buttons and "MIDI buttons"
 	CUIButton m_buttons[MAX_BUTTONS];
 	
 	// Timeout for double click in tenths of a millisecond
@@ -142,6 +148,13 @@ private:
 	CUIButton::BtnTrigger m_selectAction;
 	unsigned m_homePin;
 	CUIButton::BtnTrigger m_homeAction;
+	
+	// MIDI button configuration
+	unsigned m_prevMidi;
+	unsigned m_nextMidi;
+	unsigned m_backMidi;
+	unsigned m_selectMidi;
+	unsigned m_homeMidi;
 
 	BtnEventHandler *m_eventHandler;
 	void *m_eventParam;

@@ -60,8 +60,8 @@ static TKeyInfo KeyTable[] =
 
 CPCKeyboard *CPCKeyboard::s_pThis = 0;
 
-CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig)
-:	CMIDIDevice (pSynthesizer, pConfig),
+CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
+:	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_pKeyboard (0)
 {
 	s_pThis = this;

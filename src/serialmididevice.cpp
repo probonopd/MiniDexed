@@ -29,8 +29,8 @@
 LOGMODULE("serialmididevice");
 
 CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem *pInterrupt,
-				      CConfig *pConfig)
-:	CMIDIDevice (pSynthesizer, pConfig),
+				      CConfig *pConfig, CUserInterface *pUI)
+:	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_pConfig (pConfig),
 	m_Serial (pInterrupt, TRUE),
 	m_nSerialState (0),
