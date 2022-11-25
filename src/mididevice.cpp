@@ -318,7 +318,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_ALL_NOTES_OFF:
-							m_pSynthesizer->notesOff (pMessage[2], nTG);
+							if (!m_pConfig->GetIgnoreAllNotesOff ())
+							{
+								m_pSynthesizer->notesOff (pMessage[2], nTG);
+							}
 							break;
 						}
 						break;
