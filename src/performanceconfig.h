@@ -168,7 +168,7 @@ private:
 	unsigned nLastFileIndex;
 	unsigned nActualPerformance = 0;  
 	//unsigned nMenuSelectedPerformance = 0; 
-	std::string m_nPerformanceFileName[40];
+	std::string m_nPerformanceFileName[1024];
 	FATFS *m_pFileSystem; 
 
 	bool nInternalFolderOk=false;
