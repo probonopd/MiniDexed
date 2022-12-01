@@ -948,13 +948,7 @@ void CMiniDexed::ProcessSound (void)
 
 		assert (CConfig::ToneGenerators == 8);
 
-		// swap stereo channels if needed
 		uint8_t indexL=0, indexR=1;
-		if (m_bChannelsSwapped)
-		{
-			indexL=1;
-			indexR=0;
-		}
 		
 		// BEGIN TG mixing
 		float32_t tmp_float[nFrames*2];
@@ -1003,6 +997,13 @@ void CMiniDexed::ProcessSound (void)
 			}
 			// END adding reverb
 	
+			// swap stereo channels if needed prior to writing back out
+			if (m_bChannelsSwapped)
+			{
+				indexL=1;
+				indexR=0;
+			}
+
 			// Convert dual float array (left, right) to single int16 array (left/right)
 			for(uint16_t i=0; i<nFrames;i++)
 			{
