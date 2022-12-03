@@ -119,6 +119,7 @@ public:
 
 	// MIDI Button Navigation
 	unsigned GetMIDIButtonCh   (void) const;
+	unsigned GetMIDIButtonNotes (void) const;
 	unsigned GetMIDIButtonPrev (void) const;
 	unsigned GetMIDIButtonNext (void) const;
 	unsigned GetMIDIButtonBack (void) const;
@@ -187,6 +188,7 @@ private:
 	unsigned m_nLongPressTimeout;
 
 	unsigned m_nMIDIButtonCh;
+	unsigned m_nMIDIButtonNotes;
 	unsigned m_nMIDIButtonPrev;
 	unsigned m_nMIDIButtonNext;
 	unsigned m_nMIDIButtonBack;

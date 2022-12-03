@@ -264,7 +264,7 @@ CUIButtons::CUIButtons (
 			unsigned selectPin, const char *selectAction,
 			unsigned homePin, const char *homeAction,
 			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
+			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
 )
 :	m_doubleClickTimeout(doubleClickTimeout),
 	m_longPressTimeout(longPressTimeout),
@@ -278,6 +278,7 @@ CUIButtons::CUIButtons (
 	m_selectAction(CUIButton::triggerTypeFromString(selectAction)),
 	m_homePin(homePin),
 	m_homeAction(CUIButton::triggerTypeFromString(homeAction)),
+	m_notesMidi(notesMidi),
 	m_prevMidi(ccToMidiPin(prevMidi)),
 	m_nextMidi(ccToMidiPin(nextMidi)),
 	m_backMidi(ccToMidiPin(backMidi)),
@@ -444,7 +445,7 @@ void CUIButtons::Update (void)
 	for (unsigned i=0; i<MAX_BUTTONS; i++) {
 		CUIButton::BtnEvent event = m_buttons[i].Read();
 		if (event != CUIButton::BtnEventNone) {
-			LOGDBG("Event: %u", event);
+//			LOGDBG("Event: %u", event);
 			(*m_eventHandler) (event, m_eventParam);
 		}
 	}
@@ -459,13 +460,38 @@ void CUIButtons::ResetButton (unsigned pinNumber)
 	}
 }
 
-void CUIButtons::BtnMIDICCHandler (unsigned nMidiCC, unsigned nMidiData)
+void CUIButtons::BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
 {
-	unsigned midiPin = ccToMidiPin(nMidiCC);
-	for (unsigned i=0; i<MAX_BUTTONS; i++) {
-		if (m_buttons[i].getPinNumber() == midiPin) {
-			m_buttons[i].Write (nMidiData);
+	if (m_notesMidi > 0) {
+//		LOGDBG("BtnMIDICmdHandler (notes): %x %x %x)", nMidiCmd, nMidiData1, nMidiData2);
+		// Using MIDI Note messages for MIDI buttons
+		unsigned midiPin = ccToMidiPin(nMidiData1);
+		for (unsigned i=0; i<MAX_BUTTONS; i++) {
+			if (m_buttons[i].getPinNumber() == midiPin) {
+				if (nMidiCmd == 0x80) {
+					// NoteOff = Button OFF
+					m_buttons[i].Write (0);
+				} else if ((nMidiCmd == 0x90) && (nMidiData2 == 0)) {
+					// NoteOn with Vel == 0 = Button OFF
+					m_buttons[i].Write (0);
+				} else if (nMidiCmd == 0x90) {
+					// NoteOn = Button ON
+					m_buttons[i].Write (127);
+				} else {
+					// Ignore other MIDI commands
+				}
+			}
 		}
-	}
-	
+	} else {
+//		LOGDBG("BtnMIDICmdHandler (CC): %x %x %x)", nMidiCmd, nMidiData1, nMidiData2);
+		// Using MIDI CC messages for MIDI buttons
+		if (nMidiCmd == 0xB0) {  // Control Message
+			unsigned midiPin = ccToMidiPin(nMidiData1);
+			for (unsigned i=0; i<MAX_BUTTONS; i++) {
+				if (m_buttons[i].getPinNumber() == midiPin) {
+					m_buttons[i].Write (nMidiData2);
+				}
+			}
+		}
+	}	
 }
