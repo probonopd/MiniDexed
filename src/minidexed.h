@@ -258,8 +258,6 @@ private:
   
 	uint8_t m_nRawVoiceData[156]; 
 	
-	
-	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;
 	
@@ -297,7 +295,10 @@ private:
 
 	CSpinLock m_ReverbSpinLock;
 
+	// m_bSavePerformance needs to be declared after m_bSavePerformanceNewFile
+	bool m_bSavePerformanceNewFile;
 	bool m_bSavePerformance;
+
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
 };
