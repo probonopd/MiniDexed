@@ -259,14 +259,7 @@ private:
 	uint8_t m_nRawVoiceData[156]; 
 	
 	
-	bool m_bSavePerformanceNewFile;
-	bool m_bSetNewPerformance;
-	unsigned m_nSetNewPerformanceID;
-	
 	float32_t nMasterVolume;
-
-	bool	m_bDeletePerformance;
-	unsigned m_nDeletePerformanceID;
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -298,6 +291,11 @@ private:
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
+	bool m_bSavePerformanceNewFile;
+	bool m_bSetNewPerformance;
+	unsigned m_nSetNewPerformanceID;	
+	bool	m_bDeletePerformance;
+	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
 };
