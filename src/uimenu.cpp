@@ -547,7 +547,13 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventStepDown:
 		if (--nValue < 0)
 		{
-			nValue = 0;
+			int nBank = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
+			if (nBank == 0) {
+				nValue = 0;
+			} else {
+				nValue = CSysExFileLoader::VoicesPerBank-1;
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBank-1, nTG);
+			}
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;
@@ -555,7 +561,13 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventStepUp:
 		if (++nValue > (int) CSysExFileLoader::VoicesPerBank-1)
 		{
-			nValue = CSysExFileLoader::VoicesPerBank-1;
+			int nBank = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
+			if (nBank == CSysExFileLoader::MaxVoiceBankID) {
+				nValue = CSysExFileLoader::VoicesPerBank-1;
+			} else {
+				nValue = 0;
+				pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBank+1, nTG);
+			}
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
 		break;

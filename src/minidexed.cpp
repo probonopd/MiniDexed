@@ -365,14 +365,39 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
-void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
+void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
-	nBankLSB=constrain((int)nBankLSB,0,127);
+	nBank = constrain((int)nBank,0,0x3FFF); // max 2 nibbles of 7 bits
 
 	assert (nTG < CConfig::ToneGenerators);
-	m_nVoiceBankID[nTG] = nBankLSB;
+	if (m_nVoiceBankID[nTG] != nBank) {
+		m_nVoiceBankID[nTG] = nBank;
 
-	m_UI.ParameterChanged ();
+		// bank has changed hence loading the new preset
+		ProgramChange(m_nProgram[nTG], nTG);
+
+		m_UI.ParameterChanged ();
+	}
+}
+
+void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
+{
+	nBankMSB = constrain((int)nBankMSB,0,127);
+	unsigned nBank = m_nVoiceBankID[nTG];
+	unsigned nBankLSB = nBank & 0x7F;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	BankSelect(nBank, nTG);
+}
+
+void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
+{
+	nBankLSB = constrain((int)nBankLSB,0,127);
+	unsigned nBank = m_nVoiceBankID[nTG];
+	unsigned nBankMSB = nBank >> 7;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	BankSelect(nBank, nTG);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -704,7 +729,9 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+	case TGParameterVoiceBank:	BankSelect (nValue, nTG);	break;
+	case TGParameterVoiceBankMSB:	BankSelectMSB (nValue, nTG);	break;
+	case TGParameterVoiceBankLSB:	BankSelectLSB (nValue, nTG);	break;
 	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
 	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
 	case TGParameterPan:		SetPan (nValue, nTG);		break;
@@ -758,6 +785,8 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	switch (Parameter)
 	{
 	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
+	case TGParameterVoiceBankMSB:	return m_nVoiceBankID[nTG] >> 7;
+	case TGParameterVoiceBankLSB:	return m_nVoiceBankID[nTG] & 0x7F;
 	case TGParameterProgram:	return m_nProgram[nTG];
 	case TGParameterVolume:		return m_nVolume[nTG];
 	case TGParameterPan:		return m_nPan[nTG];
@@ -1431,7 +1460,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			
-			BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
 			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
 			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
 			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);

@@ -29,7 +29,7 @@
 class CSysExFileLoader		// Loader for DX7 .syx files
 {
 public:
-	static const unsigned MaxVoiceBankID = 127;	// TODO? 16383
+	static const unsigned MaxVoiceBankID = 0x3FFF;	// Max bank is 2^14-1 = 0x3FFF
 	static const unsigned VoicesPerBank = 32;
 	static const size_t SizePackedVoice = 128;
 	static const size_t SizeSingleVoice = 156;
