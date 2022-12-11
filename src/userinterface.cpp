@@ -115,6 +115,7 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetButtonActionHome (),
 									m_pConfig->GetDoubleClickTimeout (),
 									m_pConfig->GetLongPressTimeout (),
+									m_pConfig->GetMIDIButtonNotes (),
 									m_pConfig->GetMIDIButtonPrev (),
 									m_pConfig->GetMIDIButtonNext (),
 									m_pConfig->GetMIDIButtonBack (),
@@ -129,7 +130,7 @@ bool CUserInterface::Initialize (void)
 	}
 
 	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-	UISetMIDICCChannel (m_pConfig->GetMIDIButtonCh ());
+	UISetMIDIButtonChannel (m_pConfig->GetMIDIButtonCh ());
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -330,7 +331,7 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 	pThis->UIButtonsEventHandler (Event);
 }
 
-void CUserInterface::UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData)
+void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
 {
 	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
 	{
@@ -345,11 +346,11 @@ void CUserInterface::UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsign
 	
 	if (m_pUIButtons)
 	{
-		m_pUIButtons->BtnMIDICCHandler (nMidiCC, nMidiData);
+		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
 	}
 }
 
-void CUserInterface::UISetMIDICCChannel (unsigned uCh)
+void CUserInterface::UISetMIDIButtonChannel (unsigned uCh)
 {
 	// Mirrors the logic in Performance Config for handling MIDI channel configuration
 	if (uCh == 0)

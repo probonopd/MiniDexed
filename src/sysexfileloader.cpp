@@ -65,6 +65,7 @@ CSysExFileLoader::CSysExFileLoader (const char *pDirName)
 :	m_DirName (pDirName)
 {
 	m_DirName += "/voice";
+	m_nNumLoadedBanks = 0;
 
 	for (unsigned i = 0; i <= MaxVoiceBankID; i++)
 	{
@@ -82,7 +83,9 @@ CSysExFileLoader::~CSysExFileLoader (void)
 
 void CSysExFileLoader::Load (void)
 {
-        DIR *pDirectory = opendir (m_DirName.c_str ());
+	m_nNumLoadedBanks = 0;
+
+    DIR *pDirectory = opendir (m_DirName.c_str ());
 	if (!pDirectory)
 	{
 		LOGWARN ("Directory %s not found", m_DirName.c_str ());
@@ -138,6 +141,7 @@ void CSysExFileLoader::Load (void)
 				LOGDBG ("Bank #%u successfully loaded", nBank);
 
 				m_BankFileName[nBank] = pEntry->d_name;
+				m_nNumLoadedBanks++;
 			}
 			else
 			{
@@ -182,6 +186,11 @@ std::string CSysExFileLoader::GetBankName (unsigned nBankID)
 	}
 
 	return "NO NAME";
+}
+
+unsigned CSysExFileLoader::GetNumLoadedBanks (void)
+{
+	return m_nNumLoadedBanks;
 }
 
 void CSysExFileLoader::GetVoice (unsigned nBankID, unsigned nVoiceID, uint8_t *pVoiceData)

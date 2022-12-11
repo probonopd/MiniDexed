@@ -105,6 +105,7 @@ void CConfig::Load (void)
 	m_nLongPressTimeout = m_Properties.GetNumber ("LongPressTimeout", 600);
 
 	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 0);
+	m_nMIDIButtonNotes = m_Properties.GetNumber ("MIDIButtonNotes", 0);
 	m_nMIDIButtonPrev = m_Properties.GetNumber ("MIDIButtonPrev", 0);
 	m_nMIDIButtonNext = m_Properties.GetNumber ("MIDIButtonNext", 0);
 	m_nMIDIButtonBack = m_Properties.GetNumber ("MIDIButtonBack", 0);
@@ -308,6 +309,11 @@ unsigned CConfig::GetLongPressTimeout (void) const
 unsigned CConfig::GetMIDIButtonCh (void) const
 {
 	return m_nMIDIButtonCh;
+}
+
+unsigned CConfig::GetMIDIButtonNotes (void) const
+{
+	return m_nMIDIButtonNotes;
 }
 
 unsigned CConfig::GetMIDIButtonPrev (void) const

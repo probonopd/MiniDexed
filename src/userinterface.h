@@ -53,7 +53,7 @@ public:
 			   bool bArrowDown, bool bArrowUp);
 
 	// To be called from the MIDI device on reception of a MIDI CC message
-	void UIMIDICCHandler (unsigned nMidiCh, unsigned nMidiCC, unsigned nMidiData);
+	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
@@ -62,7 +62,7 @@ private:
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
 	void UIButtonsEventHandler (CUIButton::BtnEvent Event);
 	static void UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam);
-	void UISetMIDICCChannel (unsigned uCh);
+	void UISetMIDIButtonChannel (unsigned uCh);
 
 private:
 	CMiniDexed *m_pMiniDexed;

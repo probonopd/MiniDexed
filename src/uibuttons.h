@@ -114,7 +114,7 @@ public:
 			unsigned selectPin, const char *selectAction,
 			unsigned homePin, const char *homeAction,
 			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
+			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
 	);
 	~CUIButtons (void);
 	
@@ -126,7 +126,7 @@ public:
 
 	void ResetButton (unsigned pinNumber);
 
-	void BtnMIDICCHandler (unsigned nMidiCC, unsigned nMidiData);
+	void BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 	
 private:
 	// Array of normal GPIO buttons and "MIDI buttons"
@@ -150,6 +150,7 @@ private:
 	CUIButton::BtnTrigger m_homeAction;
 	
 	// MIDI button configuration
+	unsigned m_notesMidi;
 	unsigned m_prevMidi;
 	unsigned m_nextMidi;
 	unsigned m_backMidi;
