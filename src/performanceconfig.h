@@ -117,13 +117,16 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
-	// Unison
+	#ifdef ARM_ALLOW_MULTI_CORE
+	/* Unison START */
 	bool GetUnisonEnable (void) const;
 	unsigned GetUnisonPanSpread (void) const;
 	unsigned GetUnisonDetuneSpread (void) const;
 	void SetUnisonEnable (bool bValue);
 	void SetUnisonPanSpread (unsigned nValue);
 	void SetUnisonDetuneSpread (unsigned nValue);
+	/* Unison END */
+	#endif
 
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
