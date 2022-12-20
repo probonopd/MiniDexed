@@ -159,13 +159,10 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
-	#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
+	// Unison
 	m_bUnisonEnable = m_Properties.GetNumber("UnisonEnable", 0) != 0;
 	m_nUnisonPanSpread = m_Properties.GetNumber("UnisonPanSpread", 56);
 	m_nUnisonDetuneSpread = m_Properties.GetNumber("UnisonDetuneSpread", 21);
-	/* Unison END */
-	#endif
 
 	return bResult;
 }
@@ -285,13 +282,9 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
 
-	#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
 	m_Properties.SetNumber ("UnisonEnable", m_bUnisonEnable ? 1 : 0);
 	m_Properties.SetNumber ("UnisonPanSpread", m_nUnisonPanSpread);
 	m_Properties.SetNumber ("UnisonDetuneSpread", m_nUnisonDetuneSpread);
-	/* Unison END */
-	#endif
 
 	return m_Properties.Save ();
 }

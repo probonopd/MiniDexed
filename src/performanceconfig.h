@@ -192,13 +192,10 @@ private:
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
 
-	#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
+	// Unison
 	bool m_bUnisonEnable;
 	unsigned m_nUnisonPanSpread;
 	unsigned m_nUnisonDetuneSpread;
-	/* Unison END */
-	#endif
 };
 
 #endif

@@ -37,6 +37,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
+	m_bSavePerformanceNewFile (false),
+	m_bSetNewPerformance (false),
+	m_bDeletePerformance (false),
 	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig, &m_UI),
@@ -51,9 +54,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
-	m_bSavePerformanceNewFile (false),
-	m_bSetNewPerformance (false),
-	m_bDeletePerformance (false),
 	m_bLoadPerformanceBusy(false),
 	m_bSaveAsDefault(false)
 {
@@ -159,13 +159,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	SetParameter (ParameterCompressorEnable, 1);
 
-	#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
+	// BEGIN Unison
 	SetParameter (ParameterUnisonEnable, 0);
 	SetParameter (ParameterUnisonPanSpread, 60);
 	SetParameter (ParameterUnisonDetuneSpread, 12);
-	/* Unison END */
-	#endif
+	// END Unison
 };
 
 bool CMiniDexed::Initialize (void)
