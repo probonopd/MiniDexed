@@ -159,11 +159,6 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
-	// Unison
-	m_bUnisonEnable = m_Properties.GetNumber("UnisonEnable", 0) != 0;
-	m_nUnisonPanSpread = m_Properties.GetNumber("UnisonPanSpread", 56);
-	m_nUnisonDetuneSpread = m_Properties.GetNumber("UnisonDetuneSpread", 21);
-
 	return bResult;
 }
 
@@ -281,10 +276,6 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
-
-	m_Properties.SetNumber ("UnisonEnable", m_bUnisonEnable ? 1 : 0);
-	m_Properties.SetNumber ("UnisonPanSpread", m_nUnisonPanSpread);
-	m_Properties.SetNumber ("UnisonDetuneSpread", m_nUnisonDetuneSpread);
 
 	return m_Properties.Save ();
 }
@@ -512,38 +503,6 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
 	m_nReverbLevel = nValue;
 }
-
-// Unison
-bool CPerformanceConfig::GetUnisonEnable (void) const
-{
-	return m_bUnisonEnable;
-}
-
-unsigned CPerformanceConfig::GetUnisonPanSpread (void) const
-{
-	return m_nUnisonPanSpread;
-}
-
-unsigned CPerformanceConfig::GetUnisonDetuneSpread (void) const
-{
-	return m_nUnisonDetuneSpread;
-}
-
-void CPerformanceConfig::SetUnisonEnable (bool bValue)
-{
-	m_bUnisonEnable = bValue;
-}
-
-void CPerformanceConfig::SetUnisonPanSpread (unsigned nValue)
-{
-	m_nUnisonPanSpread = nValue;
-}
-
-void CPerformanceConfig::SetUnisonDetuneSpread (unsigned nValue)
-{
-	m_nUnisonDetuneSpread = nValue;
-}
-
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
 {

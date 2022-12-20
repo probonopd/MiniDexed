@@ -26,8 +26,6 @@
 #include <string>
 #include <circle/timer.h>
 
-#define ALL_TG_ID 100
-
 class CMiniDexed;
 class CUserInterface;
 
@@ -139,11 +137,6 @@ private:
 	static const TMenuItem s_MenuRoot[];
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
-#ifdef ARM_ALLOW_MULTI_CORE
-	/* ALL TG START */
-	static const TMenuItem s_AllTGMenu[];
-	/* ALL TG END */
-#endif
 	static const TMenuItem s_EffectsMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_EditVoiceMenu[];
@@ -152,13 +145,7 @@ private:
 	static const TMenuItem s_EditPitchBendMenu[];
 	static const TMenuItem s_EditPortamentoMenu[];
 	static const TMenuItem s_PerformanceMenu[];
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
-	static const TMenuItem s_UnisonMenu[];
-	/* Unison END */
-#endif
-
+	
 	static const TMenuItem s_ModulationMenu[];
 	static const TMenuItem s_ModulationMenuParameters[];
 			

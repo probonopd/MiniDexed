@@ -52,11 +52,6 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
-#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
-	{"Unison",	MenuHandler,	s_UnisonMenu},
-	/* Unison END */
-#endif
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -81,29 +76,6 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
 };
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	/* ALL TG START */
-const CUIMenu::TMenuItem CUIMenu::s_AllTGMenu[] =
-{
-	{"Voice",	EditProgramNumber},
-	{"Bank",	EditVoiceBankNumber},
-	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
-	{"Pan Spread",		EditGlobalParameter,	0,	CMiniDexed::ParameterUnisonPanSpread},
-	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
-	{"Detune",	EditGlobalParameter,	0,	CMiniDexed::ParameterUnisonDetuneSpread},
-	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
-	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
-	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
-	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
-	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
-	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
-	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
-	{0}
-};
-	/* ALL TG END */
-#endif
 
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
@@ -161,19 +133,6 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{0}
 };
 
-#endif
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	/* Unison START */
-const CUIMenu::TMenuItem CUIMenu::s_UnisonMenu[] =
-{
-	{"Enable",		EditGlobalParameter,	0,	CMiniDexed::ParameterUnisonEnable},
-	{"All TG",		MenuHandler,	s_AllTGMenu, ALL_TG_ID},
-	// {"Max Pan",		EditGlobalParameter,	0,	CMiniDexed::ParameterUnisonPanSpread},
-	// {"Max Detune",	EditGlobalParameter,	0,	CMiniDexed::ParameterUnisonDetuneSpread},
-	{0}
-};
-	/* Unison END */
 #endif
 
 // inserting menu items before "OP1" affect OPShortcutHandler()
@@ -254,15 +213,6 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1}				// ParameterReverbLevel
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	,
-	/* UNISON START */
-	{0,	1,	1,	ToOnOff},		// ParameterUnisonEnable
-	{0,	63, 1},					// ParameterUnisonPanSpread
-	{0,	99, 1}					// ParameterUnisonDetuneSpread
-	/* UNISON END */
-#endif
 };
 
 // must match CMiniDexed::TTGParameter

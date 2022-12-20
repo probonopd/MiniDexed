@@ -117,14 +117,6 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
-	// Unison
-	bool GetUnisonEnable (void) const;
-	unsigned GetUnisonPanSpread (void) const;
-	unsigned GetUnisonDetuneSpread (void) const;
-	void SetUnisonEnable (bool bValue);
-	void SetUnisonPanSpread (unsigned nValue);
-	void SetUnisonDetuneSpread (unsigned nValue);
-
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
 	//std::string m_DirName;
@@ -191,11 +183,6 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
-
-	// Unison
-	bool m_bUnisonEnable;
-	unsigned m_nUnisonPanSpread;
-	unsigned m_nUnisonDetuneSpread;
 };
 
 #endif
