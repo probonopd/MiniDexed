@@ -117,6 +117,17 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
+	#ifdef ARM_ALLOW_MULTI_CORE
+	/* Unison START */
+	bool GetUnisonEnable (void) const;
+	unsigned GetUnisonPanSpread (void) const;
+	unsigned GetUnisonDetuneSpread (void) const;
+	void SetUnisonEnable (bool bValue);
+	void SetUnisonPanSpread (unsigned nValue);
+	void SetUnisonDetuneSpread (unsigned nValue);
+	/* Unison END */
+	#endif
+
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
 	//std::string m_DirName;
@@ -183,6 +194,14 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+
+	#ifdef ARM_ALLOW_MULTI_CORE
+	/* Unison START */
+	bool m_bUnisonEnable;
+	unsigned m_nUnisonPanSpread;
+	unsigned m_nUnisonDetuneSpread;
+	/* Unison END */
+	#endif
 };
 
 #endif

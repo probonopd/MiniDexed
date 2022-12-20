@@ -54,7 +54,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	m_bSaveAsDefault(false)
 {
 	assert (m_pConfig);
 
@@ -157,6 +158,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
+
+	#ifdef ARM_ALLOW_MULTI_CORE
+	/* Unison START */
+	SetParameter (ParameterUnisonEnable, 0);
+	SetParameter (ParameterUnisonPanSpread, 60);
+	SetParameter (ParameterUnisonDetuneSpread, 12);
+	/* Unison END */
+	#endif
 };
 
 bool CMiniDexed::Initialize (void)
@@ -412,8 +421,9 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 	
-	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
-	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
+	float normPan = mapfloat(nPan,0,127,0.0f,1.0f);
+	tg_mixer->pan(nTG,normPan);
+	reverb_send_mixer->pan(nTG,normPan);
 
 	m_UI.ParameterChanged ();
 }
@@ -686,6 +696,57 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Release ();
 		break;
 
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* Unison START */
+	case ParameterUnisonEnable:
+		assert (CConfig::ToneGenerators > 1);
+		nValue=constrain((int)nValue,0,1);
+		if (!!nValue) {
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				SetTGParameter(TGParameterMIDIChannel, GetTGParameter(TGParameterMIDIChannel, 0), nTG);
+				SetTGParameter(TGParameterVoiceBank, GetTGParameter(TGParameterVoiceBank, 0), nTG);
+				SetTGParameter(TGParameterProgram, GetTGParameter(TGParameterProgram, 0), nTG);
+				SetTGParameter(TGParameterVolume, GetTGParameter(TGParameterVolume, 0), nTG);
+			}
+			// setting unison panning and detuning
+			SetParameter (ParameterUnisonPanSpread, m_nParameter[ParameterUnisonPanSpread]);
+			SetParameter (ParameterUnisonDetuneSpread, m_nParameter[ParameterUnisonDetuneSpread]);
+		}
+		break;
+
+	case ParameterUnisonPanSpread:
+		assert (CConfig::ToneGenerators > 1);
+		nValue=constrain((int)nValue,0,63);
+		if (!!GetParameter(ParameterUnisonEnable))
+		{
+			int step = 2 * nValue / (CConfig::ToneGenerators - 1);
+			int pan = 64 - nValue;
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				SetTGParameter(TGParameterPan, constrain((int)pan,0,127), nTG);
+				pan += step;
+			}
+		}
+		break;
+
+	case ParameterUnisonDetuneSpread:
+		assert (CConfig::ToneGenerators > 1);
+		nValue=constrain((int)nValue,0,99);
+		if (!!GetParameter(ParameterUnisonEnable))
+		{
+			int step = 2 * nValue / (CConfig::ToneGenerators - 1);
+			int detune = -nValue;
+			for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+			{
+				SetTGParameter(TGParameterMasterTune, constrain((int)detune,-99,99), nTG);
+				detune += step;
+			}
+		}
+		break;
+	/* Unison END */
+#endif
+
 	default:
 		assert (0);
 		break;
@@ -700,173 +761,247 @@ int CMiniDexed::GetParameter (TParameter Parameter)
 
 void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
-
-	switch (Parameter)
+	if (nTG < CConfig::ToneGenerators)
 	{
-	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
-	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
-	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
-	case TGParameterPan:		SetPan (nValue, nTG);		break;
-	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
-	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
-	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
-	case TGParameterPitchBendRange:	setPitchbendRange (nValue, nTG);	break;
-	case TGParameterPitchBendStep:	setPitchbendStep (nValue, nTG);	break;
-	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
-	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
-	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
-	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
-	
-	case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
-	case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
-	case TGParameterMWAmplitude:				setModController(0, 2, nValue, nTG); break;
-	case TGParameterMWEGBias:					setModController(0, 3, nValue, nTG); break;
-	
-	case TGParameterFCRange:					setModController(1, 0, nValue, nTG); break;
-	case TGParameterFCPitch:					setModController(1, 1, nValue, nTG); break;
-	case TGParameterFCAmplitude:				setModController(1, 2, nValue, nTG); break;
-	case TGParameterFCEGBias:					setModController(1, 3, nValue, nTG); break;
-	
-	case TGParameterBCRange:					setModController(2, 0, nValue, nTG); break;
-	case TGParameterBCPitch:					setModController(2, 1, nValue, nTG); break;
-	case TGParameterBCAmplitude:				setModController(2, 2, nValue, nTG); break;
-	case TGParameterBCEGBias:					setModController(2, 3, nValue, nTG); break;
-	
-	case TGParameterATRange:					setModController(3, 0, nValue, nTG); break;
-	case TGParameterATPitch:					setModController(3, 1, nValue, nTG); break;
-	case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
-	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
-	
-	case TGParameterMIDIChannel:
-		assert (0 <= nValue && nValue <= 255);
-		SetMIDIChannel ((uint8_t) nValue, nTG);
-		break;
+		assert (nTG < CConfig::ToneGenerators);
+		switch (Parameter)
+		{
+		case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+		case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
+		case TGParameterVolume:		SetVolume (nValue, nTG);	break;
+		case TGParameterPan:		SetPan (nValue, nTG);		break;
+		case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
+		case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
+		case TGParameterResonance:	SetResonance (nValue, nTG);	break;
+		case TGParameterPitchBendRange:	setPitchbendRange (nValue, nTG);	break;
+		case TGParameterPitchBendStep:	setPitchbendStep (nValue, nTG);	break;
+		case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
+		case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
+		case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
+		case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+		
+		case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
+		case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
+		case TGParameterMWAmplitude:				setModController(0, 2, nValue, nTG); break;
+		case TGParameterMWEGBias:					setModController(0, 3, nValue, nTG); break;
+		
+		case TGParameterFCRange:					setModController(1, 0, nValue, nTG); break;
+		case TGParameterFCPitch:					setModController(1, 1, nValue, nTG); break;
+		case TGParameterFCAmplitude:				setModController(1, 2, nValue, nTG); break;
+		case TGParameterFCEGBias:					setModController(1, 3, nValue, nTG); break;
+		
+		case TGParameterBCRange:					setModController(2, 0, nValue, nTG); break;
+		case TGParameterBCPitch:					setModController(2, 1, nValue, nTG); break;
+		case TGParameterBCAmplitude:				setModController(2, 2, nValue, nTG); break;
+		case TGParameterBCEGBias:					setModController(2, 3, nValue, nTG); break;
+		
+		case TGParameterATRange:					setModController(3, 0, nValue, nTG); break;
+		case TGParameterATPitch:					setModController(3, 1, nValue, nTG); break;
+		case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
+		case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
+		
+		case TGParameterMIDIChannel:
+			assert (0 <= nValue && nValue <= 255);
+			SetMIDIChannel ((uint8_t) nValue, nTG);
+			break;
 
-	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
+		case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 
-	default:
-		assert (0);
-		break;
+		default:
+			assert (0);
+			break;
+		}
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* ALL TG START */
+
+	} else if (nTG == ALL_TG_ID) {
+		for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+		{
+			SetTGParameter(Parameter, nValue, i);
+		}
+
+	/* ALL TG END */
+#endif
+
 	}
 }
 
 int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
-
-	switch (Parameter)
+	if (nTG < CConfig::ToneGenerators)
 	{
-	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
-	case TGParameterProgram:	return m_nProgram[nTG];
-	case TGParameterVolume:		return m_nVolume[nTG];
-	case TGParameterPan:		return m_nPan[nTG];
-	case TGParameterMasterTune:	return m_nMasterTune[nTG];
-	case TGParameterCutoff:		return m_nCutoff[nTG];
-	case TGParameterResonance:	return m_nResonance[nTG];
-	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
-	case TGParameterReverbSend:	return m_nReverbSend[nTG];
-	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
-	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
-	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
-	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
-	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
-	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
-	
-	case TGParameterMWRange:					return getModController(0, 0, nTG);
-	case TGParameterMWPitch:					return getModController(0, 1, nTG);
-	case TGParameterMWAmplitude:				return getModController(0, 2, nTG); 
-	case TGParameterMWEGBias:					return getModController(0, 3, nTG); 
-	
-	case TGParameterFCRange:					return getModController(1, 0,  nTG); 
-	case TGParameterFCPitch:					return getModController(1, 1,  nTG); 
-	case TGParameterFCAmplitude:				return getModController(1, 2,  nTG); 
-	case TGParameterFCEGBias:					return getModController(1, 3,  nTG); 
-	
-	case TGParameterBCRange:					return getModController(2, 0,  nTG); 
-	case TGParameterBCPitch:					return getModController(2, 1,  nTG); 
-	case TGParameterBCAmplitude:				return getModController(2, 2,  nTG); 
-	case TGParameterBCEGBias:					return getModController(2, 3,  nTG); 
-	
-	case TGParameterATRange:					return getModController(3, 0,  nTG); 
-	case TGParameterATPitch:					return getModController(3, 1,  nTG); 
-	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
-	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
-	
-	
-	default:
-		assert (0);
-		return 0;
+		assert (nTG < CConfig::ToneGenerators);
+
+		switch (Parameter)
+		{
+		case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
+		case TGParameterProgram:	return m_nProgram[nTG];
+		case TGParameterVolume:		return m_nVolume[nTG];
+		case TGParameterPan:		return m_nPan[nTG];
+		case TGParameterMasterTune:	return m_nMasterTune[nTG];
+		case TGParameterCutoff:		return m_nCutoff[nTG];
+		case TGParameterResonance:	return m_nResonance[nTG];
+		case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
+		case TGParameterReverbSend:	return m_nReverbSend[nTG];
+		case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
+		case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
+		case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
+		case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
+		case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
+		case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
+		
+		case TGParameterMWRange:					return getModController(0, 0, nTG);
+		case TGParameterMWPitch:					return getModController(0, 1, nTG);
+		case TGParameterMWAmplitude:				return getModController(0, 2, nTG); 
+		case TGParameterMWEGBias:					return getModController(0, 3, nTG); 
+		
+		case TGParameterFCRange:					return getModController(1, 0,  nTG); 
+		case TGParameterFCPitch:					return getModController(1, 1,  nTG); 
+		case TGParameterFCAmplitude:				return getModController(1, 2,  nTG); 
+		case TGParameterFCEGBias:					return getModController(1, 3,  nTG); 
+		
+		case TGParameterBCRange:					return getModController(2, 0,  nTG); 
+		case TGParameterBCPitch:					return getModController(2, 1,  nTG); 
+		case TGParameterBCAmplitude:				return getModController(2, 2,  nTG); 
+		case TGParameterBCEGBias:					return getModController(2, 3,  nTG); 
+		
+		case TGParameterATRange:					return getModController(3, 0,  nTG); 
+		case TGParameterATPitch:					return getModController(3, 1,  nTG); 
+		case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
+		case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
+		
+		
+		default:
+			assert (0);
+			return 0;
+		}
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* ALL TG START */
+
+	} else if (nTG == ALL_TG_ID) {
+		return GetTGParameter(Parameter, 0);
+
+	/* ALL TG END */
+#endif
+
 	}
+
+	return 0;
 }
 
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
-	assert (m_pTG[nTG]);
-	assert (nOP <= 6);
-
-	if (nOP < 6)
+	if (nTG < CConfig::ToneGenerators)
 	{
-		if (uchOffset == DEXED_OP_ENABLE)
+		assert (nTG < CConfig::ToneGenerators);
+		assert (m_pTG[nTG]);
+		assert (nOP <= 6);
+
+		if (nOP < 6)
 		{
-			if (uchValue)
+			if (uchOffset == DEXED_OP_ENABLE)
 			{
-				m_uchOPMask[nTG] |= 1 << nOP;
-			}
-			else
-			{
-				m_uchOPMask[nTG] &= ~(1 << nOP);
+				if (uchValue)
+				{
+					m_uchOPMask[nTG] |= 1 << nOP;
+				}
+				else
+				{
+					m_uchOPMask[nTG] &= ~(1 << nOP);
+				}
+
+				m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
+
+				return;
 			}
 
-			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
-
-			return;
+			nOP = 5 - nOP;		// OPs are in reverse order
 		}
 
-		nOP = 5 - nOP;		// OPs are in reverse order
+		uchOffset += nOP * 21;
+		assert (uchOffset < 156);
+
+		m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* ALL TG START */
+
+	} else if (nTG == ALL_TG_ID) {
+		for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+		{
+			SetVoiceParameter(uchOffset, uchValue, nOP, i);
+		}
+
+	/* ALL TG END */
+#endif
+
 	}
-
-	uchOffset += nOP * 21;
-	assert (uchOffset < 156);
-
-	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
 }
 
 uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
-	assert (m_pTG[nTG]);
-	assert (nOP <= 6);
-
-	if (nOP < 6)
+	if (nTG < CConfig::ToneGenerators)
 	{
-		if (uchOffset == DEXED_OP_ENABLE)
+		assert (nTG < CConfig::ToneGenerators);
+		assert (m_pTG[nTG]);
+		assert (nOP <= 6);
+
+		if (nOP < 6)
 		{
-			return !!(m_uchOPMask[nTG] & (1 << nOP));
+			if (uchOffset == DEXED_OP_ENABLE)
+			{
+				return !!(m_uchOPMask[nTG] & (1 << nOP));
+			}
+
+			nOP = 5 - nOP;		// OPs are in reverse order
 		}
 
-		nOP = 5 - nOP;		// OPs are in reverse order
+		uchOffset += nOP * 21;
+		assert (uchOffset < 156);
+
+		return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* ALL TG START */
+
+	} else if (nTG == ALL_TG_ID) {
+		return GetVoiceParameter (uchOffset, nOP, 0);
+
+	/* ALL TG END */
+#endif
 	}
 
-	uchOffset += nOP * 21;
-	assert (uchOffset < 156);
-
-	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+	return 0;
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)
 {
-	char VoiceName[11];
-	memset (VoiceName, 0, sizeof VoiceName);
+	if (nTG < CConfig::ToneGenerators)
+	{
+		char VoiceName[11];
+		memset (VoiceName, 0, sizeof VoiceName);
 
-	assert (nTG < CConfig::ToneGenerators);
-	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setName (VoiceName);
+		assert (nTG < CConfig::ToneGenerators);
+		assert (m_pTG[nTG]);
+		m_pTG[nTG]->setName (VoiceName);
 
-	std::string Result (VoiceName);
+		std::string Result (VoiceName);
 
-	return Result;
+		return Result;
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* ALL TG START */
+
+	} else if (nTG == ALL_TG_ID) {
+		return GetVoiceName (0);
+
+	/* ALL TG END */
+#endif
+	}
+
+	return std::string("ERROR");
 }
 
 #ifndef ARM_ALLOW_MULTI_CORE
@@ -1036,10 +1171,10 @@ void CMiniDexed::ProcessSound (void)
 
 #endif
 
-bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
+bool CMiniDexed::SavePerformance (bool bSaveAsDefault)
 {
 	m_bSavePerformance = true;
-	m_bSaveAsDeault=bSaveAsDeault;
+	m_bSaveAsDefault=bSaveAsDefault;
 
 	return true;
 }
@@ -1090,7 +1225,15 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
-	if(m_bSaveAsDeault)
+#ifdef ARM_ALLOW_MULTI_CORE
+	/* UNISON START */
+	m_PerformanceConfig.SetUnisonEnable (!!m_nParameter[ParameterUnisonEnable]);
+	m_PerformanceConfig.SetUnisonPanSpread (m_nParameter[ParameterUnisonPanSpread]);
+	m_PerformanceConfig.SetUnisonDetuneSpread (m_nParameter[ParameterUnisonDetuneSpread]);
+	/* UNISON END */
+#endif
+
+	if(m_bSaveAsDefault)
 	{
 		m_PerformanceConfig.SetNewPerformance(0);
 		
@@ -1478,6 +1621,15 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+#ifdef ARM_ALLOW_MULTI_CORE
+		/* UNISON START */
+		SetParameter (ParameterUnisonPanSpread, m_PerformanceConfig.GetUnisonPanSpread ());
+		SetParameter (ParameterUnisonDetuneSpread, m_PerformanceConfig.GetUnisonDetuneSpread ());
+		SetParameter (ParameterUnisonEnable, m_PerformanceConfig.GetUnisonEnable () ? 1 : 0);
+		/* UNISON END */
+#endif
+		
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
