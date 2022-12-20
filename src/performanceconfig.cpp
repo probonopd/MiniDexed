@@ -520,8 +520,7 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 	m_nReverbLevel = nValue;
 }
 
-#ifdef ARM_ALLOW_MULTI_CORE
-/* Unison START */
+// Unison
 bool CPerformanceConfig::GetUnisonEnable (void) const
 {
 	return m_bUnisonEnable;
@@ -551,8 +550,6 @@ void CPerformanceConfig::SetUnisonDetuneSpread (unsigned nValue)
 {
 	m_nUnisonDetuneSpread = nValue;
 }
-/* Unison END */
-#endif
 
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
