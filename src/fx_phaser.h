@@ -20,14 +20,16 @@
 
 #include "fx.h"
 
-class PhaserStage : public FXBase
+class PhaserStage;
+
+class PhaserParameter : public FXBase
 {
-    DISALLOW_COPY_AND_ASSIGN(PhaserStage);
+    friend class PhaserStage;
+    DISALLOW_COPY_AND_ASSIGN(PhaserParameter);
 
 public:
-    PhaserStage(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
-
-    void process(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
+    PhaserParameter(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
+    virtual ~PhaserParameter();
 
     void setFrequency(float32_t frequency);
     inline float32_t getFrequency() const;
@@ -42,7 +44,20 @@ private:
     float32_t q_;                   // Q factor for the filters
 
     float32_t a0, a1, a2, b1, b2;   // Coefficients for the stage's filter
-    float32_t z1[2], z2[2];         // State variables for the stage's filter
+};
+
+class PhaserStage : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(PhaserStage);
+
+public:
+    PhaserStage(float32_t sampling_rate, PhaserParameter* params);
+
+    void process(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
+
+private:
+    PhaserParameter* params_;   // All paremters of the phaser including the inner coefficients
+    float32_t z1[2], z2[2];     // State variables for the stage's filter
 };
 
 #define NUM_PHASER_STAGES 6
@@ -52,11 +67,20 @@ class Phaser : public FX
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
 public:
-    Phaser(float32_t sampling_rate, float32_t frequency, float32_t q);
+    Phaser(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
     virtual ~Phaser();
 
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
 
+    void setFrequency(float32_t frequency);
+    inline float32_t getFrequency() const;
+
+    void setQ(float32_t q);
+    inline float32_t getQ() const;
+
 private:
-    PhaserStage stages_[NUM_PHASER_STAGES];
+    PhaserParameter params_;
+    float32_t phase_;           // Current phase of the LFO
+    float32_t phase_increment_; // Amount to increment the phase at each sample
+    PhaserStage* stages_[NUM_PHASER_STAGES];
 };

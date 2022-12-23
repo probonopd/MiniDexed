@@ -20,6 +20,7 @@
 #pragma once
 
 #include "fx.h"
+#include "fx_phaser.h"
 #include "fx_tape_delay.h"
 #include "fx_shimmer_reverb.h"
 

@@ -45,6 +45,7 @@ FXRack::FXRack(float32_t sampling_rate) :
     FX(sampling_rate),
     fx_chain_()
 {
+    this->registerFX(new Phaser(sampling_rate));
     this->registerFX(new TapeDelay(sampling_rate));
     this->registerFX(new ShimmerReverb(sampling_rate));
 }
