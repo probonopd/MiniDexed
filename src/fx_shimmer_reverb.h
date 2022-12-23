@@ -1,0 +1,72 @@
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+
+//
+// fx_shimmer_reverb.h
+//
+// Stereo Shimmer reverb proposed in the context of the MiniDexed project
+//
+#pragma once
+
+#include "fx.h"
+
+#define SHIMMER_MAX_DELAY_TIME 2.0f
+
+class ShimmerReverb : public FX
+{
+    DISALLOW_COPY_AND_ASSIGN(ShimmerReverb);
+
+public:
+    ShimmerReverb(  float32_t sampling_rate, 
+                    float32_t left_delay_time = 0.5f, 
+                    float32_t right_delay_time = 0.6f, 
+                    float32_t shimmer_frequency = 2.0f,
+                    float32_t shimmer_amplitude = 0.5f,
+                    float32_t decay_time = 2.0f);
+
+    virtual ~ShimmerReverb();
+
+    virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
+
+    void setLeftDelayTime(float32_t delay_time_L);
+    inline float32_t getLeftDelayTime() const;
+
+    void setRightDelayTime(float32_t delay_time_R);
+    inline float32_t getRightDelayTime() const;
+
+    void setShimmerFrequency(float32_t frequency);
+    inline float32_t getShimmerFrequency() const;
+
+    void setShimmerAmplitude(float32_t amplitude);
+    inline float32_t getShimmerAmplitude() const;
+
+    void setDecayTime(float32_t decay_time);
+    inline float32_t getDecayTime() const;
+
+private:
+    const unsigned DelayLineLength;
+    float32_t* delay_line_L_;
+    float32_t* delay_line_R_;
+
+    // Current write position for left and right channel delay lines
+    unsigned write_pos_L_;
+    unsigned write_pos_R_;
+    float32_t shimmer_phase_;       // Current shimmer phase (0.0 - 1.0)
+
+    float32_t delay_time_L_;        // Left channel delay time in seconds
+    float32_t delay_time_R_;        // Right channel delay time in seconds
+    float32_t shimmer_frequency_;   // Shimmer frequency in Hz
+    float32_t shimmer_amplitude_;   // Shimmer amplitude (0.0 - 1.0)
+    float32_t decay_time_;          // Reverb decay time in seconds
+};

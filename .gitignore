@@ -45,3 +45,4 @@ sdcard
 # Editor related files
 *.swp
 *.swo
+.vscode/
