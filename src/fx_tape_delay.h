@@ -25,7 +25,7 @@
 
 #define MAX_DELAY_TIME 2
 
-class TapeDelay : public FX
+class TapeDelay : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(TapeDelay);
  
@@ -33,7 +33,7 @@ public:
     TapeDelay(const float32_t sampling_rate, float32_t default_delay_time = 0.25f, float32_t default_flutter_level = 0.05f, float32_t default_wet_level = 0.5f);
     virtual ~TapeDelay();
 
-    virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setDelayTime(float32_t delay_time);
     inline float32_t getDelayTime() const;

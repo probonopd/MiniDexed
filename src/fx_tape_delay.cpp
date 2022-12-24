@@ -4,7 +4,7 @@
 #include <algorithm>
 
 TapeDelay::TapeDelay(const float32_t sampling_rate, float32_t default_delay_time, float32_t default_flutter_level, float32_t default_feedback_level) :
-    FX(sampling_rate),
+    FXElement(sampling_rate),
     MaxSampleDelayTime(sampling_rate * MAX_DELAY_TIME),
     left_read_pos_(0),
     right_read_pos_(0)
@@ -23,55 +23,44 @@ TapeDelay::~TapeDelay()
     delete[] this->right_buffer_;
 }
 
-void TapeDelay::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
+void TapeDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    for(size_t i = 0; i < nSamples; ++i)
+    // calculate the fluttered delay time
+    float32_t fluttered_delay_time = this->getDelayTime() + this->getFlutteredDelayTime();
+
+    // Calculate write positions
+    int left_write_pos = this->left_read_pos_ - static_cast<int>(fluttered_delay_time);
+    while(left_write_pos < 0)
     {
-        // calculate the fluttered delay time
-        float32_t fluttered_delay_time = this->getDelayTime() + this->getFlutteredDelayTime();
+        left_write_pos += this->MaxSampleDelayTime;
+    }
 
-        // Calculate write positions
-        int left_write_pos = this->left_read_pos_ - static_cast<int>(fluttered_delay_time);
-        while(left_write_pos < 0)
-        {
-            left_write_pos += this->MaxSampleDelayTime;
-        }
+    int right_write_pos = this->right_read_pos_ - static_cast<int>(fluttered_delay_time);
+    while(right_write_pos < 0)
+    {
+        right_write_pos += this->MaxSampleDelayTime;
+    }
 
-        int right_write_pos = this->right_read_pos_ - static_cast<int>(fluttered_delay_time);
-        while(right_write_pos < 0)
-        {
-            right_write_pos += this->MaxSampleDelayTime;
-        }
+    // Write input to delay buffers
+    this->left_buffer_[left_write_pos] = inL;
+    this->right_buffer_[right_write_pos] = inR;
 
-        // Write input to delay buffers
-        this->left_buffer_[left_write_pos] = *left_input;
-        this->right_buffer_[right_write_pos] = *right_input;
+    // Read from delay buffers and apply feedback
+    outL = this->left_buffer_[this->left_read_pos_];
+    outR = this->right_buffer_[this->right_read_pos_];
+    this->left_buffer_[left_write_pos] += outL * this->getFeedbackLevel();
+    this->right_buffer_[right_write_pos] += outR * this->getFeedbackLevel();
 
-        // Read from delay buffers and apply feedback
-        *left_output = this->left_buffer_[this->left_read_pos_];
-        *right_output = this->right_buffer_[this->right_read_pos_];
-        this->left_buffer_[left_write_pos] += *left_output * this->getFeedbackLevel();
-        this->right_buffer_[right_write_pos] += *right_output * this->getFeedbackLevel();
-
-        // Increment read positions
-        ++this->left_read_pos_;
-        if(this->left_read_pos_ >= this->MaxSampleDelayTime)
-        {
-            this->left_read_pos_ -= this->MaxSampleDelayTime;
-        }
-        ++this->right_read_pos_;
-        if(this->right_read_pos_ >= this->MaxSampleDelayTime)
-        {
-            this->right_read_pos_ -= this->MaxSampleDelayTime;
-        }
-
-        // Move to next input sample
-        ++left_input;
-        ++right_input;
-
-        // Move to next output sample
-        ++left_output;
-        ++right_output;
+    // Increment read positions
+    ++this->left_read_pos_;
+    if(this->left_read_pos_ >= this->MaxSampleDelayTime)
+    {
+        this->left_read_pos_ -= this->MaxSampleDelayTime;
+    }
+    ++this->right_read_pos_;
+    if(this->right_read_pos_ >= this->MaxSampleDelayTime)
+    {
+        this->right_read_pos_ -= this->MaxSampleDelayTime;
     }
 }
 

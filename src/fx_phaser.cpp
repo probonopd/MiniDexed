@@ -51,14 +51,14 @@ float32_t PhaserParameter::getQ() const
 
 // PhaserStage implementation
 PhaserStage::PhaserStage(float32_t sampling_rate, PhaserParameter* params) :
-    FXBase(sampling_rate),
+    FXElement(sampling_rate),
     params_(params)
 {
     memset(this->z1, 0, 2 * sizeof(float32_t));
     memset(this->z2, 0, 2 * sizeof(float32_t));
 }
 
-void PhaserStage::process(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+void PhaserStage::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     outL = (this->params_->a0 * inL + this->params_->a1 * this->z1[0] + this->params_->a2 * this->z2[0]) / this->params_->a0;
     this->z2[0] = this->z1[0];
@@ -73,7 +73,7 @@ void PhaserStage::process(float32_t inL, float32_t inR, float32_t& outL, float32
 
 // Phaser implementation
 Phaser::Phaser(float32_t sampling_rate, float32_t frequency, float32_t q) : 
-    FX(sampling_rate),
+    FXElement(sampling_rate),
     params_(sampling_rate, frequency, q),
     phase_(0.0f),
     phase_increment_(0.0f)
@@ -93,37 +93,24 @@ Phaser::~Phaser()
     }
 }
 
-void Phaser::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
+void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    float sampleL;
-    float sampleR;
-    for(unsigned i = 0; i < nSamples; ++i)
+    // Process the input sample through each stage of the phaser
+    float32_t sampleL = inL;
+    float32_t sampleR = inR;
+    for(unsigned s = 0; s < NUM_PHASER_STAGES; ++s)
     {
-        // Process the input sample through each stage of the phaser
-        sampleL = *left_input;
-        sampleR = *right_input;
-        for(unsigned s = 0; s < NUM_PHASER_STAGES; ++s)
-        {
-            this->stages_[s]->process(sampleL, sampleR, sampleL, sampleR);
-        }
+        this->stages_[s]->processSample(sampleL, sampleR, sampleL, sampleR);
+    }
 
-        // Modulate the output of the phaser using the LFO 
-        *left_output = sampleL * (0.5f + 0.5f * cos(this->phase_));
-        *right_output = sampleR * (0.5f + 0.5f * cos(this->phase_));;
+    // Modulate the output of the phaser using the LFO 
+    outL = sampleL * (0.5f + 0.5f * cos(this->phase_));
+    outR = sampleR * (0.5f + 0.5f * cos(this->phase_));;
 
-        // Update the phase of the LFO
-        this->phase_ += this->phase_increment_;
-        if(this->phase_ > 2.0f * PI) {
-            this->phase_ -= 2.0 * PI;
-        }
-
-        // Move to next input sample
-        ++left_input;
-        ++right_input;
-
-        // Move to next output sample
-        ++left_output;
-        ++right_output;
+    // Update the phase of the LFO
+    this->phase_ += this->phase_increment_;
+    if(this->phase_ > 2.0f * PI) {
+        this->phase_ -= 2.0 * PI;
     }
 }
 

@@ -23,7 +23,7 @@
 
 #define SHIMMER_MAX_DELAY_TIME 2.0f
 
-class ShimmerReverb : public FX
+class ShimmerReverb : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(ShimmerReverb);
 
@@ -37,7 +37,7 @@ public:
 
     virtual ~ShimmerReverb();
 
-    virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setLeftDelayTime(float32_t delay_time_L);
     inline float32_t getLeftDelayTime() const;

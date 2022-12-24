@@ -41,14 +41,28 @@ private:
     const float32_t SamplingRate;
 };
 
+class FXElement : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(FXElement);
+
+protected:
+    FXElement(float32_t sampling_rate);
+
+public:
+    virtual ~FXElement();
+
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) = 0;
+};
+
 class FX : public FXBase
 {
     DISALLOW_COPY_AND_ASSIGN(FX);
     
 protected:
     FX(float32_t sampling_rate);
-    virtual ~FX();
 
 public:
+    virtual ~FX();
+
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) = 0;
 };

@@ -46,14 +46,14 @@ private:
     float32_t a0, a1, a2, b1, b2;   // Coefficients for the stage's filter
 };
 
-class PhaserStage : public FXBase
+class PhaserStage : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(PhaserStage);
 
 public:
     PhaserStage(float32_t sampling_rate, PhaserParameter* params);
 
-    void process(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
 private:
     PhaserParameter* params_;   // All paremters of the phaser including the inner coefficients
@@ -62,7 +62,7 @@ private:
 
 #define NUM_PHASER_STAGES 6
 
-class Phaser : public FX
+class Phaser : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
@@ -70,7 +70,7 @@ public:
     Phaser(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
     virtual ~Phaser();
 
-    virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setFrequency(float32_t frequency);
     inline float32_t getFrequency() const;

@@ -8,7 +8,7 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate,
                              float32_t right_delay_time,
                              float32_t shimmer_frequency,
                              float32_t shimmer_amplitude,
-                             float32_t decay_time) : FX(sampling_rate),
+                             float32_t decay_time) : FXElement(sampling_rate),
                                                      DelayLineLength(static_cast<unsigned>(SHIMMER_MAX_DELAY_TIME * sampling_rate)),
                                                      write_pos_L_(0),
                                                      write_pos_R_(0),
@@ -33,53 +33,42 @@ ShimmerReverb::~ShimmerReverb()
     delete[] this->delay_line_R_;
 }
 
-void ShimmerReverb::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
+void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    for(unsigned i = 0; i < nSamples; ++i)
-    {
-        // Calculate shimmer offset based on current phase
-        float32_t shimmerOffsetL = this->getShimmerAmplitude() * sin(this->shimmer_phase_ * 2.0f * PI);
-        float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_ * 2.0f * PI);
+    // Calculate shimmer offset based on current phase
+    float32_t shimmerOffsetL = this->getShimmerAmplitude() * sin(this->shimmer_phase_ * 2.0f * PI);
+    float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_ * 2.0f * PI);
 
-        // Calculate read position for left and right channel delay lines
-        int readPosL = this->write_pos_L_ - (int)(this->delay_time_L_ * this->getSamplingRate()) - (int)(shimmerOffsetL * this->getSamplingRate());
-        int readPosR = this->write_pos_R_ - (int)(this->delay_time_R_ * this->getSamplingRate()) - (int)(shimmerOffsetR * this->getSamplingRate());
+    // Calculate read position for left and right channel delay lines
+    int readPosL = this->write_pos_L_ - (int)(this->delay_time_L_ * this->getSamplingRate()) - (int)(shimmerOffsetL * this->getSamplingRate());
+    int readPosR = this->write_pos_R_ - (int)(this->delay_time_R_ * this->getSamplingRate()) - (int)(shimmerOffsetR * this->getSamplingRate());
 
-        // Wrap read position around the end of the delay line if necessary
-        if(readPosL < 0) readPosL += this->DelayLineLength;
-        if(readPosR < 0) readPosR += this->DelayLineLength;
+    // Wrap read position around the end of the delay line if necessary
+    if(readPosL < 0) readPosL += this->DelayLineLength;
+    if(readPosR < 0) readPosR += this->DelayLineLength;
 
-        // Read32_t left and right channel delay line samples
-        float32_t delaySampleL = this->delay_line_L_[readPosL];
-        float32_t delaySampleR = this->delay_line_R_[readPosR];
+    // Read32_t left and right channel delay line samples
+    float32_t delaySampleL = this->delay_line_L_[readPosL];
+    float32_t delaySampleR = this->delay_line_R_[readPosR];
 
-        // Calculate reverb decay factor
-        float32_t decay = std::pow(0.001f, 1.0f / (this->decay_time_ * this->getSamplingRate()));
+    // Calculate reverb decay factor
+    float32_t decay = std::pow(0.001f, 1.0f / (this->decay_time_ * this->getSamplingRate()));
 
-        // Calculate output samples
-        *left_output = *left_input + delaySampleL * decay;
-        *right_output = *right_input + delaySampleR * decay;
+    // Calculate output samples
+    outL = inL + delaySampleL * decay;
+    outR = inR + delaySampleR * decay;
+    
+    // Write input samples to delay lines
+    this->delay_line_L_[this->write_pos_L_] = outL;
+    this->delay_line_R_[this->write_pos_R_] = outR;
 
-        // Write input samples to delay lines
-        this->delay_line_L_[this->write_pos_L_] = *left_input;
-        this->delay_line_R_[this->write_pos_R_] = *right_input;
+    // Increment write position and wrap around the end of the delay line if necessary
+    this->write_pos_L_ = (this->write_pos_L_ + 1) % this->DelayLineLength;
+    this->write_pos_R_ = (this->write_pos_R_ + 1) % this->DelayLineLength;
 
-        // Increment write position and wrap around the end of the delay line if necessary
-        this->write_pos_L_ = (this->write_pos_L_ + 1) % this->DelayLineLength;
-        this->write_pos_R_ = (this->write_pos_R_ + 1) % this->DelayLineLength;
-
-        // Increment shimmer phase
-        this->shimmer_phase_ += this->getShimmerFrequency() / this->getSamplingRate();
-        if(this->shimmer_phase_ > 1.0f) this->shimmer_phase_ -= 1.0f;
-
-        // Move to next input sample
-        ++left_input;
-        ++right_input;
-
-        // Move to next output sample
-        ++left_output;
-        ++right_output;
-    }
+    // Increment shimmer phase
+    this->shimmer_phase_ += this->getShimmerFrequency() / this->getSamplingRate();
+    if(this->shimmer_phase_ > 1.0f) this->shimmer_phase_ -= 1.0f;
 }
 
 void ShimmerReverb::setLeftDelayTime(float32_t delay_time_L) 
