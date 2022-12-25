@@ -46,6 +46,7 @@ private:
     inline void adjustDelayCofficients();
 
     const unsigned MaxDelayLineSize;
+    unsigned delay_line_index_;
     unsigned delay_line_size_;
     float32_t* delay_lineL_;
     float32_t* delay_lineR_;
