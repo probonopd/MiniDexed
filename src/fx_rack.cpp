@@ -1,42 +1,24 @@
 #include "fx_rack.h"
 
-FXUnit::FXUnit(float32_t sampling_rate, FXElement& fx, float32_t wet_level) :
-    FXElement(sampling_rate),
-    fx_(fx)
-{
-    this->setWetLevel(wet_level);
-}
-
-FXUnit::~FXUnit()
-{
-}
-
-void FXUnit::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
-{
-    this->fx_.processSample(inL, inR, outL, outR);
-
-    // Mix wet and dry signals
-    outL = this->getWetLevel() * outL + (1.0f - this->getWetLevel()) * inL;
-    outR = this->getWetLevel() * outR + (1.0f - this->getWetLevel()) * inR;
-}
-
-void FXUnit::setWetLevel(float32_t wet_level)
-{
-    this->wet_level_ = constrain(wet_level, 0.0f, 1.0f);
-}
-
-float32_t FXUnit::getWetLevel() const
-{
-    return this->wet_level_;
-}
-
 FXRack::FXRack(float32_t sampling_rate) :
     FX(sampling_rate),
     fx_chain_()
 {
-    this->registerFX(new Phaser(sampling_rate));
-    this->registerFX(new TapeDelay(sampling_rate));
-    this->registerFX(new ShimmerReverb(sampling_rate));
+    this->fxTube_ = new FXUnit<Tube>(sampling_rate);
+    this->fxChorus_ = new FXUnit<Chorus>(sampling_rate);
+    this->fxFlanger_ = new FXUnit<Flanger>(sampling_rate);
+    this->fxOrbitone_ = new FXUnit<Orbitone>(sampling_rate);
+    this->fxPhaser_ = new FXUnit<Phaser>(sampling_rate);
+    this->fxTapeDelay_ = new FXUnit<TapeDelay>(sampling_rate);
+    this->fxShimmerReverb_ = new FXUnit<ShimmerReverb>(sampling_rate);
+
+    this->registerFX(this->fxTube_);
+    this->registerFX(this->fxChorus_);
+    this->registerFX(this->fxFlanger_);
+    this->registerFX(this->fxOrbitone_);
+    this->registerFX(this->fxPhaser_);
+    this->registerFX(this->fxTapeDelay_);
+    this->registerFX(this->fxShimmerReverb_);
 }
 
 FXRack::~FXRack()
@@ -46,6 +28,14 @@ FXRack::~FXRack()
         delete *it;
     }
     this->fx_chain_.clear();
+
+    delete this->fxTube_;
+    delete this->fxChorus_;
+    delete this->fxFlanger_;
+    delete this->fxOrbitone_;
+    delete this->fxPhaser_;
+    delete this->fxTapeDelay_;
+    delete this->fxShimmerReverb_;
 }
 
 void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
@@ -85,5 +75,5 @@ void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* l
 
 void FXRack::registerFX(FXElement* fx)
 {
-    this->fx_chain_.push_back(new FXUnit(this->getSamplingRate(), *fx));
+    this->fx_chain_.push_back(fx);
 }

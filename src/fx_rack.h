@@ -20,31 +20,63 @@
 #pragma once
 
 #include "fx.h"
+#include "fx_tube.h"
+#include "fx_chorus.h"
+#include "fx_flanger.h"
+#include "fx_orbitone.h"
 #include "fx_phaser.h"
 #include "fx_tape_delay.h"
 #include "fx_shimmer_reverb.h"
 
 #include <vector>
 
-class FXUnit : public FXElement
+template<typename _FXElement>
+class FXUnit : public virtual _FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(FXUnit);
 
 public:
-    FXUnit(float32_t sampling_rate, FXElement& fx, float32_t wet_level = 0.5f);
-    virtual ~FXUnit();
+    FXUnit(float32_t sampling_rate, float32_t wet_level = 0.5f) :
+        _FXElement(sampling_rate),
+        wet_level_(wet_level)
+    {
+    }
 
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
+    virtual ~FXUnit()
+    {
+    }
 
-    void setWetLevel(float32_t wet_level);
-    inline float32_t getWetLevel() const;
+    void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+    {
+        if(this->getWetLevel() == 0.0f)
+        {
+            outL = inL;
+            outR = inR;
+        }
+        else
+        {
+            _FXElement::processSample(inL, inR, outL, outR);
+            float32_t dry = 1.0f - this->getWetLevel();
+            outL = this->getWetLevel() * outL + dry * inL;
+            outR = this->getWetLevel() * outR + dry * inR;
+        }
+    }
+
+    void setWetLevel(float32_t wet_level)
+    {
+        this->wet_level_ = constrain(wet_level, 0.0f, 1.0f);
+    }
+
+    inline float32_t getWetLevel() const
+    {
+        return this->wet_level_;
+    }
 
 private:
-    FXElement& fx_;         // Embedded FX
     float32_t wet_level_;   // How much the signal is affected by the inner FX (0.0 - 1.0)
 };
 
-typedef std::vector<FXUnit*> FXChain;
+typedef std::vector<FXElement*> FXChain;
 
 class FXRack : public FX
 {
@@ -60,4 +92,11 @@ private:
     void registerFX(FXElement* fx);
 
     FXChain fx_chain_;
+    FXUnit<Tube>* fxTube_;
+    FXUnit<Chorus>* fxChorus_;
+    FXUnit<Flanger>* fxFlanger_;
+    FXUnit<Orbitone>* fxOrbitone_;
+    FXUnit<Phaser>* fxPhaser_;
+    FXUnit<TapeDelay>* fxTapeDelay_;
+    FXUnit<ShimmerReverb>* fxShimmerReverb_;
 };
