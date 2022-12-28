@@ -120,4 +120,3 @@ float32_t ShimmerReverb::getDecayTime() const
 {
     return this->decay_time_;
 }
-

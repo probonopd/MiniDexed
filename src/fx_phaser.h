@@ -73,10 +73,10 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setFrequency(float32_t frequency);
-    inline float32_t getFrequency() const;
+    float32_t getFrequency() const;
 
     void setQ(float32_t q);
-    inline float32_t getQ() const;
+    float32_t getQ() const;
 
 private:
     PhaserParameter params_;

@@ -120,7 +120,7 @@ void Phaser::setFrequency(float32_t frequency)
     this->phase_increment_ = 2.0f * PI * frequency / this->getSamplingRate();
 }
 
-float32_t Phaser::getFrequency() const
+inline float32_t Phaser::getFrequency() const
 {
     return this->params_.getFrequency();
 }
@@ -130,7 +130,7 @@ void Phaser::setQ(float32_t q)
     this->params_.setQ(q);
 }
 
-float32_t Phaser::getQ() const
+inline float32_t Phaser::getQ() const
 {
     return this->params_.getQ();
 }

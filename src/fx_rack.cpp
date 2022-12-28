@@ -1,8 +1,12 @@
 #include "fx_rack.h"
 
-FXRack::FXRack(float32_t sampling_rate) :
+#include <cassert>
+
+FXRack::FXRack(float32_t sampling_rate, bool enable) :
     FX(sampling_rate),
-    fx_chain_()
+    FXElement(sampling_rate),
+    enable_(enable),
+    fx_chain_(sampling_rate)
 {
     this->fxTube_ = new FXUnit<Tube>(sampling_rate);
     this->fxChorus_ = new FXUnit<Chorus>(sampling_rate);
@@ -38,6 +42,17 @@ FXRack::~FXRack()
     delete this->fxShimmerReverb_;
 }
 
+void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+{
+    for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
+    {
+        (*it)->processSample(inL, inR, outL, outR);
+
+        inL = outL;
+        inR = outR;
+    }
+}
+
 void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
 {
     float32_t sampleInL;
@@ -52,12 +67,14 @@ void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* l
         sampleOutL = 0.0f;
         sampleOutR = 0.0f;
 
-        for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
+        if(this->isEnable()) 
         {
-            (*it)->processSample(sampleInL, sampleInR, sampleOutL, sampleOutR);
-
-            sampleInL = sampleOutL;
-            sampleInR = sampleOutR;
+            this->processSample(sampleInL, sampleInR, sampleOutL, sampleOutR);
+        }
+        else
+        {
+            sampleOutL = sampleInL;
+            sampleOutR = sampleInR;
         }
 
         *left_output = sampleOutL;
@@ -73,7 +90,53 @@ void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* l
     }
 }
 
+void FXRack::setEnable(bool enable)
+{
+    this->enable_ = enable;
+}
+
+bool FXRack::isEnable() const
+{
+    return this->enable_;
+}
+
 void FXRack::registerFX(FXElement* fx)
 {
+    assert(fx);
     this->fx_chain_.push_back(fx);
+}
+
+FXUnit<Tube>* FXRack::getTube()
+{
+    return this->fxTube_;
+}
+
+FXUnit<Chorus>* FXRack::getChorus()
+{
+    return this->fxChorus_;
+}
+
+FXUnit<Flanger>* FXRack::getFlanger()
+{
+    return this->fxFlanger_;
+}
+
+FXUnit<Orbitone>* FXRack::getOrbitone()
+{
+    return this->fxOrbitone_;
+}
+
+FXUnit<Phaser>* FXRack::getPhaser()
+{
+    return this->fxPhaser_;
+}
+
+FXUnit<TapeDelay>* FXRack::getTapeDelay()
+{
+    return this->fxTapeDelay_;
+}
+
+FXUnit<ShimmerReverb>* FXRack::getShimmerReverb()
+{
+    return this->fxShimmerReverb_;
 }

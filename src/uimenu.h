@@ -138,7 +138,17 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
+#ifdef ARM_ALLOW_MULTI_CORE
 	static const TMenuItem s_ReverbMenu[];
+	static const TMenuItem s_FXChainMenu[];
+	static const TMenuItem s_FXChainTube[];
+	static const TMenuItem s_FXChainChorus[];
+	static const TMenuItem s_FXChainFlanger[];
+	static const TMenuItem s_FXChainOrbitone[];
+	static const TMenuItem s_FXChainPhaser[];
+	static const TMenuItem s_FXChainTapeDelay[];
+	static const TMenuItem s_FXChainShimmerReverb[];
+#endif
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];

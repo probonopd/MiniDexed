@@ -40,19 +40,19 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setLeftDelayTime(float32_t delay_time_L);
-    inline float32_t getLeftDelayTime() const;
+    float32_t getLeftDelayTime() const;
 
     void setRightDelayTime(float32_t delay_time_R);
-    inline float32_t getRightDelayTime() const;
+    float32_t getRightDelayTime() const;
 
     void setShimmerFrequency(float32_t frequency);
-    inline float32_t getShimmerFrequency() const;
+    float32_t getShimmerFrequency() const;
 
     void setShimmerAmplitude(float32_t amplitude);
-    inline float32_t getShimmerAmplitude() const;
+    float32_t getShimmerAmplitude() const;
 
     void setDecayTime(float32_t decay_time);
-    inline float32_t getDecayTime() const;
+    float32_t getDecayTime() const;
 
 private:
     const unsigned DelayLineLength;

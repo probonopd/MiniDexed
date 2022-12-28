@@ -17,7 +17,7 @@ void OrbitoneParameter::setFeedback(float32_t feedback)
     this->feedback_ = constrain(feedback, 0.0f, 1.0f);
 }
 
-float32_t OrbitoneParameter::getFeedback() const
+inline float32_t OrbitoneParameter::getFeedback() const
 {
     return this->feedback_;
 }

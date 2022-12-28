@@ -69,7 +69,7 @@ void TapeDelay::setDelayTime(float32_t delay_time)
     this->delay_time_ = constrain(delay_time, 0.0f, 1.0f);
 }
 
-inline float32_t TapeDelay::getDelayTime() const
+float32_t TapeDelay::getDelayTime() const
 {
     return this->delay_time_;
 }
@@ -79,7 +79,7 @@ void TapeDelay::setFlutterLevel(float32_t flutter_level)
     this->flutter_level_ = constrain(flutter_level, 0.0f, 1.0f); 
 }
 
-inline float32_t TapeDelay::getFlutterLevel() const
+float32_t TapeDelay::getFlutterLevel() const
 {
     return this->flutter_level_;
 }
@@ -89,12 +89,12 @@ void TapeDelay::setFeedbakLevel(float32_t feedback)
     this->feedback_ = constrain(feedback, 0.0, 1.0);
 }
 
-inline float32_t TapeDelay::getFeedbackLevel() const
+float32_t TapeDelay::getFeedbackLevel() const
 {
     return this->feedback_;
 }
 
-inline float32_t TapeDelay::getFlutteredDelayTime()
+float32_t TapeDelay::getFlutteredDelayTime()
 {
     // Genarate a random number in the range [-1.0 , 1.0]
     float32_t r = 

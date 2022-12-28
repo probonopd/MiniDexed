@@ -31,13 +31,13 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setDepth(float32_t depth);
-    inline float32_t getDepth() const;
+    float32_t getDepth() const;
 
     void setRate(float32_t rate);
-    inline float32_t getRate() const;
+    float32_t getRate() const;
 
     void setFeedback(float32_t feedback);
-    inline float32_t getFeedback() const;
+    float32_t getFeedback() const;
 
 private:
     const unsigned NumVoices;   // Number of voices in the chorus

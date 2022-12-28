@@ -36,13 +36,13 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setDelayTime(float32_t delay_time);
-    inline float32_t getDelayTime() const;
+    float32_t getDelayTime() const;
 
     void setFlutterLevel(float32_t flutter_level);
-    inline float32_t getFlutterLevel() const;
+    float32_t getFlutterLevel() const;
 
     void setFeedbakLevel(float32_t feedback);
-    inline float32_t getFeedbackLevel() const;
+    float32_t getFeedbackLevel() const;
 
 private:
     inline float32_t getFlutteredDelayTime();

@@ -67,7 +67,7 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setFeedback(float32_t feedback);
-    inline float32_t getFeedback() const;
+    float32_t getFeedback() const;
 
 private:
     OrbitoneParameter params_;

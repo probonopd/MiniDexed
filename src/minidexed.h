@@ -44,6 +44,10 @@
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 
+#ifdef ARM_ALLOW_MULTI_CORE
+#include "fx_rack.h"
+#endif
+
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
 :	public CMultiCoreSupport
@@ -134,6 +138,57 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
+
+		// FXChain parameters
+		ParameterFXChainEnable,
+
+		// FXChain > Tube parameters
+		ParameterFXChainTubeEnable,
+		ParameterFXChainTubeWet,
+		ParameterFXChainTubeOverdrive,
+
+		// FXChain > Chorus parameters
+		ParameterFXChainChorusEnable,
+		ParameterFXChainChorusWet,
+		ParameterFXChainChorusRate,
+		ParameterFXChainChorusDepth,
+		ParameterFXChainChorusFeedback,
+		
+		// FXChain > Flanger parameters
+		ParameterFXChainFlangerEnable,
+		ParameterFXChainFlangerWet,
+		ParameterFXChainFlangerDelayTime,
+		ParameterFXChainFlangerRate,
+		ParameterFXChainFlangerDepth,
+		ParameterFXChainFlangerFeedback,
+
+		// FXChain > Orbitone parameters
+		ParameterFXChainOrbitoneEnable,
+		ParameterFXChainOrbitoneWet,
+		ParameterFXChainOrbitoneFeedback,
+
+		// FXChain > Phaser parameters
+		ParameterFXChainPhaserEnable,
+		ParameterFXChainPhaserWet,
+		ParameterFXChainPhaserRate,
+		ParameterFXChainPhaserQ,
+
+		// FXChain > TapeDelay parameters
+		ParameterFXChainTapeDelayEnable,
+		ParameterFXChainTapeDelayWet,
+		ParameterFXChainTapeDelayDelayTime,
+		ParameterFXChainTapeDelayFlutter,
+		ParameterFXChainTapeDelayFeedback,
+
+		// FXChain > ShimmerReverb parameters
+		ParameterFXChainShimmerReverbEnable,
+		ParameterFXChainShimmerReverbWet,
+		ParameterFXChainShimmerReverbDelayTimeLeft,
+		ParameterFXChainShimmerReverbDelayTimeRight,
+		ParameterFXChainShimmerReverbFrequency,
+		ParameterFXChainShimmerReverbAmplitude,
+		ParameterFXChainShimmerReverbDecayTime,
+
 		ParameterUnknown
 	};
 
@@ -201,6 +256,45 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+
+	// BEGIN FXRack parameters setters
+#ifdef ARM_ALLOW_MULTI_CORE
+	void setFXChainEnable(bool value);
+	void setFXChainTubeEnable(bool value);
+	void setFXChainTubeWet(float32_t value);
+	void setFXChainTubeOverdrive(float32_t value);
+	void setFXChainChorusEnable(bool value);
+	void setFXChainChorusWet(float32_t value);
+	void setFXChainChorusRate(float32_t value);
+	void setFXChainChorusDepth(float32_t value);
+	void setFXChainChorusFeedback(float32_t value);
+	void setFXChainFlangerEnable(bool value);
+	void setFXChainFlangerWet(float32_t value);
+	void setFXChainFlangerDelayTime(float32_t value);
+	void setFXChainFlangerRate(float32_t value);
+	void setFXChainFlangerDepth(float32_t value);
+	void setFXChainFlangerFeedback(float32_t value);
+	void setFXChainOrbitoneEnable(bool value);
+	void setFXChainOrbitoneWet(float32_t value);
+	void setFXChainOrbitoneFeedback(float32_t value);
+	void setFXChainPhaserEnable(bool value);
+	void setFXChainPhaserWet(float32_t value);
+	void setFXChainPhaserRate(float32_t value);
+	void setFXChainPhaserQ(float32_t value);
+	void setFXChainTapeDelayEnable(bool value);
+	void setFXChainTapeDelayWet(float32_t value);
+	void setFXChainTapeDelayDelayTime(float32_t value);
+	void setFXChainTapeDelayFlutter(float32_t value);
+	void setFXChainTapeDelayFeedback(float32_t value);
+	void setFXChainShimmerReverbEnable(bool value);
+	void setFXChainShimmerReverbWet(float32_t value);
+	void setFXChainShimmerReverbDelayTimeLeft(float32_t value);
+	void setFXChainShimmerReverbDelayTimeRight(float32_t value);
+	void setFXChainShimmerReverbFrequency(float32_t value);
+	void setFXChainShimmerReverbAmplitude(float32_t value);
+	void setFXChainShimmerReverbDecayTime(float32_t value);
+#endif
+	// END FXRack parameters setters
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
@@ -289,6 +383,8 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+
+	FXRack* fx_rack;
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;

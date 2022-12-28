@@ -156,6 +156,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
 
+	// BEGIN setup FXRack
+#ifdef ARM_ALLOW_MULTI_CORE
+	this->fx_rack = new FXRack(static_cast<float32_t>(pConfig->GetSampleRate()));
+#endif
+	// END setup FXRack
+
 	SetParameter (ParameterCompressorEnable, 1);
 };
 
@@ -686,6 +692,126 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Release ();
 		break;
 
+#ifdef ARM_ALLOW_MULTI_CORE
+	// BEGIN FXChain parameters
+	case ParameterFXChainEnable: 
+		break;
+	
+	// FXChain > Tube parameters
+	case ParameterFXChainTubeEnable: 
+		this->setFXChainTubeEnable(0);
+		break;
+	case ParameterFXChainTubeWet: 
+		this->setFXChainTubeWet(0);
+		break;
+	case ParameterFXChainTubeOverdrive: 
+		this->setFXChainTubeOverdrive(0);
+		break;
+	
+	// FXChain > Chorus parameters
+	case ParameterFXChainChorusEnable: 
+		this->setFXChainChorusEnable(0);
+		break;
+	case ParameterFXChainChorusWet: 
+		this->setFXChainChorusWet(0);
+		break;
+	case ParameterFXChainChorusRate: 
+		this->setFXChainChorusRate(0);
+		break;
+	case ParameterFXChainChorusDepth: 
+		this->setFXChainChorusDepth(0);
+		break;
+	case ParameterFXChainChorusFeedback: 
+		this->setFXChainChorusFeedback(0);
+		break;
+	
+	// FXChain > Flanger parameters
+	case ParameterFXChainFlangerEnable: 
+		this->setFXChainFlangerEnable(0);
+		break;
+	case ParameterFXChainFlangerWet: 
+		this->setFXChainFlangerWet(0);
+		break;
+	case ParameterFXChainFlangerDelayTime: 
+		this->setFXChainFlangerDelayTime(0);
+		break;
+	case ParameterFXChainFlangerRate: 
+		this->setFXChainFlangerRate(0);
+		break;
+	case ParameterFXChainFlangerDepth: 
+		this->setFXChainFlangerDepth(0);
+		break;
+	case ParameterFXChainFlangerFeedback: 
+		this->setFXChainFlangerFeedback(0);
+		break;
+	
+	// FXChain > Orbitone parameters
+	case ParameterFXChainOrbitoneEnable: 
+		this->setFXChainOrbitoneEnable(0);
+		break;
+	case ParameterFXChainOrbitoneWet: 
+		this->setFXChainOrbitoneWet(0);
+		break;
+	case ParameterFXChainOrbitoneFeedback: 
+		this->setFXChainOrbitoneFeedback(0);
+		break;
+	
+	// FXChain > Phaser parameters
+	case ParameterFXChainPhaserEnable: 
+		this->setFXChainPhaserEnable(0);
+		break;
+	case ParameterFXChainPhaserWet: 
+		this->setFXChainPhaserWet(0);
+		break;
+	case ParameterFXChainPhaserRate: 
+		this->setFXChainPhaserRate(0);
+		break;
+	case ParameterFXChainPhaserQ: 
+		this->setFXChainPhaserQ(0);
+		break;
+	
+	// FXChain > TapeDelay parameters
+	case ParameterFXChainTapeDelayEnable: 
+		this->setFXChainTapeDelayEnable(0);
+		break;
+	case ParameterFXChainTapeDelayWet: 
+		this->setFXChainTapeDelayWet(0);
+		break;
+	case ParameterFXChainTapeDelayDelayTime: 
+		this->setFXChainTapeDelayDelayTime(0);
+		break;
+	case ParameterFXChainTapeDelayFlutter: 
+		this->setFXChainTapeDelayFlutter(0);
+		break;
+	case ParameterFXChainTapeDelayFeedback: 
+		this->setFXChainTapeDelayFeedback(0);
+		break;
+	
+	// FXChain > ShimmerReverb parameters
+	case ParameterFXChainShimmerReverbEnable: 
+		this->setFXChainShimmerReverbEnable(0);
+		break;
+	case ParameterFXChainShimmerReverbWet: 
+		this->setFXChainShimmerReverbWet(0);
+		break;
+	case ParameterFXChainShimmerReverbDelayTimeLeft: 
+		this->setFXChainShimmerReverbDelayTimeLeft(0);
+		break;
+	case ParameterFXChainShimmerReverbDelayTimeRight: 
+		this->setFXChainShimmerReverbDelayTimeRight(0);
+		break;
+	case ParameterFXChainShimmerReverbFrequency: 
+		this->setFXChainShimmerReverbFrequency(0);
+		break;
+	case ParameterFXChainShimmerReverbAmplitude: 
+		this->setFXChainShimmerReverbAmplitude(0);
+		break;
+	case ParameterFXChainShimmerReverbDecayTime: 
+		this->setFXChainShimmerReverbDecayTime(0);
+		break;
+	// END FXChain parameters
+#endif
+
 	default:
 		assert (0);
 		break;
@@ -1003,6 +1129,22 @@ void CMiniDexed::ProcessSound (void)
 			}
 			// END adding reverb
 	
+			// BEGIN adding FXRack
+			if(this->fx_rack->isEnable())
+			{
+				float32_t FXRackBuffer[2][nFrames];
+				float32_t FXRackSendBuffer[2][nFrames];
+
+				arm_fill_f32(0.0f, FXRackBuffer[indexL], nFrames);
+				arm_fill_f32(0.0f, FXRackBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, FXRackSendBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, FXRackSendBuffer[indexL], nFrames);
+
+				this->reverb_send_mixer->getMix(FXRackSendBuffer[indexL], FXRackSendBuffer[indexR]);
+				this->fx_rack->process(FXRackSendBuffer[indexL], FXRackSendBuffer[indexR], FXRackBuffer[indexL], FXRackBuffer[indexR], nFrames);
+			}
+			// END adding FXRack
+
 			// Convert dual float array (left, right) to single int16 array (left/right)
 			for(uint16_t i=0; i<nFrames;i++)
 			{

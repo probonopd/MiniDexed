@@ -82,6 +82,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
+	{"FX Chain", MenuHandler,		s_FXChainMenu},
 #endif
 	{0}
 };
@@ -89,14 +90,14 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 const CUIMenu::TMenuItem CUIMenu::s_EditPitchBendMenu[] =
 {
 	{"Bend Range",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendRange},
-	{"Bend Step",		EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
+	{"Bend Step",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 {
 	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
-	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
+	{"Glissando",	EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
 	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
 	{0}
 };
@@ -106,7 +107,7 @@ const CUIMenu::TMenuItem CUIMenu::s_ModulationMenu[] =
 	{"Mod. Wheel",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
 	{"Foot Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
 	{"Breath Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
-	{"Aftertouch",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
+	{"Aftertouch",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
 	{0}
 };
 
@@ -123,13 +124,96 @@ const CUIMenu::TMenuItem CUIMenu::s_ModulationMenuParameters[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 {
-	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
-	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
+	{"Enable",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
+	{"Size",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
 	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
 	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
-	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
+	{"Level",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] = 
+{
+	// FXChain
+	{"Enable",			EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
+
+	{"Tube", 			MenuHandler, s_FXChainTube},
+	{"Chorus", 			MenuHandler, s_FXChainChorus},
+	{"Flanger", 		MenuHandler, s_FXChainFlanger},
+	{"Orbitone", 		MenuHandler, s_FXChainOrbitone},
+	{"Phaser", 			MenuHandler, s_FXChainPhaser},
+	{"TapeDelay", 		MenuHandler, s_FXChainTapeDelay},
+	{"ShimmerReverb", 	MenuHandler, s_FXChainShimmerReverb},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainTube[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTubeEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeWet},
+	{"Overdrive",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeOverdrive},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainChorus[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainChorusEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
+	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
+	{"Depth", 		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
+	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusFeedback},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainFlanger[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
+	{"Delay Time", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDelayTime},
+	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
+	{"Depth",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
+	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainOrbitone[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
+	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneFeedback},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
+	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
+	{"Q", 			EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserQ},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainTapeDelay[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTapeDelayEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayWet},
+	{"Delay Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayDelayTime},
+	{"Flutter",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFlutter},
+	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFeedback},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
+{
+	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
+	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
+	{"Delay Left",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeLeft},
+	{"Delay Right",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeRight},
+	{"Frequency",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbFrequency},
+	{"Amplitude",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbAmplitude},
+	{"Decay Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDecayTime},
 	{0}
 };
 

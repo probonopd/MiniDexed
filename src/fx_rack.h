@@ -36,10 +36,11 @@ class FXUnit : public virtual _FXElement
     DISALLOW_COPY_AND_ASSIGN(FXUnit);
 
 public:
-    FXUnit(float32_t sampling_rate, float32_t wet_level = 0.5f) :
-        _FXElement(sampling_rate),
-        wet_level_(wet_level)
+    FXUnit(float32_t sampling_rate, bool enable = true, float32_t wet_level = 0.5f) :
+        _FXElement(sampling_rate)
     {
+        this->setEnable(enable);
+        this->setWetLevel(wet_level);
     }
 
     virtual ~FXUnit()
@@ -48,7 +49,7 @@ public:
 
     void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
     {
-        if(this->getWetLevel() == 0.0f)
+        if(!this->isEnable() || this->getWetLevel() == 0.0f)
         {
             outL = inL;
             outR = inR;
@@ -62,6 +63,16 @@ public:
         }
     }
 
+    void setEnable(bool enable = true)
+    {
+        this->enable_ = enable;
+    }
+
+    inline bool isEnable() const
+    {
+        return this->enable_;
+    }
+
     void setWetLevel(float32_t wet_level)
     {
         this->wet_level_ = constrain(wet_level, 0.0f, 1.0f);
@@ -73,23 +84,38 @@ public:
     }
 
 private:
+    bool enable_;
     float32_t wet_level_;   // How much the signal is affected by the inner FX (0.0 - 1.0)
 };
 
 typedef std::vector<FXElement*> FXChain;
 
-class FXRack : public FX
+class FXRack : virtual public FX, virtual public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(FXRack);
 
 public:
-    FXRack(float32_t sampling_rate);
+    FXRack(float32_t sampling_rate, bool enable = true);
     virtual ~FXRack();
 
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
+
+    void setEnable(bool enable = true);
+    bool isEnable() const;
+
+    FXUnit<Tube>* getTube();
+    FXUnit<Chorus>* getChorus();
+    FXUnit<Flanger>* getFlanger();
+    FXUnit<Orbitone>* getOrbitone();
+    FXUnit<Phaser>* getPhaser();
+    FXUnit<TapeDelay>* getTapeDelay();
+    FXUnit<ShimmerReverb>* getShimmerReverb();
 
 private:
     void registerFX(FXElement* fx);
+
+    bool enable_;
 
     FXChain fx_chain_;
     FXUnit<Tube>* fxTube_;

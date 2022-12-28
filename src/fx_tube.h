@@ -31,7 +31,7 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setOverdrive(float32_t overdrive);
-    inline float32_t getOverdrive() const;
+    float32_t getOverdrive() const;
 
 private:
     const float32_t TubeCurve;

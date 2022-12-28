@@ -31,16 +31,16 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setDelayTime(float32_t delayMS);
-    inline float32_t getDelayTime() const;
+    float32_t getDelayTime() const;
 
     void setFrequency(float32_t frequency);
-    inline float32_t getFrequency() const;
+    float32_t getFrequency() const;
 
     void setDepth(float32_t depth);
-    inline float32_t getDepth() const;
+    float32_t getDepth() const;
 
     void setFeedback(float32_t feedback);
-    inline float32_t getFeedback() const;
+    float32_t getFeedback() const;
 
 private:
     inline void adjustDelayCofficients();
