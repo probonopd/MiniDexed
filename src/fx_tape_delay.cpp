@@ -5,14 +5,15 @@
 
 TapeDelay::TapeDelay(const float32_t sampling_rate, float32_t default_delay_time, float32_t default_flutter_level, float32_t default_feedback_level) :
     FXElement(sampling_rate),
-    MaxSampleDelayTime(sampling_rate * MAX_DELAY_TIME),
+    MaxSampleDelayTime(2.0f * sampling_rate * MAX_DELAY_TIME),
     left_read_pos_(0),
     right_read_pos_(0)
 {
     this->left_buffer_ = new float32_t[this->MaxSampleDelayTime];
     this->right_buffer_ = new float32_t[this->MaxSampleDelayTime];
 
-    this->setDelayTime(default_delay_time);
+    this->setLeftDelayTime(default_delay_time);
+    this->setRightDelayTime(default_delay_time);
     this->setFlutterLevel(default_flutter_level);
     this->setFeedbakLevel(default_feedback_level);
 }
@@ -26,20 +27,14 @@ TapeDelay::~TapeDelay()
 void TapeDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     // calculate the fluttered delay time
-    float32_t fluttered_delay_time = this->getDelayTime() + this->getFlutteredDelayTime();
-
+    float32_t fluttered_delay_time_L = (MAX_DELAY_TIME * this->getLeftDelayTime() + this->getFlutteredDelayTime()) * this->getSamplingRate();
     // Calculate write positions
-    int left_write_pos = this->left_read_pos_ - static_cast<int>(fluttered_delay_time);
-    while(left_write_pos < 0)
-    {
-        left_write_pos += this->MaxSampleDelayTime;
-    }
+    int left_write_pos = (this->MaxSampleDelayTime + this->left_read_pos_ - static_cast<int>(fluttered_delay_time_L)) % this->MaxSampleDelayTime;
 
-    int right_write_pos = this->right_read_pos_ - static_cast<int>(fluttered_delay_time);
-    while(right_write_pos < 0)
-    {
-        right_write_pos += this->MaxSampleDelayTime;
-    }
+    // calculate the fluttered delay time
+    float32_t fluttered_delay_time_R = (MAX_DELAY_TIME * this->getRightDelayTime() + this->getFlutteredDelayTime()) * this->getSamplingRate();
+    // Calculate write positions
+    int right_write_pos = (this->MaxSampleDelayTime + this->right_read_pos_ - static_cast<int>(fluttered_delay_time_R)) % this->MaxSampleDelayTime;
 
     // Write input to delay buffers
     this->left_buffer_[left_write_pos] = inL;
@@ -64,19 +59,29 @@ void TapeDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, flo
     }
 }
 
-void TapeDelay::setDelayTime(float32_t delay_time)
+void TapeDelay::setLeftDelayTime(float32_t delay_time)
 {
-    this->delay_time_ = constrain(delay_time, 0.0f, 1.0f);
+    this->left_delay_time_ = constrain(delay_time, 0.0f, 1.0f);
 }
 
-float32_t TapeDelay::getDelayTime() const
+float32_t TapeDelay::getLeftDelayTime() const
 {
-    return this->delay_time_;
+    return this->left_delay_time_;
+}
+
+void TapeDelay::setRightDelayTime(float32_t delay_time)
+{
+    this->right_delay_time_ = constrain(delay_time, 0.0f, 1.0f);
+}
+
+float32_t TapeDelay::getRightDelayTime() const
+{
+    return this->right_delay_time_;
 }
 
 void TapeDelay::setFlutterLevel(float32_t flutter_level)
 {
-    this->flutter_level_ = constrain(flutter_level, 0.0f, 1.0f); 
+    this->flutter_level_ = constrain(flutter_level, 0.0f, 0.1f); 
 }
 
 float32_t TapeDelay::getFlutterLevel() const

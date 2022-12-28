@@ -23,7 +23,7 @@
 
 #include <random>
 
-#define MAX_DELAY_TIME 2
+#define MAX_DELAY_TIME 2.0f
 
 class TapeDelay : public FXElement
 {
@@ -35,8 +35,11 @@ public:
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setDelayTime(float32_t delay_time);
-    float32_t getDelayTime() const;
+    void setLeftDelayTime(float32_t delay_time);
+    float32_t getLeftDelayTime() const;
+
+    void setRightDelayTime(float32_t delay_time);
+    float32_t getRightDelayTime() const;
 
     void setFlutterLevel(float32_t flutter_level);
     float32_t getFlutterLevel() const;
@@ -53,8 +56,9 @@ private:
     size_t right_read_pos_;
     float32_t* left_buffer_;
     float32_t* right_buffer_;
-    float32_t delay_time_;
-    float32_t flutter_level_;
-    float32_t feedback_;
+    float32_t left_delay_time_;         // Left delay time in seconds (0.0 - 2.0)
+    float32_t right_delay_time_;        // Right delay time in seconds (0.0 - 2.0)
+    float32_t flutter_level_;           // Flutter level (0.0 - 0.1)
+    float32_t feedback_;                // Feedback (0.0 - 1.0)
     std::mt19937 random_generator_;
 };

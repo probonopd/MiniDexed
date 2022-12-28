@@ -95,7 +95,7 @@ class FXRack : virtual public FX, virtual public FXElement
     DISALLOW_COPY_AND_ASSIGN(FXRack);
 
 public:
-    FXRack(float32_t sampling_rate, bool enable = true);
+    FXRack(float32_t sampling_rate, bool enable = true, float32_t wet = 1.0f);
     virtual ~FXRack();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -103,6 +103,9 @@ public:
 
     void setEnable(bool enable = true);
     bool isEnable() const;
+
+    void setWetLevel(float32_t wet_level);
+    float32_t getWetLevel() const;
 
     FXUnit<Tube>* getTube();
     FXUnit<Chorus>* getChorus();
@@ -116,6 +119,7 @@ private:
     void registerFX(FXElement* fx);
 
     bool enable_;
+    float32_t wet_level_;
 
     FXChain fx_chain_;
     FXUnit<Tube>* fxTube_;

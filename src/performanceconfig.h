@@ -117,6 +117,82 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
+#ifdef ARM_ALLOW_MULTI_CORE
+	bool GetFXChainEnable(void) const;
+	unsigned GetFXChainWet(void) const;
+	bool GetFXChainTubeEnable(void) const;
+	unsigned GetFXChainTubeWet(void) const;
+	unsigned GetFXChainTubeOverdrive(void) const;
+	bool GetFXChainChorusEnable(void) const;
+	unsigned GetFXChainChorusWet(void) const;
+	unsigned GetFXChainChorusRate(void) const;
+	unsigned GetFXChainChorusDepth(void) const;
+	unsigned GetFXChainChorusFeedback(void) const;
+	bool GetFXChainFlangerEnable(void) const;
+	unsigned GetFXChainFlangerWet(void) const;
+	unsigned GetFXChainFlangerDelayTime(void) const;
+	unsigned GetFXChainFlangerRate(void) const;
+	unsigned GetFXChainFlangerDepth(void) const;
+	unsigned GetFXChainFlangerFeedback(void) const;
+	bool GetFXChainOrbitoneEnable(void) const;
+	unsigned GetFXChainOrbitoneWet(void) const;
+	unsigned GetFXChainOrbitoneFeedback(void) const;
+	bool GetFXChainPhaserEnable(void) const;
+	unsigned GetFXChainPhaserWet(void) const;
+	unsigned GetFXChainPhaserRate(void) const;
+	unsigned GetFXChainPhaserResonance(void) const;
+	bool GetFXChainTapeDelayEnable(void) const;
+	unsigned GetFXChainTapeDelayWet(void) const;
+	unsigned GetFXChainTapeDelayLeftDelayTime(void) const;
+	unsigned GetFXChainTapeDelayRightDelayTime(void) const;
+	unsigned GetFXChainTapeDelayFlutter(void) const;
+	unsigned GetFXChainTapeDelayFeedback(void) const;
+	bool GetFXChainShimmerReverbEnable(void) const;
+	unsigned GetFXChainShimmerReverbWet(void) const;
+	unsigned GetFXChainShimmerReverbDelayTimeLeft(void) const;
+	unsigned GetFXChainShimmerReverbDelayTimeRight(void) const;
+	unsigned GetFXChainShimmerReverbFrequency(void) const;
+	unsigned GetFXChainShimmerReverbAmplitude(void) const;
+	unsigned GetFXChainShimmerReverbDecayTime(void) const;
+
+	void SetFXChainEnable(bool bValue);
+	void SetFXChainWet(unsigned nValue);
+	void SetFXChainTubeEnable(bool bValue);
+	void SetFXChainTubeWet(unsigned nValue);
+	void SetFXChainTubeOverdrive(unsigned nValue);
+	void SetFXChainChorusEnable(bool bValue);
+	void SetFXChainChorusWet(unsigned nValue);
+	void SetFXChainChorusRate(unsigned nValue);
+	void SetFXChainChorusDepth(unsigned nValue);
+	void SetFXChainChorusFeedback(unsigned nValue);
+	void SetFXChainFlangerEnable(bool bValue);
+	void SetFXChainFlangerWet(unsigned nValue);
+	void SetFXChainFlangerDelayTime(unsigned nValue);
+	void SetFXChainFlangerRate(unsigned nValue);
+	void SetFXChainFlangerDepth(unsigned nValue);
+	void SetFXChainFlangerFeedback(unsigned nValue);
+	void SetFXChainOrbitoneEnable(bool bValue);
+	void SetFXChainOrbitoneWet(unsigned nValue);
+	void SetFXChainOrbitoneFeedback(unsigned nValue);
+	void SetFXChainPhaserEnable(bool bValue);
+	void SetFXChainPhaserWet(unsigned nValue);
+	void SetFXChainPhaserRate(unsigned nValue);
+	void SetFXChainPhaserResonance(unsigned nValue);
+	void SetFXChainTapeDelayEnable(unsigned nValue);
+	void SetFXChainTapeDelayWet(unsigned nValue);
+	void SetFXChainTapeDelayLeftDelayTime(unsigned nValue);
+	void SetFXChainTapeDelayRightDelayTime(unsigned nValue);
+	void SetFXChainTapeDelayFlutter(unsigned nValue);
+	void SetFXChainTapeDelayFeedback(unsigned nValue);
+	void SetFXChainShimmerReverbEnable(unsigned nValue);
+	void SetFXChainShimmerReverbWet(unsigned nValue);
+	void SetFXChainShimmerReverbDelayTimeLeft(unsigned nValue);
+	void SetFXChainShimmerReverbDelayTimeRight(unsigned nValue);
+	void SetFXChainShimmerReverbFrequency(unsigned nValue);
+	void SetFXChainShimmerReverbAmplitude(unsigned nValue);
+	void SetFXChainShimmerReverbDecayTime(unsigned nValue);
+#endif
+
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
 	//std::string m_DirName;
@@ -183,6 +259,45 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	bool m_bFXChainEnable;
+	unsigned m_nFXChainWet;
+	bool m_bFXChainTubeEnable;
+	unsigned m_nFXChainTubeWet;
+	unsigned m_nFXChainTubeOverdrive;
+	bool m_bFXChainChorusEnable;
+	unsigned m_nFXChainChorusWet;
+	unsigned m_nFXChainChorusRate;
+	unsigned m_nFXChainChorusDepth;
+	unsigned m_nFXChainChorusFeedback;
+	bool m_bFXChainFlangerEnable;
+	unsigned m_nFXChainFlangerWet;
+	unsigned m_nFXChainFlangerDelayTime;
+	unsigned m_nFXChainFlangerRate;
+	unsigned m_nFXChainFlangerDepth;
+	unsigned m_nFXChainFlangerFeedback;
+	bool m_bFXChainOrbitoneEnable;
+	unsigned m_nFXChainOrbitoneWet;
+	unsigned m_nFXChainOrbitoneFeedback;
+	bool m_bFXChainPhaserEnable;
+	unsigned m_nFXChainPhaserWet;
+	unsigned m_nFXChainPhaserRate;
+	unsigned m_nFXChainPhaserResonance;
+	bool m_bFXChainTapeDelayEnable;
+	unsigned m_nFXChainTapeDelayWet;
+	unsigned m_nFXChainTapeDelayLeftDelayTime;
+	unsigned m_nFXChainTapeDelayRightDelayTime;
+	unsigned m_nFXChainTapeDelayFlutter;
+	unsigned m_nFXChainTapeDelayFeedback;
+	bool m_bFXChainShimmerReverbEnable;
+	unsigned m_nFXChainShimmerReverbWet;
+	unsigned m_nFXChainShimmerReverbDelayTimeLeft;
+	unsigned m_nFXChainShimmerReverbDelayTimeRight;
+	unsigned m_nFXChainShimmerReverbFrequency;
+	unsigned m_nFXChainShimmerReverbAmplitude;
+	unsigned m_nFXChainShimmerReverbDecayTime;
+#endif
 };
 
 #endif

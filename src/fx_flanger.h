@@ -54,8 +54,8 @@ private:
     float32_t lfo_phase_;
     float32_t lfo_phase_increment_;
 
-    float32_t delay_time_ms_;   // Delay time in milliseconds
+    float32_t delay_time_ms_;   // Delay time in milliseconds (0.0 - 10.0)
     float32_t frequency_;       // LFO frequency in HZ (0.1 - 10.0)
-    float32_t depth_;           // Depth of the flanger effect in milliseconds
+    float32_t depth_;           // Depth of the flanger effect in milliseconds (0.0 - 10.0)
     float32_t feedback_;        // Amount of feedback to apply to the delay line
 };

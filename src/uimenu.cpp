@@ -138,6 +138,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] =
 {
 	// FXChain
 	{"Enable",			EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
+	{"Wet Level",		EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
 
 	{"Tube", 			MenuHandler, s_FXChainTube},
 	{"Chorus", 			MenuHandler, s_FXChainChorus},
@@ -191,7 +192,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
 	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
 	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
 	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
-	{"Q", 			EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserQ},
+	{"Resonance", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserResonance},
 	{0}
 };
 
@@ -199,7 +200,8 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainTapeDelay[] =
 {
 	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTapeDelayEnable},
 	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayWet},
-	{"Delay Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayDelayTime},
+	{"Left Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayLeftDelayTime},
+	{"Right Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayRightDelayTime},
 	{"Flutter",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFlutter},
 	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFeedback},
 	{0}
@@ -289,14 +291,72 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 // must match CMiniDexed::TParameter
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
-	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
+	{0,	1,	1,	ToOnOff},	// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},	// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
 	{0,	99,	1},				// ParameterReverbLowDamp
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1}				// ParameterReverbLevel
+
+	// BEGIN FXRack global parameters mapping definition
+#ifdef ARM_ALLOW_MULTI_CORE
+	,
+	// FXChain parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainEnable
+	{0,	99,	1},				// ParameterFXChainWet
+
+	// FXChain > Tube parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainTubeEnable
+	{0,	99,	1},				// ParameterFXChainTubeWet
+	{0,	99,	1},				// ParameterFXChainTubeOverdrive
+
+	// FXChain > Chorus parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainChorusEnable
+	{0,	99,	1},				// ParameterFXChainChorusWet
+	{0,	99,	1},				// ParameterFXChainChorusRate
+	{0,	99,	1},				// ParameterFXChainChorusDepth
+	{0,	99,	1},				// ParameterFXChainChorusFeedback
+
+	// FXChain > Flanger parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainFlangerEnable
+	{0,	99,	1},				// ParameterFXChainFlangerWet
+	{0,	99,	1},				// ParameterFXChainFlangerDelayTime
+	{0,	99,	1},				// ParameterFXChainFlangerRate
+	{0,	99,	1},				// ParameterFXChainFlangerDepth
+	{0,	99,	1},				// ParameterFXChainFlangerFeedback
+
+	// FXChain > Orbitone parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainOrbitoneEnable
+	{0,	99,	1},				// ParameterFXChainOrbitoneWet
+	{0,	99,	1},				// ParameterFXChainOrbitoneFeedback
+
+	// FXChain > Phaser parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainPhaserEnable
+	{0,	99,	1},				// ParameterFXChainPhaserWet
+	{0,	99,	1},				// ParameterFXChainPhaserRate
+	{0,	99,	1},				// ParameterFXChainPhaserResonance
+
+	// FXChain > TapeDelay parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainTapeDelayEnable
+	{0,	99,	1},				// ParameterFXChainTapeDelayWet
+	{0,	99,	1},				// ParameterFXChainTapeDelayLeftDelayTime
+	{0,	99,	1},				// ParameterFXChainTapeDelayRightDelayTime
+	{0,	99,	1},				// ParameterFXChainTapeDelayFlutter
+	{0,	99,	1},				// ParameterFXChainTapeDelayFeedback
+
+	// FXChain > ShimmerReverb parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainShimmerReverbEnable
+	{0,	99,	1},				// ParameterFXChainShimmerReverbWet
+	{0,	99,	1},				// ParameterFXChainShimmerReverbDelayTimeLeft
+	{0,	99,	1},				// ParameterFXChainShimmerReverbDelayTimeRight
+	{0,	99,	1},				// ParameterFXChainShimmerReverbFrequency
+	{0,	99,	1},				// ParameterFXChainShimmerReverbAmplitude
+	{0,	99,	1},				// ParameterFXChainShimmerReverbDecayTime
+#endif
+	// END FXRack global parameters mapping definition
+
 };
 
 // must match CMiniDexed::TTGParameter

@@ -34,14 +34,14 @@ public:
     void setFrequency(float32_t frequency);
     inline float32_t getFrequency() const;
 
-    void setQ(float32_t q);
-    inline float32_t getQ() const;
+    void setResonance(float32_t q);
+    inline float32_t getResonance() const;
 
 private:
     void computeCoefficients();
 
-    float32_t frequency_;           // LFO frequency in Hz
-    float32_t q_;                   // Q factor for the filters
+    float32_t frequency_;           // LFO frequency in Hz (0.01 - 5.0)
+    float32_t resonance_;           // Resonance factor for the filters (0.5 - 10.0)
 
     float32_t a0, a1, a2, b1, b2;   // Coefficients for the stage's filter
 };
@@ -67,7 +67,7 @@ class Phaser : public FXElement
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
 public:
-    Phaser(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
+    Phaser(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t resonance = 1.0f);
     virtual ~Phaser();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -75,12 +75,12 @@ public:
     void setFrequency(float32_t frequency);
     float32_t getFrequency() const;
 
-    void setQ(float32_t q);
-    float32_t getQ() const;
+    void setResonance(float32_t resonance);
+    float32_t getResonance() const;
 
 private:
     PhaserParameter params_;
-    float32_t phase_;           // Current phase of the LFO
+    float32_t phase_;           // Current phase of the LFO (0.01 - 5.0)
     float32_t phase_increment_; // Amount to increment the phase at each sample
     PhaserStage* stages_[NUM_PHASER_STAGES];
 };

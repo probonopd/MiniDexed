@@ -2,10 +2,10 @@
 
 #include <cmath>
 
-PhaserParameter::PhaserParameter(float32_t sampling_rate, float32_t frequency, float32_t q) :
+PhaserParameter::PhaserParameter(float32_t sampling_rate, float32_t frequency, float32_t resonance) :
     FXBase(sampling_rate),
     frequency_(frequency),
-    q_(q)
+    resonance_(resonance)
 {
     this->computeCoefficients();
 }
@@ -17,7 +17,7 @@ PhaserParameter::~PhaserParameter()
 void PhaserParameter::computeCoefficients()
 {
     float32_t w0 = 2.0f * PI * this->getFrequency() / this->getSamplingRate();
-    float32_t alpha = sin(w0) / (2.0f * this->q_);
+    float32_t alpha = sin(w0) / (2.0f * this->resonance_);
     this->a0 = 1.0f + alpha;
     this->a1 = -2.0f * cos(w0);
     this->a2 = 1.0f - alpha;
@@ -36,15 +36,15 @@ float32_t PhaserParameter::getFrequency() const
     return this->frequency_;
 }
 
-void PhaserParameter::setQ(float32_t q)
+void PhaserParameter::setResonance(float32_t resonance)
 {
-    this->q_ = constrain(q, 0.5f, 10.0f);
+    this->resonance_ = constrain(resonance, 0.5f, 10.0f);
     this->computeCoefficients();
 }
 
-float32_t PhaserParameter::getQ() const
+float32_t PhaserParameter::getResonance() const
 {
-    return this->q_;
+    return this->resonance_;
 }
 
 
@@ -125,12 +125,12 @@ inline float32_t Phaser::getFrequency() const
     return this->params_.getFrequency();
 }
 
-void Phaser::setQ(float32_t q)
+void Phaser::setResonance(float32_t q)
 {
-    this->params_.setQ(q);
+    this->params_.setResonance(q);
 }
 
-inline float32_t Phaser::getQ() const
+inline float32_t Phaser::getResonance() const
 {
-    return this->params_.getQ();
+    return this->params_.getResonance();
 }

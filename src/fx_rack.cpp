@@ -2,10 +2,11 @@
 
 #include <cassert>
 
-FXRack::FXRack(float32_t sampling_rate, bool enable) :
+FXRack::FXRack(float32_t sampling_rate, bool enable, float32_t wet) :
     FX(sampling_rate),
     FXElement(sampling_rate),
     enable_(enable),
+    wet_level_(wet),
     fx_chain_(sampling_rate)
 {
     this->fxTube_ = new FXUnit<Tube>(sampling_rate);
@@ -27,10 +28,6 @@ FXRack::FXRack(float32_t sampling_rate, bool enable) :
 
 FXRack::~FXRack()
 {
-    for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
-    {
-        delete *it;
-    }
     this->fx_chain_.clear();
 
     delete this->fxTube_;
@@ -98,6 +95,16 @@ void FXRack::setEnable(bool enable)
 bool FXRack::isEnable() const
 {
     return this->enable_;
+}
+
+void FXRack::setWetLevel(float32_t wet_level)
+{
+    this->wet_level_ = constrain(wet_level, 0.0f, 1.0f);
+}
+
+float32_t FXRack::getWetLevel() const
+{
+    return this->wet_level_;
 }
 
 void FXRack::registerFX(FXElement* fx)

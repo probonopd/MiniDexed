@@ -35,7 +35,7 @@ public:
     inline float32_t getFeedback() const;
 
 private:
-    float32_t feedback_;        // Amount of feedback to apply to the stage's input
+    float32_t feedback_;        // Amount of feedback to apply to the stage's input (0.0 - 1.0)
 };
 
 class OrbitoneStage : public FXElement

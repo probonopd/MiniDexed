@@ -139,8 +139,11 @@ public:
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
 
+		// BEGIN FXRack global parameters definition
+#ifdef ARM_ALLOW_MULTI_CORE
 		// FXChain parameters
 		ParameterFXChainEnable,
+		ParameterFXChainWet,
 
 		// FXChain > Tube parameters
 		ParameterFXChainTubeEnable,
@@ -171,12 +174,13 @@ public:
 		ParameterFXChainPhaserEnable,
 		ParameterFXChainPhaserWet,
 		ParameterFXChainPhaserRate,
-		ParameterFXChainPhaserQ,
+		ParameterFXChainPhaserResonance,
 
 		// FXChain > TapeDelay parameters
 		ParameterFXChainTapeDelayEnable,
 		ParameterFXChainTapeDelayWet,
-		ParameterFXChainTapeDelayDelayTime,
+		ParameterFXChainTapeDelayLeftDelayTime,
+		ParameterFXChainTapeDelayRightDelayTime,
 		ParameterFXChainTapeDelayFlutter,
 		ParameterFXChainTapeDelayFeedback,
 
@@ -188,6 +192,8 @@ public:
 		ParameterFXChainShimmerReverbFrequency,
 		ParameterFXChainShimmerReverbAmplitude,
 		ParameterFXChainShimmerReverbDecayTime,
+#endif
+		// END FXRack global parameters definition
 
 		ParameterUnknown
 	};
@@ -260,6 +266,7 @@ public:
 	// BEGIN FXRack parameters setters
 #ifdef ARM_ALLOW_MULTI_CORE
 	void setFXChainEnable(bool value);
+	void setFXChainWet(float32_t value);
 	void setFXChainTubeEnable(bool value);
 	void setFXChainTubeWet(float32_t value);
 	void setFXChainTubeOverdrive(float32_t value);
@@ -280,10 +287,11 @@ public:
 	void setFXChainPhaserEnable(bool value);
 	void setFXChainPhaserWet(float32_t value);
 	void setFXChainPhaserRate(float32_t value);
-	void setFXChainPhaserQ(float32_t value);
+	void setFXChainPhaserResonance(float32_t value);
 	void setFXChainTapeDelayEnable(bool value);
 	void setFXChainTapeDelayWet(float32_t value);
-	void setFXChainTapeDelayDelayTime(float32_t value);
+	void setFXChainTapeDelayLeftDelayTime(float32_t value);
+	void setFXChainTapeDelayRightDelayTime(float32_t value);
 	void setFXChainTapeDelayFlutter(float32_t value);
 	void setFXChainTapeDelayFeedback(float32_t value);
 	void setFXChainShimmerReverbEnable(bool value);
@@ -382,7 +390,7 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
-	CSpinLock m_ReverbSpinLock;
+	CSpinLock m_FXSpinLock;
 
 	FXRack* fx_rack;
 

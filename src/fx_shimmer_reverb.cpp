@@ -9,7 +9,7 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate,
                              float32_t shimmer_frequency,
                              float32_t shimmer_amplitude,
                              float32_t decay_time) : FXElement(sampling_rate),
-                                                     DelayLineLength(static_cast<unsigned>(SHIMMER_MAX_DELAY_TIME * sampling_rate)),
+                                                     DelayLineLength(static_cast<unsigned>(2.0f * SHIMMER_MAX_DELAY_TIME * sampling_rate)),
                                                      write_pos_L_(0),
                                                      write_pos_R_(0),
                                                      shimmer_phase_(0.0f)
@@ -40,12 +40,8 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_ * 2.0f * PI);
 
     // Calculate read position for left and right channel delay lines
-    int readPosL = this->write_pos_L_ - (int)(this->delay_time_L_ * this->getSamplingRate()) - (int)(shimmerOffsetL * this->getSamplingRate());
-    int readPosR = this->write_pos_R_ - (int)(this->delay_time_R_ * this->getSamplingRate()) - (int)(shimmerOffsetR * this->getSamplingRate());
-
-    // Wrap read position around the end of the delay line if necessary
-    if(readPosL < 0) readPosL += this->DelayLineLength;
-    if(readPosR < 0) readPosR += this->DelayLineLength;
+    unsigned readPosL = static_cast<unsigned>(this->DelayLineLength + this->write_pos_L_ - (this->delay_time_L_ + shimmerOffsetL) * this->getSamplingRate()) % this->DelayLineLength;
+    unsigned readPosR = static_cast<unsigned>(this->DelayLineLength + this->write_pos_R_ - (this->delay_time_R_ + shimmerOffsetR) * this->getSamplingRate()) % this->DelayLineLength;
 
     // Read32_t left and right channel delay line samples
     float32_t delaySampleL = this->delay_line_L_[readPosL];
