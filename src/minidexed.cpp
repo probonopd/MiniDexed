@@ -1803,3 +1803,176 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 	}
 	
 }
+
+#ifdef ARM_ALLOW_MULTI_CORE
+void CMiniDexed::setFXChainEnable(bool value)
+{
+    this->fx_rack->setEnable(value);
+}
+
+void CMiniDexed::setFXChainTubeEnable(bool value)
+{
+    this->fx_rack->getTube()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainTubeWet(float32_t value)
+{
+    this->fx_rack->getTube()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainTubeOverdrive(float32_t value)
+{
+    this->fx_rack->getTube()->setOverdrive(value);
+}
+
+void CMiniDexed::setFXChainChorusEnable(bool value)
+{
+    this->fx_rack->getChorus()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainChorusWet(float32_t value)
+{
+    this->fx_rack->getChorus()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainChorusRate(float32_t value)
+{
+    this->fx_rack->getChorus()->setRate(value);
+}
+
+void CMiniDexed::setFXChainChorusDepth(float32_t value)
+{
+    this->fx_rack->getChorus()->setDepth(value);
+}
+
+void CMiniDexed::setFXChainChorusFeedback(float32_t value)
+{
+    this->fx_rack->getChorus()->setFeedback(value);
+}
+
+void CMiniDexed::setFXChainFlangerEnable(bool value)
+{
+    this->fx_rack->getFlanger()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainFlangerWet(float32_t value)
+{
+    this->fx_rack->getFlanger()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainFlangerDelayTime(float32_t value)
+{
+    this->fx_rack->getFlanger()->setDelayTime(value);
+}
+
+void CMiniDexed::setFXChainFlangerRate(float32_t value)
+{
+    this->fx_rack->getFlanger()->setFrequency(value);
+}
+
+void CMiniDexed::setFXChainFlangerDepth(float32_t value)
+{
+    this->fx_rack->getFlanger()->setDepth(value);
+}
+
+void CMiniDexed::setFXChainFlangerFeedback(float32_t value)
+{
+    this->fx_rack->getFlanger()->setFeedback(value);
+}
+
+void CMiniDexed::setFXChainOrbitoneEnable(bool value)
+{
+    this->fx_rack->getOrbitone()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainOrbitoneWet(float32_t value)
+{
+    this->fx_rack->getOrbitone()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainOrbitoneFeedback(float32_t value)
+{
+    this->fx_rack->getOrbitone()->setFeedback(value);
+}
+
+void CMiniDexed::setFXChainPhaserEnable(bool value)
+{
+    this->fx_rack->getPhaser()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainPhaserWet(float32_t value)
+{
+    this->fx_rack->getPhaser()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainPhaserRate(float32_t value)
+{
+    this->fx_rack->getPhaser()->setFrequency(value);
+}
+
+void CMiniDexed::setFXChainPhaserQ(float32_t value)
+{
+    this->fx_rack->getPhaser()->setQ(value);
+}
+
+void CMiniDexed::setFXChainTapeDelayEnable(bool value)
+{
+    this->fx_rack->getTapeDelay()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainTapeDelayWet(float32_t value)
+{
+    this->fx_rack->getTapeDelay()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainTapeDelayDelayTime(float32_t value)
+{
+    this->fx_rack->getTapeDelay()->setDelayTime(value);
+}
+
+void CMiniDexed::setFXChainTapeDelayFlutter(float32_t value)
+{
+    this->fx_rack->getTapeDelay()->setFlutterLevel(value);
+}
+
+void CMiniDexed::setFXChainTapeDelayFeedback(float32_t value)
+{
+    this->fx_rack->getTapeDelay()->setFeedbakLevel(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbEnable(bool value)
+{
+    this->fx_rack->getShimmerReverb()->setEnable(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbWet(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setWetLevel(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbDelayTimeLeft(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setLeftDelayTime(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbDelayTimeRight(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setRightDelayTime(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbFrequency(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setShimmerFrequency(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbAmplitude(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setShimmerAmplitude(value);
+}
+
+void CMiniDexed::setFXChainShimmerReverbDecayTime(float32_t value)
+{
+    this->fx_rack->getShimmerReverb()->setDecayTime(value);
+}
+
+#endif
