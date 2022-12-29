@@ -82,7 +82,9 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
-	{"FX Chain", MenuHandler,		s_FXChainMenu},
+#endif
+#ifdef FXRACK_ENABLE
+	{"FXChain", MenuHandler,		s_FXChainMenu},
 #endif
 	{0}
 };
@@ -134,88 +136,92 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{0}
 };
 
+#endif
+
+#ifdef FXRACK_ENABLE
+
 const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] = 
 {
 	// FXChain
-	{"Enable",			EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
-	{"Wet Level",		EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
+	{"Wet Lvl",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainWet},
 
-	{"Tube", 			MenuHandler, s_FXChainTube},
-	{"Chorus", 			MenuHandler, s_FXChainChorus},
-	{"Flanger", 		MenuHandler, s_FXChainFlanger},
-	{"Orbitone", 		MenuHandler, s_FXChainOrbitone},
-	{"Phaser", 			MenuHandler, s_FXChainPhaser},
-	{"TapeDelay", 		MenuHandler, s_FXChainTapeDelay},
-	{"ShimmerReverb", 	MenuHandler, s_FXChainShimmerReverb},
+	{"Tube", 	MenuHandler, s_FXChainTube},
+	{"Chorus", 	MenuHandler, s_FXChainChorus},
+	{"FlangR", 	MenuHandler, s_FXChainFlanger},
+	{"Orb", 	MenuHandler, s_FXChainOrbitone},
+	{"PhasR", 	MenuHandler, s_FXChainPhaser},
+	{"Delay", 	MenuHandler, s_FXChainTapeDelay},
+	{"Shimmer", MenuHandler, s_FXChainShimmerReverb},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainTube[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTubeEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeWet},
-	{"Overdrive",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeOverdrive},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTubeEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeWet},
+	{"Overdrv",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeOverdrive},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainChorus[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainChorusEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
-	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
-	{"Depth", 		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
-	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainChorusEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
+	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusFeedback},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainFlanger[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
-	{"Delay Time", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDelayTime},
-	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
-	{"Depth",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
-	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
+	{"Delay", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDelayTime},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
+	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainOrbitone[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
-	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneFeedback},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
-	{"LFO Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
-	{"Resonance", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserResonance},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
+	{"Res",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserResonance},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainTapeDelay[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTapeDelayEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayWet},
-	{"Left Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayLeftDelayTime},
-	{"Right Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayRightDelayTime},
-	{"Flutter",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFlutter},
-	{"Feedback", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTapeDelayEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayWet},
+	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayLeftDelayTime},
+	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayRightDelayTime},
+	{"Flutter",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFlutter},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFeedback},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
 {
-	{"Enable", 		EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
-	{"Wet Level", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
-	{"Delay Left",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeLeft},
-	{"Delay Right",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeRight},
-	{"Frequency",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbFrequency},
-	{"Amplitude",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbAmplitude},
-	{"Decay Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDecayTime},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
+	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeLeft},
+	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeRight},
+	{"Freq",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbFrequency},
+	{"Amp",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbAmplitude},
+	{"Decay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDecayTime},
 	{0}
 };
 
@@ -301,10 +307,10 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1}				// ParameterReverbLevel
 
 	// BEGIN FXRack global parameters mapping definition
-#ifdef ARM_ALLOW_MULTI_CORE
+	#ifdef FXRACK_ENABLE
 	,
 	// FXChain parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainEnable
+	{0,	1,	1, ToOnOff},	// ParameterFXChainEnable
 	{0,	99,	1},				// ParameterFXChainWet
 
 	// FXChain > Tube parameters
@@ -354,7 +360,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterFXChainShimmerReverbFrequency
 	{0,	99,	1},				// ParameterFXChainShimmerReverbAmplitude
 	{0,	99,	1},				// ParameterFXChainShimmerReverbDecayTime
-#endif
+
+	#endif
 	// END FXRack global parameters mapping definition
 
 };

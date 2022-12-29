@@ -7,7 +7,7 @@ FXRack::FXRack(float32_t sampling_rate, bool enable, float32_t wet) :
     FXElement(sampling_rate),
     enable_(enable),
     wet_level_(wet),
-    fx_chain_(sampling_rate)
+    fx_chain_()
 {
     this->fxTube_ = new FXUnit<Tube>(sampling_rate);
     this->fxChorus_ = new FXUnit<Chorus>(sampling_rate);
@@ -39,7 +39,7 @@ FXRack::~FXRack()
     delete this->fxShimmerReverb_;
 }
 
-void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
     {
@@ -67,23 +67,24 @@ void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* l
         if(this->isEnable()) 
         {
             this->processSample(sampleInL, sampleInR, sampleOutL, sampleOutR);
+
+            float32_t dryLevel = 1.0f - this->getWetLevel();
+            *left_output  = this->getWetLevel() * sampleOutL + dryLevel * (*left_input);
+            *right_output = this->getWetLevel() * sampleOutR + dryLevel * (*right_input);
         }
         else
         {
-            sampleOutL = sampleInL;
-            sampleOutR = sampleInR;
+            *left_output  = sampleInL;
+            *right_output = sampleInR;
         }
-
-        *left_output = sampleOutL;
-        *right_output = sampleOutR;
-
+    
         // Move inputs by 1 sample
         ++left_input;
         ++right_input;
 
         // Move outputs by 1 sample
-        ++left_input;
-        ++right_input;
+        ++left_output;
+        ++right_output;
     }
 }
 

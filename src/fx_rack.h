@@ -16,7 +16,6 @@
 //
 // Rack of audio effects proposed in the context of the MiniDexed project
 //
-
 #pragma once
 
 #include "fx.h"
@@ -57,6 +56,7 @@ public:
         else
         {
             _FXElement::processSample(inL, inR, outL, outR);
+
             float32_t dry = 1.0f - this->getWetLevel();
             outL = this->getWetLevel() * outL + dry * inL;
             outR = this->getWetLevel() * outR + dry * inR;
@@ -98,7 +98,7 @@ public:
     FXRack(float32_t sampling_rate, bool enable = true, float32_t wet = 1.0f);
     virtual ~FXRack();
 
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
+    virtual inline void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
 
     void setEnable(bool enable = true);

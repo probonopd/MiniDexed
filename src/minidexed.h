@@ -20,6 +20,7 @@
 #ifndef _minidexed_h
 #define _minidexed_h
 
+#include "extra_features.h"
 #include "dexedadapter.h"
 #include "config.h"
 #include "userinterface.h"
@@ -140,7 +141,7 @@ public:
 		ParameterReverbLevel,
 
 		// BEGIN FXRack global parameters definition
-#ifdef ARM_ALLOW_MULTI_CORE
+		#ifdef FXRACK_ENABLE
 		// FXChain parameters
 		ParameterFXChainEnable,
 		ParameterFXChainWet,
@@ -192,7 +193,7 @@ public:
 		ParameterFXChainShimmerReverbFrequency,
 		ParameterFXChainShimmerReverbAmplitude,
 		ParameterFXChainShimmerReverbDecayTime,
-#endif
+		#endif
 		// END FXRack global parameters definition
 
 		ParameterUnknown
@@ -264,7 +265,7 @@ public:
 	void setMasterVolume (float32_t vol);
 
 	// BEGIN FXRack parameters setters
-#ifdef ARM_ALLOW_MULTI_CORE
+	#ifdef FXRACK_ENABLE
 	void setFXChainEnable(bool value);
 	void setFXChainWet(float32_t value);
 	void setFXChainTubeEnable(bool value);
@@ -301,7 +302,7 @@ public:
 	void setFXChainShimmerReverbFrequency(float32_t value);
 	void setFXChainShimmerReverbAmplitude(float32_t value);
 	void setFXChainShimmerReverbDecayTime(float32_t value);
-#endif
+	#endif
 	// END FXRack parameters setters
 
 private:
@@ -392,7 +393,9 @@ private:
 
 	CSpinLock m_FXSpinLock;
 
+#ifdef FXRACK_ENABLE
 	FXRack* fx_rack;
+#endif
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;

@@ -23,6 +23,7 @@
 #ifndef _uimenu_h
 #define _uimenu_h
 
+#include "extra_features.h"
 #include <string>
 #include <circle/timer.h>
 
@@ -140,6 +141,8 @@ private:
 	static const TMenuItem s_EffectsMenu[];
 #ifdef ARM_ALLOW_MULTI_CORE
 	static const TMenuItem s_ReverbMenu[];
+#endif
+#ifdef FXRACK_ENABLE
 	static const TMenuItem s_FXChainMenu[];
 	static const TMenuItem s_FXChainTube[];
 	static const TMenuItem s_FXChainChorus[];

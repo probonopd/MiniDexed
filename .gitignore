@@ -46,3 +46,6 @@ sdcard
 *.swp
 *.swo
 .vscode/
+
+# temporary tests
+src/test/

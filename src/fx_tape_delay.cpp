@@ -3,6 +3,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include <iostream>
+
 TapeDelay::TapeDelay(const float32_t sampling_rate, float32_t default_delay_time, float32_t default_flutter_level, float32_t default_feedback_level) :
     FXElement(sampling_rate),
     MaxSampleDelayTime(2.0f * sampling_rate * MAX_DELAY_TIME),
@@ -26,6 +28,7 @@ TapeDelay::~TapeDelay()
 
 void TapeDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
+std::cout << "Processing effect: " << typeid(this).name() << std::endl;
     // calculate the fluttered delay time
     float32_t fluttered_delay_time_L = (MAX_DELAY_TIME * this->getLeftDelayTime() + this->getFlutteredDelayTime()) * this->getSamplingRate();
     // Calculate write positions
