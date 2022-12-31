@@ -75,10 +75,8 @@ void PhaserStage::processSample(float32_t inL, float32_t inR, float32_t& outL, f
 Phaser::Phaser(float32_t sampling_rate, float32_t frequency, float32_t q) : 
     FXElement(sampling_rate),
     params_(sampling_rate, frequency, q),
-    phase_(0.0f),
-    phase_increment_(0.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.1f, 10.0f)
 {
-    this->phase_increment_ = 2.0f * PI * frequency / this->getSamplingRate();
     for(unsigned i = 0; i < NUM_PHASER_STAGES; ++i)
     {
         this->stages_[i] = new PhaserStage(sampling_rate, &this->params_);
@@ -104,20 +102,15 @@ void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     }
 
     // Modulate the output of the phaser using the LFO 
-    outL = sampleL * (0.5f + 0.5f * cos(this->phase_));
-    outR = sampleR * (0.5f + 0.5f * cos(this->phase_));;
-
-    // Update the phase of the LFO
-    this->phase_ += this->phase_increment_;
-    if(this->phase_ > 2.0f * PI) {
-        this->phase_ -= 2.0 * PI;
-    }
+    float32_t lfo = this->lfo_.process();
+    outR = sampleR * (0.5f + 0.5f * lfo);
+    outL = sampleL * (0.5f + 0.5f * lfo);
 }
 
 void Phaser::setFrequency(float32_t frequency)
 {
     this->params_.setFrequency(frequency);
-    this->phase_increment_ = 2.0f * PI * frequency / this->getSamplingRate();
+    this->lfo_.setNormalizedFrequency(frequency);
 }
 
 inline float32_t Phaser::getFrequency() const

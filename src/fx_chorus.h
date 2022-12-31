@@ -18,14 +18,14 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class Chorus : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Chorus);
 
 public:
-    Chorus(float32_t sampling_rate, unsigned voices = 4, float32_t depth = 5.0f, float32_t rate = 0.5f, float32_t feedback = 0.5f);
+    Chorus(float32_t sampling_rate, unsigned voices = 4, float32_t rate = 0.1f, float32_t depth = 5.0f, float32_t feedback = 0.5f);
     virtual ~Chorus();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -46,10 +46,7 @@ private:
     float32_t** delay_buffersR_;
     unsigned* delay_buffer_indices_;
 
-    float32_t lfo_phase_;
-    float32_t lfo_phase_increment_;
-
+    LFO lfo_;
     float32_t depth_;           // Depth of the chorus in milliseconds (0.0 - 10.0)
-    float32_t rate_;            // Rate of the chorus in Hz (0.1 - 1.0)
     float32_t feedback_;        // Feedback level of the chorus (0.0 - 1.0)
 };

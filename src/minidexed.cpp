@@ -923,7 +923,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainTapeDelayFlutter: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayFlutter(nValue / 990.0f);
+		this->setFXChainTapeDelayFlutter(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayFeedback: 
@@ -949,19 +949,19 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainShimmerReverbDelayTimeLeft: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDelayTimeLeft(2.0f * nValue / 99.0f);
+		this->setFXChainShimmerReverbDelayTimeLeft(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbDelayTimeRight: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDelayTimeRight(2.0f * nValue / 99.0f);
+		this->setFXChainShimmerReverbDelayTimeRight(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbFrequency: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbFrequency(2.0f * nValue / static_cast<float32_t>(this->m_pConfig->GetSampleRate()));
+		this->setFXChainShimmerReverbFrequency(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbAmplitude: 
@@ -973,7 +973,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainShimmerReverbDecayTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDecayTime(2.0f * nValue / 99.0f);
+		this->setFXChainShimmerReverbDecayTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	#endif

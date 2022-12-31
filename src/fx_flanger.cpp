@@ -8,7 +8,7 @@ Flanger::Flanger(float32_t sampling_rate, float32_t delay_time, float32_t freque
     FXElement(sampling_rate),
     MaxDelayLineSize(static_cast<unsigned>(2.0f * MAX_FLANGER_DELAY * sampling_rate / 1000.0f)),
     delay_line_index_(0),
-    lfo_phase_(0.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.1f, 10.0f)
 {
     this->delay_lineL_ = new float32_t[this->MaxDelayLineSize];
     this->delay_lineR_ = new float32_t[this->MaxDelayLineSize];
@@ -27,10 +27,8 @@ Flanger::~Flanger()
 
 void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    static float32_t M2PI = 2.0f * PI;
-
     // Calculate the delay time based on the depth and rate parameters
-    float32_t delay = this->getDelayTime() + this->getDepth() * std::sin(this->lfo_phase_);
+    float32_t delay = this->getDelayTime() + this->getDepth() * this->lfo_.process();
 
     // Convert the delay time to samples
     unsigned delay_samples = static_cast<unsigned>(delay * this->getSamplingRate() / 1000.0f);
@@ -44,12 +42,6 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     this->delay_lineR_[this->delay_line_index_] = inR + outR * this->getFeedback();
 
     this->delay_line_index_ = (this->delay_line_index_ + 1) % this->delay_line_size_;
-
-    this->lfo_phase_ += this->lfo_phase_increment_;
-    if(this->lfo_phase_ > M2PI)
-    {
-        this->lfo_phase_ -= M2PI;
-    }
 }
 
 void Flanger::setDelayTime(float32_t delayMS)
@@ -65,14 +57,12 @@ float32_t Flanger::getDelayTime() const
 
 void Flanger::setFrequency(float32_t frequency)
 {
-    frequency = constrain(frequency, 0.1f, 1.0f);
-    this->frequency_ = frequency;
-    this->lfo_phase_increment_ = 2.0f * PI * frequency / this->getSamplingRate();
+    this->lfo_.setNormalizedFrequency(frequency);
 }
 
 float32_t Flanger::getFrequency() const
 {
-    return this->frequency_;
+    return this->lfo_.getNormalizedFrequency();
 }
 
 void Flanger::setDepth(float32_t depth)

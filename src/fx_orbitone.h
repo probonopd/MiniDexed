@@ -18,7 +18,7 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class OrbitoneStage;
 
@@ -43,15 +43,16 @@ class OrbitoneStage : public FXElement
     DISALLOW_COPY_AND_ASSIGN(OrbitoneStage);
 
 public:
-    OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency);
+    OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency, float32_t level);
+    virtual ~OrbitoneStage();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
 private:
     OrbitoneParameter* params_;
-    float32_t frequency_;       // Frequency of the stage oscillator in Hz
-    float32_t phase_;           // Phase of the stage's oscillator
-    float32_t phase_increment_; // Amount to increment the phase at each sample
+    LFO lfo_;
+    float32_t level_;
+    float32_t x_[2];
 };
 
 #define NUM_ORBITONR_STAGES 4

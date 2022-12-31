@@ -4,11 +4,11 @@
 
 #define CHORUS_BUFFER_SIZE 8192
 
-Chorus::Chorus(float32_t sampling_rate, unsigned voices, float32_t depth, float32_t rate, float32_t feedback) :
+Chorus::Chorus(float32_t sampling_rate, unsigned voices, float32_t rate, float32_t depth, float32_t feedback) :
     FXElement(sampling_rate),
     NumVoices(voices),
     sample_position_ratio_(sampling_rate / 1000.0f),
-    lfo_phase_(0.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.01f, 1.0f)
 {
     this->delay_buffersL_ = new float32_t*[this->NumVoices];
     this->delay_buffersR_ = new float32_t*[this->NumVoices];
@@ -21,6 +21,10 @@ Chorus::Chorus(float32_t sampling_rate, unsigned voices, float32_t depth, float3
 
     this->delay_buffer_indices_ = new unsigned[this->NumVoices];
     memset(this->delay_buffer_indices_, 0, this->NumVoices * sizeof(float32_t));
+
+    this->setRate(rate);
+    this->setDepth(depth);
+    this->setFeedback(feedback);
 }
 
 Chorus::~Chorus()
@@ -38,13 +42,11 @@ Chorus::~Chorus()
 
 void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    static float32_t M2PI = 2.0f * PI;
-
     float32_t sumL = 0.0f;
     float32_t sumR = 0.0f;
     for(unsigned i = 0; i < this->NumVoices; ++i) {
         // Calculate the delay time based on the depth and rate parameters
-        float32_t delay = this->getDepth() * std::sin(this->lfo_phase_);
+        float32_t delay = this->getDepth() * this->lfo_.process();
 
         // Convert the delay time to samples
         unsigned delay_samples = static_cast<unsigned>(delay * this->sample_position_ratio_);
@@ -62,12 +64,6 @@ void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     // Average the mixed audio from all voices to create the output
     outL = sumL / static_cast<float32_t>(this->NumVoices);
     outR = sumR / static_cast<float32_t>(this->NumVoices);
-
-    this->lfo_phase_ += this->lfo_phase_increment_;
-    if(this->lfo_phase_ > M2PI)
-    {
-        this->lfo_phase_ -= M2PI;
-    }
 }
 
 void Chorus::setDepth(float32_t depth)
@@ -82,13 +78,12 @@ float32_t Chorus::getDepth() const
 
 void Chorus::setRate(float32_t rate)
 {
-    this->rate_ = constrain(rate, 0.1f, 1.0f);
-    this->lfo_phase_increment_ = 2.0f * PI * this->rate_ / this->getSamplingRate();
+    this->lfo_.setNormalizedFrequency(rate);
 }
 
 float32_t Chorus::getRate() const
 {
-    return this->rate_;
+    return this->lfo_.getNormalizedFrequency();
 }
 
 void Chorus::setFeedback(float32_t feedback)

@@ -18,14 +18,14 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class Flanger : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Flanger);
 
 public:
-    Flanger(float32_t sampling_rate, float32_t delay_time = 5.0f, float32_t frequency = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.5f);
+    Flanger(float32_t sampling_rate, float32_t delay_time = 5.0f, float32_t frequency = 0.05f, float32_t depth = 1.0f, float32_t feedback = 0.25f);
     virtual ~Flanger();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -51,11 +51,8 @@ private:
     float32_t* delay_lineL_;
     float32_t* delay_lineR_;
 
-    float32_t lfo_phase_;
-    float32_t lfo_phase_increment_;
-
     float32_t delay_time_ms_;   // Delay time in milliseconds (0.0 - 10.0)
-    float32_t frequency_;       // LFO frequency in HZ (0.1 - 10.0)
+    LFO lfo_;
     float32_t depth_;           // Depth of the flanger effect in milliseconds (0.0 - 10.0)
     float32_t feedback_;        // Amount of feedback to apply to the delay line
 };

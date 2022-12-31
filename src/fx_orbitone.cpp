@@ -25,29 +25,29 @@ inline float32_t OrbitoneParameter::getFeedback() const
 
 
 // OrbitoneStage implementation
-OrbitoneStage::OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency) :
+OrbitoneStage::OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency, float32_t level) :
     FXElement(sampling_rate),
     params_(params),
-    frequency_(frequency),
-    phase_(0.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 20000.0f),
+    level_(level)
 {
-    this->phase_increment_ = 2.0f * PI * frequency / this->getSamplingRate();
+    this->lfo_.setFrequency(frequency);
+
+    this->x_[0] = this->x_[1] = 0.0f;
+}
+
+OrbitoneStage::~OrbitoneStage()
+{
 }
 
 void OrbitoneStage::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     // Generate a sine wave using the stage's oscillator
-    float32_t osc = sin(this->phase_);
-
-    // Update the phase of the oscillator
-    this->phase_ += this->phase_increment_;
-    if(this->phase_ > 2.0f * PI) {
-        this->phase_ -= 2.0f * PI;
-    }
+    float32_t osc = this->level_ * this->lfo_.process();
 
     // Apply feedback to the stage's input
-    outL = inL + osc * this->params_->getFeedback();
-    outR = inR + osc * this->params_->getFeedback();
+    outL = inL + inL * osc + this->params_->getFeedback() * this->x_[0];
+    outR = inR + inR * osc + this->params_->getFeedback() * this->x_[1];
 }
 
 
@@ -57,10 +57,12 @@ Orbitone::Orbitone(float32_t sampling_rate, float32_t feedback) :
     FXElement(sampling_rate),
     params_(sampling_rate, feedback)
 {
+    float32_t level = 1.0f;
     for(unsigned i = 0; i < NUM_ORBITONR_STAGES; ++i)
     {
         float32_t frequency = 440.0 * pow(2.0f, (i - 1) / 12.0f);   // Sets the frequency of each stage to be a multiple of 440 Hz
-        this->stages_[i] = new OrbitoneStage(sampling_rate, &this->params_, frequency);
+        level /= 2.0f;
+        this->stages_[i] = new OrbitoneStage(sampling_rate, &this->params_, frequency, level);
     }
 }
 

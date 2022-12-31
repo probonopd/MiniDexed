@@ -18,7 +18,7 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class PhaserStage;
 
@@ -80,7 +80,6 @@ public:
 
 private:
     PhaserParameter params_;
-    float32_t phase_;           // Current phase of the LFO (0.01 - 5.0)
-    float32_t phase_increment_; // Amount to increment the phase at each sample
+    LFO lfo_;
     PhaserStage* stages_[NUM_PHASER_STAGES];
 };

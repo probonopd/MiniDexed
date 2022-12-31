@@ -3,6 +3,8 @@
 #include <cmath>
 #include <algorithm>
 
+#define SHIMMER_MAX_DELAY_TIME 2.0f
+
 ShimmerReverb::ShimmerReverb(float32_t sampling_rate,
                              float32_t left_delay_time,
                              float32_t right_delay_time,
@@ -35,9 +37,11 @@ ShimmerReverb::~ShimmerReverb()
 
 void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
+    const static float32_t M2PI = 2.0f * PI;
+
     // Calculate shimmer offset based on current phase
-    float32_t shimmerOffsetL = this->getShimmerAmplitude() * sin(this->shimmer_phase_ * 2.0f * PI);
-    float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_ * 2.0f * PI);
+    float32_t shimmerOffsetL = this->getShimmerAmplitude() * sin(this->shimmer_phase_);
+    float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_);
 
     // Calculate read position for left and right channel delay lines
     unsigned readPosL = static_cast<unsigned>(this->DelayLineLength + this->write_pos_L_ - (this->delay_time_L_ + shimmerOffsetL) * this->getSamplingRate()) % this->DelayLineLength;
@@ -63,13 +67,16 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     this->write_pos_R_ = (this->write_pos_R_ + 1) % this->DelayLineLength;
 
     // Increment shimmer phase
-    this->shimmer_phase_ += this->getShimmerFrequency() / this->getSamplingRate();
-    if(this->shimmer_phase_ > 1.0f) this->shimmer_phase_ -= 1.0f;
+    this->shimmer_phase_ += this->shimmer_phase_increment_;
+    if(this->shimmer_phase_ > M2PI) 
+    {
+        this->shimmer_phase_ -= M2PI;
+    }
 }
 
 void ShimmerReverb::setLeftDelayTime(float32_t delay_time_L) 
 {
-    this->delay_time_L_ = constrain(delay_time_L, 0.0f, SHIMMER_MAX_DELAY_TIME);
+    this->delay_time_L_ = constrain(delay_time_L, 0.0f, 1.0f);
 }
 
 float32_t ShimmerReverb::getLeftDelayTime() const 
@@ -79,7 +86,7 @@ float32_t ShimmerReverb::getLeftDelayTime() const
 
 void ShimmerReverb::setRightDelayTime(float32_t delay_time_R) 
 {
-    this->delay_time_R_ = constrain(delay_time_R, 0.0f, SHIMMER_MAX_DELAY_TIME);
+    this->delay_time_R_ = constrain(delay_time_R, 0.0f, 1.0f);
 }
 
 float32_t ShimmerReverb::getRightDelayTime() const 
@@ -89,7 +96,9 @@ float32_t ShimmerReverb::getRightDelayTime() const
 
 void ShimmerReverb::setShimmerFrequency(float32_t frequency) 
 {
-    this->shimmer_frequency_ = constrain(frequency, 0.0f, this->getSamplingRate() / 2.0f);
+    const static float32_t M2PI = 2.0f * PI;
+    this->shimmer_frequency_ = constrain(frequency, 0.0f, 1.0f);
+    this->shimmer_phase_increment_ = M2PI * mapfloat(this->shimmer_frequency_, 0.0f, 1.0f, 20.0f, 20000.0f) / this->getSamplingRate();
 }
 
 float32_t ShimmerReverb::getShimmerFrequency() const 
@@ -109,7 +118,7 @@ float32_t ShimmerReverb::getShimmerAmplitude() const
 
 void ShimmerReverb::setDecayTime(float32_t decay_time) 
 {
-    this->decay_time_ = constrain(decay_time, 0.0f, SHIMMER_MAX_DELAY_TIME);
+    this->decay_time_ = constrain(decay_time, 0.0f, 1.0f);
 }
 
 float32_t ShimmerReverb::getDecayTime() const 

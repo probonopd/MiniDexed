@@ -21,8 +21,6 @@
 
 #include "fx.h"
 
-#define SHIMMER_MAX_DELAY_TIME 2.0f
-
 class ShimmerReverb : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(ShimmerReverb);
@@ -62,11 +60,12 @@ private:
     // Current write position for left and right channel delay lines
     unsigned write_pos_L_;
     unsigned write_pos_R_;
-    float32_t shimmer_phase_;       // Current shimmer phase (0.0 - 1.0)
+    float32_t shimmer_phase_;
+    float32_t shimmer_phase_increment_;
 
-    float32_t delay_time_L_;        // Left channel delay time in seconds
-    float32_t delay_time_R_;        // Right channel delay time in seconds
-    float32_t shimmer_frequency_;   // Shimmer frequency in Hz
-    float32_t shimmer_amplitude_;   // Shimmer amplitude (0.0 - 1.0)
-    float32_t decay_time_;          // Reverb decay time in seconds
+    float32_t delay_time_L_;            // Left channel delay time in seconds
+    float32_t delay_time_R_;            // Right channel delay time in seconds
+    float32_t shimmer_frequency_;       // Shimmer frequency parameter in Hz (0.0 === 20Hz - 1.0 === 20kHz)
+    float32_t shimmer_amplitude_;       // Shimmer amplitude (0.0 - 1.0)
+    float32_t decay_time_;              // Reverb decay time in seconds
 };
