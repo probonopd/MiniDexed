@@ -18,14 +18,14 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class Tube : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Tube);
 
 public:
-    Tube(float32_t sampling_rate, float32_t curve = 2.0f, float32_t bias = 0.7f);
+    Tube(float32_t sampling_rate);
     virtual ~Tube();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -34,8 +34,6 @@ public:
     float32_t getOverdrive() const;
 
 private:
-    const float32_t TubeCurve;
-    const float32_t TubeBias;
-
     float32_t overdrive_;
+    float32_t threshold_;
 };

@@ -19,7 +19,7 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 #include "fx_svf.h"
 
 #include <random>
@@ -41,30 +41,6 @@ class TapeDelay : public FXElement
         void setCutoffChangeRatio(float32_t ratio);
         
     private:
-        // void processSampleLPF(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
-        // void processSampleHPF(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
-
-
-        // float32_t a0_lpf_;
-        // float32_t a1_lpf_;
-        // float32_t a2_lpf_;
-        // float32_t b1_lpf_;
-        // float32_t b2_lpf_;
-        // float32_t x1_lpf_[2];
-        // float32_t x2_lpf_[2];
-        // float32_t y1_lpf_[2];
-        // float32_t y2_lpf_[2];
-
-        // float32_t a0_hpf_;
-        // float32_t a1_hpf_;
-        // float32_t a2_hpf_;
-        // float32_t b1_hpf_;
-        // float32_t b2_hpf_;
-        // float32_t x1_hpf_[2];
-        // float32_t x2_hpf_[2];
-        // float32_t y1_hpf_[2];
-        // float32_t y2_hpf_[2];
-
         StateVariableFilter lpf_;
         StateVariableFilter hpf_;
     };
@@ -85,7 +61,7 @@ public:
     void setFlutterLevel(float32_t flutter_level);
     float32_t getFlutterLevel() const;
 
-    void setFeedbakLevel(float32_t feedback);
+    void setFeedbak(float32_t feedback);
     float32_t getFeedbackLevel() const;
 
 private:
@@ -103,8 +79,5 @@ private:
     float32_t feedback_;            // Feedback (0.0 - 1.0)
 
     LowHighPassFilter filter_;
-
-    std::random_device                          rnd_device_;
-    std::mt19937                                rnd_generator_;
-    std::uniform_real_distribution<float32_t>   rnd_distribution_;
+    JitterGenerator jitter_generator_;
 };

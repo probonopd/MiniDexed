@@ -48,4 +48,4 @@ sdcard
 .vscode/
 
 # temporary tests
-src/test/
+src/test/fxrack_test

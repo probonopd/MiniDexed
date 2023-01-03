@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-#define MAX_FLANGER_DELAY 20.0f
-
 Flanger::Flanger(float32_t sampling_rate, float32_t delay_time, float32_t frequency, float32_t depth, float32_t feedback) :
     FXElement(sampling_rate),
     MaxDelayLineSize(static_cast<unsigned>(2.0f * MAX_FLANGER_DELAY * sampling_rate / 1000.0f)),

@@ -20,6 +20,8 @@
 
 #include "fx_components.h"
 
+#define MAX_FLANGER_DELAY 20.0f
+
 class Flanger : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Flanger);

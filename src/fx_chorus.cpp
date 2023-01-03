@@ -4,11 +4,14 @@
 
 #define CHORUS_BUFFER_SIZE 8192
 
+#define LFO_MIN_FREQ 0.0f
+#define LFO_MAX_FREQ 1.0f
+
 Chorus::Chorus(float32_t sampling_rate, unsigned voices, float32_t rate, float32_t depth, float32_t feedback) :
     FXElement(sampling_rate),
     NumVoices(voices),
     sample_position_ratio_(sampling_rate / 1000.0f),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.01f, 1.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, LFO_MIN_FREQ, LFO_MAX_FREQ)
 {
     this->delay_buffersL_ = new float32_t*[this->NumVoices];
     this->delay_buffersR_ = new float32_t*[this->NumVoices];

@@ -19,74 +19,16 @@
 #pragma once
 
 #include "fx.h"
+#include "fx_unit.hpp"
 #include "fx_tube.h"
 #include "fx_chorus.h"
 #include "fx_flanger.h"
 #include "fx_orbitone.h"
 #include "fx_phaser.h"
 #include "fx_tape_delay.h"
-#include "fx_shimmer_reverb.h"
+#include "fx_shimmer_reverb2.h"
 
 #include <vector>
-
-template<typename _FXElement>
-class FXUnit : public virtual _FXElement
-{
-    DISALLOW_COPY_AND_ASSIGN(FXUnit);
-
-public:
-    FXUnit(float32_t sampling_rate, bool enable = true, float32_t wet_level = 0.5f) :
-        _FXElement(sampling_rate)
-    {
-        this->setEnable(enable);
-        this->setWetLevel(wet_level);
-    }
-
-    virtual ~FXUnit()
-    {
-    }
-
-    void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
-    {
-        if(!this->isEnable() || this->getWetLevel() == 0.0f)
-        {
-            outL = inL;
-            outR = inR;
-        }
-        else
-        {
-            _FXElement::processSample(inL, inR, outL, outR);
-
-            float32_t dry = 1.0f - this->getWetLevel();
-            outL = this->getWetLevel() * outL + dry * inL;
-            outR = this->getWetLevel() * outR + dry * inR;
-        }
-    }
-
-    void setEnable(bool enable = true)
-    {
-        this->enable_ = enable;
-    }
-
-    inline bool isEnable() const
-    {
-        return this->enable_;
-    }
-
-    void setWetLevel(float32_t wet_level)
-    {
-        this->wet_level_ = constrain(wet_level, 0.0f, 1.0f);
-    }
-
-    inline float32_t getWetLevel() const
-    {
-        return this->wet_level_;
-    }
-
-private:
-    bool enable_;
-    float32_t wet_level_;   // How much the signal is affected by the inner FX (0.0 - 1.0)
-};
 
 typedef std::vector<FXElement*> FXChain;
 
@@ -113,7 +55,7 @@ public:
     FXUnit<Orbitone>* getOrbitone();
     FXUnit<Phaser>* getPhaser();
     FXUnit<TapeDelay>* getTapeDelay();
-    FXUnit<ShimmerReverb>* getShimmerReverb();
+    ShimmerReverb2* getShimmerReverb();
 
 private:
     void registerFX(FXElement* fx);
@@ -128,5 +70,5 @@ private:
     FXUnit<Orbitone>* fxOrbitone_;
     FXUnit<Phaser>* fxPhaser_;
     FXUnit<TapeDelay>* fxTapeDelay_;
-    FXUnit<ShimmerReverb>* fxShimmerReverb_;
+    ShimmerReverb2* fxShimmerReverb_;
 };

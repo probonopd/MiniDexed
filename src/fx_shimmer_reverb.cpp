@@ -96,9 +96,8 @@ float32_t ShimmerReverb::getRightDelayTime() const
 
 void ShimmerReverb::setShimmerFrequency(float32_t frequency) 
 {
-    const static float32_t M2PI = 2.0f * PI;
     this->shimmer_frequency_ = constrain(frequency, 0.0f, 1.0f);
-    this->shimmer_phase_increment_ = M2PI * mapfloat(this->shimmer_frequency_, 0.0f, 1.0f, 20.0f, 20000.0f) / this->getSamplingRate();
+    this->shimmer_phase_increment_ = Constants::M2PI * mapfloat(this->shimmer_frequency_, 0.0f, 1.0f, 20.0f, 20000.0f) / this->getSamplingRate();
 }
 
 float32_t ShimmerReverb::getShimmerFrequency() const 

@@ -208,11 +208,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// FXChain > ShimmerReverb parameters
 	this->SetParameter(ParameterFXChainShimmerReverbEnable, 1);
 	this->SetParameter(ParameterFXChainShimmerReverbWet, 70);
-	this->SetParameter(ParameterFXChainShimmerReverbDelayTimeLeft, 15);
-	this->SetParameter(ParameterFXChainShimmerReverbDelayTimeRight, 22);
-	this->SetParameter(ParameterFXChainShimmerReverbFrequency, 20);
-	this->SetParameter(ParameterFXChainShimmerReverbAmplitude, 15);
-	this->SetParameter(ParameterFXChainShimmerReverbDecayTime,	65);
+	this->SetParameter(ParameterFXChainShimmerReverbDecay, 30);
+	this->SetParameter(ParameterFXChainShimmerReverbDiffusion, 80);
+	this->SetParameter(ParameterFXChainShimmerReverbPitchShift, 99);
 	#endif
 	// END setup FXRack
 };
@@ -749,13 +747,13 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainEnable(!!nValue);
+		this->fx_rack->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainWet(nValue / 99.0f);
+		this->fx_rack->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -763,19 +761,19 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainTubeEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTubeEnable(!!nValue);
+		this->fx_rack->getTube()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTubeWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTubeWet(nValue / 99.0f);
+		this->fx_rack->getTube()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTubeOverdrive: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTubeOverdrive(nValue / 99.0f);
+		this->fx_rack->getTube()->setOverdrive(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -783,31 +781,31 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainChorusEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainChorusEnable(!!nValue);
+		this->fx_rack->getChorus()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainChorusWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainChorusWet(nValue / 99.0f);
+		this->fx_rack->getChorus()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainChorusRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainChorusRate(mapfloat(nValue, 0, 99, 0.1f, 1.0f));
+		this->fx_rack->getChorus()->setRate(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainChorusDepth: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainChorusDepth(nValue / 9.9f);
+		this->fx_rack->getChorus()->setDepth(nValue / 9.9f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainChorusFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainChorusFeedback(nValue / 99.0f);
+		this->fx_rack->getChorus()->setFeedback(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -815,37 +813,37 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainFlangerEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerEnable(!!nValue);
+		this->fx_rack->getFlanger()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerWet(nValue / 99.0f);
+		this->fx_rack->getFlanger()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerDelayTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerDelayTime(nValue / 9.9f);
+		this->fx_rack->getFlanger()->setDelayTime(mapfloat(nValue, 0, 99, 1.0f, MAX_FLANGER_DELAY));
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerRate(0.1f + nValue / 9.8f);
+		this->fx_rack->getFlanger()->setFrequency(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerDepth: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerDepth(nValue / 9.9f);
+		this->fx_rack->getFlanger()->setDepth(mapfloat(nValue, 0, 99, 0.0f, MAX_FLANGER_DELAY));
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainFlangerFeedback(nValue / 99.0f);
+		this->fx_rack->getFlanger()->setFeedback(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -853,19 +851,19 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainOrbitoneEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainOrbitoneEnable(!!nValue);
+		this->fx_rack->getOrbitone()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainOrbitoneWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainOrbitoneWet(nValue / 99.0f);
+		this->fx_rack->getOrbitone()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainOrbitoneFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainOrbitoneFeedback(nValue / 99.0f);
+		this->fx_rack->getOrbitone()->setFeedback(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -873,25 +871,25 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainPhaserEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainPhaserEnable(!!nValue);
+		this->fx_rack->getPhaser()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainPhaserWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainPhaserWet(nValue / 99.0f);
+		this->fx_rack->getPhaser()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainPhaserRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainPhaserRate(mapfloat(nValue, 0, 99, 0.01f, 5.0f));
+		this->fx_rack->getPhaser()->setFrequency(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainPhaserResonance: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainPhaserResonance(mapfloat(nValue, 0, 99, 0.5f, 10.0f));
+		this->fx_rack->getPhaser()->setResonance(mapfloat(nValue, 0, 99, 0.5f, 10.0f));
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -899,37 +897,37 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainTapeDelayEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayEnable(!!nValue);
+		this->fx_rack->getTapeDelay()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayWet(nValue / 99.0f);
+		this->fx_rack->getTapeDelay()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayLeftDelayTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayLeftDelayTime(nValue / 99.0f);
+		this->fx_rack->getTapeDelay()->setLeftDelayTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayRightDelayTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayRightDelayTime(nValue / 99.0f);
+		this->fx_rack->getTapeDelay()->setRightDelayTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayFlutter: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayFlutter(nValue / 99.0f);
+		this->fx_rack->getTapeDelay()->setFlutterLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainTapeDelayFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainTapeDelayFeedback(nValue / 99.0f);
+		this->fx_rack->getTapeDelay()->setFeedbak(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -937,43 +935,31 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainShimmerReverbEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbEnable(!!nValue);
+		this->fx_rack->getShimmerReverb()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbWet(nValue / 99.0f);
+		this->fx_rack->getShimmerReverb()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainShimmerReverbDelayTimeLeft: 
+	case ParameterFXChainShimmerReverbDecay: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDelayTimeLeft(nValue / 99.0f);
+		this->fx_rack->getShimmerReverb()->setDecay(mapfloat(nValue, 0, 99, SHIMMER_MIN_DECAY, SHIMMER_MAX_DECAY));
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainShimmerReverbDelayTimeRight: 
+	case ParameterFXChainShimmerReverbDiffusion: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDelayTimeRight(nValue / 99.0f);
+		this->fx_rack->getShimmerReverb()->setDiffusion(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainShimmerReverbFrequency: 
+	case ParameterFXChainShimmerReverbPitchShift: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbFrequency(nValue / 99.0f);
-		this->m_FXSpinLock.Release();
-		break;
-	case ParameterFXChainShimmerReverbAmplitude: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbAmplitude(nValue / 99.0f);
-		this->m_FXSpinLock.Release();
-		break;
-	case ParameterFXChainShimmerReverbDecayTime: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->setFXChainShimmerReverbDecayTime(nValue / 99.0f);
+		this->fx_rack->getShimmerReverb()->setPitchShift(mapfloat(nValue, 0, 99, SHIMMER_MIN_PITCH_RATIO, SHIMMER_MAX_PITCH_RATIO));
 		this->m_FXSpinLock.Release();
 		break;
 	#endif
@@ -1429,11 +1415,9 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainTapeDelayFeedback(this->m_nParameter[ParameterFXChainTapeDelayFeedback]);
 	this->m_PerformanceConfig.SetFXChainShimmerReverbEnable(!!this->m_nParameter[ParameterFXChainShimmerReverbEnable]);
 	this->m_PerformanceConfig.SetFXChainShimmerReverbWet(this->m_nParameter[ParameterFXChainShimmerReverbWet]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbDelayTimeLeft(this->m_nParameter[ParameterFXChainShimmerReverbDelayTimeLeft]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbDelayTimeRight(this->m_nParameter[ParameterFXChainShimmerReverbDelayTimeRight]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbFrequency(this->m_nParameter[ParameterFXChainShimmerReverbFrequency]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbAmplitude(this->m_nParameter[ParameterFXChainShimmerReverbAmplitude]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbDecayTime(this->m_nParameter[ParameterFXChainShimmerReverbDecayTime]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbDecay(this->m_nParameter[ParameterFXChainShimmerReverbDecay]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbDiffusion(this->m_nParameter[ParameterFXChainShimmerReverbDiffusion]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbPitchShift(this->m_nParameter[ParameterFXChainShimmerReverbPitchShift]);
 	#endif
 	// END FXRack parameters
 
@@ -1858,11 +1842,9 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainTapeDelayFeedback, this->m_PerformanceConfig.GetFXChainTapeDelayFeedback());
 		this->SetParameter(ParameterFXChainShimmerReverbEnable, this->m_PerformanceConfig.GetFXChainShimmerReverbEnable());
 		this->SetParameter(ParameterFXChainShimmerReverbWet, this->m_PerformanceConfig.GetFXChainShimmerReverbWet());
-		this->SetParameter(ParameterFXChainShimmerReverbDelayTimeLeft, this->m_PerformanceConfig.GetFXChainShimmerReverbDelayTimeLeft());
-		this->SetParameter(ParameterFXChainShimmerReverbDelayTimeRight, this->m_PerformanceConfig.GetFXChainShimmerReverbDelayTimeRight());
-		this->SetParameter(ParameterFXChainShimmerReverbFrequency, this->m_PerformanceConfig.GetFXChainShimmerReverbFrequency());
-		this->SetParameter(ParameterFXChainShimmerReverbAmplitude, this->m_PerformanceConfig.GetFXChainShimmerReverbAmplitude());
-		this->SetParameter(ParameterFXChainShimmerReverbDecayTime, this->m_PerformanceConfig.GetFXChainShimmerReverbDecayTime());
+		this->SetParameter(ParameterFXChainShimmerReverbDecay, this->m_PerformanceConfig.GetFXChainShimmerReverbDecay());
+		this->SetParameter(ParameterFXChainShimmerReverbDiffusion, this->m_PerformanceConfig.GetFXChainShimmerReverbDiffusion());
+		this->SetParameter(ParameterFXChainShimmerReverbPitchShift, this->m_PerformanceConfig.GetFXChainShimmerReverbPitchShift());
 		#endif
 }
 
@@ -2047,186 +2029,3 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 	}
 	
 }
-
-#ifdef FXRACK_ENABLE
-void CMiniDexed::setFXChainEnable(bool value)
-{
-    this->fx_rack->setEnable(value);
-}
-
-void CMiniDexed::setFXChainWet(float32_t value)
-{
-    this->fx_rack->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainTubeEnable(bool value)
-{
-    this->fx_rack->getTube()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainTubeWet(float32_t value)
-{
-    this->fx_rack->getTube()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainTubeOverdrive(float32_t value)
-{
-    this->fx_rack->getTube()->setOverdrive(value);
-}
-
-void CMiniDexed::setFXChainChorusEnable(bool value)
-{
-    this->fx_rack->getChorus()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainChorusWet(float32_t value)
-{
-    this->fx_rack->getChorus()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainChorusRate(float32_t value)
-{
-    this->fx_rack->getChorus()->setRate(value);
-}
-
-void CMiniDexed::setFXChainChorusDepth(float32_t value)
-{
-    this->fx_rack->getChorus()->setDepth(value);
-}
-
-void CMiniDexed::setFXChainChorusFeedback(float32_t value)
-{
-    this->fx_rack->getChorus()->setFeedback(value);
-}
-
-void CMiniDexed::setFXChainFlangerEnable(bool value)
-{
-    this->fx_rack->getFlanger()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainFlangerWet(float32_t value)
-{
-    this->fx_rack->getFlanger()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainFlangerDelayTime(float32_t value)
-{
-    this->fx_rack->getFlanger()->setDelayTime(value);
-}
-
-void CMiniDexed::setFXChainFlangerRate(float32_t value)
-{
-    this->fx_rack->getFlanger()->setFrequency(value);
-}
-
-void CMiniDexed::setFXChainFlangerDepth(float32_t value)
-{
-    this->fx_rack->getFlanger()->setDepth(value);
-}
-
-void CMiniDexed::setFXChainFlangerFeedback(float32_t value)
-{
-    this->fx_rack->getFlanger()->setFeedback(value);
-}
-
-void CMiniDexed::setFXChainOrbitoneEnable(bool value)
-{
-    this->fx_rack->getOrbitone()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainOrbitoneWet(float32_t value)
-{
-    this->fx_rack->getOrbitone()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainOrbitoneFeedback(float32_t value)
-{
-    this->fx_rack->getOrbitone()->setFeedback(value);
-}
-
-void CMiniDexed::setFXChainPhaserEnable(bool value)
-{
-    this->fx_rack->getPhaser()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainPhaserWet(float32_t value)
-{
-    this->fx_rack->getPhaser()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainPhaserRate(float32_t value)
-{
-    this->fx_rack->getPhaser()->setFrequency(value);
-}
-
-void CMiniDexed::setFXChainPhaserResonance(float32_t value)
-{
-    this->fx_rack->getPhaser()->setResonance(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayEnable(bool value)
-{
-    this->fx_rack->getTapeDelay()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayWet(float32_t value)
-{
-    this->fx_rack->getTapeDelay()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayLeftDelayTime(float32_t value)
-{
-    this->fx_rack->getTapeDelay()->setLeftDelayTime(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayRightDelayTime(float32_t value)
-{
-    this->fx_rack->getTapeDelay()->setRightDelayTime(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayFlutter(float32_t value)
-{
-    this->fx_rack->getTapeDelay()->setFlutterLevel(value);
-}
-
-void CMiniDexed::setFXChainTapeDelayFeedback(float32_t value)
-{
-    this->fx_rack->getTapeDelay()->setFeedbakLevel(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbEnable(bool value)
-{
-    this->fx_rack->getShimmerReverb()->setEnable(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbWet(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setWetLevel(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbDelayTimeLeft(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setLeftDelayTime(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbDelayTimeRight(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setRightDelayTime(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbFrequency(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setShimmerFrequency(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbAmplitude(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setShimmerAmplitude(value);
-}
-
-void CMiniDexed::setFXChainShimmerReverbDecayTime(float32_t value)
-{
-    this->fx_rack->getShimmerReverb()->setDecayTime(value);
-}
-
-#endif

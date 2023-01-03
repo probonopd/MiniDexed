@@ -27,7 +27,7 @@ void PhaserParameter::computeCoefficients()
 
 void PhaserParameter::setFrequency(float32_t frequency)
 {
-    this->frequency_ = constrain(frequency, 0.1, 10.0);
+    this->frequency_ = frequency;
     this->computeCoefficients();
 }
 
@@ -75,7 +75,7 @@ void PhaserStage::processSample(float32_t inL, float32_t inR, float32_t& outL, f
 Phaser::Phaser(float32_t sampling_rate, float32_t frequency, float32_t q) : 
     FXElement(sampling_rate),
     params_(sampling_rate, frequency, q),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.1f, 10.0f)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.01f, 1.0f)
 {
     for(unsigned i = 0; i < NUM_PHASER_STAGES; ++i)
     {
@@ -109,13 +109,13 @@ void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
 
 void Phaser::setFrequency(float32_t frequency)
 {
-    this->params_.setFrequency(frequency);
     this->lfo_.setNormalizedFrequency(frequency);
+    this->params_.setFrequency(this->lfo_.getFrequency());
 }
 
 inline float32_t Phaser::getFrequency() const
 {
-    return this->params_.getFrequency();
+    return this->lfo_.getNormalizedFrequency();
 }
 
 void Phaser::setResonance(float32_t q)

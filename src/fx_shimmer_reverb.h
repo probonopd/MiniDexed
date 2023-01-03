@@ -19,7 +19,7 @@
 //
 #pragma once
 
-#include "fx.h"
+#include "fx_components.h"
 
 class ShimmerReverb : public FXElement
 {

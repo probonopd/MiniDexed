@@ -191,11 +191,9 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXChainTapeDelayFeedback = this->m_Properties.GetNumber("FXChainTapeDelayFeedback", 35);
 	this->m_bFXChainShimmerReverbEnable = this->m_Properties.GetNumber("FXChainShimmerReverbEnable", 1);
 	this->m_nFXChainShimmerReverbWet = this->m_Properties.GetNumber("FXChainShimmerReverbWet", 70);
-	this->m_nFXChainShimmerReverbDelayTimeLeft = this->m_Properties.GetNumber("FXChainShimmerReverbDelayTimeLeft", 15);
-	this->m_nFXChainShimmerReverbDelayTimeRight = this->m_Properties.GetNumber("FXChainShimmerReverbDelayTimeRight", 22);
-	this->m_nFXChainShimmerReverbFrequency = this->m_Properties.GetNumber("FXChainShimmerReverbFrequency", 20);
-	this->m_nFXChainShimmerReverbAmplitude = this->m_Properties.GetNumber("FXChainShimmerReverbAmplitude", 15);
-	this->m_nFXChainShimmerReverbDecayTime = this->m_Properties.GetNumber("FXChainShimmerReverbDecayTime", 65);
+	this->m_nFXChainShimmerReverbDecay = this->m_Properties.GetNumber("FXChainShimmerReverbDecay", 30);
+	this->m_nFXChainShimmerReverbDiffusion = this->m_Properties.GetNumber("FXChainShimmerReverbDiffusion", 30);
+	this->m_nFXChainShimmerReverbPitchShift = this->m_Properties.GetNumber("FXChainShimmerReverbPitchShift", 99);
 #endif
 
 	return bResult;
@@ -348,11 +346,9 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXChainTapeDelayFeedback", m_nFXChainTapeDelayFeedback);
 	this->m_Properties.SetNumber("FXChainShimmerReverbEnable", m_bFXChainShimmerReverbEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainShimmerReverbWet", m_nFXChainShimmerReverbWet);
-	this->m_Properties.SetNumber("FXChainShimmerReverbDelayTimeLeft", m_nFXChainShimmerReverbDelayTimeLeft);
-	this->m_Properties.SetNumber("FXChainShimmerReverbDelayTimeRight", m_nFXChainShimmerReverbDelayTimeRight);
-	this->m_Properties.SetNumber("FXChainShimmerReverbFrequency", m_nFXChainShimmerReverbFrequency);
-	this->m_Properties.SetNumber("FXChainShimmerReverbAmplitude", m_nFXChainShimmerReverbAmplitude);
-	this->m_Properties.SetNumber("FXChainShimmerReverbDecayTime", m_nFXChainShimmerReverbDecayTime);
+	this->m_Properties.SetNumber("FXChainShimmerReverbDecay", m_nFXChainShimmerReverbDecay);
+	this->m_Properties.SetNumber("FXChainShimmerReverbDiffusion", m_nFXChainShimmerReverbDiffusion);
+	this->m_Properties.SetNumber("FXChainShimmerReverbPitchShift", m_nFXChainShimmerReverbPitchShift);
 #endif
 
 	return m_Properties.Save ();
@@ -1158,29 +1154,19 @@ unsigned CPerformanceConfig::GetFXChainShimmerReverbWet(void) const
 	return this->m_nFXChainShimmerReverbWet;
 }
 
-unsigned CPerformanceConfig::GetFXChainShimmerReverbDelayTimeLeft(void) const
+unsigned CPerformanceConfig::GetFXChainShimmerReverbDecay(void) const
 {
-	return this->m_nFXChainShimmerReverbDelayTimeLeft;
+	return this->m_nFXChainShimmerReverbDecay;
 }
 
-unsigned CPerformanceConfig::GetFXChainShimmerReverbDelayTimeRight(void) const
+unsigned CPerformanceConfig::GetFXChainShimmerReverbDiffusion(void) const
 {
-	return this->m_nFXChainShimmerReverbDelayTimeRight;
+	return this->m_nFXChainShimmerReverbDiffusion;
 }
 
-unsigned CPerformanceConfig::GetFXChainShimmerReverbFrequency(void) const
+unsigned CPerformanceConfig::GetFXChainShimmerReverbPitchShift(void) const
 {
-	return this->m_nFXChainShimmerReverbFrequency;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbAmplitude(void) const
-{
-	return this->m_nFXChainShimmerReverbAmplitude;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbDecayTime(void) const
-{
-	return this->m_nFXChainShimmerReverbDecayTime;
+	return this->m_nFXChainShimmerReverbPitchShift;
 }
 
 void CPerformanceConfig::SetFXChainEnable(bool bValue)
@@ -1338,29 +1324,19 @@ void CPerformanceConfig::SetFXChainShimmerReverbWet(unsigned nValue)
 	this->m_nFXChainShimmerReverbWet = nValue;
 }
 
-void CPerformanceConfig::SetFXChainShimmerReverbDelayTimeLeft(unsigned nValue)
+void CPerformanceConfig::SetFXChainShimmerReverbDecay(unsigned nValue)
 {
-	this->m_nFXChainShimmerReverbDelayTimeLeft = nValue;
+	this->m_nFXChainShimmerReverbDecay = nValue;
 }
 
-void CPerformanceConfig::SetFXChainShimmerReverbDelayTimeRight(unsigned nValue)
+void CPerformanceConfig::SetFXChainShimmerReverbDiffusion(unsigned nValue)
 {
-	this->m_nFXChainShimmerReverbDelayTimeRight = nValue;
+	this->m_nFXChainShimmerReverbDiffusion = nValue;
 }
 
-void CPerformanceConfig::SetFXChainShimmerReverbFrequency(unsigned nValue)
+void CPerformanceConfig::SetFXChainShimmerReverbPitchShift(unsigned nValue)
 {
-	this->m_nFXChainShimmerReverbFrequency = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbAmplitude(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbAmplitude = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbDecayTime(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbDecayTime = nValue;
+	this->m_nFXChainShimmerReverbPitchShift = nValue;
 }
 
 #endif

@@ -188,11 +188,9 @@ public:
 		// FXChain > ShimmerReverb parameters
 		ParameterFXChainShimmerReverbEnable,
 		ParameterFXChainShimmerReverbWet,
-		ParameterFXChainShimmerReverbDelayTimeLeft,
-		ParameterFXChainShimmerReverbDelayTimeRight,
-		ParameterFXChainShimmerReverbFrequency,
-		ParameterFXChainShimmerReverbAmplitude,
-		ParameterFXChainShimmerReverbDecayTime,
+		ParameterFXChainShimmerReverbDecay,
+		ParameterFXChainShimmerReverbDiffusion,
+		ParameterFXChainShimmerReverbPitchShift,
 		#endif
 		// END FXRack global parameters definition
 
@@ -263,47 +261,6 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-
-	// BEGIN FXRack parameters setters
-	#ifdef FXRACK_ENABLE
-	void setFXChainEnable(bool value);
-	void setFXChainWet(float32_t value);
-	void setFXChainTubeEnable(bool value);
-	void setFXChainTubeWet(float32_t value);
-	void setFXChainTubeOverdrive(float32_t value);
-	void setFXChainChorusEnable(bool value);
-	void setFXChainChorusWet(float32_t value);
-	void setFXChainChorusRate(float32_t value);
-	void setFXChainChorusDepth(float32_t value);
-	void setFXChainChorusFeedback(float32_t value);
-	void setFXChainFlangerEnable(bool value);
-	void setFXChainFlangerWet(float32_t value);
-	void setFXChainFlangerDelayTime(float32_t value);
-	void setFXChainFlangerRate(float32_t value);
-	void setFXChainFlangerDepth(float32_t value);
-	void setFXChainFlangerFeedback(float32_t value);
-	void setFXChainOrbitoneEnable(bool value);
-	void setFXChainOrbitoneWet(float32_t value);
-	void setFXChainOrbitoneFeedback(float32_t value);
-	void setFXChainPhaserEnable(bool value);
-	void setFXChainPhaserWet(float32_t value);
-	void setFXChainPhaserRate(float32_t value);
-	void setFXChainPhaserResonance(float32_t value);
-	void setFXChainTapeDelayEnable(bool value);
-	void setFXChainTapeDelayWet(float32_t value);
-	void setFXChainTapeDelayLeftDelayTime(float32_t value);
-	void setFXChainTapeDelayRightDelayTime(float32_t value);
-	void setFXChainTapeDelayFlutter(float32_t value);
-	void setFXChainTapeDelayFeedback(float32_t value);
-	void setFXChainShimmerReverbEnable(bool value);
-	void setFXChainShimmerReverbWet(float32_t value);
-	void setFXChainShimmerReverbDelayTimeLeft(float32_t value);
-	void setFXChainShimmerReverbDelayTimeRight(float32_t value);
-	void setFXChainShimmerReverbFrequency(float32_t value);
-	void setFXChainShimmerReverbAmplitude(float32_t value);
-	void setFXChainShimmerReverbDecayTime(float32_t value);
-	#endif
-	// END FXRack parameters setters
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note

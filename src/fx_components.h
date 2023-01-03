@@ -107,3 +107,31 @@ private:
     const unsigned size_;
     T* values_;
 };
+
+class JitterGenerator : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(JitterGenerator);
+
+public:
+    JitterGenerator(float32_t sampling_rate);
+    virtual ~JitterGenerator();
+
+    void setSpeed(float32_t speed);
+    float32_t getSpeed() const;
+
+    void setMagnitude(float32_t magnitude);
+    float32_t getMagnitude() const;
+
+    float32_t process();
+
+private:
+    std::random_device                          rnd_device_;
+    std::mt19937                                rnd_generator_;
+    std::uniform_real_distribution<float32_t>   rnd_distribution_;
+    float32_t speed_;
+    float32_t magnitude_;
+    float32_t phase_;
+    float32_t phase_increment_;
+};
+
+float32_t softSaturate(float32_t in, float32_t threshold);

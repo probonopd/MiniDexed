@@ -217,11 +217,9 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
 {
 	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
 	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
-	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeLeft},
-	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDelayTimeRight},
-	{"Freq",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbFrequency},
-	{"Amp",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbAmplitude},
-	{"Decay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDecayTime},
+	{"Decay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDecay},
+	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDiffusion},
+	{"PtchShft",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbPitchShift},
 	{0}
 };
 
@@ -355,11 +353,9 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	// FXChain > ShimmerReverb parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainShimmerReverbEnable
 	{0,	99,	1},				// ParameterFXChainShimmerReverbWet
-	{0,	99,	1},				// ParameterFXChainShimmerReverbDelayTimeLeft
-	{0,	99,	1},				// ParameterFXChainShimmerReverbDelayTimeRight
-	{0,	99,	1},				// ParameterFXChainShimmerReverbFrequency
-	{0,	99,	1},				// ParameterFXChainShimmerReverbAmplitude
-	{0,	99,	1},				// ParameterFXChainShimmerReverbDecayTime
+	{0,	99,	1},				// ParameterFXChainShimmerReverbDecay
+	{0,	99,	1},				// ParameterFXChainShimmerReverbDiffusion
+	{0,	99,	1},				// ParameterFXChainShimmerReverbPitchShift
 
 	#endif
 	// END FXRack global parameters mapping definition
