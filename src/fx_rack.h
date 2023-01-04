@@ -26,7 +26,7 @@
 #include "fx_orbitone.h"
 #include "fx_phaser.h"
 #include "fx_tape_delay.h"
-#include "fx_shimmer_reverb2.h"
+#include "fx_shimmer_reverb.h"
 
 #include <vector>
 
@@ -55,7 +55,7 @@ public:
     FXUnit<Orbitone>* getOrbitone();
     FXUnit<Phaser>* getPhaser();
     FXUnit<TapeDelay>* getTapeDelay();
-    ShimmerReverb2* getShimmerReverb();
+    FXUnit<ShimmerReverb>* getShimmerReverb();
 
 private:
     void registerFX(FXElement* fx);
@@ -70,5 +70,5 @@ private:
     FXUnit<Orbitone>* fxOrbitone_;
     FXUnit<Phaser>* fxPhaser_;
     FXUnit<TapeDelay>* fxTapeDelay_;
-    ShimmerReverb2* fxShimmerReverb_;
+    FXUnit<ShimmerReverb>* fxShimmerReverb_;
 };

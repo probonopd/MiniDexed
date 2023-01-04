@@ -49,3 +49,4 @@ sdcard
 
 # temporary tests
 src/test/fxrack_test
+src/test/result.wav

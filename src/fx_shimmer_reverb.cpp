@@ -3,124 +3,147 @@
 #include <cmath>
 #include <algorithm>
 
-#define SHIMMER_MAX_DELAY_TIME 2.0f
+#define TAIL , -1
 
-ShimmerReverb::ShimmerReverb(float32_t sampling_rate,
-                             float32_t left_delay_time,
-                             float32_t right_delay_time,
-                             float32_t shimmer_frequency,
-                             float32_t shimmer_amplitude,
-                             float32_t decay_time) : FXElement(sampling_rate),
-                                                     DelayLineLength(static_cast<unsigned>(2.0f * SHIMMER_MAX_DELAY_TIME * sampling_rate)),
-                                                     write_pos_L_(0),
-                                                     write_pos_R_(0),
-                                                     shimmer_phase_(0.0f)
+
+ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
+    FXElement(sampling_rate),
+    engine_(sampling_rate)
 {
-    this->delay_line_L_ = new float32_t[this->DelayLineLength];
-    this->delay_line_R_ = new float32_t[this->DelayLineLength];
-
-    memset(this->delay_line_L_, 0, this->DelayLineLength * sizeof(float32_t));
-    memset(this->delay_line_R_, 0, this->DelayLineLength * sizeof(float32_t));
-
-    this->setLeftDelayTime(left_delay_time);
-    this->setRightDelayTime(right_delay_time);
-    this->setShimmerFrequency(shimmer_frequency);
-    this->setShimmerAmplitude(shimmer_amplitude);
-    this->setDecayTime(decay_time);
+    this->engine_.setLFOFrequency(LFO_1, 0.5f / sampling_rate);
+    this->engine_.setLFOFrequency(LFO_2, 0.3f / sampling_rate);
+    this->setInputGain(1.0f);
+    this->setLP(0.7f);
+    this->setDiffusion(0.625f);
 }
 
 ShimmerReverb::~ShimmerReverb()
 {
-    delete[] this->delay_line_L_;
-    delete[] this->delay_line_R_;
 }
 
 void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    const static float32_t M2PI = 2.0f * PI;
+    // This is the Griesinger topology described in the Dattorro paper
+    // (4 AP diffusers on the input, then a loop of 2x 2AP+1Delay).
+    // Modulation is applied in the loop of the first diffuser AP for additional
+    // smearing; and to the two long delays for a slow shimmer/chorus effect.
+    typedef Engine::Reserve<113,
+        Engine::Reserve<162,
+        Engine::Reserve<241,
+        Engine::Reserve<399,
+        Engine::Reserve<1653,
+        Engine::Reserve<2038,
+        Engine::Reserve<3411,
+        Engine::Reserve<1913,
+        Engine::Reserve<1663,
+        Engine::Reserve<4782> > > > > > > > > > Memory;
+    Engine::DelayLine<Memory, 0> ap1;
+    Engine::DelayLine<Memory, 1> ap2;
+    Engine::DelayLine<Memory, 2> ap3;
+    Engine::DelayLine<Memory, 3> ap4;
+    Engine::DelayLine<Memory, 4> dap1a;
+    Engine::DelayLine<Memory, 5> dap1b;
+    Engine::DelayLine<Memory, 6> del1;
+    Engine::DelayLine<Memory, 7> dap2a;
+    Engine::DelayLine<Memory, 8> dap2b;
+    Engine::DelayLine<Memory, 9> del2;
+    Engine::Context c;
 
-    // Calculate shimmer offset based on current phase
-    float32_t shimmerOffsetL = this->getShimmerAmplitude() * sin(this->shimmer_phase_);
-    float32_t shimmerOffsetR = this->getShimmerAmplitude() * cos(this->shimmer_phase_);
+    const float32_t kap = this->diffusion_;
+    const float32_t klp = this->lp_;
+    const float32_t krt = this->reverb_time_;
+    const float32_t gain = this->input_gain_;
 
-    // Calculate read position for left and right channel delay lines
-    unsigned readPosL = static_cast<unsigned>(this->DelayLineLength + this->write_pos_L_ - (this->delay_time_L_ + shimmerOffsetL) * this->getSamplingRate()) % this->DelayLineLength;
-    unsigned readPosR = static_cast<unsigned>(this->DelayLineLength + this->write_pos_R_ - (this->delay_time_R_ + shimmerOffsetR) * this->getSamplingRate()) % this->DelayLineLength;
+    float32_t lp_1 = this->lp_decay_1_;
+    float32_t lp_2 = this->lp_decay_2_;
 
-    // Read32_t left and right channel delay line samples
-    float32_t delaySampleL = this->delay_line_L_[readPosL];
-    float32_t delaySampleR = this->delay_line_R_[readPosR];
-
-    // Calculate reverb decay factor
-    float32_t decay = std::pow(0.001f, 1.0f / (this->decay_time_ * this->getSamplingRate()));
-
-    // Calculate output samples
-    outL = inL + delaySampleL * decay;
-    outR = inR + delaySampleR * decay;
+    float32_t wet;
+    float32_t apout = 0.0f;
+    engine_.start(&c);
     
-    // Write input samples to delay lines
-    this->delay_line_L_[this->write_pos_L_] = outL;
-    this->delay_line_R_[this->write_pos_R_] = outR;
+    // Smear AP1 inside the loop.
+    c.interpolate(ap1, 10.0f, LFO_1, 60.0f, 1.0f);
+    c.write(ap1, 100, 0.0f);
+    
+    c.read(inL + inR, gain);
 
-    // Increment write position and wrap around the end of the delay line if necessary
-    this->write_pos_L_ = (this->write_pos_L_ + 1) % this->DelayLineLength;
-    this->write_pos_R_ = (this->write_pos_R_ + 1) % this->DelayLineLength;
+    // Diffuse through 4 allpasses.
+    c.read(ap1 TAIL, kap);
+    c.writeAllPass(ap1, -kap);
+    c.read(ap2 TAIL, kap);
+    c.writeAllPass(ap2, -kap);
+    c.read(ap3 TAIL, kap);
+    c.writeAllPass(ap3, -kap);
+    c.read(ap4 TAIL, kap);
+    c.writeAllPass(ap4, -kap);
+    c.write(apout);
+      
+    // Main reverb loop.
+    c.load(apout);
+    c.interpolate(del2, 4680.0f, LFO_2, 100.0f, krt);
+    c.lp(lp_1, klp);
+    c.read(dap1a TAIL, -kap);
+    c.writeAllPass(dap1a, kap);
+    c.read(dap1b TAIL, kap);
+    c.writeAllPass(dap1b, -kap);
+    c.write(del1, 2.0f);
+    c.write(wet, 0.0f);
 
-    // Increment shimmer phase
-    this->shimmer_phase_ += this->shimmer_phase_increment_;
-    if(this->shimmer_phase_ > M2PI) 
-    {
-        this->shimmer_phase_ -= M2PI;
-    }
+    outR += wet;
+
+    c.load(apout);
+    // c.Interpolate(del1, 4450.0f, LFO_1, 50.0f, krt);
+    c.read(del1 TAIL, krt);
+    c.lp(lp_2, klp);
+    c.read(dap2a TAIL, kap);
+    c.writeAllPass(dap2a, -kap);
+    c.read(dap2b TAIL, -kap);
+    c.writeAllPass(dap2b, kap);
+    c.write(del2, 2.0f);
+    c.write(wet, 0.0f);
+
+    outR += wet;
+    
+    this->lp_decay_1_ = lp_1;
+    this->lp_decay_2_ = lp_2;
 }
 
-void ShimmerReverb::setLeftDelayTime(float32_t delay_time_L) 
+void ShimmerReverb::setInputGain(float32_t gain)
 {
-    this->delay_time_L_ = constrain(delay_time_L, 0.0f, 1.0f);
+    this->input_gain_ = constrain(gain, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getLeftDelayTime() const 
+float32_t ShimmerReverb::getInputGain() const
 {
-    return this->delay_time_L_;
+    return this->input_gain_;
 }
 
-void ShimmerReverb::setRightDelayTime(float32_t delay_time_R) 
+void ShimmerReverb::setTime(float32_t time)
 {
-    this->delay_time_R_ = constrain(delay_time_R, 0.0f, 1.0f);
+    this->reverb_time_ = constrain(time, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getRightDelayTime() const 
+float32_t ShimmerReverb::getTime() const
 {
-    return this->delay_time_R_;
+    return this->reverb_time_;
 }
 
-void ShimmerReverb::setShimmerFrequency(float32_t frequency) 
+void ShimmerReverb::setDiffusion(float32_t diffusion)
 {
-    this->shimmer_frequency_ = constrain(frequency, 0.0f, 1.0f);
-    this->shimmer_phase_increment_ = Constants::M2PI * mapfloat(this->shimmer_frequency_, 0.0f, 1.0f, 20.0f, 20000.0f) / this->getSamplingRate();
+    this->diffusion_ = constrain(diffusion, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getShimmerFrequency() const 
+float32_t ShimmerReverb::getDiffusion() const
 {
-    return this->shimmer_frequency_;
+    return this->diffusion_;
 }
 
-void ShimmerReverb::setShimmerAmplitude(float32_t amplitude) 
+void ShimmerReverb::setLP(float32_t lp)
 {
-    this->shimmer_amplitude_ = constrain(amplitude, 0.0f, 1.0f);
+    this->lp_ = constrain(lp, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getShimmerAmplitude() const 
+float32_t ShimmerReverb::getLP() const
 {
-    return this->shimmer_amplitude_;
-}
-
-void ShimmerReverb::setDecayTime(float32_t decay_time) 
-{
-    this->decay_time_ = constrain(decay_time, 0.0f, 1.0f);
-}
-
-float32_t ShimmerReverb::getDecayTime() const 
-{
-    return this->decay_time_;
+    return this->lp_;
 }

@@ -13,59 +13,48 @@
 //
 
 //
-// fx_shimmer_reverb.h
+// fx_shimmer_reverb3.h
 //
-// Stereo Shimmer reverb proposed in the context of the MiniDexed project
+// Stereo Shimmer Reverb proposed in the context of the MiniDexed project 
+// It is adapted from the Shimmer Reverb that could be found on Cloud EuroRack module from Mutable Instrruments
 //
 #pragma once
 
 #include "fx_components.h"
+#include "fx_engine.hpp"
 
 class ShimmerReverb : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(ShimmerReverb);
 
 public:
-    ShimmerReverb(  float32_t sampling_rate, 
-                    float32_t left_delay_time = 0.5f, 
-                    float32_t right_delay_time = 0.6f, 
-                    float32_t shimmer_frequency = 2.0f,
-                    float32_t shimmer_amplitude = 0.5f,
-                    float32_t decay_time = 2.0f);
+    ShimmerReverb(float32_t sampling_rate);
 
     virtual ~ShimmerReverb();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setLeftDelayTime(float32_t delay_time_L);
-    float32_t getLeftDelayTime() const;
+    void setInputGain(float32_t gain);
+    float32_t getInputGain() const;
 
-    void setRightDelayTime(float32_t delay_time_R);
-    float32_t getRightDelayTime() const;
+    void setTime(float32_t time);
+    float32_t getTime() const;
 
-    void setShimmerFrequency(float32_t frequency);
-    float32_t getShimmerFrequency() const;
+    void setDiffusion(float32_t diffusion);
+    float32_t getDiffusion() const;
 
-    void setShimmerAmplitude(float32_t amplitude);
-    float32_t getShimmerAmplitude() const;
-
-    void setDecayTime(float32_t decay_time);
-    float32_t getDecayTime() const;
+    void setLP(float32_t lp);
+    float32_t getLP() const;
 
 private:
-    const unsigned DelayLineLength;
-    float32_t* delay_line_L_;
-    float32_t* delay_line_R_;
+    typedef FxEngine<16384, FORMAT_16_BIT> Engine;
+    Engine engine_;
 
-    // Current write position for left and right channel delay lines
-    unsigned write_pos_L_;
-    unsigned write_pos_R_;
-    float32_t shimmer_phase_;
-    float32_t shimmer_phase_increment_;
+    float32_t input_gain_;
+    float32_t reverb_time_;
+    float32_t diffusion_;
+    float32_t lp_;
 
-    float32_t delay_time_L_;            // Left channel delay time in seconds
-    float32_t delay_time_R_;            // Right channel delay time in seconds
-    float32_t shimmer_frequency_;       // Shimmer frequency parameter in Hz (0.0 === 20Hz - 1.0 === 20kHz)
-    float32_t shimmer_amplitude_;       // Shimmer amplitude (0.0 - 1.0)
-    float32_t decay_time_;              // Reverb decay time in seconds
+    float32_t lp_decay_1_;
+    float32_t lp_decay_2_;
 };

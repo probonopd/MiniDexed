@@ -54,6 +54,7 @@ public:
     float32_t getFrequency() const;
 
     float32_t process();
+    float32_t current() const;
 
 private:
     const float32_t                             min_frequency_;
@@ -63,7 +64,7 @@ private:
     float32_t                                   frequency_;
     float32_t                                   phase_;
     float32_t                                   phase_increment_;
-    float32_t                                   last_sample_;
+    float32_t                                   current_sample_;
     bool                                        new_phase_;
     std::random_device                          rnd_device_;
     std::mt19937                                rnd_generator_;

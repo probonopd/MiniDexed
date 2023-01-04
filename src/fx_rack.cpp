@@ -15,7 +15,7 @@ FXRack::FXRack(float32_t sampling_rate, bool enable, float32_t wet) :
     this->fxOrbitone_ = new FXUnit<Orbitone>(sampling_rate);
     this->fxPhaser_ = new FXUnit<Phaser>(sampling_rate);
     this->fxTapeDelay_ = new FXUnit<TapeDelay>(sampling_rate);
-    this->fxShimmerReverb_ = new ShimmerReverb2(sampling_rate);
+    this->fxShimmerReverb_ = new FXUnit<ShimmerReverb>(sampling_rate);
 
     this->registerFX(this->fxTube_);
     this->registerFX(this->fxChorus_);
@@ -144,7 +144,7 @@ FXUnit<TapeDelay>* FXRack::getTapeDelay()
     return this->fxTapeDelay_;
 }
 
-ShimmerReverb2* FXRack::getShimmerReverb()
+FXUnit<ShimmerReverb>* FXRack::getShimmerReverb()
 {
     return this->fxShimmerReverb_;
 }

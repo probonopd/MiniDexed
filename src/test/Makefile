@@ -1,8 +1,9 @@
 CXX := gcc
-CXXFLAGS := -g -O2
-DEFINES := 
+# CXXFLAGS := -O2
+CXXFLAGS := -g 
+DEFINES := -DCPU=x86
 INCLUDES := -I../../CMSIS_5/CMSIS/DSP/Include/ -I../../CMSIS_5/CMSIS/Core/Include/
-GCC := $(CXX) $(INCLUDES) $(CXXFLAGS) 
+GCC := $(CXX) $(INCLUDES) $(CXXFLAGS)
 
 LD := gcc
 LIBS := -lm -lstdc++
@@ -10,7 +11,6 @@ LIBS := -lm -lstdc++
 OBJS :=	\
 		wavein.o \
 		waveout.o \
-		waveplay.o \
 		fx.o \
 		fx_components.o \
 		fx_svf.o \
@@ -20,14 +20,14 @@ OBJS :=	\
 		fx_orbitone.o \
 		fx_flanger.o \
 		fx_tape_delay.o \
-		fx_shimmer_reverb2.o \
+		fx_shimmer_reverb.o \
 		fx_rack.o \
 		fxrack_test.o
 
 test: fxrack_test
 	./fxrack_test
 
-# %.o: ../%.cpp 
+# %.o: ../%.cpp
 #  	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
 wavein.o: wavein.cpp
@@ -36,8 +36,8 @@ wavein.o: wavein.cpp
 waveout.o: waveout.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
-waveplay.o: waveplay.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+# waveplay.o: waveplay.cpp
+# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
 fx.o: ../fx.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
@@ -66,7 +66,10 @@ fx_flanger.o: ../fx_flanger.cpp
 fx_tape_delay.o: ../fx_tape_delay.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
-fx_shimmer_reverb2.o: ../fx_shimmer_reverb2.cpp
+../fx_shimmer_reverb3.cpp: ../fx_engine.hpp
+	touch ../fx_shimmer_reverb3.cpp
+
+fx_shimmer_reverb.o: ../fx_shimmer_reverb.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
 fx_rack.o: ../fx_rack.cpp

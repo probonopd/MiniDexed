@@ -208,9 +208,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// FXChain > ShimmerReverb parameters
 	this->SetParameter(ParameterFXChainShimmerReverbEnable, 1);
 	this->SetParameter(ParameterFXChainShimmerReverbWet, 70);
-	this->SetParameter(ParameterFXChainShimmerReverbDecay, 30);
+	this->SetParameter(ParameterFXChainShimmerReverbInputGain, 99);
+	this->SetParameter(ParameterFXChainShimmerReverbTime, 80);
 	this->SetParameter(ParameterFXChainShimmerReverbDiffusion, 80);
-	this->SetParameter(ParameterFXChainShimmerReverbPitchShift, 99);
+	this->SetParameter(ParameterFXChainShimmerReverbLP, 70);
 	#endif
 	// END setup FXRack
 };
@@ -944,10 +945,16 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->fx_rack->getShimmerReverb()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainShimmerReverbDecay: 
+	case ParameterFXChainShimmerReverbInputGain: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setDecay(mapfloat(nValue, 0, 99, SHIMMER_MIN_DECAY, SHIMMER_MAX_DECAY));
+		this->fx_rack->getShimmerReverb()->setInputGain(nValue / 99.0f);
+		this->m_FXSpinLock.Release();
+		break;
+	case ParameterFXChainShimmerReverbTime: 
+		nValue = constrain((int)nValue, 0, 99);
+		this->m_FXSpinLock.Acquire();
+		this->fx_rack->getShimmerReverb()->setTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbDiffusion: 
@@ -956,10 +963,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->fx_rack->getShimmerReverb()->setDiffusion(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainShimmerReverbPitchShift: 
+	case ParameterFXChainShimmerReverbLP: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setPitchShift(mapfloat(nValue, 0, 99, SHIMMER_MIN_PITCH_RATIO, SHIMMER_MAX_PITCH_RATIO));
+		this->fx_rack->getShimmerReverb()->setLP(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	#endif
@@ -1415,9 +1422,10 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainTapeDelayFeedback(this->m_nParameter[ParameterFXChainTapeDelayFeedback]);
 	this->m_PerformanceConfig.SetFXChainShimmerReverbEnable(!!this->m_nParameter[ParameterFXChainShimmerReverbEnable]);
 	this->m_PerformanceConfig.SetFXChainShimmerReverbWet(this->m_nParameter[ParameterFXChainShimmerReverbWet]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbDecay(this->m_nParameter[ParameterFXChainShimmerReverbDecay]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbInputGain(this->m_nParameter[ParameterFXChainShimmerReverbInputGain]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbTime(this->m_nParameter[ParameterFXChainShimmerReverbTime]);
 	this->m_PerformanceConfig.SetFXChainShimmerReverbDiffusion(this->m_nParameter[ParameterFXChainShimmerReverbDiffusion]);
-	this->m_PerformanceConfig.SetFXChainShimmerReverbPitchShift(this->m_nParameter[ParameterFXChainShimmerReverbPitchShift]);
+	this->m_PerformanceConfig.SetFXChainShimmerReverbLP(this->m_nParameter[ParameterFXChainShimmerReverbLP]);
 	#endif
 	// END FXRack parameters
 
@@ -1842,9 +1850,10 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainTapeDelayFeedback, this->m_PerformanceConfig.GetFXChainTapeDelayFeedback());
 		this->SetParameter(ParameterFXChainShimmerReverbEnable, this->m_PerformanceConfig.GetFXChainShimmerReverbEnable());
 		this->SetParameter(ParameterFXChainShimmerReverbWet, this->m_PerformanceConfig.GetFXChainShimmerReverbWet());
-		this->SetParameter(ParameterFXChainShimmerReverbDecay, this->m_PerformanceConfig.GetFXChainShimmerReverbDecay());
+		this->SetParameter(ParameterFXChainShimmerReverbInputGain, this->m_PerformanceConfig.GetFXChainShimmerReverbInputGain());
+		this->SetParameter(ParameterFXChainShimmerReverbTime, this->m_PerformanceConfig.GetFXChainShimmerReverbTime());
 		this->SetParameter(ParameterFXChainShimmerReverbDiffusion, this->m_PerformanceConfig.GetFXChainShimmerReverbDiffusion());
-		this->SetParameter(ParameterFXChainShimmerReverbPitchShift, this->m_PerformanceConfig.GetFXChainShimmerReverbPitchShift());
+		this->SetParameter(ParameterFXChainShimmerReverbLP, this->m_PerformanceConfig.GetFXChainShimmerReverbLP());
 		#endif
 }
 

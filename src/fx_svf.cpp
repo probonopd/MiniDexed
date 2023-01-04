@@ -5,11 +5,14 @@
 StateVariableFilter::StateVariableFilter(float32_t sampling_rate, Type type, float32_t cutoff) :
     FXElement(sampling_rate),
     type_(type),
-    cutoff_(0.0f)
+    cutoff_(0.0f),
+    resonance_(0.0f),
+    peak_gain_(0.0f)
 {
     memset(this->z1_, 0, 2 * sizeof(float32_t));
     memset(this->z2_, 0, 2 * sizeof(float32_t));
 
+    this->setPeakGainDB(1.0f);
     this->setCutoff(cutoff);
     this->setResonance(0.0f);
 }

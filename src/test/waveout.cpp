@@ -28,6 +28,7 @@ void saveWaveFile(const std::string& fileName,
     header.subchunk2Size = size * header.blockAlign;
     header.chunkSize = 36 + header.subchunk2Size;
     header.subchunk1Size = 16;
+    header.audioFormat = 1;
 
     std::strncpy(header.chunkId, "RIFF", 4);
     std::strncpy(header.format, "WAVE", 4);

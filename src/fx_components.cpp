@@ -15,8 +15,12 @@ LFO::LFO(float32_t sampling_rate, Waveform waveform, float32_t min_frequency, fl
     FXBase(sampling_rate),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
+    waveform_(waveform),
+    normalized_frequency_(-1.0f),
+    frequency_(0.0f),
     phase_(0.0f),
-    last_sample_(0.0f),
+    phase_increment_(0.0f),
+    current_sample_(0.0f),
     new_phase_(true),
     rnd_generator_(rnd_device_()),
     rnd_distribution_(-1.0f, 1.0f)
@@ -94,7 +98,7 @@ float32_t LFO::process()
         }
         else
         {
-            out = this->last_sample_;
+            out = this->current_sample_;
         }
         break;
     case Waveform::Noise:
@@ -102,7 +106,7 @@ float32_t LFO::process()
         break;
     }
 
-    this->last_sample_ = out;
+    this->current_sample_ = out;
 
     this->phase_ += this->phase_increment_;
     if(this->phase_ >= Constants::M2PI)
@@ -118,6 +122,12 @@ float32_t LFO::process()
     return out;
 }
 
+float32_t LFO::current() const
+{
+    return this->current_sample_;
+}
+
+
 ////////////////////////////////////
 // JitterGenerator implementation //
 ////////////////////////////////////
@@ -125,6 +135,8 @@ JitterGenerator::JitterGenerator(float32_t sampling_rate) :
     FXBase(sampling_rate),
     rnd_generator_(rnd_device_()),
     rnd_distribution_(-1.0f, 1.0f),
+    speed_(-1.0f),
+    magnitude_(-1.0f),
     phase_(0.0f),
     phase_increment_(0.0f)
 {

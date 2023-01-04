@@ -188,9 +188,10 @@ public:
 		// FXChain > ShimmerReverb parameters
 		ParameterFXChainShimmerReverbEnable,
 		ParameterFXChainShimmerReverbWet,
-		ParameterFXChainShimmerReverbDecay,
+		ParameterFXChainShimmerReverbInputGain,
+		ParameterFXChainShimmerReverbTime,
 		ParameterFXChainShimmerReverbDiffusion,
-		ParameterFXChainShimmerReverbPitchShift,
+		ParameterFXChainShimmerReverbLP,
 		#endif
 		// END FXRack global parameters definition
 

@@ -149,9 +149,10 @@ public:
 	unsigned GetFXChainTapeDelayFeedback(void) const;
 	bool GetFXChainShimmerReverbEnable(void) const;
 	unsigned GetFXChainShimmerReverbWet(void) const;
-	unsigned GetFXChainShimmerReverbDecay(void) const;
+	unsigned GetFXChainShimmerReverbInputGain(void) const;
+	unsigned GetFXChainShimmerReverbTime(void) const;
 	unsigned GetFXChainShimmerReverbDiffusion(void) const;
-	unsigned GetFXChainShimmerReverbPitchShift(void) const;
+	unsigned GetFXChainShimmerReverbLP(void) const;
 
 	void SetFXChainEnable(bool bValue);
 	void SetFXChainWet(unsigned nValue);
@@ -184,9 +185,10 @@ public:
 	void SetFXChainTapeDelayFeedback(unsigned nValue);
 	void SetFXChainShimmerReverbEnable(unsigned nValue);
 	void SetFXChainShimmerReverbWet(unsigned nValue);
-	void SetFXChainShimmerReverbDecay(unsigned nValue);
+	void SetFXChainShimmerReverbInputGain(unsigned nValue);
+	void SetFXChainShimmerReverbTime(unsigned nValue);
 	void SetFXChainShimmerReverbDiffusion(unsigned nValue);
-	void SetFXChainShimmerReverbPitchShift(unsigned nValue);
+	void SetFXChainShimmerReverbLP(unsigned nValue);
 #endif
 
 	bool VoiceDataFilled(unsigned nTG);
@@ -288,9 +290,10 @@ private:
 	unsigned m_nFXChainTapeDelayFeedback;
 	bool m_bFXChainShimmerReverbEnable;
 	unsigned m_nFXChainShimmerReverbWet;
-	unsigned m_nFXChainShimmerReverbDecay;
+	unsigned m_nFXChainShimmerReverbInputGain;
+	unsigned m_nFXChainShimmerReverbTime;
 	unsigned m_nFXChainShimmerReverbDiffusion;
-	unsigned m_nFXChainShimmerReverbPitchShift;
+	unsigned m_nFXChainShimmerReverbLP;
 #endif
 };
 

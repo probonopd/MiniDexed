@@ -29,8 +29,8 @@ void saveWaveFile(const std::string& fileName,
                   int sampleRate,
                   int bitsPerSample);
 
-void playSound(float32_t* LChannel,
-               float32_t* RChannel,
-               unsigned size,
-               int sampleRate,
-               int bitsPerSample);
+// void playSound(float32_t* LChannel,
+//                float32_t* RChannel,
+//                unsigned size,
+//                int sampleRate,
+//                int bitsPerSample);

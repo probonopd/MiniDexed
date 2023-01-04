@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 float32_t** readWaveFile(const std::string& fileName, unsigned& size)
 {
@@ -14,6 +15,10 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
 
     WaveHeader header;
     file.read((char*)&header, sizeof(header));
+
+    std::cout << "Sampling rate: " << header.sampleRate << std::endl;
+    std::cout << "# channels: " << header.numChannels << std::endl;
+    std::cout << "Resolution: " << header.bitsPerSample << " bits" << std::endl;
 
     if(strncmp(header.chunkId, "RIFF", 4) != 0 || strncmp(header.format, "WAVE", 4) != 0)
     {
@@ -32,43 +37,71 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
     float32_t* RChannel = new float32_t[size];
 
     unsigned i = 0;
-    while(!file.eof())
+    while(!file.eof() && i < size)
     {
         if(header.bitsPerSample == 8)
         {
             uint8_t LSample;
-            uint8_t RSample;
             file.read((char*)&LSample, 1);
-            file.read((char*)&RSample, 1);
             LChannel[i] = LSample / 128.0f - 1.0f;
-            RChannel[i] = RSample / 128.0f - 1.0f;
+            if(header.numChannels == 2)
+            {
+                uint8_t RSample;
+                file.read((char*)&RSample, 1);
+                RChannel[i] = RSample / 128.0f - 1.0f;
+            }
+            else
+            {
+                RChannel[i] = LChannel[i];
+            }
         }
         else if (header.bitsPerSample == 16)
         {
             int16_t LSample;
-            int16_t RSample;
             file.read((char*)&LSample, 2);
-            file.read((char*)&RSample, 2);
             LChannel[i] = LSample / 32768.0f;
-            RChannel[i] = RSample / 32768.0f;
+            if(header.numChannels == 2)
+            {
+                int16_t RSample;
+                file.read((char*)&RSample, 2);
+                RChannel[i] = RSample / 32768.0f;
+            }
+            else
+            {
+                RChannel[i] = LChannel[i];
+            }
         }
         else if (header.bitsPerSample == 24)
         {
             int32_t LSample;
-            int32_t RSample;
             file.read((char*)&LSample, 3);
-            file.read((char*)&RSample, 3);
             LChannel[i] = LSample / 8388608.0f;
-            RChannel[i] = RSample / 8388608.0f;
+            if(header.numChannels == 2)
+            {
+                int32_t RSample;
+                file.read((char*)&RSample, 3);
+                RChannel[i] = RSample / 8388608.0f;
+            }
+            else
+            {
+                RChannel[i] = LChannel[i];
+            }
         }
         else if (header.bitsPerSample == 32)
         {
             int32_t LSample;
-            int32_t RSample;
             file.read((char*)&LSample, 4);
-            file.read((char*)&RSample, 4);
             LChannel[i] = LSample / 2147483648.0f;
-            RChannel[i] = RSample / 2147483648.0f;
+            if(header.numChannels == 2)
+            {
+                int32_t RSample;
+                file.read((char*)&RSample, 4);
+                RChannel[i] = RSample / 2147483648.0f;
+            }
+            else
+            {
+                RChannel[i] = LChannel[i];
+            }
         }
         else
         {
@@ -78,6 +111,7 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
 
         ++i;
     }
+    assert(i == size);
 
     float32_t** result = new float32_t*[2];
     result[0] = LChannel;
