@@ -191,9 +191,8 @@ int main()
 
     rack->getChorus()->setEnable(true);
     rack->getChorus()->setWetLevel(0.5f);
-    rack->getChorus()->setRate(0.5f);
+    rack->getChorus()->setRate(0.4f);
     rack->getChorus()->setDepth(0.5f);
-    rack->getChorus()->setFeedback(0.15f);
     
     rack->getPhaser()->setEnable(false);
 

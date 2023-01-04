@@ -156,7 +156,6 @@ public:
 		ParameterFXChainChorusWet,
 		ParameterFXChainChorusRate,
 		ParameterFXChainChorusDepth,
-		ParameterFXChainChorusFeedback,
 		
 		// FXChain > Flanger parameters
 		ParameterFXChainFlangerEnable,

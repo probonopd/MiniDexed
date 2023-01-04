@@ -127,7 +127,6 @@ public:
 	unsigned GetFXChainChorusWet(void) const;
 	unsigned GetFXChainChorusRate(void) const;
 	unsigned GetFXChainChorusDepth(void) const;
-	unsigned GetFXChainChorusFeedback(void) const;
 	bool GetFXChainFlangerEnable(void) const;
 	unsigned GetFXChainFlangerWet(void) const;
 	unsigned GetFXChainFlangerDelayTime(void) const;
@@ -163,7 +162,6 @@ public:
 	void SetFXChainChorusWet(unsigned nValue);
 	void SetFXChainChorusRate(unsigned nValue);
 	void SetFXChainChorusDepth(unsigned nValue);
-	void SetFXChainChorusFeedback(unsigned nValue);
 	void SetFXChainFlangerEnable(bool bValue);
 	void SetFXChainFlangerWet(unsigned nValue);
 	void SetFXChainFlangerDelayTime(unsigned nValue);
@@ -268,7 +266,6 @@ private:
 	unsigned m_nFXChainChorusWet;
 	unsigned m_nFXChainChorusRate;
 	unsigned m_nFXChainChorusDepth;
-	unsigned m_nFXChainChorusFeedback;
 	bool m_bFXChainFlangerEnable;
 	unsigned m_nFXChainFlangerWet;
 	unsigned m_nFXChainFlangerDelayTime;

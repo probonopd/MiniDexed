@@ -170,7 +170,6 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainChorus[] =
 	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
 	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
 	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusFeedback},
 	{0}
 };
 
@@ -322,7 +321,6 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterFXChainChorusWet
 	{0,	99,	1},				// ParameterFXChainChorusRate
 	{0,	99,	1},				// ParameterFXChainChorusDepth
-	{0,	99,	1},				// ParameterFXChainChorusFeedback
 
 	// FXChain > Flanger parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainFlangerEnable

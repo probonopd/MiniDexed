@@ -174,9 +174,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// FXChain > Chorus parameters
 	this->SetParameter(ParameterFXChainChorusEnable, 1);
 	this->SetParameter(ParameterFXChainChorusWet, 50);
-	this->SetParameter(ParameterFXChainChorusRate, 15);
-	this->SetParameter(ParameterFXChainChorusDepth, 10);
-	this->SetParameter(ParameterFXChainChorusFeedback, 20);
+	this->SetParameter(ParameterFXChainChorusRate, 50);
+	this->SetParameter(ParameterFXChainChorusDepth, 50);
 	
 	// FXChain > Flanger parameters
 	this->SetParameter(ParameterFXChainFlangerEnable, 1);
@@ -803,12 +802,6 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->fx_rack->getChorus()->setDepth(nValue / 9.9f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainChorusFeedback: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getChorus()->setFeedback(nValue / 99.0f);
-		this->m_FXSpinLock.Release();
-		break;
 	
 	// FXChain > Flanger parameters
 	case ParameterFXChainFlangerEnable: 
@@ -1400,7 +1393,6 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainChorusWet(this->m_nParameter[ParameterFXChainChorusWet]);
 	this->m_PerformanceConfig.SetFXChainChorusRate(this->m_nParameter[ParameterFXChainChorusRate]);
 	this->m_PerformanceConfig.SetFXChainChorusDepth(this->m_nParameter[ParameterFXChainChorusDepth]);
-	this->m_PerformanceConfig.SetFXChainChorusFeedback(this->m_nParameter[ParameterFXChainChorusFeedback]);
 	this->m_PerformanceConfig.SetFXChainFlangerEnable(!!this->m_nParameter[ParameterFXChainFlangerEnable]);
 	this->m_PerformanceConfig.SetFXChainFlangerWet(this->m_nParameter[ParameterFXChainFlangerWet]);
 	this->m_PerformanceConfig.SetFXChainFlangerDelayTime(this->m_nParameter[ParameterFXChainFlangerDelayTime]);
@@ -1828,7 +1820,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainChorusWet, this->m_PerformanceConfig.GetFXChainChorusWet());
 		this->SetParameter(ParameterFXChainChorusRate, this->m_PerformanceConfig.GetFXChainChorusRate());
 		this->SetParameter(ParameterFXChainChorusDepth, this->m_PerformanceConfig.GetFXChainChorusDepth());
-		this->SetParameter(ParameterFXChainChorusFeedback, this->m_PerformanceConfig.GetFXChainChorusFeedback());
 		this->SetParameter(ParameterFXChainFlangerEnable, this->m_PerformanceConfig.GetFXChainFlangerEnable());
 		this->SetParameter(ParameterFXChainFlangerWet, this->m_PerformanceConfig.GetFXChainFlangerWet());
 		this->SetParameter(ParameterFXChainFlangerDelayTime, this->m_PerformanceConfig.GetFXChainFlangerDelayTime());

@@ -167,9 +167,8 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXChainTubeOverdrive = this->m_Properties.GetNumber("FXChainTubeOverdrive", 10);
 	this->m_bFXChainChorusEnable = this->m_Properties.GetNumber("FXChainChorusEnable", 1);
 	this->m_nFXChainChorusWet = this->m_Properties.GetNumber("FXChainChorusWet", 50);
-	this->m_nFXChainChorusRate = this->m_Properties.GetNumber("FXChainChorusRate", 15);
-	this->m_nFXChainChorusDepth = this->m_Properties.GetNumber("FXChainChorusDepth", 10);
-	this->m_nFXChainChorusFeedback = this->m_Properties.GetNumber("FXChainChorusFeedback", 20);
+	this->m_nFXChainChorusRate = this->m_Properties.GetNumber("FXChainChorusRate", 50);
+	this->m_nFXChainChorusDepth = this->m_Properties.GetNumber("FXChainChorusDepth", 50);
 	this->m_bFXChainFlangerEnable = this->m_Properties.GetNumber("FXChainFlangerEnable", 1);
 	this->m_nFXChainFlangerWet = this->m_Properties.GetNumber("FXChainFlangerWet", 		50);
 	this->m_nFXChainFlangerDelayTime = this->m_Properties.GetNumber("FXChainFlangerDelayTime", 10);
@@ -325,7 +324,6 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXChainChorusWet", m_nFXChainChorusWet);
 	this->m_Properties.SetNumber("FXChainChorusRate", m_nFXChainChorusRate);
 	this->m_Properties.SetNumber("FXChainChorusDepth", m_nFXChainChorusDepth);
-	this->m_Properties.SetNumber("FXChainChorusFeedback", m_nFXChainChorusFeedback);
 	this->m_Properties.SetNumber("FXChainFlangerEnable", m_bFXChainFlangerEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainFlangerWet", m_nFXChainFlangerWet);
 	this->m_Properties.SetNumber("FXChainFlangerDelayTime", m_nFXChainFlangerDelayTime);
@@ -1046,11 +1044,6 @@ unsigned CPerformanceConfig::GetFXChainChorusDepth(void) const
 	return this->m_nFXChainChorusDepth;
 }
 
-unsigned CPerformanceConfig::GetFXChainChorusFeedback(void) const
-{
-	return this->m_nFXChainChorusFeedback;
-}
-
 bool CPerformanceConfig::GetFXChainFlangerEnable(void) const
 {
 	return this->m_bFXChainFlangerEnable;
@@ -1219,11 +1212,6 @@ void CPerformanceConfig::SetFXChainChorusRate(unsigned nValue)
 void CPerformanceConfig::SetFXChainChorusDepth(unsigned nValue)
 {
 	this->m_nFXChainChorusDepth = nValue;
-}
-
-void CPerformanceConfig::SetFXChainChorusFeedback(unsigned nValue)
-{
-	this->m_nFXChainChorusFeedback = nValue;
 }
 
 void CPerformanceConfig::SetFXChainFlangerEnable(bool bValue)

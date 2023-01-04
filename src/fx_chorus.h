@@ -46,9 +46,6 @@ public:
     void setRate(float32_t rate);
     float32_t getRate() const;
 
-    void setFeedback(float32_t feedback);
-    float32_t getFeedback() const;
-
 private:
     typedef FxEngine<2048, FORMAT_16_BIT, false> Engine;
     Engine engine_;

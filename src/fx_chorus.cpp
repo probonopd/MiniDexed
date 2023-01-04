@@ -24,7 +24,6 @@ Chorus::Chorus(float32_t sampling_rate) :
 
     this->setRate(0.1f);
     this->setDepth(0.15f);
-    this->setFeedback(0.15f);
 }
 
 Chorus::~Chorus()
@@ -90,14 +89,4 @@ void Chorus::setDepth(float32_t depth)
 float32_t Chorus::getDepth() const
 {
     return this->depth_;
-}
-
-void Chorus::setFeedback(float32_t feedback)
-{
-    this->feedback_ = constrain(feedback, 0.0f, 1.0f);
-}
-
-float32_t Chorus::getFeedback() const
-{
-    return this->feedback_;
 }
