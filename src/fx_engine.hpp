@@ -69,12 +69,12 @@ class FxEngine : public FXBase
 public:
     typedef typename DataType<format>::T T;
 
-    FxEngine(float32_t sampling_rate) :
+    FxEngine(float32_t sampling_rate, float32_t max_lfo_frequency = 1.0f) :
         FXBase(sampling_rate)
     {
         this->buffer_ = new uint16_t[size];
-        this->lfo_[LFO_1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, 32.0f);
-        this->lfo_[LFO_2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, 32.0f);
+        this->lfo_[LFO_1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo_frequency);
+        this->lfo_[LFO_2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo_frequency);
         this->clear();
     }
 

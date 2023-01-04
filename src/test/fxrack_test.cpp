@@ -190,6 +190,11 @@ int main()
     rack->getTube()->setOverdrive(1.0f);
 
     rack->getChorus()->setEnable(false);
+    rack->getChorus()->setWetLevel(0.5f);
+    rack->getChorus()->setRate(0.2f);
+    rack->getChorus()->setDepth(0.15f);
+    rack->getChorus()->setFeedback(0.15f);
+    
     rack->getPhaser()->setEnable(false);
 
     rack->getOrbitone()->setEnable(false);
