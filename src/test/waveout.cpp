@@ -82,4 +82,6 @@ void saveWaveFile(const std::string& fileName,
         std::cerr << "Error: unsupported bit depth: " << bitsPerSample << std::endl;
         return;
     }
+
+    file.close();
 }

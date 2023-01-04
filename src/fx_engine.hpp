@@ -99,13 +99,13 @@ public:
     {
     };
 
-    template <int32_t l, typename T = Empty>
+    template <int32_t _length, typename T = Empty>
     struct Reserve
     {
         typedef T Tail;
         enum
         {
-            length = l
+            length = _length
         };
     };
 

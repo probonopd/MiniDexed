@@ -35,5 +35,5 @@ public:
 
 private:
     float32_t overdrive_;
-    float32_t threshold_;
+    float32_t saturation_;
 };

@@ -8,7 +8,10 @@
 
 ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
     FXElement(sampling_rate),
-    engine_(sampling_rate)
+    engine_(sampling_rate),
+    input_gain_(-1.0f),
+    diffusion_(-1.0f),
+    lp_(-1.0f)
 {
     this->engine_.setLFOFrequency(LFO_1, 0.5f);
     this->engine_.setLFOFrequency(LFO_2, 0.3f);

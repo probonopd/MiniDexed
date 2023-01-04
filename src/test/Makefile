@@ -51,11 +51,17 @@ fx_svf.o: ../fx_svf.cpp
 fx_tube.o: ../fx_tube.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
+../fx_chorus.cpp: ../fx_engine.hpp
+	touch ../fx_chorus.cpp
+
 fx_chorus.o: ../fx_chorus.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
 fx_phaser.o: ../fx_phaser.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+
+../fx_orbitone.cpp: ../fx_engine.hpp
+	touch ../fx_orbitone.cpp
 
 fx_orbitone.o: ../fx_orbitone.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
@@ -66,8 +72,8 @@ fx_flanger.o: ../fx_flanger.cpp
 fx_delay.o: ../fx_delay.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
-../fx_shimmer_reverb3.cpp: ../fx_engine.hpp
-	touch ../fx_shimmer_reverb3.cpp
+../fx_shimmer_reverb.cpp: ../fx_engine.hpp
+	touch ../fx_shimmer_reverb.cpp
 
 fx_shimmer_reverb.o: ../fx_shimmer_reverb.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@

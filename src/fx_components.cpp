@@ -189,7 +189,7 @@ float32_t JitterGenerator::process()
 //////////////////////////////////
 // softSaturate implemlentation //
 //////////////////////////////////
-float32_t softSaturate(float32_t in, float32_t threshold)
+float32_t softSaturator1(float32_t in, float32_t threshold)
 {
     float32_t x = std::abs(in);
     float32_t y = 0.0f;
@@ -210,4 +210,57 @@ float32_t softSaturate(float32_t in, float32_t threshold)
     y *= g;
     
     return (in < 0.0f) ? -y : y;
+}
+
+float32_t softSaturator2(float32_t input, float32_t saturation)
+{
+    constexpr static float kTubeCurve = 4.0f;
+    constexpr static float kTubeBias  = 0.5f;
+
+    float absInput = std::abs(input);
+    float output = 0.0f;
+    if(absInput > kTubeBias)
+    {
+        output = (kTubeCurve + saturation) * (absInput - kTubeBias) / (1.0f - kTubeBias);
+    }
+    else
+    {
+        output = (kTubeCurve + saturation) * absInput / (1.0f + kTubeCurve * absInput);
+    }
+
+    // Clip the output if overdrive is set to 1
+    // output = std::min(1.0f, output);
+    if(output > 1.0f)
+    {
+        output = 1.0f;
+    }
+    else
+    {
+        output -= output * output * output / 3.0f;
+    }
+
+    if(input < 0.0f)
+    {
+        output = -output;
+    }
+
+    return output;
+}
+
+float32_t waveFolder(float32_t input, float32_t bias)
+{
+    bias = 0.5 + (2.0f - bias) / 4.0f;
+    float32_t output = std::abs(input) / bias;
+
+    if(output > 1.0f)
+    {
+        output = 2.0f - output;
+    }
+
+    if(input < 0.0f)
+    {
+        output = -output;
+    }
+
+    return output;
 }

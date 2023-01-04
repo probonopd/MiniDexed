@@ -257,4 +257,7 @@ private:
     float32_t phase_increment_;
 };
 
-float32_t softSaturate(float32_t in, float32_t threshold);
+float32_t softSaturator1(float32_t in, float32_t threshold);
+float32_t softSaturator2(float32_t in, float32_t saturation);
+
+float32_t waveFolder(float32_t input, float32_t bias);

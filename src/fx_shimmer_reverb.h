@@ -47,7 +47,7 @@ public:
     float32_t getLP() const;
 
 private:
-    typedef FxEngine<16384, FORMAT_16_BIT> Engine;
+    typedef FxEngine<16384, FORMAT_16_BIT, true> Engine;
     Engine engine_;
 
     float32_t input_gain_;

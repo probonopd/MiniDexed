@@ -119,7 +119,20 @@ void testSVF(unsigned& step)
     }
 }
 
-void testFXRack(unsigned& step)
+enum FXSitch
+{
+    Tube        = 1 << 0,
+    Chorus      = 1 << 1,
+    Phaser      = 1 << 2,
+    Orbitone    = 1 << 3,
+    Flanger     = 1 << 4,
+    Delay       = 1 << 5,
+    Shimmer     = 1 << 6
+};
+
+#define Active(fxSwitch, FxID) (fxSwitch & FxID) == FxID
+
+void testFXRack(unsigned& step, unsigned fxSwitch)
 {
     cout << "Step #" << (++step) << ": Intanciation FXRack" << endl;
     FXRack *rack = new FXRack(44100.0f);
@@ -128,58 +141,41 @@ void testFXRack(unsigned& step)
     rack->setEnable(true);
     rack->setWetLevel(1.0f);
 
-    rack->getTube()->setEnable(false);
+    rack->getTube()->setEnable(Active(fxSwitch, FXSitch::Tube));
     rack->getTube()->setWetLevel(1.0f);
     rack->getTube()->setOverdrive(1.0f);
 
-    rack->getChorus()->setEnable(false);
+    rack->getChorus()->setEnable(Active(fxSwitch, FXSitch::Chorus));
     rack->getChorus()->setWetLevel(0.5f);
     rack->getChorus()->setRate(0.4f);
     rack->getChorus()->setDepth(0.5f);
     
-    rack->getPhaser()->setEnable(false);
+    rack->getPhaser()->setEnable(Active(fxSwitch, FXSitch::Phaser));
 
-    rack->getOrbitone()->setEnable(true);
+    rack->getOrbitone()->setEnable(Active(fxSwitch, FXSitch::Orbitone));
     rack->getOrbitone()->setWetLevel(0.8f);
     rack->getOrbitone()->setRate(0.4f);
     rack->getOrbitone()->setDepth(0.5f);
 
-    rack->getFlanger()->setEnable(false);
+    rack->getFlanger()->setEnable(Active(fxSwitch, FXSitch::Flanger));
+    rack->getFlanger()->setWetLevel(0.5f);
+    rack->getFlanger()->setDelayTime(0.8f);
+    rack->getFlanger()->setFrequency(0.25f);
+    rack->getFlanger()->setDepth(0.8f);
+    rack->getFlanger()->setFeedback(0.75f);
 
-    rack->getDelay()->setEnable(false);
+    rack->getDelay()->setEnable(Active(fxSwitch, FXSitch::Delay));
     rack->getDelay()->setWetLevel(0.6f);
     rack->getDelay()->setLeftDelayTime(0.075f);
     rack->getDelay()->setLeftDelayTime(0.05f);
     rack->getDelay()->setFeedbak(0.5f);
 
-    rack->getShimmerReverb()->setEnable(false);
+    rack->getShimmerReverb()->setEnable(Active(fxSwitch, FXSitch::Shimmer));
     rack->getShimmerReverb()->setWetLevel(0.7f);
     rack->getShimmerReverb()->setInputGain(0.45f);
     rack->getShimmerReverb()->setTime(0.89f);
     rack->getShimmerReverb()->setDiffusion(0.75f);
     rack->getShimmerReverb()->setLP(0.8f);
-
-    const unsigned nSamples = 1;
-    float32_t inSamples[2][nSamples];
-    float32_t outSamples[2][nSamples];
-
-    for (unsigned i = 0; i < nSamples; ++i)
-    {
-        inSamples[0][i] = dist(gen);
-        inSamples[1][i] = dist(gen);
-    }
-
-    memset(outSamples[0], 0, nSamples * sizeof(float32_t));
-    memset(outSamples[1], 0, nSamples * sizeof(float32_t));
-
-    cout << "Step #" << (++step) << ": Run test" << endl;
-    rack->process(inSamples[0], inSamples[1], outSamples[0], outSamples[1], nSamples);
-
-    cout << "Step #" << (++step) << ": Render results" << endl;
-    for (unsigned i = 0; i < nSamples; ++i)
-    {
-        std::cout << "#" << i << " " << inSamples[0][i] << "   --> " << outSamples[0][i] << " = " << ((outSamples[0][i] - inSamples[0][i]) * 100.0f / inSamples[0][i]) << "%" << std::endl;
-    }
 
     unsigned nbRepeats = 4;
 
@@ -195,7 +191,7 @@ void testFXRack(unsigned& step)
         rack->process(samples[0], samples[1], sampleOutL + i * size, sampleOutR + i * size, size);
     }
 
-    saveWaveFile("result.wav", sampleOutL, sampleOutR, nbRepeats * size, 44100, 16);
+    saveWaveFile("result.wav", sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(FS), 16);
 
     delete[] sampleOutL;
     delete[] sampleOutR;
@@ -211,10 +207,16 @@ int main()
 {
     unsigned step = 0;
 
-    testLFO(step);
+    // testLFO(step);
     // testFlutter(step);
     // testSVF(step);
-    // testFXRack(step);
+    testFXRack(step, FXSitch::Tube);
+    // testFXRack(step, FXSitch::Flanger);      // to be fixed -> feedback deletes FX effect
+    // testFXRack(step, FXSitch::Phaser);       // to be fixed -> far too load but saturation is interested
+    // testFXRack(step, FXSitch::Chorus);
+    // testFXRack(step, FXSitch::Orbitone);
+    // testFXRack(step, FXSitch::Delay);
+    // testFXRack(step, FXSitch::Shimmer);
 
     return 0;
 }
