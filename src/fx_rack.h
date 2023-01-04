@@ -25,7 +25,7 @@
 #include "fx_flanger.h"
 #include "fx_orbitone.h"
 #include "fx_phaser.h"
-#include "fx_tape_delay.h"
+#include "fx_delay.h"
 #include "fx_shimmer_reverb.h"
 
 #include <vector>
@@ -54,7 +54,7 @@ public:
     FXUnit<Flanger>* getFlanger();
     FXUnit<Orbitone>* getOrbitone();
     FXUnit<Phaser>* getPhaser();
-    FXUnit<TapeDelay>* getTapeDelay();
+    FXUnit<Delay>* getDelay();
     FXUnit<ShimmerReverb>* getShimmerReverb();
 
 private:
@@ -69,6 +69,6 @@ private:
     FXUnit<Flanger>* fxFlanger_;
     FXUnit<Orbitone>* fxOrbitone_;
     FXUnit<Phaser>* fxPhaser_;
-    FXUnit<TapeDelay>* fxTapeDelay_;
+    FXUnit<Delay>* fxDelay_;
     FXUnit<ShimmerReverb>* fxShimmerReverb_;
 };

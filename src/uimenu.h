@@ -149,7 +149,7 @@ private:
 	static const TMenuItem s_FXChainFlanger[];
 	static const TMenuItem s_FXChainOrbitone[];
 	static const TMenuItem s_FXChainPhaser[];
-	static const TMenuItem s_FXChainTapeDelay[];
+	static const TMenuItem s_FXChainDelay[];
 	static const TMenuItem s_FXChainShimmerReverb[];
 #endif
 	static const TMenuItem s_EditVoiceMenu[];

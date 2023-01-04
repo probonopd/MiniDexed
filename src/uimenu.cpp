@@ -151,7 +151,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] =
 	{"FlangR", 	MenuHandler, s_FXChainFlanger},
 	{"Orb", 	MenuHandler, s_FXChainOrbitone},
 	{"PhasR", 	MenuHandler, s_FXChainPhaser},
-	{"Delay", 	MenuHandler, s_FXChainTapeDelay},
+	{"Delay", 	MenuHandler, s_FXChainDelay},
 	{"Shimmer", MenuHandler, s_FXChainShimmerReverb},
 	{0}
 };
@@ -202,14 +202,13 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainTapeDelay[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXChainDelay[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTapeDelayEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayWet},
-	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayLeftDelayTime},
-	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayRightDelayTime},
-	{"Flutter",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFlutter},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTapeDelayFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainDelayEnable},
+	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayWet},
+	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayLeftDelayTime},
+	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayRightDelayTime},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayFeedback},
 	{0}
 };
 
@@ -343,13 +342,12 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterFXChainPhaserRate
 	{0,	99,	1},				// ParameterFXChainPhaserResonance
 
-	// FXChain > TapeDelay parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainTapeDelayEnable
-	{0,	99,	1},				// ParameterFXChainTapeDelayWet
-	{0,	99,	1},				// ParameterFXChainTapeDelayLeftDelayTime
-	{0,	99,	1},				// ParameterFXChainTapeDelayRightDelayTime
-	{0,	99,	1},				// ParameterFXChainTapeDelayFlutter
-	{0,	99,	1},				// ParameterFXChainTapeDelayFeedback
+	// FXChain > Delay parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChainDelayEnable
+	{0,	99,	1},				// ParameterFXChainDelayWet
+	{0,	99,	1},				// ParameterFXChainDelayLeftDelayTime
+	{0,	99,	1},				// ParameterFXChainDelayRightDelayTime
+	{0,	99,	1},				// ParameterFXChainDelayFeedback
 
 	// FXChain > ShimmerReverb parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainShimmerReverbEnable

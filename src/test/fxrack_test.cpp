@@ -1,103 +1,56 @@
 #include "../fx_rack.h"
 
+#include <iomanip>
 #include <iostream>
+#include <fstream>
+#include <locale>
 #include <ctime>
 #include <random>
 #include "wave.h"
 
 using namespace std;
 
+#define FS 44100.0f
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
-enum CosineOscillatorMode
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
+
+void testLFO(unsigned& step)
 {
-    COSINE_OSCILLATOR_APPROXIMATE,
-    COSINE_OSCILLATOR_EXACT
-};
+    cout << "Step #" << (++step) << ": Testing LFO" << endl;
 
-class CosineOscillator
-{
-public:
-    CosineOscillator() {}
-    ~CosineOscillator() {}
+    const float32_t freq = 10.0f;
 
-    template <CosineOscillatorMode mode>
-    inline void Init(float frequency)
+    LFO lfo(FS, LFO::Waveform::Sine, 0.0f, freq);
+    unsigned size = static_cast<unsigned>(8.0f * FS / freq);
+    float32_t rate = 0.0f;
+    float32_t rate_increment = freq / 2.0f / FS;
+
+    // float32_t* output = new float32_t[size];
+    ofstream out("result.csv");
+
+    struct comma_separator : std::numpunct<char>
     {
-        if (mode == COSINE_OSCILLATOR_APPROXIMATE)
+        virtual char do_decimal_point() const override { return ','; }
+    };
+
+    out.imbue(std::locale(out.getloc(), new comma_separator));
+    out << fixed << showpoint;
+
+    out << "index;LFO" << endl;
+    for(unsigned i = 0; i < size; ++i)
+    {
+        lfo.setNormalizedFrequency(rate);
+        out << i << ";" << lfo.process() << endl;
+        rate += rate_increment;
+
+        if(rate >= 1.0f || rate <= 0.0f)
         {
-            InitApproximate(frequency);
+            rate_increment *= -1.0f;
         }
-        else
-        {
-            iir_coefficient_ = 2.0f * cosf(2.0f * M_PI * frequency);
-            initial_amplitude_ = iir_coefficient_ * 0.25f;
-        }
-        Start();
-    }
-
-    inline void InitApproximate(float frequency)
-    {
-        float sign = 16.0f;
-        frequency -= 0.25f;
-        if (frequency < 0.0f)
-        {
-            frequency = -frequency;
-        }
-        else
-        {
-            if (frequency > 0.5f)
-            {
-                frequency -= 0.5f;
-            }
-            else
-            {
-                sign = -16.0f;
-            }
-        }
-        iir_coefficient_ = sign * frequency * (1.0f - 2.0f * frequency);
-        initial_amplitude_ = iir_coefficient_ * 0.25f;
-    }
-
-    inline void Start()
-    {
-        y1_ = initial_amplitude_;
-        y0_ = 0.5f;
-    }
-
-    inline float value() const
-    {
-        return y1_ + 0.5f;
-    }
-
-    inline float Next()
-    {
-        float temp = y0_;
-        y0_ = iir_coefficient_ * y0_ - y1_;
-        y1_ = temp;
-        return temp + 0.5f;
-    }
-
-private:
-    float y1_;
-    float y0_;
-    float iir_coefficient_;
-    float initial_amplitude_;
-
-    DISALLOW_COPY_AND_ASSIGN(CosineOscillator);
-};
-
-void testCosineOsc(unsigned& step)
-{
-    cout << "Step #" << (++step) << ": Testing CosineOscillator" << endl;
-
-    CosineOscillator osc;
-    osc.template Init<CosineOscillatorMode::COSINE_OSCILLATOR_APPROXIMATE>(32.0f * 0.5f / 32000.0f);
-
-    for(unsigned i = 0; i < 2000; ++i)
-    {
-        cout << "LFO #" << i << ": " << osc.Next() << endl;
     }
 }
 
@@ -105,7 +58,7 @@ void testFlutter(unsigned& step)
 {
     cout << "Step #" << (++step) << ": Testing JitterGenerator" << endl;
 
-    JitterGenerator jg(44100.0f);
+    JitterGenerator jg(FS);
     jg.setSpeed(1.0f);
     jg.setMagnitude(0.1f);
 
@@ -115,11 +68,11 @@ void testFlutter(unsigned& step)
     }
 }
 
-void testSVF(unsigned& step, std::mt19937& gen, std::uniform_real_distribution<float32_t> dist)
+void testSVF(unsigned& step)
 {
     float32_t inL, inR;
     float32_t outL, outR;
-    StateVariableFilter svf(44100.0f, StateVariableFilter::Type::LPF, 12000.0f);
+    StateVariableFilter svf(FS, StateVariableFilter::Type::LPF, 12000.0f);
 
     cout << "Step #" << (++step) << ": Testing SVF in LPF mode" << endl;
     {
@@ -166,18 +119,8 @@ void testSVF(unsigned& step, std::mt19937& gen, std::uniform_real_distribution<f
     }
 }
 
-int main()
+void testFXRack(unsigned& step)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
-
-    unsigned step = 0;
-
-    // testCosineOsc(step);
-    // testFlutter(step, gen, dist);
-    // testSVF(step);
-
     cout << "Step #" << (++step) << ": Intanciation FXRack" << endl;
     FXRack *rack = new FXRack(44100.0f);
 
@@ -203,12 +146,11 @@ int main()
 
     rack->getFlanger()->setEnable(false);
 
-    rack->getTapeDelay()->setEnable(false);
-    rack->getTapeDelay()->setWetLevel(0.6f);
-    rack->getTapeDelay()->setLeftDelayTime(0.075f);
-    rack->getTapeDelay()->setLeftDelayTime(0.05f);
-    rack->getTapeDelay()->setFlutterLevel(0.0f);
-    rack->getTapeDelay()->setFeedbak(0.5f);
+    rack->getDelay()->setEnable(false);
+    rack->getDelay()->setWetLevel(0.6f);
+    rack->getDelay()->setLeftDelayTime(0.075f);
+    rack->getDelay()->setLeftDelayTime(0.05f);
+    rack->getDelay()->setFeedbak(0.5f);
 
     rack->getShimmerReverb()->setEnable(false);
     rack->getShimmerReverb()->setWetLevel(0.7f);
@@ -263,6 +205,16 @@ int main()
 
     cout << "Step #" << (++step) << ": Test cleanup" << endl;
     delete rack;
+}
+
+int main()
+{
+    unsigned step = 0;
+
+    testLFO(step);
+    // testFlutter(step);
+    // testSVF(step);
+    // testFXRack(step);
 
     return 0;
 }

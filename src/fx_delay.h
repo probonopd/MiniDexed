@@ -15,7 +15,7 @@
 //
 // fx_tape_delay.h
 //
-// Stereo Tape Delay proposed in the context of the MiniDexed project
+// Stereo Delay proposed in the context of the MiniDexed project
 //
 #pragma once
 
@@ -24,9 +24,9 @@
 
 #include <random>
 
-class TapeDelay : public FXElement
+class Delay : public FXElement
 {
-    DISALLOW_COPY_AND_ASSIGN(TapeDelay);
+    DISALLOW_COPY_AND_ASSIGN(Delay);
 
     class LowHighPassFilter : public FXElement
     {
@@ -47,8 +47,8 @@ class TapeDelay : public FXElement
 
 
 public:
-    TapeDelay(const float32_t sampling_rate, float32_t default_delay_time = 0.25f, float32_t default_flutter_level = 1.0f, float32_t default_wet_level = 0.5f);
-    virtual ~TapeDelay();
+    Delay(const float32_t sampling_rate, float32_t default_delay_time = 0.25f, float32_t default_flutter_level = 1.0f, float32_t default_wet_level = 0.5f);
+    virtual ~Delay();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
@@ -58,14 +58,8 @@ public:
     void setRightDelayTime(float32_t delay_time);
     float32_t getRightDelayTime() const;
 
-    void setFlutterLevel(float32_t flutter_level);
-    float32_t getFlutterLevel() const;
-
     void setFeedbak(float32_t feedback);
     float32_t getFeedbackLevel() const;
-
-private:
-    inline float32_t getFlutteredDelayTime();
 
 private:
     const size_t MaxSampleDelayTime;
@@ -75,9 +69,7 @@ private:
     float32_t* buffer_R_;
     float32_t delay_time_L_;        // Left delay time in seconds (0.0 - 2.0)
     float32_t delay_time_R_;        // Right delay time in seconds (0.0 - 2.0)
-    float32_t flutter_level_;       // Flutter level (0.0 - 0.1)
     float32_t feedback_;            // Feedback (0.0 - 1.0)
 
     LowHighPassFilter filter_;
-    JitterGenerator jitter_generator_;
 };

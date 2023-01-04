@@ -177,13 +177,12 @@ public:
 		ParameterFXChainPhaserRate,
 		ParameterFXChainPhaserResonance,
 
-		// FXChain > TapeDelay parameters
-		ParameterFXChainTapeDelayEnable,
-		ParameterFXChainTapeDelayWet,
-		ParameterFXChainTapeDelayLeftDelayTime,
-		ParameterFXChainTapeDelayRightDelayTime,
-		ParameterFXChainTapeDelayFlutter,
-		ParameterFXChainTapeDelayFeedback,
+		// FXChain > Delay parameters
+		ParameterFXChainDelayEnable,
+		ParameterFXChainDelayWet,
+		ParameterFXChainDelayLeftDelayTime,
+		ParameterFXChainDelayRightDelayTime,
+		ParameterFXChainDelayFeedback,
 
 		// FXChain > ShimmerReverb parameters
 		ParameterFXChainShimmerReverbEnable,

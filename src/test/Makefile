@@ -19,7 +19,7 @@ OBJS :=	\
 		fx_phaser.o \
 		fx_orbitone.o \
 		fx_flanger.o \
-		fx_tape_delay.o \
+		fx_delay.o \
 		fx_shimmer_reverb.o \
 		fx_rack.o \
 		fxrack_test.o
@@ -63,7 +63,7 @@ fx_orbitone.o: ../fx_orbitone.cpp
 fx_flanger.o: ../fx_flanger.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
-fx_tape_delay.o: ../fx_tape_delay.cpp
+fx_delay.o: ../fx_delay.cpp
 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
 ../fx_shimmer_reverb3.cpp: ../fx_engine.hpp
