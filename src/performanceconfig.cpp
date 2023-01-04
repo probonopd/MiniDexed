@@ -176,8 +176,9 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXChainFlangerDepth = this->m_Properties.GetNumber("FXChainFlangerDepth", 10);
 	this->m_nFXChainFlangerFeedback = this->m_Properties.GetNumber("FXChainFlangerFeedback", 20);
 	this->m_bFXChainOrbitoneEnable = this->m_Properties.GetNumber("FXChainOrbitoneEnable", 1);
-	this->m_nFXChainOrbitoneWet = this->m_Properties.GetNumber("FXChainOrbitoneWet", 50);
-	this->m_nFXChainOrbitoneFeedback = this->m_Properties.GetNumber("FXChainOrbitoneFeedback", 65);
+	this->m_nFXChainOrbitoneWet = this->m_Properties.GetNumber("FXChainOrbitoneWet", 80);
+	this->m_nFXChainOrbitoneRate = this->m_Properties.GetNumber("FXChainOrbitoneRate", 40);
+	this->m_nFXChainOrbitoneDepth = this->m_Properties.GetNumber("FXChainOrbitoneDepth", 50);
 	this->m_bFXChainPhaserEnable = this->m_Properties.GetNumber("FXChainPhaserEnable", 1);
 	this->m_nFXChainPhaserWet = this->m_Properties.GetNumber("FXChainPhaserWet", 50);
 	this->m_nFXChainPhaserRate = this->m_Properties.GetNumber("FXChainPhaserRate", 5);
@@ -332,8 +333,9 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXChainFlangerFeedback", m_nFXChainFlangerFeedback);
 	this->m_Properties.SetNumber("FXChainOrbitoneEnable", m_bFXChainOrbitoneEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainOrbitoneWet", m_nFXChainOrbitoneWet);
-	this->m_Properties.SetNumber("FXChainOrbitoneFeedback", m_nFXChainOrbitoneFeedback ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainPhaserEnable", m_bFXChainPhaserEnable);
+	this->m_Properties.SetNumber("FXChainOrbitoneRate", m_nFXChainOrbitoneRate);
+	this->m_Properties.SetNumber("FXChainOrbitoneDepth", m_nFXChainOrbitoneDepth);
+	this->m_Properties.SetNumber("FXChainPhaserEnable", m_bFXChainPhaserEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainPhaserWet", m_nFXChainPhaserWet);
 	this->m_Properties.SetNumber("FXChainPhaserRate", m_nFXChainPhaserRate);
 	this->m_Properties.SetNumber("FXChainPhaserResonance", m_nFXChainPhaserResonance);
@@ -1084,9 +1086,14 @@ unsigned CPerformanceConfig::GetFXChainOrbitoneWet(void) const
 	return this->m_nFXChainOrbitoneWet;
 }
 
-unsigned CPerformanceConfig::GetFXChainOrbitoneFeedback(void) const
+unsigned CPerformanceConfig::GetFXChainOrbitoneRate(void) const
 {
-	return this->m_nFXChainOrbitoneFeedback;
+	return this->m_nFXChainOrbitoneRate;
+}
+
+unsigned CPerformanceConfig::GetFXChainOrbitoneDepth(void) const
+{
+	return this->m_nFXChainOrbitoneDepth;
 }
 
 bool CPerformanceConfig::GetFXChainPhaserEnable(void) const
@@ -1254,9 +1261,14 @@ void CPerformanceConfig::SetFXChainOrbitoneWet(unsigned nValue)
 	this->m_nFXChainOrbitoneWet = nValue;
 }
 
-void CPerformanceConfig::SetFXChainOrbitoneFeedback(unsigned nValue)
+void CPerformanceConfig::SetFXChainOrbitoneRate(unsigned nValue)
 {
-	this->m_nFXChainOrbitoneFeedback = nValue;
+	this->m_nFXChainOrbitoneRate = nValue;
+}
+
+void CPerformanceConfig::SetFXChainOrbitoneDepth(unsigned nValue)
+{
+	this->m_nFXChainOrbitoneDepth = nValue;
 }
 
 void CPerformanceConfig::SetFXChainPhaserEnable(bool bValue)

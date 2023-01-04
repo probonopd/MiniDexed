@@ -189,16 +189,17 @@ int main()
     rack->getTube()->setWetLevel(1.0f);
     rack->getTube()->setOverdrive(1.0f);
 
-    rack->getChorus()->setEnable(true);
+    rack->getChorus()->setEnable(false);
     rack->getChorus()->setWetLevel(0.5f);
     rack->getChorus()->setRate(0.4f);
     rack->getChorus()->setDepth(0.5f);
     
     rack->getPhaser()->setEnable(false);
 
-    rack->getOrbitone()->setEnable(false);
+    rack->getOrbitone()->setEnable(true);
     rack->getOrbitone()->setWetLevel(0.8f);
-    rack->getOrbitone()->setFeedback(1.0f);
+    rack->getOrbitone()->setRate(0.4f);
+    rack->getOrbitone()->setDepth(0.5f);
 
     rack->getFlanger()->setEnable(false);
 

@@ -135,7 +135,8 @@ public:
 	unsigned GetFXChainFlangerFeedback(void) const;
 	bool GetFXChainOrbitoneEnable(void) const;
 	unsigned GetFXChainOrbitoneWet(void) const;
-	unsigned GetFXChainOrbitoneFeedback(void) const;
+	unsigned GetFXChainOrbitoneRate(void) const;
+	unsigned GetFXChainOrbitoneDepth(void) const;
 	bool GetFXChainPhaserEnable(void) const;
 	unsigned GetFXChainPhaserWet(void) const;
 	unsigned GetFXChainPhaserRate(void) const;
@@ -170,7 +171,8 @@ public:
 	void SetFXChainFlangerFeedback(unsigned nValue);
 	void SetFXChainOrbitoneEnable(bool bValue);
 	void SetFXChainOrbitoneWet(unsigned nValue);
-	void SetFXChainOrbitoneFeedback(unsigned nValue);
+	void SetFXChainOrbitoneRate(unsigned nValue);
+	void SetFXChainOrbitoneDepth(unsigned nValue);
 	void SetFXChainPhaserEnable(bool bValue);
 	void SetFXChainPhaserWet(unsigned nValue);
 	void SetFXChainPhaserRate(unsigned nValue);
@@ -274,7 +276,8 @@ private:
 	unsigned m_nFXChainFlangerFeedback;
 	bool m_bFXChainOrbitoneEnable;
 	unsigned m_nFXChainOrbitoneWet;
-	unsigned m_nFXChainOrbitoneFeedback;
+	unsigned m_nFXChainOrbitoneRate;
+	unsigned m_nFXChainOrbitoneDepth;
 	bool m_bFXChainPhaserEnable;
 	unsigned m_nFXChainPhaserWet;
 	unsigned m_nFXChainPhaserRate;

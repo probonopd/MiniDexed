@@ -187,8 +187,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	// FXChain > Orbitone parameters
 	this->SetParameter(ParameterFXChainOrbitoneEnable, 1);
-	this->SetParameter(ParameterFXChainOrbitoneWet, 50);
-	this->SetParameter(ParameterFXChainOrbitoneFeedback, 65);
+	this->SetParameter(ParameterFXChainOrbitoneWet, 80);
+	this->SetParameter(ParameterFXChainOrbitoneRate, 40);
+	this->SetParameter(ParameterFXChainOrbitoneDepth, 50);
 
 	// FXChain > Phaser parameters
 	this->SetParameter(ParameterFXChainPhaserEnable, 1);
@@ -854,10 +855,16 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->fx_rack->getOrbitone()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainOrbitoneFeedback: 
+	case ParameterFXChainOrbitoneRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getOrbitone()->setFeedback(nValue / 99.0f);
+		this->fx_rack->getOrbitone()->setRate(nValue / 99.0f);
+		this->m_FXSpinLock.Release();
+		break;
+	case ParameterFXChainOrbitoneDepth: 
+		nValue = constrain((int)nValue, 0, 99);
+		this->m_FXSpinLock.Acquire();
+		this->fx_rack->getOrbitone()->setDepth(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -1401,7 +1408,8 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainFlangerFeedback(this->m_nParameter[ParameterFXChainFlangerFeedback]);
 	this->m_PerformanceConfig.SetFXChainOrbitoneEnable(!!this->m_nParameter[ParameterFXChainOrbitoneEnable]);
 	this->m_PerformanceConfig.SetFXChainOrbitoneWet(this->m_nParameter[ParameterFXChainOrbitoneWet]);
-	this->m_PerformanceConfig.SetFXChainOrbitoneFeedback(this->m_nParameter[ParameterFXChainOrbitoneFeedback]);
+	this->m_PerformanceConfig.SetFXChainOrbitoneRate(this->m_nParameter[ParameterFXChainOrbitoneRate]);
+	this->m_PerformanceConfig.SetFXChainOrbitoneDepth(this->m_nParameter[ParameterFXChainOrbitoneDepth]);
 	this->m_PerformanceConfig.SetFXChainPhaserEnable(!!this->m_nParameter[ParameterFXChainPhaserEnable]);
 	this->m_PerformanceConfig.SetFXChainPhaserWet(this->m_nParameter[ParameterFXChainPhaserWet]);
 	this->m_PerformanceConfig.SetFXChainPhaserRate(this->m_nParameter[ParameterFXChainPhaserRate]);
@@ -1828,7 +1836,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainFlangerFeedback, this->m_PerformanceConfig.GetFXChainFlangerFeedback());
 		this->SetParameter(ParameterFXChainOrbitoneEnable, this->m_PerformanceConfig.GetFXChainOrbitoneEnable());
 		this->SetParameter(ParameterFXChainOrbitoneWet, this->m_PerformanceConfig.GetFXChainOrbitoneWet());
-		this->SetParameter(ParameterFXChainOrbitoneFeedback, this->m_PerformanceConfig.GetFXChainOrbitoneFeedback());
+		this->SetParameter(ParameterFXChainOrbitoneRate, this->m_PerformanceConfig.GetFXChainOrbitoneRate());
+		this->SetParameter(ParameterFXChainOrbitoneDepth, this->m_PerformanceConfig.GetFXChainOrbitoneDepth());
 		this->SetParameter(ParameterFXChainPhaserEnable, this->m_PerformanceConfig.GetFXChainPhaserEnable());
 		this->SetParameter(ParameterFXChainPhaserWet, this->m_PerformanceConfig.GetFXChainPhaserWet());
 		this->SetParameter(ParameterFXChainPhaserRate, this->m_PerformanceConfig.GetFXChainPhaserRate());

@@ -2,99 +2,114 @@
 
 #include <cmath>
 
-OrbitoneParameter::OrbitoneParameter(float32_t sampling_rate, float32_t feedback) :
-    FXBase(sampling_rate),
-    feedback_(feedback)
-{
-}
+#define LFO_SLOW_MAX_FREQUENCY 1.0f
+#define LFO_FAST_MAX_FREQUENCY 8.8f
 
-OrbitoneParameter::~OrbitoneParameter()
-{
-}
+#define FULLSCALE_DEPTH_RATIO 256.0f
 
-void OrbitoneParameter::setFeedback(float32_t feedback)
-{
-    this->feedback_ = constrain(feedback, 0.0f, 1.0f);
-}
-
-inline float32_t OrbitoneParameter::getFeedback() const
-{
-    return this->feedback_;
-}
-
-
-
-// OrbitoneStage implementation
-OrbitoneStage::OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency, float32_t level) :
+Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) : 
     FXElement(sampling_rate),
-    params_(params),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 20000.0f),
-    level_(level)
+    engine_(sampling_rate, 0.0f, 0.0f),
+    depth_(0.0f),
+    fullscale_depth_(0.0f)
 {
-    this->lfo_.setFrequency(frequency);
+    this->lfo_[LFO_Index::Slow0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFO_Index::Slow120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFO_Index::Slow240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-    this->x_[0] = this->x_[1] = 0.0f;
-}
+    this->lfo_[LFO_Index::Fast0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFO_Index::Fast120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFO_Index::Fast240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-OrbitoneStage::~OrbitoneStage()
-{
-}
-
-void OrbitoneStage::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
-{
-    // Generate a sine wave using the stage's oscillator
-    float32_t osc = this->level_ * this->lfo_.process();
-
-    // Apply feedback to the stage's input
-    outL = inL + inL * osc + this->params_->getFeedback() * this->x_[0];
-    outR = inR + inR * osc + this->params_->getFeedback() * this->x_[1];
-}
-
-
-
-// Orbitone implementation
-Orbitone::Orbitone(float32_t sampling_rate, float32_t feedback) : 
-    FXElement(sampling_rate),
-    params_(sampling_rate, feedback)
-{
-    float32_t level = 1.0f;
-    for(unsigned i = 0; i < NUM_ORBITONR_STAGES; ++i)
+    for(unsigned i = 0; i < 6; ++i)
     {
-        float32_t frequency = 440.0 * pow(2.0f, (i - 1) / 12.0f);   // Sets the frequency of each stage to be a multiple of 440 Hz
-        level /= 2.0f;
-        this->stages_[i] = new OrbitoneStage(sampling_rate, &this->params_, frequency, level);
+        this->lfo_[i]->setNormalizedFrequency(rate);
     }
+
+    this->setDepth(depth);
 }
 
 Orbitone::~Orbitone()
 {
-    for(unsigned i = 0; i < NUM_ORBITONR_STAGES; ++i)
+    for(unsigned i = 0; i < 6; ++i)
     {
-        delete this->stages_[i];
+        delete this->lfo_[i];
     }
 }
 
 void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    // Process the input sample through each stage of the phaser
-    float32_t sampleL = inL;
-    float32_t sampleR = inR;
-    for(unsigned s = 0; s < NUM_ORBITONR_STAGES; ++s)
+    typedef Engine::Reserve<2047, Engine::Reserve<2047> > Memory;
+    Engine::DelayLine<Memory, 0> line_l;
+    Engine::DelayLine<Memory, 1> line_r;
+    Engine::Context c;
+
+    this->engine_.start(&c);
+    
+    float32_t slow_0   = this->lfo_[LFO_Index::Slow0  ]->process();
+    float32_t slow_120 = this->lfo_[LFO_Index::Slow120]->process();
+    float32_t slow_240 = this->lfo_[LFO_Index::Slow240]->process();
+
+    float32_t fast_0   = this->lfo_[LFO_Index::Fast0  ]->process();
+    float32_t fast_120 = this->lfo_[LFO_Index::Fast120]->process();
+    float32_t fast_240 = this->lfo_[LFO_Index::Fast240]->process();
+      
+    float32_t a = this->fullscale_depth_ * 1.0f;
+    float32_t b = this->fullscale_depth_ * 0.1f;
+    
+    float32_t mod_1 = slow_0   * a + fast_0   * b;
+    float32_t mod_2 = slow_120 * a + fast_120 * b;
+    float32_t mod_3 = slow_240 * a + fast_240 * b;
+
+    float32_t wet = 0.0f;
+
+    // Sum L & R channel to send to chorus line.
+    c.read(inL, 1.0f);
+    c.write(line_l, 0.0f);
+    c.read(inR, 1.0f);
+    c.write(line_r, 0.0f);
+
+    c.interpolate(line_l, mod_1 + 1024, 0.33f);
+    c.interpolate(line_l, mod_2 + 1024, 0.33f);
+    c.interpolate(line_r, mod_3 + 1024, 0.33f);
+    c.write(wet, 0.0f);
+    outL = wet;
+    
+    c.interpolate(line_r, mod_1 + 1024, 0.33f);
+    c.interpolate(line_r, mod_2 + 1024, 0.33f);
+    c.interpolate(line_l, mod_3 + 1024, 0.33f);
+    c.write(wet, 0.0f);
+    outR = wet;
+}
+
+void Orbitone::setRate(float32_t rate)
+{
+    rate = constrain(rate, 0.0f, 1.0f);
+    if(this->lfo_[LFO_Index::Slow0]->getNormalizedFrequency() != rate)
     {
-        this->stages_[s]->processSample(sampleL, sampleR, sampleL, sampleR);
+        for(unsigned i = 0; i < 6; ++i)
+        {
+            this->lfo_[i]->setNormalizedFrequency(rate);
+        }
     }
-
-    // Modulate the output of the phaser using the LFO 
-    outL = sampleL;
-    outR = sampleR;
 }
 
-void Orbitone::setFeedback(float32_t feedback)
+float32_t Orbitone::getRate() const
 {
-    this->params_.setFeedback(feedback);
+    return this->lfo_[LFO_Index::Slow0]->getNormalizedFrequency();
 }
 
-float32_t Orbitone::getFeedback() const
+void Orbitone::setDepth(float32_t depth)
 {
-    return this->params_.getFeedback();
+    depth = constrain(depth, 0.0f, 1.0f);
+    if(this->depth_ != depth)
+    {
+        this->depth_ = depth;
+        this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+    }
+}
+
+float32_t Orbitone::getDepth() const
+{
+    return this->depth_;
 }

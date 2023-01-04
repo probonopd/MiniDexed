@@ -168,7 +168,8 @@ public:
 		// FXChain > Orbitone parameters
 		ParameterFXChainOrbitoneEnable,
 		ParameterFXChainOrbitoneWet,
-		ParameterFXChainOrbitoneFeedback,
+		ParameterFXChainOrbitoneRate,
+		ParameterFXChainOrbitoneDepth,
 
 		// FXChain > Phaser parameters
 		ParameterFXChainPhaserEnable,

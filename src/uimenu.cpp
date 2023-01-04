@@ -188,7 +188,8 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainOrbitone[] =
 {
 	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
 	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneFeedback},
+	{"Rate", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneRate},
+	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneDepth},
 	{0}
 };
 
@@ -333,7 +334,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	// FXChain > Orbitone parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainOrbitoneEnable
 	{0,	99,	1},				// ParameterFXChainOrbitoneWet
-	{0,	99,	1},				// ParameterFXChainOrbitoneFeedback
+	{0,	99,	1},				// ParameterFXChainOrbitoneRate
+	{0,	99,	1},				// ParameterFXChainOrbitoneDepth
 
 	// FXChain > Phaser parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainPhaserEnable

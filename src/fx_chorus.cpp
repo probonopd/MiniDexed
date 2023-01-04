@@ -2,16 +2,14 @@
 
 #include <cmath>
 
-#define CHORUS_BUFFER_SIZE 8192
-
 #define LFO1_MAX_FREQ 0.25f
 #define LFO2_MAX_FREQ 0.35f
 
-#define FULLSCALE_DEPTH_RATIO 384.0f
+#define FULLSCALE_DEPTH_RATIO 1536.0f
 
 Chorus::Chorus(float32_t sampling_rate) :
     FXElement(sampling_rate),
-    engine_(sampling_rate, LFO1_MAX_FREQ, LFO2_MAX_FREQ),
+    engine_(sampling_rate, 0.0f, 0.0f),
     rate_(0.0f),
     depth_(0.0f),
     fullscale_depth_(0.0f),
@@ -40,13 +38,13 @@ void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     Engine::DelayLine<Memory, 0> line;
     Engine::Context c;
 
-    engine_.start(&c);
+    this->engine_.start(&c);
     
     // Update LFO.
-    float32_t sin_1 = this->lfo_[LFO_Index::Sin1]->process() * 4.0f;
-    float32_t cos_1 = this->lfo_[LFO_Index::Cos1]->process() * 4.0f;
-    float32_t sin_2 = this->lfo_[LFO_Index::Sin2]->process() * 4.0f;
-    float32_t cos_2 = this->lfo_[LFO_Index::Cos2]->process() * 4.0f;
+    float32_t sin_1 = this->lfo_[LFO_Index::Sin1]->process();
+    float32_t cos_1 = this->lfo_[LFO_Index::Cos1]->process();
+    float32_t sin_2 = this->lfo_[LFO_Index::Sin2]->process();
+    float32_t cos_2 = this->lfo_[LFO_Index::Cos2]->process();
 
     float32_t wet;
 
@@ -82,8 +80,12 @@ float32_t Chorus::getRate() const
 
 void Chorus::setDepth(float32_t depth)
 {
-    this->depth_ = constrain(depth, 0.0f, 1.0f);
-    this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+    depth = constrain(depth, 0.0f, 1.0f);
+    if(this->depth_ != depth)
+    {
+        this->depth_ = depth;
+        this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+    }
 }
 
 float32_t Chorus::getDepth() const

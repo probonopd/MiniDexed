@@ -15,62 +15,45 @@
 // fx_orbitone.h
 //
 // Stereo Orbitone audio effects proposed in the context of the MiniDexed project
+// This audio effect is based on the Ensemble audio effect of the Rings Eurorack module by Mutable Instruments
 //
 #pragma once
 
 #include "fx_components.h"
-
-class OrbitoneStage;
-
-class OrbitoneParameter : public FXBase
-{
-    friend class OrbitoneStage;
-    DISALLOW_COPY_AND_ASSIGN(OrbitoneParameter);
-
-public:
-    OrbitoneParameter(float32_t sampling_rate, float32_t feedback = 0.5f);
-    virtual ~OrbitoneParameter();
-
-    void setFeedback(float32_t feedback);
-    inline float32_t getFeedback() const;
-
-private:
-    float32_t feedback_;        // Amount of feedback to apply to the stage's input (0.0 - 1.0)
-};
-
-class OrbitoneStage : public FXElement
-{
-    DISALLOW_COPY_AND_ASSIGN(OrbitoneStage);
-
-public:
-    OrbitoneStage(float32_t sampling_rate, OrbitoneParameter* params, float32_t frequency, float32_t level);
-    virtual ~OrbitoneStage();
-
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
-
-private:
-    OrbitoneParameter* params_;
-    LFO lfo_;
-    float32_t level_;
-    float32_t x_[2];
-};
-
-#define NUM_ORBITONR_STAGES 4
+#include "fx_engine.hpp"
 
 class Orbitone : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Orbitone);
 
 public:
-    Orbitone(float32_t sampling_rate, float32_t feedback = 0.5f);
+    enum LFO_Index
+    {
+        Slow0 = 0,
+        Slow120,
+        Slow240,
+        Fast0,
+        Fast120,
+        Fast240
+    };
+
+    Orbitone(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f);
     virtual ~Orbitone();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setFeedback(float32_t feedback);
-    float32_t getFeedback() const;
+    void setRate(float32_t rate);
+    float32_t getRate() const;
+
+    void setDepth(float32_t depth);
+    float32_t getDepth() const;
 
 private:
-    OrbitoneParameter params_;
-    OrbitoneStage* stages_[NUM_ORBITONR_STAGES];
+    typedef FxEngine<4096, FORMAT_16_BIT, false> Engine;
+    Engine engine_;
+
+    float32_t depth_;
+    float32_t fullscale_depth_;
+
+    LFO* lfo_[6];
 };
