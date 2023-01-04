@@ -20,7 +20,9 @@
 
 #include "fx.h"
 
+#include <algorithm>
 #include <random>
+#include <cassert>
 
 struct Constants
 {
@@ -72,43 +74,162 @@ private:
     std::uniform_real_distribution<float32_t>   rnd_distribution_;
 };
 
-template<typename T>
+template<typename T, unsigned size, unsigned nb_channels = 2, bool circular_buffer = true>
 class Buffer
 {
     DISALLOW_COPY_AND_ASSIGN(Buffer);
 
 public:
-    Buffer(unsigned size) :
-        size_(size)
+    Buffer() : 
+        index_(0)
     {
-        this->values_ = new T[size];
+        this->values_ = new T*[nb_channels];
+        for(unsigned i = 0; i < nb_channels; ++i)
+        {
+            this->values_[i] = new T[size];
+        }
         this->reset();
     }
 
     virtual ~Buffer()
     {
+        for(unsigned i = 0; i < nb_channels; ++i)
+        {
+            delete[] this->values_[i];
+        }
         delete[] this->values_;
     }
 
-    void reset()
+    void reset(bool reset_index = true)
     {
-        memset(this->values_, 0, this->size_ * sizeof(T));
+        this->zero();
+
+        if(reset_index)
+        {
+            this->index_ = 0;
+        }
     }
 
-    float32_t& operator[](unsigned index)
+    T& operator[](unsigned channel)
     {
-        return this->values_[index];
+        assert(channel < nb_channels);
+        return *(this->values_[channel] + this->index_);
     }
 
-    unsigned getSize() const
+    bool operator++()
     {
-        return this->size_;
+        this->index_++;
+        if(this->index_ >= size)
+        {
+            if(circular_buffer)
+            {
+                this->index_ = 0;
+                return true;
+            }
+            else
+            {
+                this->index_ = size - 1;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool operator--()
+    {
+        if(this->index_ > 0)
+        {
+            this->index_--;
+            return true;
+        }
+        else
+        {
+            if(circular_buffer)
+            {
+                this->index_ = size - 1;
+                return true;
+            }
+            else
+            {
+                this->index_ = 0;
+                return false;
+            }
+        }
+    }
+
+    void copy(T* buffer, unsigned channel, unsigned nb, bool from_start = true)
+    {
+        assert(channel < nb_channels);
+        unsigned start = from_start ? 0 : this->index_;
+        unsigned _nb = std::min(nb, size - start);
+        memcpy(this->values_[channel] + start, buffer, _nb);
+    }
+
+    void zero()
+    {
+        for(unsigned c = 0; c < nb_channels; ++c)
+        {
+            memset(this->values_[c], 0, size * sizeof(T));
+        }
+    }
+
+    void scale(T scale)
+    {
+        for(unsigned c = 0; c < nb_channels; ++c)
+        {
+            for(unsigned i = 0; i < size; ++i)
+            {
+                this->values_[c][i] *= scale;
+            }
+        }
+    }
+
+    unsigned index() const
+    {
+        return this->index_;
+    }
+
+    unsigned nbChannels() const
+    {
+        return nb_channels;
+    }
+
+    unsigned bufferSize() const
+    {
+        return size;
+    }
+
+    bool isCircularBuffer() const
+    {
+        return circular_buffer;
     }
 
 private:
-    const unsigned size_;
-    T* values_;
+    unsigned index_;
+    T** values_;
 };
+
+template<unsigned size, unsigned nb_channels, bool circular_buffer>
+class Buffer<float32_t, size, nb_channels, circular_buffer>
+{
+    void scale(float32_t scale)
+    {
+        for(unsigned c = 0; c < nb_channels; ++c)
+        {
+            arm_scale_f32(this->values_[c], scale, this->values_[c], size);
+        }
+    }
+
+    void copy(float32_t* buffer, unsigned channel, unsigned nb, bool from_start = true)
+    {
+        assert(channel < nb_channels);
+        unsigned start = from_start ? 0 : this->index_;
+        unsigned _nb = std::min(nb, size - start);
+        arm_copy_f32(buffer, this->values_[channel] + start, _nb);
+    }
+
+};
+
 
 class JitterGenerator : public FXBase
 {
