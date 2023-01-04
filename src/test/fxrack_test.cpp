@@ -189,10 +189,10 @@ int main()
     rack->getTube()->setWetLevel(1.0f);
     rack->getTube()->setOverdrive(1.0f);
 
-    rack->getChorus()->setEnable(false);
+    rack->getChorus()->setEnable(true);
     rack->getChorus()->setWetLevel(0.5f);
-    rack->getChorus()->setRate(0.2f);
-    rack->getChorus()->setDepth(0.15f);
+    rack->getChorus()->setRate(0.5f);
+    rack->getChorus()->setDepth(0.5f);
     rack->getChorus()->setFeedback(0.15f);
     
     rack->getPhaser()->setEnable(false);
@@ -210,7 +210,7 @@ int main()
     rack->getTapeDelay()->setFlutterLevel(0.0f);
     rack->getTapeDelay()->setFeedbak(0.5f);
 
-    rack->getShimmerReverb()->setEnable(true);
+    rack->getShimmerReverb()->setEnable(false);
     rack->getShimmerReverb()->setWetLevel(0.7f);
     rack->getShimmerReverb()->setInputGain(0.45f);
     rack->getShimmerReverb()->setTime(0.89f);

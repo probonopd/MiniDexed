@@ -4,89 +4,92 @@
 
 #define CHORUS_BUFFER_SIZE 8192
 
-#define LFO_MIN_FREQ 0.0f
-#define LFO_MAX_FREQ 1.0f
+#define LFO1_MAX_FREQ 0.25f
+#define LFO2_MAX_FREQ 0.35f
 
-Chorus::Chorus(float32_t sampling_rate, unsigned voices, float32_t rate, float32_t depth, float32_t feedback) :
+#define FULLSCALE_DEPTH_RATIO 384.0f
+
+Chorus::Chorus(float32_t sampling_rate) :
     FXElement(sampling_rate),
-    NumVoices(voices),
-    sample_position_ratio_(sampling_rate / 1000.0f),
-    lfo_(sampling_rate, LFO::Waveform::Sine, LFO_MIN_FREQ, LFO_MAX_FREQ)
+    engine_(sampling_rate, LFO1_MAX_FREQ, LFO2_MAX_FREQ),
+    rate_(0.0f),
+    depth_(0.0f),
+    fullscale_depth_(0.0f),
+    feedback_(0.0f)
 {
-    this->delay_buffersL_ = new float32_t*[this->NumVoices];
-    this->delay_buffersR_ = new float32_t*[this->NumVoices];
+    this->lfo_[LFO_Index::Sin1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ);
+    this->lfo_[LFO_Index::Cos1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ, Constants::MPI_2);
+    this->lfo_[LFO_Index::Sin2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ);
+    this->lfo_[LFO_Index::Cos2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ, Constants::MPI_2);
 
-    for(unsigned i = 0; i < this->NumVoices; ++i)
-    {
-        this->delay_buffersL_[i] = new float32_t[CHORUS_BUFFER_SIZE];
-        this->delay_buffersR_[i] = new float32_t[CHORUS_BUFFER_SIZE];
-    }
-
-    this->delay_buffer_indices_ = new unsigned[this->NumVoices];
-    memset(this->delay_buffer_indices_, 0, this->NumVoices * sizeof(float32_t));
-
-    this->setRate(rate);
-    this->setDepth(depth);
-    this->setFeedback(feedback);
+    this->setRate(0.1f);
+    this->setDepth(0.15f);
+    this->setFeedback(0.15f);
 }
 
 Chorus::~Chorus()
 {
-    for(unsigned i = 0; i < this->NumVoices; ++i)
+    for(unsigned i = 0; i < 4; ++i)
     {
-        delete[] this->delay_buffersL_[i];
-        delete[] this->delay_buffersR_[i];
+        delete this->lfo_[i];
     }
-
-    delete[] this->delay_buffersL_;
-    delete[] this->delay_buffersR_;
-    delete[] this->delay_buffer_indices_;
 }
 
 void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    float32_t sumL = 0.0f;
-    float32_t sumR = 0.0f;
-    for(unsigned i = 0; i < this->NumVoices; ++i) {
-        // Calculate the delay time based on the depth and rate parameters
-        float32_t delay = this->getDepth() * this->lfo_.process();
+    typedef Engine::Reserve<2047> Memory;
+    Engine::DelayLine<Memory, 0> line;
+    Engine::Context c;
 
-        // Convert the delay time to samples
-        unsigned delay_samples = static_cast<unsigned>(delay * this->sample_position_ratio_);
+    engine_.start(&c);
+    
+    // Update LFO.
+    float32_t sin_1 = this->lfo_[LFO_Index::Sin1]->process() * 4.0f;
+    float32_t cos_1 = this->lfo_[LFO_Index::Cos1]->process() * 4.0f;
+    float32_t sin_2 = this->lfo_[LFO_Index::Sin2]->process() * 4.0f;
+    float32_t cos_2 = this->lfo_[LFO_Index::Cos2]->process() * 4.0f;
 
-        // Mix the input audio with the delayed audio
-        sumL += inL + this->delay_buffersL_[i][(CHORUS_BUFFER_SIZE + this->delay_buffer_indices_[i] - delay_samples) % CHORUS_BUFFER_SIZE];
-        sumR += inR + this->delay_buffersR_[i][(CHORUS_BUFFER_SIZE + this->delay_buffer_indices_[i] - delay_samples) % CHORUS_BUFFER_SIZE];
+    float32_t wet;
 
-        // Update the delay buffer for this voice
-        this->delay_buffersL_[i][this->delay_buffer_indices_[i]] = inL + sumL * this->getFeedback() / static_cast<float32_t>(i + 1);
-        this->delay_buffersR_[i][this->delay_buffer_indices_[i]] = inR + sumR * this->getFeedback() / static_cast<float32_t>(i + 1);
-        this->delay_buffer_indices_[i] = (delay_buffer_indices_[i] + 1) % CHORUS_BUFFER_SIZE;
+    // Sum L & R channel to send to chorus line.
+    c.read(inL, 0.5f);
+    c.read(inR, 0.5f);
+    c.write(line, 0.0f);
+
+    c.interpolate(line, sin_1 * this->fullscale_depth_ + 1200, 0.5f);
+    c.interpolate(line, sin_2 * this->fullscale_depth_ + 800, 0.5f);
+    c.write(wet, 0.0f);
+    outL = wet;
+    
+    c.interpolate(line, cos_1 * this->fullscale_depth_ + 800, 0.5f);
+    c.interpolate(line, cos_2 * this->fullscale_depth_ + 1200, 0.5f);
+    c.write(wet, 0.0f);
+    outR = wet;
+}
+
+void Chorus::setRate(float32_t rate)
+{
+    this->rate_ = constrain(rate, 0.0f, 1.0f);
+    for(unsigned i = 0; i < 4; ++i)
+    {
+        this->lfo_[i]->setNormalizedFrequency(this->rate_);
     }
+}
 
-    // Average the mixed audio from all voices to create the output
-    outL = sumL / static_cast<float32_t>(this->NumVoices);
-    outR = sumR / static_cast<float32_t>(this->NumVoices);
+float32_t Chorus::getRate() const
+{
+    return this->depth_;
 }
 
 void Chorus::setDepth(float32_t depth)
 {
-    this->depth_ = constrain(depth, 0.0f, 10.0f);
+    this->depth_ = constrain(depth, 0.0f, 1.0f);
+    this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
 }
 
 float32_t Chorus::getDepth() const
 {
     return this->depth_;
-}
-
-void Chorus::setRate(float32_t rate)
-{
-    this->lfo_.setNormalizedFrequency(rate);
-}
-
-float32_t Chorus::getRate() const
-{
-    return this->lfo_.getNormalizedFrequency();
 }
 
 void Chorus::setFeedback(float32_t feedback)
@@ -98,4 +101,3 @@ float32_t Chorus::getFeedback() const
 {
     return this->feedback_;
 }
-

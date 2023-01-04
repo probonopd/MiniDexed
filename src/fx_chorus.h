@@ -15,17 +15,27 @@
 // fx_chorus.h
 //
 // Stereo Chorus audio effects proposed in the context of the MiniDexed project
+// This implemelntation is based on the Chorus FX from the Rings Eurorack module from Mutable Instruments
 //
 #pragma once
 
 #include "fx_components.h"
+#include "fx_engine.hpp"
 
 class Chorus : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Chorus);
 
 public:
-    Chorus(float32_t sampling_rate, unsigned voices = 4, float32_t rate = 0.1f, float32_t depth = 5.0f, float32_t feedback = 0.5f);
+    enum LFO_Index
+    {
+        Sin1 = 0,
+        Sin2,
+        Cos1,
+        Cos2
+    };
+
+    Chorus(float32_t sampling_rate);
     virtual ~Chorus();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -40,13 +50,13 @@ public:
     float32_t getFeedback() const;
 
 private:
-    const unsigned NumVoices;   // Number of voices in the chorus
-    const float32_t sample_position_ratio_;
-    float32_t** delay_buffersL_;
-    float32_t** delay_buffersR_;
-    unsigned* delay_buffer_indices_;
+    typedef FxEngine<2048, FORMAT_16_BIT, false> Engine;
+    Engine engine_;
 
-    LFO lfo_;
+    float32_t rate_;            // Normalized frequency for the 2 LFOs frequencies (0.0 - 10.0)
     float32_t depth_;           // Depth of the chorus in milliseconds (0.0 - 10.0)
+    float32_t fullscale_depth_; // Equivalent to depth_ but in the range of (0.0 - 384.0)
     float32_t feedback_;        // Feedback level of the chorus (0.0 - 1.0)
+
+    LFO* lfo_[4];
 };

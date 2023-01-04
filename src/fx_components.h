@@ -25,6 +25,7 @@
 struct Constants
 {
     const static float32_t M2PI;   // 2 * PI
+    const static float32_t MPI_2;  // PI / 2
     const static float32_t M1_PI;  // 1 / PI
 };
 
@@ -41,7 +42,7 @@ public:
         Noise
     } Waveform;
 
-    LFO(float32_t sampling_rate, Waveform waveform = Waveform::Sine, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f);
+    LFO(float32_t sampling_rate, Waveform waveform = Waveform::Sine, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
     ~LFO();
 
     void setWaveform(Waveform waveform);

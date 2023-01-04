@@ -6,19 +6,20 @@
 // Constants implemlentation //
 ///////////////////////////////
 const float32_t Constants::M2PI = 2.0f * PI;
+const float32_t Constants::MPI_2 = PI / 2.0f;
 const float32_t Constants::M1_PI = 1.0f / PI;
 
 /////////////////////////
 // LFO implemlentation //
 /////////////////////////
-LFO::LFO(float32_t sampling_rate, Waveform waveform, float32_t min_frequency, float32_t max_frequency) :
+LFO::LFO(float32_t sampling_rate, Waveform waveform, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase) :
     FXBase(sampling_rate),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
     waveform_(waveform),
     normalized_frequency_(-1.0f),
     frequency_(0.0f),
-    phase_(0.0f),
+    phase_(initial_phase),
     phase_increment_(0.0f),
     current_sample_(0.0f),
     new_phase_(true),

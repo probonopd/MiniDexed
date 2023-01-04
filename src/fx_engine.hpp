@@ -61,7 +61,8 @@ struct DataType<FORMAT_16_BIT>
 
 template <
     size_t size,
-    Format format = FORMAT_16_BIT>
+    Format format = FORMAT_16_BIT,
+    bool enable_lfo = true>
 class FxEngine : public FXBase
 {
     DISALLOW_COPY_AND_ASSIGN(FxEngine);
@@ -69,20 +70,23 @@ class FxEngine : public FXBase
 public:
     typedef typename DataType<format>::T T;
 
-    FxEngine(float32_t sampling_rate, float32_t max_lfo_frequency = 1.0f) :
+    FxEngine(float32_t sampling_rate, float32_t max_lfo1_frequency = 1.0f, float32_t max_lfo2_frequency = 1.0f) :
         FXBase(sampling_rate)
     {
         this->buffer_ = new uint16_t[size];
-        this->lfo_[LFO_1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo_frequency);
-        this->lfo_[LFO_2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo_frequency);
+        this->lfo_[LFO_1] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
+        this->lfo_[LFO_2] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo2_frequency) : nullptr;
         this->clear();
     }
 
     ~FxEngine()
     {
         delete[] this->buffer_;
-        delete this->lfo_[LFO_1];
-        delete this->lfo_[LFO_2]; 
+        if(enable_lfo)
+        {
+            delete this->lfo_[LFO_1];
+            delete this->lfo_[LFO_2]; 
+        }
     }
 
     void clear()
@@ -159,19 +163,19 @@ public:
             this->accumulator_ += value;
         }
 
-        inline void write(float32_t &value)
+        inline void write(float32_t& value)
         {
             value = this->accumulator_;
         }
 
-        inline void write(float32_t &value, float32_t scale)
+        inline void write(float32_t& value, float32_t scale)
         {
             value = this->accumulator_;
             this->accumulator_ *= scale;
         }
 
         template <typename D>
-        inline void write(D &d, int32_t offset, float32_t scale)
+        inline void write(D& d, int32_t offset, float32_t scale)
         {
             assert(D::base + D::length <= size);
             T w = DataType<format>::compress(this->accumulator_);
@@ -187,26 +191,26 @@ public:
         }
 
         template <typename D>
-        inline void write(D &d, float32_t scale)
+        inline void write(D& d, float32_t scale)
         {
             this->write(d, 0, scale);
         }
 
         template <typename D>
-        inline void writeAllPass(D &d, int32_t offset, float32_t scale)
+        inline void writeAllPass(D& d, int32_t offset, float32_t scale)
         {
             this->write(d, offset, scale);
             this->accumulator_ += this->previous_read_;
         }
 
         template <typename D>
-        inline void writeAllPass(D &d, float32_t scale)
+        inline void writeAllPass(D& d, float32_t scale)
         {
             this->writeAllPass(d, 0, scale);
         }
 
         template <typename D>
-        inline void read(D &d, int32_t offset, float32_t scale)
+        inline void read(D& d, int32_t offset, float32_t scale)
         {
             assert(D::base + D::length <= size);
             T r;
@@ -224,25 +228,25 @@ public:
         }
 
         template <typename D>
-        inline void read(D &d, float32_t scale)
+        inline void read(D& d, float32_t scale)
         {
             this->read(d, 0, scale);
         }
 
-        inline void lp(float32_t &state, float32_t coefficient)
+        inline void lp(float32_t& state, float32_t coefficient)
         {
             state += coefficient * (this->accumulator_ - state);
             this->accumulator_ = state;
         }
 
-        inline void hp(float32_t &state, float32_t coefficient)
+        inline void hp(float32_t& state, float32_t coefficient)
         {
             state += coefficient * (this->accumulator_ - state);
             this->accumulator_ -= state;
         }
 
         template <typename D>
-        inline void interpolate(D &d, float32_t offset, float32_t scale)
+        inline void interpolate(D& d, float32_t offset, float32_t scale)
         {
             assert(D::base + D::length <= size);
             MAKE_INTEGRAL_FRACTIONAL(offset);
@@ -254,10 +258,10 @@ public:
         }
 
         template <typename D>
-        inline void interpolate(D &d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
+        inline void interpolate(D& d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
         {
             assert(D::base + D::length <= size);
-            offset += amplitude * lfo_value_[index];
+            offset += amplitude * this->lfo_value_[index];
             MAKE_INTEGRAL_FRACTIONAL(offset);
             float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
             float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
@@ -276,7 +280,18 @@ public:
 
     inline void setLFOFrequency(LFOIndex index, float32_t frequency)
     {
-        this->lfo_[index]->setFrequency(frequency);
+        if(enable_lfo)
+        {
+            this->lfo_[index]->setFrequency(frequency);
+        }
+    }
+
+    inline void setLFONormalizedFrequency(LFOIndex index, float32_t normalized_frequency)
+    {
+        if(enable_lfo)
+        {
+            this->lfo_[index]->setNormalizedFrequency(normalized_frequency);
+        }
     }
 
     inline void start(Context *c)
@@ -290,8 +305,11 @@ public:
         c->previous_read_ = 0.0f;
         c->buffer_ = buffer_;
         c->write_ptr_ = write_ptr_;
-        c->lfo_value_[LFO_1] = this->lfo_[LFO_1]->process();
-        c->lfo_value_[LFO_2] = this->lfo_[LFO_2]->process();
+        if(enable_lfo)
+        {
+            c->lfo_value_[LFO_1] = this->lfo_[LFO_1]->process();
+            c->lfo_value_[LFO_2] = this->lfo_[LFO_2]->process();
+        }
     }
 
 private:
