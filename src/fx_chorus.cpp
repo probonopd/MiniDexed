@@ -15,10 +15,10 @@ Chorus::Chorus(float32_t sampling_rate) :
     fullscale_depth_(0.0f),
     feedback_(0.0f)
 {
-    this->lfo_[LFO_Index::Sin1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ);
-    this->lfo_[LFO_Index::Cos1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ, Constants::MPI_2);
-    this->lfo_[LFO_Index::Sin2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ);
-    this->lfo_[LFO_Index::Cos2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ, Constants::MPI_2);
+    this->lfo_[LFOIndex::Sin1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ);
+    this->lfo_[LFOIndex::Cos1] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO1_MAX_FREQ, Constants::MPI_2);
+    this->lfo_[LFOIndex::Sin2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ);
+    this->lfo_[LFOIndex::Cos2] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO2_MAX_FREQ, Constants::MPI_2);
 
     this->setRate(0.1f);
     this->setDepth(0.15f);
@@ -32,6 +32,15 @@ Chorus::~Chorus()
     }
 }
 
+void Chorus::reset()
+{
+    this->engine_.reset();
+    for(unsigned i = 0; i < 4; ++i)
+    {
+        this->lfo_[i]->reset();
+    }
+}
+
 void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     typedef Engine::Reserve<2047> Memory;
@@ -41,10 +50,10 @@ void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     this->engine_.start(&c);
     
     // Update LFO.
-    float32_t sin_1 = this->lfo_[LFO_Index::Sin1]->process();
-    float32_t cos_1 = this->lfo_[LFO_Index::Cos1]->process();
-    float32_t sin_2 = this->lfo_[LFO_Index::Sin2]->process();
-    float32_t cos_2 = this->lfo_[LFO_Index::Cos2]->process();
+    float32_t sin_1 = this->lfo_[LFOIndex::Sin1]->process();
+    float32_t cos_1 = this->lfo_[LFOIndex::Cos1]->process();
+    float32_t sin_2 = this->lfo_[LFOIndex::Sin2]->process();
+    float32_t cos_2 = this->lfo_[LFOIndex::Cos2]->process();
 
     float32_t wet;
 

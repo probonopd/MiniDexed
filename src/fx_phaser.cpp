@@ -3,17 +3,22 @@
 #include <algorithm>
 #include <cmath>
 
-AllpassDelay::AllpassDelay() :
+Phaser::AllpassDelay::AllpassDelay() :
     a1_(0.0f)
+{
+    this->reset();
+}
+
+Phaser::AllpassDelay::~AllpassDelay()
+{
+}
+
+void Phaser::AllpassDelay::reset()
 {
     memset(this->z_, 0, 2 * sizeof(float32_t));
 }
 
-AllpassDelay::~AllpassDelay()
-{
-}
-
-void AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+void Phaser::AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     outL = inL * -this->a1_ + this->z_[0];
     this->z_[0] = outL * this->a1_ + inL;
@@ -22,7 +27,7 @@ void AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, 
     this->z_[1] = outR * this->a1_ + inR;
 }
 
-void AllpassDelay::setDelay(float32_t delay)
+void Phaser::AllpassDelay::setDelay(float32_t delay)
 {
     this->a1_ = (1.0f - delay) / (1.0f + delay);
 }
@@ -41,11 +46,22 @@ Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32
     this->setFeedback(feedback);
     this->setFrequencyRange(440.0f, 1600.0f);
 
-    memset(this->z_, 0, 2 * sizeof(float32_t));
+    this->reset();
 }
 
 Phaser::~Phaser()
 {
+}
+
+void Phaser::reset()
+{
+    memset(this->z_, 0, 2 * sizeof(float32_t));
+
+    for(unsigned i = 0; i < this->nb_stages_; ++i)
+    {
+        this->stages_[i].reset();
+    }
+    this->lfo_.reset();
 }
 
 void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)

@@ -56,10 +56,12 @@ public:
     void setFrequency(float32_t frequency);
     float32_t getFrequency() const;
 
+    virtual void reset() override;
     float32_t process();
     float32_t current() const;
 
 private:
+    const float32_t                             InitialPhase;
     const float32_t                             min_frequency_;
     const float32_t                             max_frequency_;
     Waveform                                    waveform_;
@@ -245,6 +247,7 @@ public:
     void setMagnitude(float32_t magnitude);
     float32_t getMagnitude() const;
 
+    virtual void reset() override;
     float32_t process();
 
 private:

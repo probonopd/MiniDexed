@@ -17,12 +17,6 @@ enum Format
     FORMAT_32_BIT
 };
 
-enum LFOIndex
-{
-    LFO_1,
-    LFO_2
-};
-
 template <Format format>
 struct DataType
 {
@@ -70,12 +64,18 @@ class FxEngine : public FXBase
 public:
     typedef typename DataType<format>::T T;
 
+    enum LFOIndex
+    {
+        LFO_1 = 0,
+        LFO_2
+    };
+
     FxEngine(float32_t sampling_rate, float32_t max_lfo1_frequency = 1.0f, float32_t max_lfo2_frequency = 1.0f) :
         FXBase(sampling_rate)
     {
         this->buffer_ = new uint16_t[size];
-        this->lfo_[LFO_1] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
-        this->lfo_[LFO_2] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo2_frequency) : nullptr;
+        this->lfo_[LFOIndex::LFO_1] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
+        this->lfo_[LFOIndex::LFO_2] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo2_frequency) : nullptr;
         this->clear();
     }
 
@@ -93,6 +93,13 @@ public:
     {
         memset(this->buffer_, 0, size * sizeof(uint16_t));
         this->write_ptr_ = 0;
+    }
+
+    virtual void reset() override
+    {
+        this->clear();
+        this->lfo_[LFOIndex::LFO_1]->reset();
+        this->lfo_[LFOIndex::LFO_2]->reset();
     }
 
     struct Empty

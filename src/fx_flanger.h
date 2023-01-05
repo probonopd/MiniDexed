@@ -27,7 +27,7 @@ class Flanger : public FXElement
     DISALLOW_COPY_AND_ASSIGN(Flanger);
 
 public:
-    enum LFO_Index
+    enum LFOIndex
     {
         LFO_L = 0,
         LFO_R
@@ -36,6 +36,7 @@ public:
     Flanger(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f, float32_t feedback = 0.0f);
     virtual ~Flanger();
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setRate(float32_t rate);

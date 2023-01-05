@@ -14,6 +14,11 @@ Tube::~Tube()
 {
 }
 
+void Tube::reset()
+{
+    // does nothing
+}
+
 void Tube::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     outL = softSaturator2(inL, this->saturation_);

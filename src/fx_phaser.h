@@ -20,24 +20,6 @@
 
 #include "fx_components.h"
 
-class AllpassDelay
-{
-    DISALLOW_COPY_AND_ASSIGN(AllpassDelay);
-
-public:
-    AllpassDelay();
-    virtual ~AllpassDelay();
-
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
-
-    void setDelay(float32_t delay);
-
-private:
-    float32_t a1_;
-    float32_t z_[2];
-};
-
-
 #define MAX_NB_PHASES 24
 
 class Phaser : public FXElement
@@ -45,9 +27,28 @@ class Phaser : public FXElement
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
 public:
+    class AllpassDelay
+    {
+        DISALLOW_COPY_AND_ASSIGN(AllpassDelay);
+
+    public:
+        AllpassDelay();
+        virtual ~AllpassDelay();
+
+        virtual void reset();
+        virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
+
+        void setDelay(float32_t delay);
+
+    private:
+        float32_t a1_;
+        float32_t z_[2];
+    };
+
     Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f);
     virtual ~Phaser();
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setFrequencyRange(float32_t min_frequency, float32_t max_frequency);

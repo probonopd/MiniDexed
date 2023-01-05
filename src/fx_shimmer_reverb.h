@@ -29,9 +29,9 @@ class ShimmerReverb : public FXElement
 
 public:
     ShimmerReverb(float32_t sampling_rate);
-
     virtual ~ShimmerReverb();
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setInputGain(float32_t gain);

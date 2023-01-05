@@ -28,6 +28,7 @@ public:
     Tube(float32_t sampling_rate);
     virtual ~Tube();
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setOverdrive(float32_t overdrive);

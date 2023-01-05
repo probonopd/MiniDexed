@@ -10,16 +10,14 @@ Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float
     this->delay_lineL_ = new float32_t[this->MaxDelayLineSize];
     this->delay_lineR_ = new float32_t[this->MaxDelayLineSize];
 
-    memset(this->delay_lineL_, 0, this->MaxDelayLineSize * sizeof(float32_t));
-    memset(this->delay_lineR_, 0, this->MaxDelayLineSize * sizeof(float32_t));
-    memset(this->feedback_samples_, 0, 2 * sizeof(float32_t));
-
-    this->lfo_[LFO_Index::LFO_L] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f);
-    this->lfo_[LFO_Index::LFO_R] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f, Constants::MPI_2);
+    this->lfo_[LFOIndex::LFO_L] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f);
+    this->lfo_[LFOIndex::LFO_R] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f, Constants::MPI_2);
 
     this->setRate(rate);
     this->setDepth(depth);
     this->setFeedback(feedback);
+
+    this->reset();
 }
 
 Flanger::~Flanger()
@@ -27,13 +25,24 @@ Flanger::~Flanger()
     delete[] this->delay_lineL_;
     delete[] this->delay_lineR_;
 
-    delete this->lfo_[LFO_Index::LFO_L];
-    delete this->lfo_[LFO_Index::LFO_R];
+    delete this->lfo_[LFOIndex::LFO_L];
+    delete this->lfo_[LFOIndex::LFO_R];
 }
 
 inline float32_t linearIterpolationnterp(float32_t inX, float32_t inY, float32_t inPhase)
 {
 	return (1.0f - inPhase) * inX + inPhase * inY;
+}
+
+void Flanger::reset()
+{
+    memset(this->delay_lineL_, 0, this->MaxDelayLineSize * sizeof(float32_t));
+    memset(this->delay_lineR_, 0, this->MaxDelayLineSize * sizeof(float32_t));
+    memset(this->feedback_samples_, 0, 2 * sizeof(float32_t));
+    this->write_index_ = 0;
+
+    this->lfo_[LFOIndex::LFO_L]->reset();
+    this->lfo_[LFOIndex::LFO_R]->reset();
 }
 
 void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -104,13 +113,13 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
 
 void Flanger::setRate(float32_t rate)
 {
-    this->lfo_[LFO_Index::LFO_L]->setNormalizedFrequency(rate);
-    this->lfo_[LFO_Index::LFO_R]->setNormalizedFrequency(rate);
+    this->lfo_[LFOIndex::LFO_L]->setNormalizedFrequency(rate);
+    this->lfo_[LFOIndex::LFO_R]->setNormalizedFrequency(rate);
 }
 
 float32_t Flanger::getRate() const
 {
-    return this->lfo_[LFO_Index::LFO_L]->getNormalizedFrequency();
+    return this->lfo_[LFOIndex::LFO_L]->getNormalizedFrequency();
 }
 
 void Flanger::setDepth(float32_t depth)

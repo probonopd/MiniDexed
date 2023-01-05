@@ -5,7 +5,6 @@
 
 #define TAIL , -1
 
-
 ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
     FXElement(sampling_rate),
     engine_(sampling_rate),
@@ -13,8 +12,9 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate) :
     diffusion_(-1.0f),
     lp_(-1.0f)
 {
-    this->engine_.setLFOFrequency(LFO_1, 0.5f);
-    this->engine_.setLFOFrequency(LFO_2, 0.3f);
+    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_1, 0.5f);
+    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_2, 0.3f);
+    
     this->setInputGain(1.0f);
     this->setLP(0.7f);
     this->setDiffusion(0.625f);
@@ -22,6 +22,11 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate) :
 
 ShimmerReverb::~ShimmerReverb()
 {
+}
+
+void ShimmerReverb::reset()
+{
+    this->engine_.reset();
 }
 
 void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -65,7 +70,7 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     engine_.start(&c);
     
     // Smear AP1 inside the loop.
-    c.interpolate(ap1, 10.0f, LFO_1, 60.0f, 1.0f);
+    c.interpolate(ap1, 10.0f, Engine::LFOIndex::LFO_1, 60.0f, 1.0f);
     c.write(ap1, 100, 0.0f);
     
     c.read(inL + inR, gain);
@@ -83,7 +88,7 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
       
     // Main reverb loop.
     c.load(apout);
-    c.interpolate(del2, 4680.0f, LFO_2, 100.0f, krt);
+    c.interpolate(del2, 4680.0f, Engine::LFOIndex::LFO_2, 100.0f, krt);
     c.lp(lp_1, klp);
     c.read(dap1a TAIL, -kap);
     c.writeAllPass(dap1a, kap);

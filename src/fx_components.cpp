@@ -14,6 +14,7 @@ const float32_t Constants::M1_PI = 1.0f / PI;
 /////////////////////////
 LFO::LFO(float32_t sampling_rate, Waveform waveform, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase) :
     FXBase(sampling_rate),
+    InitialPhase(initial_phase),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
     waveform_(waveform),
@@ -76,6 +77,12 @@ void LFO::setFrequency(float32_t frequency)
 float32_t LFO::getFrequency() const
 {
     return this->frequency_;
+}
+
+void LFO::reset()
+{
+    this->phase_ = this->InitialPhase;
+    this->current_sample_ = 0.0f;
 }
 
 float32_t LFO::process()
@@ -171,6 +178,11 @@ void JitterGenerator::setMagnitude(float32_t magnitude)
 float32_t JitterGenerator::getMagnitude() const
 {
     return this->magnitude_;
+}
+
+void JitterGenerator::reset()
+{
+    this->phase_ = 0.0f;
 }
 
 float32_t JitterGenerator::process()

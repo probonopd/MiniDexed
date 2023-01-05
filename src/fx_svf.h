@@ -44,6 +44,7 @@ public:
     void setResonance(float32_t resonance);
     void setPeakGainDB(float32_t gainDB);
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
 private:

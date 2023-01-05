@@ -37,6 +37,8 @@ protected:
 public:
     float32_t getSamplingRate() const;
 
+    virtual void reset() = 0;
+
 private:
     const float32_t SamplingRate;
 };

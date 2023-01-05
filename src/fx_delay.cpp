@@ -28,6 +28,12 @@ void Delay::LowHighPassFilter::setCutoffChangeRatio(float32_t ratio)
     this->hpf_.setCutoff(HPF_CUTOFF_REF * ratio);
 }
 
+void Delay::LowHighPassFilter::reset()
+{
+    this->lpf_.reset();
+    this->hpf_.reset();
+}
+
 void Delay::LowHighPassFilter::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     this->lpf_.processSample(inL, inR, outL, outR);
@@ -44,18 +50,26 @@ Delay::Delay(const float32_t sampling_rate, float32_t default_delay_time, float3
     this->buffer_L_ = new float32_t[this->MaxSampleDelayTime];
     this->buffer_R_ = new float32_t[this->MaxSampleDelayTime];
 
-    memset(this->buffer_L_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
-    memset(this->buffer_R_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
-
     this->setLeftDelayTime(default_delay_time);
     this->setRightDelayTime(default_delay_time);
     this->setFeedbak(default_feedback_level);
+    
+    this->reset();
 }
 
 Delay::~Delay()
 {
     delete[] this->buffer_L_;
     delete[] this->buffer_R_;
+}
+
+void Delay::reset()
+{
+    memset(this->buffer_L_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
+    memset(this->buffer_R_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
+    this->read_pos_L_ = 0;
+    this->read_pos_R_ = 0;
+    this->filter_.reset();
 }
 
 void Delay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)

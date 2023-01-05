@@ -36,6 +36,7 @@ class Delay : public FXElement
         LowHighPassFilter(float32_t sampling_rate);
         virtual ~LowHighPassFilter();
 
+        virtual void reset() override;
         virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
         void setCutoffChangeRatio(float32_t ratio);
@@ -49,7 +50,8 @@ class Delay : public FXElement
 public:
     Delay(const float32_t sampling_rate, float32_t default_delay_time = 0.25f, float32_t default_flutter_level = 1.0f, float32_t default_wet_level = 0.5f);
     virtual ~Delay();
-
+    
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setLeftDelayTime(float32_t delay_time);
@@ -63,8 +65,8 @@ public:
 
 private:
     const size_t MaxSampleDelayTime;
-    size_t read_pos_L_;
-    size_t read_pos_R_;
+    unsigned read_pos_L_;
+    unsigned read_pos_R_;
     float32_t* buffer_L_;
     float32_t* buffer_R_;
     float32_t delay_time_L_;        // Left delay time in seconds (0.0 - 2.0)

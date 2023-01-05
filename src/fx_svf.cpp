@@ -9,12 +9,11 @@ StateVariableFilter::StateVariableFilter(float32_t sampling_rate, Type type, flo
     resonance_(0.0f),
     peak_gain_(0.0f)
 {
-    memset(this->z1_, 0, 2 * sizeof(float32_t));
-    memset(this->z2_, 0, 2 * sizeof(float32_t));
-
     this->setPeakGainDB(1.0f);
     this->setCutoff(cutoff);
     this->setResonance(0.0f);
+
+    this->reset();
 }
 
 StateVariableFilter::~StateVariableFilter()
@@ -169,6 +168,12 @@ void StateVariableFilter::updateCoefficients()
         }
         break;        
     }
+}
+
+void StateVariableFilter::reset()
+{
+    memset(this->z1_, 0, 2 * sizeof(float32_t));
+    memset(this->z2_, 0, 2 * sizeof(float32_t));
 }
 
 void StateVariableFilter::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
