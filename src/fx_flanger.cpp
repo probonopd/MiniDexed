@@ -2,17 +2,22 @@
 
 #include <cmath>
 
-Flanger::Flanger(float32_t sampling_rate, float32_t delay_time, float32_t frequency, float32_t depth, float32_t feedback) :
+Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) :
     FXElement(sampling_rate),
-    MaxDelayLineSize(static_cast<unsigned>(2.0f * MAX_FLANGER_DELAY * sampling_rate / 1000.0f)),
-    delay_line_index_(0),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.1f, 10.0f)
+    MaxDelayLineSize(static_cast<unsigned>(MAX_FLANGER_DELAY * sampling_rate)),
+    write_index_(0)
 {
     this->delay_lineL_ = new float32_t[this->MaxDelayLineSize];
     this->delay_lineR_ = new float32_t[this->MaxDelayLineSize];
 
-    this->setDelayTime(delay_time);
-    this->setFrequency(frequency);
+    memset(this->delay_lineL_, 0, this->MaxDelayLineSize * sizeof(float32_t));
+    memset(this->delay_lineR_, 0, this->MaxDelayLineSize * sizeof(float32_t));
+    memset(this->feedback_samples_, 0, 2 * sizeof(float32_t));
+
+    this->lfo_[LFO_Index::LFO_L] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f);
+    this->lfo_[LFO_Index::LFO_R] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.1f, 5.0f, Constants::MPI_2);
+
+    this->setRate(rate);
     this->setDepth(depth);
     this->setFeedback(feedback);
 }
@@ -21,52 +26,96 @@ Flanger::~Flanger()
 {
     delete[] this->delay_lineL_;
     delete[] this->delay_lineR_;
+
+    delete this->lfo_[LFO_Index::LFO_L];
+    delete this->lfo_[LFO_Index::LFO_R];
+}
+
+inline float32_t linearIterpolationnterp(float32_t inX, float32_t inY, float32_t inPhase)
+{
+	return (1.0f - inPhase) * inX + inPhase * inY;
 }
 
 void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    // Calculate the delay time based on the depth and rate parameters
-    float32_t delay = this->getDelayTime() + this->getDepth() * this->lfo_.process();
+    // Write sample and any feedback into delay buffers
+    this->delay_lineL_[this->write_index_] = inL + this->feedback_samples_[0];
+    this->delay_lineR_[this->write_index_] = inR + this->feedback_samples_[1];
 
-    // Convert the delay time to samples
-    unsigned delay_samples = static_cast<unsigned>(delay * this->getSamplingRate() / 1000.0f);
+    ++this->write_index_;
+    if(this->write_index_ >= this->MaxDelayLineSize)
+    {
+        this->write_index_ -= this->MaxDelayLineSize;
+    }
 
-    // mix the input audio with the delayed audio and the feedback signal
-    outL = inL + this->delay_lineL_[(this->delay_line_index_ + this->delay_line_size_ - delay_samples) % this->delay_line_size_] * (1.0 - this->getFeedback());
-    outR = inR + this->delay_lineR_[(this->delay_line_index_ + this->delay_line_size_ - delay_samples) % this->delay_line_size_] * (1.0 - this->getFeedback());
+    // Configure LFO for effect processing
+    float32_t lfo_l = this->lfo_[LFO_L]->process() * this->depth_;
+    float32_t lfo_r = this->lfo_[LFO_R]->process() * this->depth_;
 
-    // Update the delay buffer with the mixed audio and the feedback signal
-    this->delay_lineL_[this->delay_line_index_] = inL + outL * this->getFeedback();
-    this->delay_lineR_[this->delay_line_index_] = inR + outR * this->getFeedback();
+    // Map LFO range to millisecond range according to Chorus or Flanger effect
+	float32_t lfoMappedL = mapfloat(lfo_l, -1.0f, 1.0f, 0.001f, 0.005f);
+	float32_t lfoMappedR = mapfloat(lfo_r, -1.0f, 1.0f, 0.001f, 0.005f);
 
-    this->delay_line_index_ = (this->delay_line_index_ + 1) % this->delay_line_size_;
+	// Calculate delay lengths in samples
+	float32_t delayTimeSamplesL = this->getSamplingRate() * lfoMappedL;
+	float32_t delayTimeSamplesR = this->getSamplingRate() * lfoMappedR;
+
+	// Calculate read head positions
+	float32_t delayReadHeadL = this->write_index_ - delayTimeSamplesL;
+    if(delayReadHeadL < 0.0f)
+    {
+        delayReadHeadL += this->MaxDelayLineSize;
+    }
+	float32_t delayReadHeadR = this->write_index_ - delayTimeSamplesR;
+    if(delayReadHeadR < 0.0f)
+    {
+        delayReadHeadR += this->MaxDelayLineSize;
+    }
+
+	// Calculate linear interpolation point for left channel
+	int currentL = (int)delayReadHeadL;
+	int nextL = currentL + 1;
+	float32_t fractionL = delayReadHeadL - currentL;
+	if(nextL >= static_cast<int>(this->MaxDelayLineSize))
+    {
+		nextL -= this->MaxDelayLineSize;
+    }
+
+	// Calculate linear interpolation point for right channel
+	int currentR = (int)delayReadHeadR;
+	int nextR = currentR + 1;
+	float32_t fractionR = delayReadHeadR - currentR;
+	if(nextR >= static_cast<int>(this->MaxDelayLineSize))
+	{
+        nextR -= this->MaxDelayLineSize;
+    }
+
+    // Interpolate and read from delay buffer
+    float32_t delay_sample_l = linearIterpolationnterp(this->delay_lineL_[currentL], this->delay_lineL_[nextL], fractionL);
+    float32_t delay_sample_r = linearIterpolationnterp(this->delay_lineR_[currentR], this->delay_lineR_[nextR], fractionR);
+
+    // Store delayed samples as feedback
+    this->feedback_samples_[0] = delay_sample_l * this->feedback_;
+    this->feedback_samples_[1] = delay_sample_r * this->feedback_;
+
+    outL = delay_sample_l;
+    outR = delay_sample_r;
 }
 
-void Flanger::setDelayTime(float32_t delayMS)
+void Flanger::setRate(float32_t rate)
 {
-    this->delay_time_ms_ = constrain(delayMS, 1.0f, MAX_FLANGER_DELAY);
-    this->adjustDelayCofficients();
+    this->lfo_[LFO_Index::LFO_L]->setNormalizedFrequency(rate);
+    this->lfo_[LFO_Index::LFO_R]->setNormalizedFrequency(rate);
 }
 
-float32_t Flanger::getDelayTime() const
+float32_t Flanger::getRate() const
 {
-    return this->delay_time_ms_;
-}
-
-void Flanger::setFrequency(float32_t frequency)
-{
-    this->lfo_.setNormalizedFrequency(frequency);
-}
-
-float32_t Flanger::getFrequency() const
-{
-    return this->lfo_.getNormalizedFrequency();
+    return this->lfo_[LFO_Index::LFO_L]->getNormalizedFrequency();
 }
 
 void Flanger::setDepth(float32_t depth)
 {
-    this->depth_ = constrain(depth, 0.0f, MAX_FLANGER_DELAY);
-    this->adjustDelayCofficients();
+    this->depth_ = constrain(depth, 0.0f, 1.0f);
 }
 
 float32_t Flanger::getDepth() const
@@ -76,15 +125,10 @@ float32_t Flanger::getDepth() const
 
 void Flanger::setFeedback(float32_t feedback)
 {
-    this->feedback_ = constrain(feedback, 0.0f, 1.0f);
+    this->feedback_ = constrain(feedback, 0.0f, 0.97f);
 }
 
 float32_t Flanger::getFeedback() const
 {
     return this->feedback_;
-}
-
-void Flanger::adjustDelayCofficients()
-{
-    this->delay_line_size_ = static_cast<unsigned>(this->getSamplingRate() * (this->getDelayTime() + this->getDepth()) / 1000.0f);
 }

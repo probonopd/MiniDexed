@@ -180,10 +180,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// FXChain > Flanger parameters
 	this->SetParameter(ParameterFXChainFlangerEnable, 1);
 	this->SetParameter(ParameterFXChainFlangerWet, 50);
-	this->SetParameter(ParameterFXChainFlangerDelayTime, 10);
-	this->SetParameter(ParameterFXChainFlangerRate, 15);
-	this->SetParameter(ParameterFXChainFlangerDepth, 10);
-	this->SetParameter(ParameterFXChainFlangerFeedback, 20);
+	this->SetParameter(ParameterFXChainFlangerRate, 3);
+	this->SetParameter(ParameterFXChainFlangerDepth, 75);
+	this->SetParameter(ParameterFXChainFlangerFeedback, 50);
 
 	// FXChain > Orbitone parameters
 	this->SetParameter(ParameterFXChainOrbitoneEnable, 1);
@@ -195,7 +194,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	this->SetParameter(ParameterFXChainPhaserEnable, 1);
 	this->SetParameter(ParameterFXChainPhaserWet, 50);
 	this->SetParameter(ParameterFXChainPhaserRate, 5);
-	this->SetParameter(ParameterFXChainPhaserDepth, 45);
+	this->SetParameter(ParameterFXChainPhaserDepth, 99);
+	this->SetParameter(ParameterFXChainPhaserFeedback, 50);
+	this->SetParameter(ParameterFXChainPhaserNbStages, 12);
 
 	// FXChain > Delay parameters
 	this->SetParameter(ParameterFXChainDelayEnable, 1);
@@ -816,28 +817,22 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->fx_rack->getFlanger()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainFlangerDelayTime: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getFlanger()->setDelayTime(mapfloat(nValue, 0, 99, 1.0f, MAX_FLANGER_DELAY));
-		this->m_FXSpinLock.Release();
-		break;
 	case ParameterFXChainFlangerRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getFlanger()->setFrequency(nValue / 99.0f);
+		this->fx_rack->getFlanger()->setRate(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerDepth: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getFlanger()->setDepth(mapfloat(nValue, 0, 99, 0.0f, MAX_FLANGER_DELAY));
+		this->fx_rack->getFlanger()->setDepth(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainFlangerFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getFlanger()->setFeedback(nValue / 99.0f);
+		this->fx_rack->getFlanger()->setFeedback(mapfloat(nValue, 0, 99, 0.0f, 0.97f));
 		this->m_FXSpinLock.Release();
 		break;
 	
@@ -1407,7 +1402,6 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainChorusDepth(this->m_nParameter[ParameterFXChainChorusDepth]);
 	this->m_PerformanceConfig.SetFXChainFlangerEnable(!!this->m_nParameter[ParameterFXChainFlangerEnable]);
 	this->m_PerformanceConfig.SetFXChainFlangerWet(this->m_nParameter[ParameterFXChainFlangerWet]);
-	this->m_PerformanceConfig.SetFXChainFlangerDelayTime(this->m_nParameter[ParameterFXChainFlangerDelayTime]);
 	this->m_PerformanceConfig.SetFXChainFlangerRate(this->m_nParameter[ParameterFXChainFlangerRate]);
 	this->m_PerformanceConfig.SetFXChainFlangerDepth(this->m_nParameter[ParameterFXChainFlangerDepth]);
 	this->m_PerformanceConfig.SetFXChainFlangerFeedback(this->m_nParameter[ParameterFXChainFlangerFeedback]);
@@ -1836,7 +1830,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainChorusDepth, this->m_PerformanceConfig.GetFXChainChorusDepth());
 		this->SetParameter(ParameterFXChainFlangerEnable, this->m_PerformanceConfig.GetFXChainFlangerEnable());
 		this->SetParameter(ParameterFXChainFlangerWet, this->m_PerformanceConfig.GetFXChainFlangerWet());
-		this->SetParameter(ParameterFXChainFlangerDelayTime, this->m_PerformanceConfig.GetFXChainFlangerDelayTime());
 		this->SetParameter(ParameterFXChainFlangerRate, this->m_PerformanceConfig.GetFXChainFlangerRate());
 		this->SetParameter(ParameterFXChainFlangerDepth, this->m_PerformanceConfig.GetFXChainFlangerDepth());
 		this->SetParameter(ParameterFXChainFlangerFeedback, this->m_PerformanceConfig.GetFXChainFlangerFeedback());

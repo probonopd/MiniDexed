@@ -20,23 +20,26 @@
 
 #include "fx_components.h"
 
-#define MAX_FLANGER_DELAY 20.0f
+#define MAX_FLANGER_DELAY 2.0f
 
 class Flanger : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Flanger);
 
 public:
-    Flanger(float32_t sampling_rate, float32_t delay_time = 5.0f, float32_t frequency = 0.05f, float32_t depth = 1.0f, float32_t feedback = 0.25f);
+    enum LFO_Index
+    {
+        LFO_L = 0,
+        LFO_R
+    };
+
+    Flanger(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f, float32_t feedback = 0.0f);
     virtual ~Flanger();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setDelayTime(float32_t delayMS);
-    float32_t getDelayTime() const;
-
-    void setFrequency(float32_t frequency);
-    float32_t getFrequency() const;
+    void setRate(float32_t rate);
+    float32_t getRate() const;
 
     void setDepth(float32_t depth);
     float32_t getDepth() const;
@@ -45,16 +48,13 @@ public:
     float32_t getFeedback() const;
 
 private:
-    inline void adjustDelayCofficients();
-
     const unsigned MaxDelayLineSize;
-    unsigned delay_line_index_;
-    unsigned delay_line_size_;
     float32_t* delay_lineL_;
     float32_t* delay_lineR_;
+    unsigned write_index_;
+    float32_t feedback_samples_[2];
 
-    float32_t delay_time_ms_;   // Delay time in milliseconds (0.0 - 10.0)
-    LFO lfo_;
+    LFO* lfo_[2];
     float32_t depth_;           // Depth of the flanger effect in milliseconds (0.0 - 10.0)
     float32_t feedback_;        // Amount of feedback to apply to the delay line
 };

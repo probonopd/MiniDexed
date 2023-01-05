@@ -177,7 +177,6 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainFlanger[] =
 {
 	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
 	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
-	{"Delay", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDelayTime},
 	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
 	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
 	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
@@ -327,7 +326,6 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	// FXChain > Flanger parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainFlangerEnable
 	{0,	99,	1},				// ParameterFXChainFlangerWet
-	{0,	99,	1},				// ParameterFXChainFlangerDelayTime
 	{0,	99,	1},				// ParameterFXChainFlangerRate
 	{0,	99,	1},				// ParameterFXChainFlangerDepth
 	{0,	99,	1},				// ParameterFXChainFlangerFeedback

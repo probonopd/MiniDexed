@@ -171,7 +171,6 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXChainChorusDepth = this->m_Properties.GetNumber("FXChainChorusDepth", 50);
 	this->m_bFXChainFlangerEnable = this->m_Properties.GetNumber("FXChainFlangerEnable", 1);
 	this->m_nFXChainFlangerWet = this->m_Properties.GetNumber("FXChainFlangerWet", 		50);
-	this->m_nFXChainFlangerDelayTime = this->m_Properties.GetNumber("FXChainFlangerDelayTime", 10);
 	this->m_nFXChainFlangerRate = this->m_Properties.GetNumber("FXChainFlangerRate", 15);
 	this->m_nFXChainFlangerDepth = this->m_Properties.GetNumber("FXChainFlangerDepth", 10);
 	this->m_nFXChainFlangerFeedback = this->m_Properties.GetNumber("FXChainFlangerFeedback", 20);
@@ -328,7 +327,6 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXChainChorusDepth", m_nFXChainChorusDepth);
 	this->m_Properties.SetNumber("FXChainFlangerEnable", m_bFXChainFlangerEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainFlangerWet", m_nFXChainFlangerWet);
-	this->m_Properties.SetNumber("FXChainFlangerDelayTime", m_nFXChainFlangerDelayTime);
 	this->m_Properties.SetNumber("FXChainFlangerRate", m_nFXChainFlangerRate);
 	this->m_Properties.SetNumber("FXChainFlangerDepth", m_nFXChainFlangerDepth);
 	this->m_Properties.SetNumber("FXChainFlangerFeedback", m_nFXChainFlangerFeedback);
@@ -1058,11 +1056,6 @@ unsigned CPerformanceConfig::GetFXChainFlangerWet(void) const
 	return this->m_nFXChainFlangerWet;
 }
 
-unsigned CPerformanceConfig::GetFXChainFlangerDelayTime(void) const
-{
-	return this->m_nFXChainFlangerDelayTime;
-}
-
 unsigned CPerformanceConfig::GetFXChainFlangerRate(void) const
 {
 	return this->m_nFXChainFlangerRate;
@@ -1236,11 +1229,6 @@ void CPerformanceConfig::SetFXChainFlangerEnable(bool bValue)
 void CPerformanceConfig::SetFXChainFlangerWet(unsigned nValue)
 {
 	this->m_nFXChainFlangerWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerDelayTime(unsigned nValue)
-{
-	this->m_nFXChainFlangerDelayTime = nValue;
 }
 
 void CPerformanceConfig::SetFXChainFlangerRate(unsigned nValue)

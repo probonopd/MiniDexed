@@ -160,7 +160,6 @@ public:
 		// FXChain > Flanger parameters
 		ParameterFXChainFlangerEnable,
 		ParameterFXChainFlangerWet,
-		ParameterFXChainFlangerDelayTime,
 		ParameterFXChainFlangerRate,
 		ParameterFXChainFlangerDepth,
 		ParameterFXChainFlangerFeedback,

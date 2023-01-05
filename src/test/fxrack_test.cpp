@@ -142,8 +142,8 @@ void testFXRack(unsigned& step, unsigned fxSwitch)
     rack->setWetLevel(1.0f);
 
     rack->getTube()->setEnable(Active(fxSwitch, FXSitch::Tube));
-    rack->getTube()->setWetLevel(1.0f);
-    rack->getTube()->setOverdrive(1.0f);
+    rack->getTube()->setWetLevel(0.25f);
+    rack->getTube()->setOverdrive(0.25f);
 
     rack->getChorus()->setEnable(Active(fxSwitch, FXSitch::Chorus));
     rack->getChorus()->setWetLevel(0.5f);
@@ -154,7 +154,8 @@ void testFXRack(unsigned& step, unsigned fxSwitch)
     rack->getPhaser()->setWetLevel(1.0f);
     rack->getPhaser()->setRate(0.1f);
     rack->getPhaser()->setDepth(1.0f);
-    rack->getPhaser()->setFeedback(0.75f);
+    rack->getPhaser()->setFeedback(0.5f);
+    rack->getPhaser()->setNbStages(12);
 
     rack->getOrbitone()->setEnable(Active(fxSwitch, FXSitch::Orbitone));
     rack->getOrbitone()->setWetLevel(0.8f);
@@ -163,10 +164,9 @@ void testFXRack(unsigned& step, unsigned fxSwitch)
 
     rack->getFlanger()->setEnable(Active(fxSwitch, FXSitch::Flanger));
     rack->getFlanger()->setWetLevel(0.5f);
-    rack->getFlanger()->setDelayTime(0.8f);
-    rack->getFlanger()->setFrequency(0.25f);
-    rack->getFlanger()->setDepth(0.8f);
-    rack->getFlanger()->setFeedback(0.75f);
+    rack->getFlanger()->setRate(0.03f);
+    rack->getFlanger()->setDepth(0.75f);
+    rack->getFlanger()->setFeedback(0.5f);
 
     rack->getDelay()->setEnable(Active(fxSwitch, FXSitch::Delay));
     rack->getDelay()->setWetLevel(0.6f);
@@ -175,8 +175,8 @@ void testFXRack(unsigned& step, unsigned fxSwitch)
     rack->getDelay()->setFeedbak(0.5f);
 
     rack->getShimmerReverb()->setEnable(Active(fxSwitch, FXSitch::Shimmer));
-    rack->getShimmerReverb()->setWetLevel(0.7f);
-    rack->getShimmerReverb()->setInputGain(0.45f);
+    rack->getShimmerReverb()->setWetLevel(0.5f);
+    rack->getShimmerReverb()->setInputGain(0.35f);
     rack->getShimmerReverb()->setTime(0.89f);
     rack->getShimmerReverb()->setDiffusion(0.75f);
     rack->getShimmerReverb()->setLP(0.8f);
@@ -215,12 +215,21 @@ int main()
     // testFlutter(step);
     // testSVF(step);
     // testFXRack(step, FXSitch::Tube);
-    // testFXRack(step, FXSitch::Flanger);      // to be fixed -> feedback deletes FX effect
-    testFXRack(step, FXSitch::Phaser);
+    // testFXRack(step, FXSitch::Flanger);
+    // testFXRack(step, FXSitch::Phaser);
     // testFXRack(step, FXSitch::Chorus);
     // testFXRack(step, FXSitch::Orbitone);
     // testFXRack(step, FXSitch::Delay);
     // testFXRack(step, FXSitch::Shimmer);
+    testFXRack(
+        step,
+        FXSitch::Tube       | 
+        FXSitch::Chorus     | 
+        FXSitch::Flanger    | 
+        FXSitch::Orbitone   | 
+        FXSitch::Phaser     | 
+        FXSitch::Delay      | 
+        FXSitch::Shimmer);
 
     return 0;
 }
