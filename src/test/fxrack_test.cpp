@@ -151,6 +151,10 @@ void testFXRack(unsigned& step, unsigned fxSwitch)
     rack->getChorus()->setDepth(0.5f);
     
     rack->getPhaser()->setEnable(Active(fxSwitch, FXSitch::Phaser));
+    rack->getPhaser()->setWetLevel(1.0f);
+    rack->getPhaser()->setRate(0.1f);
+    rack->getPhaser()->setDepth(1.0f);
+    rack->getPhaser()->setFeedback(0.75f);
 
     rack->getOrbitone()->setEnable(Active(fxSwitch, FXSitch::Orbitone));
     rack->getOrbitone()->setWetLevel(0.8f);
@@ -210,9 +214,9 @@ int main()
     // testLFO(step);
     // testFlutter(step);
     // testSVF(step);
-    testFXRack(step, FXSitch::Tube);
+    // testFXRack(step, FXSitch::Tube);
     // testFXRack(step, FXSitch::Flanger);      // to be fixed -> feedback deletes FX effect
-    // testFXRack(step, FXSitch::Phaser);       // to be fixed -> far too load but saturation is interested
+    testFXRack(step, FXSitch::Phaser);
     // testFXRack(step, FXSitch::Chorus);
     // testFXRack(step, FXSitch::Orbitone);
     // testFXRack(step, FXSitch::Delay);

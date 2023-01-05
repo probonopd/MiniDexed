@@ -198,7 +198,9 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
 	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
 	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
 	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
-	{"Res",		EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserResonance},
+	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserDepth},
+	{"Feedbck",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserFeedback},
+	{"Stages",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserNbStages},
 	{0}
 };
 
@@ -340,7 +342,9 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainPhaserEnable
 	{0,	99,	1},				// ParameterFXChainPhaserWet
 	{0,	99,	1},				// ParameterFXChainPhaserRate
-	{0,	99,	1},				// ParameterFXChainPhaserResonance
+	{0,	99,	1},				// ParameterFXChainPhaserDepth
+	{0,	99,	1},				// ParameterFXChainPhaserFeedback
+	{2,	MAX_NB_PHASES,	1},	// ParameterFXChainPhaserNbStages
 
 	// FXChain > Delay parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXChainDelayEnable

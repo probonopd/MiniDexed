@@ -195,7 +195,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	this->SetParameter(ParameterFXChainPhaserEnable, 1);
 	this->SetParameter(ParameterFXChainPhaserWet, 50);
 	this->SetParameter(ParameterFXChainPhaserRate, 5);
-	this->SetParameter(ParameterFXChainPhaserResonance, 45);
+	this->SetParameter(ParameterFXChainPhaserDepth, 45);
 
 	// FXChain > Delay parameters
 	this->SetParameter(ParameterFXChainDelayEnable, 1);
@@ -883,16 +883,28 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainPhaserRate: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getPhaser()->setFrequency(nValue / 99.0f);
+		this->fx_rack->getPhaser()->setRate(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXChainPhaserResonance: 
+	case ParameterFXChainPhaserDepth: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getPhaser()->setResonance(mapfloat(nValue, 0, 99, 0.5f, 10.0f));
+		this->fx_rack->getPhaser()->setDepth(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	
+	case ParameterFXChainPhaserFeedback: 
+		nValue = constrain((int)nValue, 0, 99);
+		this->m_FXSpinLock.Acquire();
+		this->fx_rack->getPhaser()->setFeedback(mapfloat(nValue, 0, 99, 0.0f, 0.97f));
+		this->m_FXSpinLock.Release();
+		break;
+	case ParameterFXChainPhaserNbStages: 
+		nValue = constrain((int)nValue, 2, MAX_NB_PHASES);
+		this->m_FXSpinLock.Acquire();
+		this->fx_rack->getPhaser()->setNbStages(nValue);
+		this->m_FXSpinLock.Release();
+		break;
+
 	// FXChain > Delay parameters
 	case ParameterFXChainDelayEnable: 
 		nValue = constrain((int)nValue, 0, 1);
@@ -1406,7 +1418,9 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXChainPhaserEnable(!!this->m_nParameter[ParameterFXChainPhaserEnable]);
 	this->m_PerformanceConfig.SetFXChainPhaserWet(this->m_nParameter[ParameterFXChainPhaserWet]);
 	this->m_PerformanceConfig.SetFXChainPhaserRate(this->m_nParameter[ParameterFXChainPhaserRate]);
-	this->m_PerformanceConfig.SetFXChainPhaserResonance(this->m_nParameter[ParameterFXChainPhaserResonance]);
+	this->m_PerformanceConfig.SetFXChainPhaserDepth(this->m_nParameter[ParameterFXChainPhaserDepth]);
+	this->m_PerformanceConfig.SetFXChainPhaserFeedback(this->m_nParameter[ParameterFXChainPhaserFeedback]);
+	this->m_PerformanceConfig.SetFXChainPhaserNbStages(this->m_nParameter[ParameterFXChainPhaserNbStages]);
 	this->m_PerformanceConfig.SetFXChainDelayEnable(!!this->m_nParameter[ParameterFXChainDelayEnable]);
 	this->m_PerformanceConfig.SetFXChainDelayWet(this->m_nParameter[ParameterFXChainDelayWet]);
 	this->m_PerformanceConfig.SetFXChainDelayLeftDelayTime(this->m_nParameter[ParameterFXChainDelayLeftDelayTime]);
@@ -1833,7 +1847,9 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		this->SetParameter(ParameterFXChainPhaserEnable, this->m_PerformanceConfig.GetFXChainPhaserEnable());
 		this->SetParameter(ParameterFXChainPhaserWet, this->m_PerformanceConfig.GetFXChainPhaserWet());
 		this->SetParameter(ParameterFXChainPhaserRate, this->m_PerformanceConfig.GetFXChainPhaserRate());
-		this->SetParameter(ParameterFXChainPhaserResonance, this->m_PerformanceConfig.GetFXChainPhaserResonance());
+		this->SetParameter(ParameterFXChainPhaserDepth, this->m_PerformanceConfig.GetFXChainPhaserDepth());
+		this->SetParameter(ParameterFXChainPhaserFeedback, this->m_PerformanceConfig.GetFXChainPhaserFeedback());
+		this->SetParameter(ParameterFXChainPhaserNbStages, this->m_PerformanceConfig.GetFXChainPhaserNbStages());
 		this->SetParameter(ParameterFXChainDelayEnable, this->m_PerformanceConfig.GetFXChainDelayEnable());
 		this->SetParameter(ParameterFXChainDelayWet, this->m_PerformanceConfig.GetFXChainDelayWet());
 		this->SetParameter(ParameterFXChainDelayLeftDelayTime, this->m_PerformanceConfig.GetFXChainDelayLeftDelayTime());

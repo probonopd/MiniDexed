@@ -182,7 +182,9 @@ bool CPerformanceConfig::Load (void)
 	this->m_bFXChainPhaserEnable = this->m_Properties.GetNumber("FXChainPhaserEnable", 1);
 	this->m_nFXChainPhaserWet = this->m_Properties.GetNumber("FXChainPhaserWet", 50);
 	this->m_nFXChainPhaserRate = this->m_Properties.GetNumber("FXChainPhaserRate", 5);
-	this->m_nFXChainPhaserResonance = this->m_Properties.GetNumber("FXChainPhaserResonance", 45);
+	this->m_nFXChainPhaserDepth = this->m_Properties.GetNumber("FXChainPhaserDepth", 99);
+	this->m_nFXChainPhaserFeedback = this->m_Properties.GetNumber("FXChainPhaserFeedback", 50);
+	this->m_nFXChainPhaserNbStages = this->m_Properties.GetNumber("FXChainPhaserNbStages", 12);
 	this->m_bFXChainDelayEnable = this->m_Properties.GetNumber("FXChainDelayEnable", 1);
 	this->m_nFXChainDelayWet = this->m_Properties.GetNumber("FXChainDelayWet", 50);
 	this->m_nFXChainDelayLeftDelayTime = this->m_Properties.GetNumber("FXChainDelayLeftDelayTime", 15);
@@ -337,7 +339,9 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXChainPhaserEnable", m_bFXChainPhaserEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainPhaserWet", m_nFXChainPhaserWet);
 	this->m_Properties.SetNumber("FXChainPhaserRate", m_nFXChainPhaserRate);
-	this->m_Properties.SetNumber("FXChainPhaserResonance", m_nFXChainPhaserResonance);
+	this->m_Properties.SetNumber("FXChainPhaserDepth", m_nFXChainPhaserDepth);
+	this->m_Properties.SetNumber("FXChainPhaserFeedback", m_nFXChainPhaserFeedback);
+	this->m_Properties.SetNumber("FXChainPhaserNbStages", m_nFXChainPhaserNbStages);
 	this->m_Properties.SetNumber("FXChainDelayEnable", m_bFXChainDelayEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXChainDelayWet", m_nFXChainDelayWet);
 	this->m_Properties.SetNumber("FXChainDelayLeftDelayTime", m_nFXChainDelayLeftDelayTime);
@@ -1109,9 +1113,19 @@ unsigned CPerformanceConfig::GetFXChainPhaserRate(void) const
 	return this->m_nFXChainPhaserRate;
 }
 
-unsigned CPerformanceConfig::GetFXChainPhaserResonance(void) const
+unsigned CPerformanceConfig::GetFXChainPhaserDepth(void) const
 {
-	return this->m_nFXChainPhaserResonance;
+	return this->m_nFXChainPhaserDepth;
+}
+
+unsigned CPerformanceConfig::GetFXChainPhaserFeedback(void) const
+{
+	return this->m_nFXChainPhaserFeedback;
+}
+
+unsigned CPerformanceConfig::GetFXChainPhaserNbStages(void) const
+{
+	return this->m_nFXChainPhaserNbStages;
 }
 
 bool CPerformanceConfig::GetFXChainDelayEnable(void) const
@@ -1279,9 +1293,19 @@ void CPerformanceConfig::SetFXChainPhaserRate(unsigned nValue)
 	this->m_nFXChainPhaserRate = nValue;
 }
 
-void CPerformanceConfig::SetFXChainPhaserResonance(unsigned nValue)
+void CPerformanceConfig::SetFXChainPhaserDepth(unsigned nValue)
 {
-	this->m_nFXChainPhaserResonance = nValue;
+	this->m_nFXChainPhaserDepth = nValue;
+}
+
+void CPerformanceConfig::SetFXChainPhaserFeedback(unsigned nValue)
+{
+	this->m_nFXChainPhaserFeedback = nValue;
+}
+
+void CPerformanceConfig::SetFXChainPhaserNbStages(unsigned nValue)
+{
+	this->m_nFXChainPhaserNbStages = nValue;
 }
 
 void CPerformanceConfig::SetFXChainDelayEnable(unsigned bValue)

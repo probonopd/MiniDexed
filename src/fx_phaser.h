@@ -20,66 +20,57 @@
 
 #include "fx_components.h"
 
-class PhaserStage;
-
-class PhaserParameter : public FXBase
+class AllpassDelay
 {
-    friend class PhaserStage;
-    DISALLOW_COPY_AND_ASSIGN(PhaserParameter);
+    DISALLOW_COPY_AND_ASSIGN(AllpassDelay);
 
 public:
-    PhaserParameter(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t q = 1.0f);
-    virtual ~PhaserParameter();
+    AllpassDelay();
+    virtual ~AllpassDelay();
 
-    void setFrequency(float32_t frequency);
-    inline float32_t getFrequency() const;
+    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
 
-    void setResonance(float32_t q);
-    inline float32_t getResonance() const;
+    void setDelay(float32_t delay);
 
 private:
-    void computeCoefficients();
-
-    float32_t frequency_;           // LFO frequency in Hz (0.01 - 5.0)
-    float32_t resonance_;           // Resonance factor for the filters (0.5 - 10.0)
-
-    float32_t a0, a1, a2, b1, b2;   // Coefficients for the stage's filter
+    float32_t a1_;
+    float32_t z_[2];
 };
 
-class PhaserStage : public FXElement
-{
-    DISALLOW_COPY_AND_ASSIGN(PhaserStage);
 
-public:
-    PhaserStage(float32_t sampling_rate, PhaserParameter* params);
-
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
-
-private:
-    PhaserParameter* params_;   // All paremters of the phaser including the inner coefficients
-    float32_t z1[2], z2[2];     // State variables for the stage's filter
-};
-
-#define NUM_PHASER_STAGES 6
+#define MAX_NB_PHASES 24
 
 class Phaser : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
 public:
-    Phaser(float32_t sampling_rate, float32_t frequency = 0.5f, float32_t resonance = 1.0f);
+    Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f);
     virtual ~Phaser();
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setFrequency(float32_t frequency);
-    float32_t getFrequency() const;
+    void setFrequencyRange(float32_t min_frequency, float32_t max_frequency);
 
-    void setResonance(float32_t resonance);
-    float32_t getResonance() const;
+    void setRate(float32_t rate);
+    float32_t getRate() const;
+
+    void setDepth(float32_t depth);
+    float32_t getDepth() const;
+
+    void setFeedback(float32_t depth);
+    float32_t getFeedback() const;
+
+    void setNbStages(unsigned nb_stages);
+    unsigned getNbStages() const;
 
 private:
-    PhaserParameter params_;
     LFO lfo_;
-    PhaserStage* stages_[NUM_PHASER_STAGES];
+    float32_t depth_;
+    float32_t feedback_;
+    float32_t dmin_;
+    float32_t dmax_;
+    unsigned nb_stages_;
+    AllpassDelay stages_[MAX_NB_PHASES];
+    float32_t z_[2];
 };

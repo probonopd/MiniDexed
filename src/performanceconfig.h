@@ -140,7 +140,9 @@ public:
 	bool GetFXChainPhaserEnable(void) const;
 	unsigned GetFXChainPhaserWet(void) const;
 	unsigned GetFXChainPhaserRate(void) const;
-	unsigned GetFXChainPhaserResonance(void) const;
+	unsigned GetFXChainPhaserDepth(void) const;
+	unsigned GetFXChainPhaserFeedback(void) const;
+	unsigned GetFXChainPhaserNbStages(void) const;
 	bool GetFXChainDelayEnable(void) const;
 	unsigned GetFXChainDelayWet(void) const;
 	unsigned GetFXChainDelayLeftDelayTime(void) const;
@@ -175,7 +177,9 @@ public:
 	void SetFXChainPhaserEnable(bool bValue);
 	void SetFXChainPhaserWet(unsigned nValue);
 	void SetFXChainPhaserRate(unsigned nValue);
-	void SetFXChainPhaserResonance(unsigned nValue);
+	void SetFXChainPhaserDepth(unsigned nValue);
+	void SetFXChainPhaserFeedback(unsigned nValue);
+	void SetFXChainPhaserNbStages(unsigned nValue);
 	void SetFXChainDelayEnable(unsigned nValue);
 	void SetFXChainDelayWet(unsigned nValue);
 	void SetFXChainDelayLeftDelayTime(unsigned nValue);
@@ -279,7 +283,9 @@ private:
 	bool m_bFXChainPhaserEnable;
 	unsigned m_nFXChainPhaserWet;
 	unsigned m_nFXChainPhaserRate;
-	unsigned m_nFXChainPhaserResonance;
+	unsigned m_nFXChainPhaserDepth;
+	unsigned m_nFXChainPhaserFeedback;
+	unsigned m_nFXChainPhaserNbStages;
 	bool m_bFXChainDelayEnable;
 	unsigned m_nFXChainDelayWet;
 	unsigned m_nFXChainDelayLeftDelayTime;

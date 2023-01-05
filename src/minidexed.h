@@ -175,7 +175,9 @@ public:
 		ParameterFXChainPhaserEnable,
 		ParameterFXChainPhaserWet,
 		ParameterFXChainPhaserRate,
-		ParameterFXChainPhaserResonance,
+		ParameterFXChainPhaserDepth,
+		ParameterFXChainPhaserFeedback,
+		ParameterFXChainPhaserNbStages,
 
 		// FXChain > Delay parameters
 		ParameterFXChainDelayEnable,

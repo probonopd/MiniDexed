@@ -1,129 +1,125 @@
 #include "fx_phaser.h"
 
+#include <algorithm>
 #include <cmath>
 
-PhaserParameter::PhaserParameter(float32_t sampling_rate, float32_t frequency, float32_t resonance) :
-    FXBase(sampling_rate),
-    frequency_(frequency),
-    resonance_(resonance)
+AllpassDelay::AllpassDelay() :
+    a1_(0.0f)
 {
-    this->computeCoefficients();
+    memset(this->z_, 0, 2 * sizeof(float32_t));
 }
 
-PhaserParameter::~PhaserParameter()
+AllpassDelay::~AllpassDelay()
 {
 }
 
-void PhaserParameter::computeCoefficients()
+void AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    float32_t w0 = 2.0f * PI * this->getFrequency() / this->getSamplingRate();
-    float32_t alpha = sin(w0) / (2.0f * this->resonance_);
-    this->a0 = 1.0f + alpha;
-    this->a1 = -2.0f * cos(w0);
-    this->a2 = 1.0f - alpha;
-    this->b1 = this->a1;
-    this->b2 = this->a2;
+    outL = inL * -this->a1_ + this->z_[0];
+    this->z_[0] = outL * this->a1_ + inL;
+
+    outR = inR * -this->a1_ + this->z_[1];
+    this->z_[1] = outR * this->a1_ + inR;
 }
 
-void PhaserParameter::setFrequency(float32_t frequency)
+void AllpassDelay::setDelay(float32_t delay)
 {
-    this->frequency_ = frequency;
-    this->computeCoefficients();
-}
-
-float32_t PhaserParameter::getFrequency() const
-{
-    return this->frequency_;
-}
-
-void PhaserParameter::setResonance(float32_t resonance)
-{
-    this->resonance_ = constrain(resonance, 0.5f, 10.0f);
-    this->computeCoefficients();
-}
-
-float32_t PhaserParameter::getResonance() const
-{
-    return this->resonance_;
+    this->a1_ = (1.0f - delay) / (1.0f + delay);
 }
 
 
-
-// PhaserStage implementation
-PhaserStage::PhaserStage(float32_t sampling_rate, PhaserParameter* params) :
+Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) : 
     FXElement(sampling_rate),
-    params_(params)
+    lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 2.5f),
+    depth_(0.0f),
+    feedback_(0.0f),
+    dmin_(0.0f),
+    dmax_(0.0f)
 {
-    memset(this->z1, 0, 2 * sizeof(float32_t));
-    memset(this->z2, 0, 2 * sizeof(float32_t));
-}
+    this->setRate(rate);
+    this->setDepth(depth);
+    this->setFeedback(feedback);
+    this->setFrequencyRange(440.0f, 1600.0f);
 
-void PhaserStage::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
-{
-    outL = (this->params_->a0 * inL + this->params_->a1 * this->z1[0] + this->params_->a2 * this->z2[0]) / this->params_->a0;
-    this->z2[0] = this->z1[0];
-    this->z2[0] = inL;
-
-    outR = (this->params_->a0 * inR + this->params_->a1 * this->z1[1] + this->params_->a2 * this->z2[1]) / this->params_->a0;
-    this->z2[1] = this->z1[1];
-    this->z2[1] = inR;
-}
-
-
-
-// Phaser implementation
-Phaser::Phaser(float32_t sampling_rate, float32_t frequency, float32_t q) : 
-    FXElement(sampling_rate),
-    params_(sampling_rate, frequency, q),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.01f, 1.0f)
-{
-    for(unsigned i = 0; i < NUM_PHASER_STAGES; ++i)
-    {
-        this->stages_[i] = new PhaserStage(sampling_rate, &this->params_);
-    }
+    memset(this->z_, 0, 2 * sizeof(float32_t));
 }
 
 Phaser::~Phaser()
 {
-    for(unsigned i = 0; i < NUM_PHASER_STAGES; ++i)
-    {
-        delete this->stages_[i];
-    }
 }
 
 void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    // Process the input sample through each stage of the phaser
-    float32_t sampleL = inL;
-    float32_t sampleR = inR;
-    for(unsigned s = 0; s < NUM_PHASER_STAGES; ++s)
+    float32_t d = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_.process()) / 2.0f);
+
+    float32_t sampleL = inL + this->feedback_ * this->z_[0];
+    float32_t sampleR = inR + this->feedback_ * this->z_[1];
+    for(unsigned i = 0; i < this->nb_stages_; ++i)
     {
-        this->stages_[s]->processSample(sampleL, sampleR, sampleL, sampleR);
+        this->stages_[i].setDelay(d);
+
+        this->stages_[i].processSample(sampleL, sampleR, sampleL, sampleR);
     }
+    this->z_[0] = sampleL;
+    this->z_[1] = sampleR;
 
-    // Modulate the output of the phaser using the LFO 
-    float32_t lfo = this->lfo_.process();
-    outR = sampleR * (0.5f + 0.5f * lfo);
-    outL = sampleL * (0.5f + 0.5f * lfo);
+    outL = inL + this->z_[0] * this->depth_;
+    outR = inR + this->z_[1] * this->depth_;
 }
 
-void Phaser::setFrequency(float32_t frequency)
+void Phaser::setFrequencyRange(float32_t min_frequency, float32_t max_frequency)
 {
-    this->lfo_.setNormalizedFrequency(frequency);
-    this->params_.setFrequency(this->lfo_.getFrequency());
+    this->dmin_ = 2.0f * std::min(min_frequency, max_frequency) / this->getSamplingRate();
+    this->dmax_ = 2.0f * std::max(min_frequency, max_frequency) / this->getSamplingRate();
 }
 
-inline float32_t Phaser::getFrequency() const
+void Phaser::setRate(float32_t rate)
+{
+    rate = constrain(rate, 0.0f, 1.0f);
+    this->lfo_.setNormalizedFrequency(rate);
+}
+
+inline float32_t Phaser::getRate() const
 {
     return this->lfo_.getNormalizedFrequency();
 }
 
-void Phaser::setResonance(float32_t q)
+void Phaser::setDepth(float32_t depth)
 {
-    this->params_.setResonance(q);
+    depth = constrain(depth, 0.0f, 1.0f);
+    this->depth_ = depth;
 }
 
-inline float32_t Phaser::getResonance() const
+inline float32_t Phaser::getDepth() const
 {
-    return this->params_.getResonance();
+    return this->depth_;
+}
+
+void Phaser::setFeedback(float32_t feedback)
+{
+    feedback = constrain(feedback, 0.0f, 0.97f);
+    this->feedback_ = feedback;
+}
+
+inline float32_t Phaser::getFeedback() const
+{
+    return this->feedback_;
+}
+
+void Phaser::setNbStages(unsigned nb_stages)
+{
+    if(nb_stages < 2)
+    {
+        nb_stages = 2;
+    }
+    else if(nb_stages > MAX_NB_PHASES)
+    {
+        nb_stages = MAX_NB_PHASES;
+    }
+    this->nb_stages_ = nb_stages;
+}
+
+unsigned Phaser::getNbStages() const
+{
+    return this->nb_stages_;
 }
