@@ -45,7 +45,7 @@
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 
-#ifdef ARM_ALLOW_MULTI_CORE
+#ifdef FXRACK_ENABLE
 #include "fx_rack.h"
 #endif
 

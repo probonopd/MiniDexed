@@ -20,6 +20,9 @@
 
 #include "fx_components.h"
 
+#include <iostream>
+using namespace std;
+
 class FXUnitModule
 {
     DISALLOW_COPY_AND_ASSIGN(FXUnitModule);
@@ -94,10 +97,7 @@ public:
     {
         if(!this->isEnable() || this->getWetLevel() == 0.0f)
         {
-            if(!this->isEnable())
-            {
-                _FXElement::reset();
-            }
+            this->reset();
 
             outL = inL;
             outR = inR;

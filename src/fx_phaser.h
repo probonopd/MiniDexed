@@ -45,7 +45,7 @@ public:
         float32_t z_[2];
     };
 
-    Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f);
+    Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f, unsigned nb_stages = 12);
     virtual ~Phaser();
 
     virtual void reset() override;

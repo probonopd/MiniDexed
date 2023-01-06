@@ -39,6 +39,14 @@ FXRack::~FXRack()
     delete this->fxShimmerReverb_;
 }
 
+inline void FXRack::reset()
+{
+    for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
+    {
+        (*it)->reset();;
+    }
+}
+
 inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
@@ -47,14 +55,6 @@ inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL,
 
         inL = outL;
         inR = outR;
-    }
-}
-
-void FXRack::reset()
-{
-    for(FXChain::iterator it = this->fx_chain_.begin(); it != this->fx_chain_.end(); it++)
-    {
-        (*it)->reset();;
     }
 }
 

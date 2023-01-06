@@ -33,7 +33,7 @@ void Phaser::AllpassDelay::setDelay(float32_t delay)
 }
 
 
-Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) : 
+Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
     FXElement(sampling_rate),
     lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 2.5f),
     depth_(0.0f),
@@ -44,6 +44,7 @@ Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32
     this->setRate(rate);
     this->setDepth(depth);
     this->setFeedback(feedback);
+    this->setNbStages(nb_stages);
     this->setFrequencyRange(440.0f, 1600.0f);
 
     this->reset();
@@ -57,7 +58,7 @@ void Phaser::reset()
 {
     memset(this->z_, 0, 2 * sizeof(float32_t));
 
-    for(unsigned i = 0; i < this->nb_stages_; ++i)
+    for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
     {
         this->stages_[i].reset();
     }

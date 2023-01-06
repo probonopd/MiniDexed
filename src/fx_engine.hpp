@@ -98,8 +98,11 @@ public:
     virtual void reset() override
     {
         this->clear();
-        this->lfo_[LFOIndex::LFO_1]->reset();
-        this->lfo_[LFOIndex::LFO_2]->reset();
+        if(enable_lfo)
+        {
+            this->lfo_[LFOIndex::LFO_1]->reset();
+            this->lfo_[LFOIndex::LFO_2]->reset();
+        }
     }
 
     struct Empty

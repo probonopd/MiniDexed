@@ -91,7 +91,7 @@ float32_t LFO::process()
     switch(this->waveform_)
     {
     case Waveform::Sine:
-        out = std::sin(this->phase_);
+        out = arm_sin_f32(this->phase_);
         break;
     case Waveform::Saw:
         out = Constants::M1_PI * this->phase_ - 1.0f;
@@ -187,7 +187,7 @@ void JitterGenerator::reset()
 
 float32_t JitterGenerator::process()
 {
-    float32_t out = std::sin(this->phase_);
+    float32_t out = arm_sin_f32(this->phase_);
 
     this->phase_ += this->phase_increment_ * (1.0f + this->magnitude_ * this->rnd_distribution_(this->rnd_generator_));
     if(this->phase_ > Constants::M2PI)
