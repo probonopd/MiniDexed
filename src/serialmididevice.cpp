@@ -109,6 +109,10 @@ void CSerialMIDIDevice::Process (void)
 			}
 			continue;
 		}
+		else if(uchData == 0xF8 || uchData == 0xFE)
+		{
+			continue;
+		}
 		else
 		{
 			switch (m_nSerialState)
