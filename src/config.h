@@ -93,6 +93,8 @@ public:
 	unsigned GetSSD1306LCDI2CAddress (void) const;
 	unsigned GetSSD1306LCDWidth (void) const;
 	unsigned GetSSD1306LCDHeight (void) const;
+	bool     GetSSD1306LCDRotate (void) const;
+	bool     GetSSD1306LCDMirror (void) const;
 
 	unsigned GetLCDColumns (void) const;
 	unsigned GetLCDRows (void) const;
@@ -167,6 +169,8 @@ private:
 	unsigned m_nSSD1306LCDI2CAddress;
 	unsigned m_nSSD1306LCDWidth;
 	unsigned m_nSSD1306LCDHeight;
+	bool     m_bSSD1306LCDRotate;
+	bool     m_bSSD1306LCDMirror;
 	
 	unsigned m_nLCDColumns;
 	unsigned m_nLCDRows;
