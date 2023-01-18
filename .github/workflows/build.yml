@@ -23,6 +23,9 @@ jobs:
     - name: Use Circle develop branch for SSD1306 display rotation support until it is merged upstream
       run: |
            set -ex
+           cd circle-stdlib/
+           git checkout e318f89 # Needed to support Circle develop?
+           cd -
            cd circle-stdlib/libs/circle
            git checkout ec09d7e # develop
            cd -
