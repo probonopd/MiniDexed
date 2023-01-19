@@ -142,15 +142,22 @@ private:
 #ifdef ARM_ALLOW_MULTI_CORE
 	static const TMenuItem s_ReverbMenu[];
 #endif
-#ifdef FXRACK_ENABLE
-	static const TMenuItem s_FXChainMenu[];
-	static const TMenuItem s_FXChainTube[];
-	static const TMenuItem s_FXChainChorus[];
-	static const TMenuItem s_FXChainFlanger[];
-	static const TMenuItem s_FXChainOrbitone[];
-	static const TMenuItem s_FXChainPhaser[];
-	static const TMenuItem s_FXChainDelay[];
-	static const TMenuItem s_FXChainShimmerReverb[];
+#ifdef MIXING_CONSOLE_ENABLE
+	static const TMenuItem s_FXMenu[];
+	static const TMenuItem s_FXTube[];
+	static const TMenuItem s_FXTubeReturn[];
+	static const TMenuItem s_FXChorus[];
+	static const TMenuItem s_FXChorusReturn[];
+	static const TMenuItem s_FXFlanger[];
+	static const TMenuItem s_FXFlangerReturn[];
+	static const TMenuItem s_FXOrbitone[];
+	static const TMenuItem s_FXOrbitoneReturn[];
+	static const TMenuItem s_FXPhaser[];
+	static const TMenuItem s_FXPhaserReturn[];
+	static const TMenuItem s_FXDelay[];
+	static const TMenuItem s_FXDelayReturn[];
+	static const TMenuItem s_FXShimmerReverb[];
+	static const TMenuItem s_FXShimmerReverbReturn[];
 #endif
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];

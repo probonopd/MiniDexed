@@ -19,6 +19,7 @@
 //
 
 #include "fx.h"
+#include "mixing_console_constants.h"
 
 class StateVariableFilter : public FXElement
 {
@@ -29,20 +30,16 @@ public:
     {
         LPF,    // Low pass filter
         HPF,    // High pass filter
-        BPF,    // Band pass filter
-        NOTCH,  // Notch Filter
-        PEQ,    // Peaking band EQ filter
-        LSH,    // Low shelf filter
-        HSH     // High shelf filter
+        BPF     // Band pass filter
     } Type;
 
     StateVariableFilter(float32_t sampling_rate, Type type, float32_t cutoff);
     virtual ~StateVariableFilter();
 
     void setFilterType(Type type);
+    void setGainDB(float32_t gainDB);
     void setCutoff(float32_t cutoff);
     void setResonance(float32_t resonance);
-    void setPeakGainDB(float32_t gainDB);
 
     virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
@@ -51,14 +48,17 @@ private:
     void updateCoefficients();
 
     Type type_;
+    float32_t gain_;
     float32_t cutoff_;
     float32_t resonance_;
-    float32_t peak_gain_;
-    float32_t a0_;
-    float32_t a1_;
-    float32_t a2_;
-    float32_t b1_;
-    float32_t b2_;
-    float32_t z1_[2];
-    float32_t z2_[2];
+    float32_t g_;
+    float32_t w_;
+    float32_t a_;
+    float32_t b_;
+    float32_t c1_;
+    float32_t c2_;
+    float32_t d0_;
+    float32_t d1_;
+    float32_t z1_[StereoChannels::kNumChannels];
+    float32_t z2_[StereoChannels::kNumChannels];
 };

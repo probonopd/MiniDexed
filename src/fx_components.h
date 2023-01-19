@@ -28,6 +28,8 @@ struct Constants
 {
     const static float32_t M2PI;   // 2 * PI
     const static float32_t MPI_2;  // PI / 2
+    const static float32_t MPI_3;  // PI / 3
+    const static float32_t MPI_4;  // PI / 4
     const static float32_t M1_PI;  // 1 / PI
 };
 
@@ -76,162 +78,6 @@ private:
     std::uniform_real_distribution<float32_t>   rnd_distribution_;
 };
 
-template<typename T, unsigned size, unsigned nb_channels = 2, bool circular_buffer = true>
-class Buffer
-{
-    DISALLOW_COPY_AND_ASSIGN(Buffer);
-
-public:
-    Buffer() : 
-        index_(0)
-    {
-        this->values_ = new T*[nb_channels];
-        for(unsigned i = 0; i < nb_channels; ++i)
-        {
-            this->values_[i] = new T[size];
-        }
-        this->reset();
-    }
-
-    virtual ~Buffer()
-    {
-        for(unsigned i = 0; i < nb_channels; ++i)
-        {
-            delete[] this->values_[i];
-        }
-        delete[] this->values_;
-    }
-
-    void reset(bool reset_index = true)
-    {
-        this->zero();
-
-        if(reset_index)
-        {
-            this->index_ = 0;
-        }
-    }
-
-    T& operator[](unsigned channel)
-    {
-        assert(channel < nb_channels);
-        return *(this->values_[channel] + this->index_);
-    }
-
-    bool operator++()
-    {
-        this->index_++;
-        if(this->index_ >= size)
-        {
-            if(circular_buffer)
-            {
-                this->index_ = 0;
-                return true;
-            }
-            else
-            {
-                this->index_ = size - 1;
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool operator--()
-    {
-        if(this->index_ > 0)
-        {
-            this->index_--;
-            return true;
-        }
-        else
-        {
-            if(circular_buffer)
-            {
-                this->index_ = size - 1;
-                return true;
-            }
-            else
-            {
-                this->index_ = 0;
-                return false;
-            }
-        }
-    }
-
-    void copy(T* buffer, unsigned channel, unsigned nb, bool from_start = true)
-    {
-        assert(channel < nb_channels);
-        unsigned start = from_start ? 0 : this->index_;
-        unsigned _nb = std::min(nb, size - start);
-        memcpy(this->values_[channel] + start, buffer, _nb);
-    }
-
-    void zero()
-    {
-        for(unsigned c = 0; c < nb_channels; ++c)
-        {
-            memset(this->values_[c], 0, size * sizeof(T));
-        }
-    }
-
-    void scale(T scale)
-    {
-        for(unsigned c = 0; c < nb_channels; ++c)
-        {
-            for(unsigned i = 0; i < size; ++i)
-            {
-                this->values_[c][i] *= scale;
-            }
-        }
-    }
-
-    unsigned index() const
-    {
-        return this->index_;
-    }
-
-    unsigned nbChannels() const
-    {
-        return nb_channels;
-    }
-
-    unsigned bufferSize() const
-    {
-        return size;
-    }
-
-    bool isCircularBuffer() const
-    {
-        return circular_buffer;
-    }
-
-private:
-    unsigned index_;
-    T** values_;
-};
-
-template<unsigned size, unsigned nb_channels, bool circular_buffer>
-class Buffer<float32_t, size, nb_channels, circular_buffer>
-{
-    void scale(float32_t scale)
-    {
-        for(unsigned c = 0; c < nb_channels; ++c)
-        {
-            arm_scale_f32(this->values_[c], scale, this->values_[c], size);
-        }
-    }
-
-    void copy(float32_t* buffer, unsigned channel, unsigned nb, bool from_start = true)
-    {
-        assert(channel < nb_channels);
-        unsigned start = from_start ? 0 : this->index_;
-        unsigned _nb = std::min(nb, size - start);
-        arm_copy_f32(buffer, this->values_[channel] + start, _nb);
-    }
-
-};
-
 
 class JitterGenerator : public FXBase
 {
@@ -260,7 +106,39 @@ private:
     float32_t phase_increment_;
 };
 
+
+class PerlinNoiseGenerator : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(PerlinNoiseGenerator);
+
+public:
+    PerlinNoiseGenerator(float32_t sampling_rate, float32_t rate = 0.2f);
+    virtual ~PerlinNoiseGenerator();
+
+    void setRate(float32_t rate);
+    float32_t getRate() const;
+
+    float32_t getCurrent() const;
+
+    virtual void reset() override;
+    float32_t process();
+
+private:
+    static int hash(int x);
+    static float32_t interpolate(float32_t a, float32_t b, float32_t x);
+    static float32_t perlin(float32_t x);
+
+    float32_t rate_;
+    float32_t phase_;
+    float32_t phase_increment_;
+    float32_t current_;
+
+    static const float32_t Gradients[];
+};
+
 float32_t softSaturator1(float32_t in, float32_t threshold);
 float32_t softSaturator2(float32_t in, float32_t saturation);
+float32_t softSaturator3(float32_t in, float32_t saturation);
+float32_t softSaturator4(float32_t in, float32_t saturation);
 
 float32_t waveFolder(float32_t input, float32_t bias);

@@ -34,57 +34,70 @@ using namespace std;
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
-	{"MiniDexed", MenuHandler, s_MainMenu},
+	{"MiniDexed", 	MenuHandler, 	CUIMenu::s_MainMenu},
 	{0}
 };
 
 // inserting menu items before "TG1" affect TGShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
-	{"TG1",		MenuHandler,	s_TGMenu, 0},
+	{"TG1",			MenuHandler,	CUIMenu::s_TGMenu, 0},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"TG2",		MenuHandler,	s_TGMenu, 1},
-	{"TG3",		MenuHandler,	s_TGMenu, 2},
-	{"TG4",		MenuHandler,	s_TGMenu, 3},
-	{"TG5",		MenuHandler,	s_TGMenu, 4},
-	{"TG6",		MenuHandler,	s_TGMenu, 5},
-	{"TG7",		MenuHandler,	s_TGMenu, 6},
-	{"TG8",		MenuHandler,	s_TGMenu, 7},
+	{"TG2",			MenuHandler,	CUIMenu::s_TGMenu, 1},
+	{"TG3",			MenuHandler,	CUIMenu::s_TGMenu, 2},
+	{"TG4",			MenuHandler,	CUIMenu::s_TGMenu, 3},
+	{"TG5",			MenuHandler,	CUIMenu::s_TGMenu, 4},
+	{"TG6",			MenuHandler,	CUIMenu::s_TGMenu, 5},
+	{"TG7",			MenuHandler,	CUIMenu::s_TGMenu, 6},
+	{"TG8",			MenuHandler,	CUIMenu::s_TGMenu, 7},
 #endif
-	{"Effects",	MenuHandler,	s_EffectsMenu},
-	{"Performance",	MenuHandler, s_PerformanceMenu}, 
+	{"Effects",		MenuHandler,	CUIMenu::s_EffectsMenu},
+	{"Performance",	MenuHandler, 	CUIMenu::s_PerformanceMenu}, 
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 {
-	{"Voice",	EditProgramNumber},
-	{"Bank",	EditVoiceBankNumber},
-	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
+	{"Voice",		EditProgramNumber},
+	{"Bank",		EditVoiceBankNumber},
+	{"Volume",		EditTGParameter,	0, CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
+	{"Pan",			EditTGParameter,	0, CMiniDexed::TGParameterPan},
 #endif
+#ifdef MIXING_CONSOLE_ENABLE
+	{"Tube-Send", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXTube},
+	{"Chorus-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXChorus},
+	{"FlangR-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXFlanger},
+	{"Orb-Send", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXOrbittone},
+	{"Phaser-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXPhaser},
+	{"Delay-Send", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXDelay},
+	{"Reverb-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXPlateReverb},
+	{"ShimmR-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXShimmerReverb},
+	{"Dry-Level", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXMainOutput},
+#else
 	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
-	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
-	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
-	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
-	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
-	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
-	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
-	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
-	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+#endif
+	{"Detune",		EditTGParameter,	0, CMiniDexed::TGParameterMasterTune},
+	{"Cutoff",		EditTGParameter,	0, CMiniDexed::TGParameterCutoff},
+	{"Resonance",	EditTGParameter,	0, CMiniDexed::TGParameterResonance},
+	{"Pitch Bend",	MenuHandler,		CUIMenu::s_EditPitchBendMenu},
+	{"Portamento",	MenuHandler,		CUIMenu::s_EditPortamentoMenu},
+	{"Poly/Mono",	EditTGParameter,	0, CMiniDexed::TGParameterMonoMode}, 
+	{"Modulation",	MenuHandler,		CUIMenu::s_ModulationMenu},
+	{"Channel",		EditTGParameter,	0, CMiniDexed::TGParameterMIDIChannel},
+	{"Edit Voice",	MenuHandler,		CUIMenu::s_EditVoiceMenu},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
-	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
+	{"Compress", 	EditGlobalParameter, 0, CMiniDexed::ParameterCompressorEnable},
+#ifdef MIXING_CONSOLE_ENABLE
+	{"FX", 			MenuHandler, CUIMenu::s_FXMenu},
+#else
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Reverb",	MenuHandler,		s_ReverbMenu},
+	{"Reverb",		MenuHandler, CUIMenu::s_ReverbMenu},
 #endif
-#ifdef FXRACK_ENABLE
-	{"FXChain", MenuHandler,		s_FXChainMenu},
 #endif
 	{0}
 };
@@ -106,10 +119,10 @@ const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_ModulationMenu[] =
 {
-	{"Mod. Wheel",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
-	{"Foot Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
-	{"Breath Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
-	{"Aftertouch",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
+	{"Mod. Wheel",		MenuHandler,	CUIMenu::s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
+	{"Foot Control",	MenuHandler,	CUIMenu::s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
+	{"Breath Control",	MenuHandler,	CUIMenu::s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
+	{"Aftertouch",		MenuHandler,	CUIMenu::s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
 	{0}
 };
 
@@ -138,89 +151,177 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 
 #endif
 
-#ifdef FXRACK_ENABLE
+#ifdef MIXING_CONSOLE_ENABLE
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] = 
+const CUIMenu::TMenuItem CUIMenu::s_FXMenu[] = 
 {
-	// FXChain
-	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
-	{"Wet Lvl",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainWet},
-
-	{"Tube", 	MenuHandler, s_FXChainTube},
-	{"Chorus", 	MenuHandler, s_FXChainChorus},
-	{"FlangR", 	MenuHandler, s_FXChainFlanger},
-	{"Orb", 	MenuHandler, s_FXChainOrbitone},
-	{"PhasR", 	MenuHandler, s_FXChainPhaser},
-	{"Delay", 	MenuHandler, s_FXChainDelay},
-	{"Shimmer", MenuHandler, s_FXChainShimmerReverb},
+	{"Tube", 	MenuHandler, CUIMenu::s_FXTube},
+	{"Chorus", 	MenuHandler, CUIMenu::s_FXChorus},
+	{"FlangR", 	MenuHandler, CUIMenu::s_FXFlanger},
+	{"Orb", 	MenuHandler, CUIMenu::s_FXOrbitone},
+	{"PhasR", 	MenuHandler, CUIMenu::s_FXPhaser},
+	{"Delay", 	MenuHandler, CUIMenu::s_FXDelay},
+	{"Reverb", 	MenuHandler, CUIMenu::s_ReverbMenu},
+	{"Shimmer", MenuHandler, CUIMenu::s_FXShimmerReverb},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainTube[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXTube[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTubeEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeWet},
-	{"Overdrv",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeOverdrive},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Overdrv",	EditGlobalParameter,	0, CMiniDexed::ParameterFXTubeOverdrive},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainChorus[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainChorusEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
-	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorusEnable},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChorusRate},
+	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChorusDepth},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainFlanger[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXFlanger[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
-	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlangerEnable},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXFlangerRate},
+	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXFlangerDepth},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXFlangerFeedback},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainOrbitone[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXOrbitone[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
-	{"Rate", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneRate},
-	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneDepth},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitoneEnable},
+	{"Rate", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXOrbitoneRate},
+	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXOrbitoneDepth},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXPhaser[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
-	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserDepth},
-	{"Feedbck",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserFeedback},
-	{"Stages",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserNbStages},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaserEnable},
+	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXPhaserRate},
+	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXPhaserDepth},
+	{"Feedbck",	EditGlobalParameter,	0, CMiniDexed::ParameterFXPhaserFeedback},
+	{"Stages",	EditGlobalParameter,	0, CMiniDexed::ParameterFXPhaserNbStages},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainDelay[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainDelayEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayWet},
-	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayLeftDelayTime},
-	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayRightDelayTime},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayFeedback},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelayEnable},
+	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXDelayLeftDelayTime},
+	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXDelayRightDelayTime},
+	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXDelayFeedback},
+	{"Flt Rte", EditGlobalParameter,	0, CMiniDexed::ParameterFXDelayFlutterRate},
+	{"Flt Amt", EditGlobalParameter,	0, CMiniDexed::ParameterFXDelayFlutterAmount},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXShimmerReverb[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
-	{"Gain",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbInputGain},
-	{"Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbTime},
-	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDiffusion},
-	{"LowPass",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbLP},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmerReverbEnable},
+	{"Gain",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbInputGain},
+	{"Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbTime},
+	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbDiffusion},
+	{"LowPass",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbLP},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXTubeReturn[] =
+{
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChorusReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXFlangerReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXOrbitoneReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXPhaserReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXDelayReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXReverbReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXShimmerReturn[] =
+{
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTubeEnable},
 	{0}
 };
 
@@ -229,32 +330,32 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
-	{"OP1",		MenuHandler,		s_OperatorMenu, 0},
-	{"OP2",		MenuHandler,		s_OperatorMenu, 1},
-	{"OP3",		MenuHandler,		s_OperatorMenu, 2},
-	{"OP4",		MenuHandler,		s_OperatorMenu, 3},
-	{"OP5",		MenuHandler,		s_OperatorMenu, 4},
-	{"OP6",		MenuHandler,		s_OperatorMenu, 5},
-	{"Algorithm",	EditVoiceParameter,	0,		DEXED_ALGORITHM},
-	{"Feedback",	EditVoiceParameter,	0,		DEXED_FEEDBACK},
-	{"P EG Rate 1",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R1},
-	{"P EG Rate 2",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R2},
-	{"P EG Rate 3",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R3},
-	{"P EG Rate 4",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R4},
-	{"P EG Level 1",EditVoiceParameter,	0,		DEXED_PITCH_EG_L1},
-	{"P EG Level 2",EditVoiceParameter,	0,		DEXED_PITCH_EG_L2},
-	{"P EG Level 3",EditVoiceParameter,	0,		DEXED_PITCH_EG_L3},
-	{"P EG Level 4",EditVoiceParameter,	0,		DEXED_PITCH_EG_L4},
-	{"Osc Key Sync",EditVoiceParameter,	0,		DEXED_OSC_KEY_SYNC},
-	{"LFO Speed",	EditVoiceParameter,	0,		DEXED_LFO_SPEED},
-	{"LFO Delay",	EditVoiceParameter,	0,		DEXED_LFO_DELAY},
-	{"LFO PMD",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_DEP},
-	{"LFO AMD",	EditVoiceParameter,	0,		DEXED_LFO_AMP_MOD_DEP},
-	{"LFO Sync",	EditVoiceParameter,	0,		DEXED_LFO_SYNC},
-	{"LFO Wave",	EditVoiceParameter,	0,		DEXED_LFO_WAVE},
-	{"P Mod Sens.",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_SENS},
-	{"Transpose",	EditVoiceParameter,	0,		DEXED_TRANSPOSE},
-	{"Name",	InputTxt,0 , 3}, 
+	{"OP1",			MenuHandler,		CUIMenu::s_OperatorMenu, 0},
+	{"OP2",			MenuHandler,		CUIMenu::s_OperatorMenu, 1},
+	{"OP3",			MenuHandler,		CUIMenu::s_OperatorMenu, 2},
+	{"OP4",			MenuHandler,		CUIMenu::s_OperatorMenu, 3},
+	{"OP5",			MenuHandler,		CUIMenu::s_OperatorMenu, 4},
+	{"OP6",			MenuHandler,		CUIMenu::s_OperatorMenu, 5},
+	{"Algorithm",	EditVoiceParameter,	0, 	DEXED_ALGORITHM},
+	{"Feedback",	EditVoiceParameter,	0, 	DEXED_FEEDBACK},
+	{"P EG Rate 1",	EditVoiceParameter,	0, 	DEXED_PITCH_EG_R1},
+	{"P EG Rate 2",	EditVoiceParameter,	0, 	DEXED_PITCH_EG_R2},
+	{"P EG Rate 3",	EditVoiceParameter,	0, 	DEXED_PITCH_EG_R3},
+	{"P EG Rate 4",	EditVoiceParameter,	0, 	DEXED_PITCH_EG_R4},
+	{"P EG Level 1",EditVoiceParameter,	0, 	DEXED_PITCH_EG_L1},
+	{"P EG Level 2",EditVoiceParameter,	0, 	DEXED_PITCH_EG_L2},
+	{"P EG Level 3",EditVoiceParameter,	0, 	DEXED_PITCH_EG_L3},
+	{"P EG Level 4",EditVoiceParameter,	0, 	DEXED_PITCH_EG_L4},
+	{"Osc Key Sync",EditVoiceParameter,	0, 	DEXED_OSC_KEY_SYNC},
+	{"LFO Speed",	EditVoiceParameter,	0, 	DEXED_LFO_SPEED},
+	{"LFO Delay",	EditVoiceParameter,	0, 	DEXED_LFO_DELAY},
+	{"LFO PMD",		EditVoiceParameter,	0, 	DEXED_LFO_PITCH_MOD_DEP},
+	{"LFO AMD",		EditVoiceParameter,	0, 	DEXED_LFO_AMP_MOD_DEP},
+	{"LFO Sync",	EditVoiceParameter,	0, 	DEXED_LFO_SYNC},
+	{"LFO Wave",	EditVoiceParameter,	0, 	DEXED_LFO_WAVE},
+	{"P Mod Sens.",	EditVoiceParameter,	0, 	DEXED_LFO_PITCH_MOD_SENS},
+	{"Transpose",	EditVoiceParameter,	0, 	DEXED_TRANSPOSE},
+	{"Name",		InputTxt,			0, 	3}, 
 	{0}
 };
 
@@ -281,7 +382,7 @@ const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
 	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
 	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
-	{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
+	{"Enable", 		EditOPParameter, 	0, 	DEXED_OP_ENABLE},
 	{0}
 };
 
@@ -306,58 +407,50 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1}				// ParameterReverbLevel
 
 	// BEGIN FXRack global parameters mapping definition
-	#ifdef FXRACK_ENABLE
+	#ifdef MIXING_CONSOLE_ENABLE
 	,
-	// FXChain parameters
-	{0,	1,	1, ToOnOff},	// ParameterFXChainEnable
-	{0,	99,	1},				// ParameterFXChainWet
 
-	// FXChain > Tube parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainTubeEnable
-	{0,	99,	1},				// ParameterFXChainTubeWet
-	{0,	99,	1},				// ParameterFXChainTubeOverdrive
+	// FX > Tube parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXTubeEnable
+	{0,	99,	1},				// ParameterFXTubeOverdrive
 
-	// FXChain > Chorus parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainChorusEnable
-	{0,	99,	1},				// ParameterFXChainChorusWet
-	{0,	99,	1},				// ParameterFXChainChorusRate
-	{0,	99,	1},				// ParameterFXChainChorusDepth
+	// FX > Chorus parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXChorusEnable
+	{0,	99,	1},				// ParameterFXChorusRate
+	{0,	99,	1},				// ParameterFXChorusDepth
 
-	// FXChain > Flanger parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainFlangerEnable
-	{0,	99,	1},				// ParameterFXChainFlangerWet
-	{0,	99,	1},				// ParameterFXChainFlangerRate
-	{0,	99,	1},				// ParameterFXChainFlangerDepth
-	{0,	99,	1},				// ParameterFXChainFlangerFeedback
+	// FX > Flanger parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXFlangerEnable
+	{0,	99,	1},				// ParameterFXFlangerRate
+	{0,	99,	1},				// ParameterFXFlangerDepth
+	{0,	99,	1},				// ParameterFXFlangerFeedback
 
-	// FXChain > Orbitone parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainOrbitoneEnable
-	{0,	99,	1},				// ParameterFXChainOrbitoneWet
-	{0,	99,	1},				// ParameterFXChainOrbitoneRate
-	{0,	99,	1},				// ParameterFXChainOrbitoneDepth
+	// FX > Orbitone parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXOrbitoneEnable
+	{0,	99,	1},				// ParameterFXOrbitoneRate
+	{0,	99,	1},				// ParameterFXOrbitoneDepth
 
-	// FXChain > Phaser parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainPhaserEnable
-	{0,	99,	1},				// ParameterFXChainPhaserWet
-	{0,	99,	1},				// ParameterFXChainPhaserRate
-	{0,	99,	1},				// ParameterFXChainPhaserDepth
-	{0,	99,	1},				// ParameterFXChainPhaserFeedback
-	{2,	MAX_NB_PHASES,	1},	// ParameterFXChainPhaserNbStages
+	// FX > Phaser parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXPhaserEnable
+	{0,	99,	1},				// ParameterFXPhaserRate
+	{0,	99,	1},				// ParameterFXPhaserDepth
+	{0,	99,	1},				// ParameterFXPhaserFeedback
+	{2,	MAX_NB_PHASES,	1},	// ParameterFXPhaserNbStages
 
-	// FXChain > Delay parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainDelayEnable
-	{0,	99,	1},				// ParameterFXChainDelayWet
-	{0,	99,	1},				// ParameterFXChainDelayLeftDelayTime
-	{0,	99,	1},				// ParameterFXChainDelayRightDelayTime
-	{0,	99,	1},				// ParameterFXChainDelayFeedback
+	// FX > Delay parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXDelayEnable
+	{0,	99,	1},				// ParameterFXDelayLeftDelayTime
+	{0,	99,	1},				// ParameterFXDelayRightDelayTime
+	{0,	99,	1},				// ParameterFXDelayFeedback
+	{0,	99,	1},				// ParameterFXDelayFlutterRate
+	{0,	99,	1},				// ParameterFXDelayFlutterAmount
 
-	// FXChain > ShimmerReverb parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainShimmerReverbEnable
-	{0,	99,	1},				// ParameterFXChainShimmerReverbWet
-	{0,	99,	1},				// ParameterFXChainShimmerReverbInputGain
-	{0,	99,	1},				// ParameterFXChainShimmerReverbTime
-	{0,	99,	1},				// ParameterFXChainShimmerReverbDiffusion
-	{0,	99,	1},				// ParameterFXChainShimmerReverbLP
+	// FX > ShimmerReverb parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXShimmerReverbEnable
+	{0,	99,	1},				// ParameterFXShimmerReverbInputGain
+	{0,	99,	1},				// ParameterFXShimmerReverbTime
+	{0,	99,	1},				// ParameterFXShimmerReverbDiffusion
+	{0,	99,	1},				// ParameterFXShimmerReverbLP
 
 	#endif
 	// END FXRack global parameters mapping definition

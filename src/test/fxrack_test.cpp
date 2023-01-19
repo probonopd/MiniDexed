@@ -1,6 +1,6 @@
 #include "../fx_rack.h"
-
 #include "../effect_platervbstereo.h"
+#include "../mixing_console.h"
 
 #include <iomanip>
 #include <iostream>
@@ -22,19 +22,6 @@ using namespace std;
 random_device rd;
 mt19937 gen(rd());
 uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
-
-float32_t arm_sin_f32(float32_t phase)
-{
-    return sin(phase);
-}
-
-void arm_scale_f32(const float32_t *pSrc, float32_t scale, float32_t *pDst, uint32_t blockSize)
-{
-    for(unsigned i = 0; i < blockSize; ++i)
-    {
-        pDst[i] = scale * pSrc[i];
-    }
-}
 
 void testPlateReverb(unsigned& step)
 {
@@ -227,7 +214,7 @@ enum FXSitch
     Flanger     = 1 << 4,
     Delay       = 1 << 5,
     Shimmer     = 1 << 6,
-    kNbFX       = 7
+    _kFXCount    = 7
 };
 
 int scenarii[] = 
@@ -413,9 +400,11 @@ void setupRack(unsigned& step, FXRack* rack)
     rack->getFlanger()->setFeedback(0.5f);
 
     rack->getDelay()->setWetLevel(0.6f);
-    rack->getDelay()->setLeftDelayTime(0.075f);
-    rack->getDelay()->setLeftDelayTime(0.05f);
-    rack->getDelay()->setFeedbak(0.5f);
+    rack->getDelay()->setLeftDelayTime(0.15f);
+    rack->getDelay()->setLeftDelayTime(0.2f);
+    rack->getDelay()->setFeedback(0.35f);
+    rack->getDelay()->setFlutterRate(0.15f);
+    rack->getDelay()->setFlutterAmount(0.75f);
 
     rack->getShimmerReverb()->setWetLevel(0.5f);
     rack->getShimmerReverb()->setInputGain(0.35f);
@@ -435,7 +424,7 @@ void activateRackFXUnitScenario(unsigned& step, FXRack* rack, int scenario)
     rack->getShimmerReverb()->setEnable(Active(scenario, FXSitch::Shimmer));
 }
 
-void testReset(unsigned& step)
+void testFXRackReset(unsigned& step)
 {
     FXRack *rack = new FXRack(44100.0f);
     rack->setEnable(true);
@@ -463,9 +452,9 @@ void testReset(unsigned& step)
     delete rack;
 }
 
-void testProcessing(unsigned& step)
+void testFXRackProcessing(unsigned& step)
 {
-    const unsigned nbRepeats = 1;
+    const unsigned nbRepeats = 2;
     unsigned size;
     float32_t** samples = readWaveFile("test.wav", size);
     float32_t* sampleOutL = new float32_t[size * nbRepeats];
@@ -481,6 +470,7 @@ void testProcessing(unsigned& step)
     unsigned i = 0;
     while(true)
     {
+        rack->reset();
         int fxSwitch = scenarii[i];
         if(fxSwitch == -1)
         {
@@ -497,9 +487,9 @@ void testProcessing(unsigned& step)
             rack->process(samples[0], samples[1], sampleOutL + i * size, sampleOutR + i * size, size);
         }
 
-        // stringstream ss;
-        // ss << "result " << name << ".wav";
-        // saveWaveFile(ss.str(), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(FS), 16);
+        stringstream ss;
+        ss << "waves/result " << name << ".wav";
+        saveWaveFile(ss.str(), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(FS), 16);
 
         cout << "done" << endl;
 
@@ -515,16 +505,177 @@ void testProcessing(unsigned& step)
     delete[] sampleOutR;
 }
 
+typedef MixingConsole<8> Mixer;
+
+void setupMixingConsoleFX(unsigned& step, Mixer* mixer)
+{
+    cout << "Step #" << (++step) << ": Set Mixing Console FX parameters" << endl;
+    // mixer->setWetLevel(1.0f);
+
+    // mixer->getTube()->setWetLevel(0.25f);
+    mixer->getTube()->setOverdrive(0.25f);
+
+    // mixer->getChorus()->setWetLevel(0.5f);
+    mixer->getChorus()->setRate(0.4f);
+    mixer->getChorus()->setDepth(0.5f);
+    
+    // mixer->getPhaser()->setWetLevel(1.0f);
+    mixer->getPhaser()->setRate(0.1f);
+    mixer->getPhaser()->setDepth(1.0f);
+    mixer->getPhaser()->setFeedback(0.5f);
+    mixer->getPhaser()->setNbStages(12);
+
+    // mixer->getOrbitone()->setWetLevel(0.8f);
+    mixer->getOrbitone()->setRate(0.4f);
+    mixer->getOrbitone()->setDepth(0.5f);
+
+    // mixer->getFlanger()->setWetLevel(0.5f);
+    mixer->getFlanger()->setRate(0.03f);
+    mixer->getFlanger()->setDepth(0.75f);
+    mixer->getFlanger()->setFeedback(0.5f);
+
+    // mixer->getDelay()->setWetLevel(0.6f);
+    mixer->getDelay()->setLeftDelayTime(0.5f);
+    mixer->getDelay()->setLeftDelayTime(0.7f);
+    mixer->getDelay()->setFeedback(0.7f);
+    mixer->getDelay()->setFlutterRate(0.7f);
+    mixer->getDelay()->setFlutterAmount(0.7f);
+
+    mixer->getPlateReverb()->set_bypass(false);
+    mixer->getPlateReverb()->size(0.7f);
+    mixer->getPlateReverb()->hidamp(0.5f);
+    mixer->getPlateReverb()->lodamp(0.5f);
+    mixer->getPlateReverb()->lowpass(0.3f);
+    mixer->getPlateReverb()->diffusion(0.65f);
+    mixer->getPlateReverb()->level(1.0f);
+
+    // mixer->getShimmerReverb()->setWetLevel(0.5f);
+    mixer->getShimmerReverb()->setInputGain(0.35f);
+    mixer->getShimmerReverb()->setTime(0.89f);
+    mixer->getShimmerReverb()->setDiffusion(0.75f);
+    mixer->getShimmerReverb()->setLP(0.8f);
+}
+
+void testUnitMixingConsole(unsigned& step)
+{
+    constexpr float32_t epsilon = 1e-7;
+    constexpr size_t length = 2;
+
+    Mixer* mixer = new Mixer(FS, length);
+
+    cout << "Step #" << (++step) << ": MixingConsole unitary dry" << endl;
+    mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
+    mixer->setPan(0, 0.5f);
+
+    float32_t in[length] = {0.1, 0.2};
+    float32_t out[StereoChannels::kNumChannels][length];
+
+    mixer->setInputSampleBuffer(0, in);
+    mixer->process(
+        out[StereoChannels::Left ],
+        out[StereoChannels::Right]
+    );
+    assert((out[StereoChannels::Left ][0] == out[StereoChannels::Right][0]) && (out[StereoChannels::Left ][1] == out[StereoChannels::Right][1]));
+    assert(out[StereoChannels::Left ][0] - (sqrt(2.0f) / 20.0f) < epsilon);
+    assert(out[StereoChannels::Left ][1] - (sqrt(2.0f) / 10.0f) < epsilon);
+
+    cout << "Step #" << (++step) << ": MixingConsole unitary shimmer" << endl;
+    mixer->setSendLevel(0, MixerOutput::MainOutput, 0.0f);
+    mixer->setSendLevel(0, MixerOutput::FX_ShimmerReverb, 1.0f);
+    mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 1.0f);
+    mixer->setPan(0, 0.5f);
+
+    mixer->setInputSampleBuffer(0, in);
+    mixer->process(
+        out[StereoChannels::Left ],
+        out[StereoChannels::Right]
+    );
+
+    float32_t out2[StereoChannels::kNumChannels][length];
+    mixer->reset();
+    mixer->setInputSampleBuffer(0, in);
+    mixer->process(
+        out2[StereoChannels::Left ],
+        out2[StereoChannels::Right]
+    );
+    assert(out[StereoChannels::Left ][0] == out2[StereoChannels::Left ][0]);
+    assert(out[StereoChannels::Left ][1] == out2[StereoChannels::Left ][1]);
+
+    delete mixer;
+}
+
+void testMixingConsole(unsigned& step)
+{
+    const unsigned nbRepeats = 4;
+    unsigned size;
+    float32_t** samples = readWaveFile("test.wav", size);
+    float32_t* sampleOutL = new float32_t[size * nbRepeats];
+    float32_t* sampleOutR = new float32_t[size * nbRepeats];
+    memset(sampleOutL, 0, size * nbRepeats * sizeof(float32_t));
+    memset(sampleOutR, 0, size * nbRepeats * sizeof(float32_t));
+
+    cout << "Step #" << (++step) << ": Testing MixingConsole" << endl;
+    Mixer* mixer = new Mixer(FS, size);
+
+    setupMixingConsoleFX(step, mixer);
+
+    mixer->getTube()->setOverdrive(0.15f);
+    mixer->setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
+    mixer->setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
+    // mixer->setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
+    // mixer->setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
+    // mixer->setSendLevel(0, MixerOutput::FX_ShimmerReverb, 1.0f);
+     mixer->setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
+     mixer->setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::FX_ShimmerReverb, 1.0f);
+     mixer->setReturnLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
+
+    mixer->setSendLevel(0, MixerOutput::MainOutput, 0.25f);
+     mixer->setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
+     mixer->setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
+     mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 0.3f);
+     mixer->setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
+
+    for(unsigned j = 0; j < nbRepeats; ++j)
+    {
+        // for(unsigned i = 0; i < size; ++i)
+        // {
+        //     mixer->setInputSample(0, samples[0][i], samples[1][i]);
+
+        //     mixer->processSample(sampleOutL[i + j * size], sampleOutR[i + j * size]);
+        // }
+
+        mixer->setInputSampleBuffer(0, samples[0], samples[1]);
+        mixer->process(sampleOutL + j * size, sampleOutR + j * size);
+    }
+    saveWaveFile("result-new-console.wav", sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(FS), 16);    
+
+    delete mixer;
+    cout << "Step #" << (++step) << ": Testing MixingConsole [DONE]" << endl;
+
+    delete[] samples[0];
+    delete[] samples[1];
+    delete[] samples;
+    delete[] sampleOutL;
+    delete[] sampleOutR;
+}
+
 int main()
 {
     unsigned step = 0;
 
-    testLFO(step);
-    testFlutter(step);
-    testSVF(step);
-    testPlateReverb(step);
-    testReset(step);
-    testProcessing(step);
+    // testLFO(step);
+
+    // testFlutter(step);
+
+    // testSVF(step);
+
+    // testPlateReverb(step);
+
+    // testFXRackReset(step);
+    // testFXRackProcessing(step);
+
+    // testUnitMixingConsole(step);
+    testMixingConsole(step);
 
     return 0;
 }

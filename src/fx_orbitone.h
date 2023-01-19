@@ -50,7 +50,7 @@ public:
     float32_t getDepth() const;
 
 private:
-    typedef FxEngine<4096, FORMAT_16_BIT, false> Engine;
+    typedef FxEngine<4096, Format::FORMAT_FLOAT32, false> Engine;
     Engine engine_;
 
     float32_t depth_;

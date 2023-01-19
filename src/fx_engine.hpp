@@ -8,10 +8,11 @@
 
 #define MAKE_INTEGRAL_FRACTIONAL(x) \
     int32_t x ## _integral = static_cast<int32_t>(x); \
-    float x ## _fractional = x - static_cast<float>(x ## _integral);
+    float32_t x ## _fractional = x - static_cast<float32_t>(x ## _integral);
 
 enum Format
 {
+    FORMAT_FLOAT32,
     FORMAT_12_BIT,
     FORMAT_16_BIT,
     FORMAT_32_BIT
@@ -38,7 +39,23 @@ inline int16_t clip16(int32_t x)
 }
 
 template <>
-struct DataType<FORMAT_16_BIT>
+struct DataType<Format::FORMAT_FLOAT32>
+{
+    typedef float32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return value;
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return constrain(value, -1.0f, 1.0f);
+    }
+};
+
+template <>
+struct DataType<Format::FORMAT_12_BIT>
 {
     typedef uint16_t T;
 
@@ -53,9 +70,41 @@ struct DataType<FORMAT_16_BIT>
     }
 };
 
+template <>
+struct DataType<Format::FORMAT_16_BIT>
+{
+    typedef uint32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return static_cast<float32_t>(static_cast<int16_t>(value)) / 65536.0f;
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return clip16(static_cast<int32_t>(value * 65536.0f));
+    }
+};
+
+template <>
+struct DataType<Format::FORMAT_32_BIT>
+{
+    typedef uint32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return static_cast<float32_t>(static_cast<int64_t>(value)) / static_cast<float32_t>(UINT32_MAX);
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return value * static_cast<float32_t>(INT32_MAX);
+    }
+};
+
 template <
     size_t size,
-    Format format = FORMAT_16_BIT,
+    Format format,
     bool enable_lfo = true>
 class FxEngine : public FXBase
 {
@@ -67,15 +116,15 @@ public:
     enum LFOIndex
     {
         LFO_1 = 0,
-        LFO_2
+        LFO_2,
+        kLFOCount
     };
 
     FxEngine(float32_t sampling_rate, float32_t max_lfo1_frequency = 1.0f, float32_t max_lfo2_frequency = 1.0f) :
         FXBase(sampling_rate)
     {
-        this->buffer_ = new uint16_t[size];
-        this->lfo_[LFOIndex::LFO_1] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
-        this->lfo_[LFOIndex::LFO_2] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo2_frequency) : nullptr;
+        this->buffer_ = new T[size];
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
         this->clear();
     }
 
@@ -84,14 +133,13 @@ public:
         delete[] this->buffer_;
         if(enable_lfo)
         {
-            delete this->lfo_[LFO_1];
-            delete this->lfo_[LFO_2]; 
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) delete this->lfo_[i];
         }
     }
 
     void clear()
     {
-        memset(this->buffer_, 0, size * sizeof(uint16_t));
+        memset(this->buffer_, 0, size * sizeof(T));
         this->write_ptr_ = 0;
     }
 
@@ -100,8 +148,7 @@ public:
         this->clear();
         if(enable_lfo)
         {
-            this->lfo_[LFOIndex::LFO_1]->reset();
-            this->lfo_[LFOIndex::LFO_2]->reset();
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i]->reset();
         }
     }
 
@@ -151,7 +198,7 @@ public:
             buffer_(nullptr),
             write_ptr_(0)
         {
-            memset(this->lfo_value_, 0, 2 * sizeof(float32_t));
+            memset(this->lfo_value_, 0, LFOIndex::kLFOCount * sizeof(T));
         }
 
         ~Context()
@@ -271,6 +318,7 @@ public:
         inline void interpolate(D& d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
         {
             assert(D::base + D::length <= size);
+            assert(index < LFOIndex::kLFOCount);
             offset += amplitude * this->lfo_value_[index];
             MAKE_INTEGRAL_FRACTIONAL(offset);
             float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
@@ -283,13 +331,14 @@ public:
     private:
         float32_t accumulator_;
         float32_t previous_read_;
-        float32_t lfo_value_[2];
+        float32_t lfo_value_[LFOIndex::kLFOCount];
         T* buffer_;
         int32_t write_ptr_;
     };
 
     inline void setLFOFrequency(LFOIndex index, float32_t frequency)
     {
+        assert(index < LFOIndex::kLFOCount);
         if(enable_lfo)
         {
             this->lfo_[index]->setFrequency(frequency);
@@ -298,6 +347,7 @@ public:
 
     inline void setLFONormalizedFrequency(LFOIndex index, float32_t normalized_frequency)
     {
+        assert(index < LFOIndex::kLFOCount);
         if(enable_lfo)
         {
             this->lfo_[index]->setNormalizedFrequency(normalized_frequency);
@@ -317,8 +367,7 @@ public:
         c->write_ptr_ = write_ptr_;
         if(enable_lfo)
         {
-            c->lfo_value_[LFO_1] = this->lfo_[LFO_1]->process();
-            c->lfo_value_[LFO_2] = this->lfo_[LFO_2]->process();
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) c->lfo_value_[i] = this->lfo_[i]->process();
         }
     }
 
@@ -328,8 +377,8 @@ private:
         MASK = size - 1
     };
 
-    uint16_t* buffer_;
-    unsigned write_ptr_;
+    T* buffer_;
+    int32_t write_ptr_;
 
-    LFO* lfo_[2];
+    LFO* lfo_[LFOIndex::kLFOCount];
 };

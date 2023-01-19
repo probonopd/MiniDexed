@@ -36,5 +36,5 @@ public:
 
 private:
     float32_t overdrive_;
-    float32_t saturation_;
+    float32_t saturator_factor_;
 };

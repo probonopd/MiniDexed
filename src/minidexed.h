@@ -45,8 +45,10 @@
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 
-#ifdef FXRACK_ENABLE
-#include "fx_rack.h"
+#ifdef MIXING_CONSOLE_ENABLE
+#include "mixing_console.h"
+
+typedef MixingConsole<CConfig::ToneGenerators> Mixer;
 #endif
 
 class CMiniDexed
@@ -91,7 +93,12 @@ public:
 	void setBreathController (uint8_t value, unsigned nTG);
 	void setAftertouch (uint8_t value, unsigned nTG);
 
+#ifdef MIXING_CONSOLE_ENABLE
+	void setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend);
+	void setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nFXReturn);
+#else
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
+#endif
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
 	void setPitchbendRange(uint8_t range, uint8_t nTG);
@@ -140,60 +147,124 @@ public:
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
 
-		// BEGIN FXRack global parameters definition
-		#ifdef FXRACK_ENABLE
-		// FXChain parameters
-		ParameterFXChainEnable,
-		ParameterFXChainWet,
+	#ifdef MIXING_CONSOLE_ENABLE
+		// BEGIN FX global parameters definition
+		// Tube parameters
+		ParameterFXTubeEnable,
+		ParameterFXTubeOverdrive,
 
-		// FXChain > Tube parameters
-		ParameterFXChainTubeEnable,
-		ParameterFXChainTubeWet,
-		ParameterFXChainTubeOverdrive,
-
-		// FXChain > Chorus parameters
-		ParameterFXChainChorusEnable,
-		ParameterFXChainChorusWet,
-		ParameterFXChainChorusRate,
-		ParameterFXChainChorusDepth,
+		// Chorus parameters
+		ParameterFXChorusEnable,
+		ParameterFXChorusRate,
+		ParameterFXChorusDepth,
 		
-		// FXChain > Flanger parameters
-		ParameterFXChainFlangerEnable,
-		ParameterFXChainFlangerWet,
-		ParameterFXChainFlangerRate,
-		ParameterFXChainFlangerDepth,
-		ParameterFXChainFlangerFeedback,
+		// Flanger parameters
+		ParameterFXFlangerEnable,
+		ParameterFXFlangerRate,
+		ParameterFXFlangerDepth,
+		ParameterFXFlangerFeedback,
 
-		// FXChain > Orbitone parameters
-		ParameterFXChainOrbitoneEnable,
-		ParameterFXChainOrbitoneWet,
-		ParameterFXChainOrbitoneRate,
-		ParameterFXChainOrbitoneDepth,
+		// Orbitone parameters
+		ParameterFXOrbitoneEnable,
+		ParameterFXOrbitoneRate,
+		ParameterFXOrbitoneDepth,
 
-		// FXChain > Phaser parameters
-		ParameterFXChainPhaserEnable,
-		ParameterFXChainPhaserWet,
-		ParameterFXChainPhaserRate,
-		ParameterFXChainPhaserDepth,
-		ParameterFXChainPhaserFeedback,
-		ParameterFXChainPhaserNbStages,
+		// Phaser parameters
+		ParameterFXPhaserEnable,
+		ParameterFXPhaserRate,
+		ParameterFXPhaserDepth,
+		ParameterFXPhaserFeedback,
+		ParameterFXPhaserNbStages,
 
-		// FXChain > Delay parameters
-		ParameterFXChainDelayEnable,
-		ParameterFXChainDelayWet,
-		ParameterFXChainDelayLeftDelayTime,
-		ParameterFXChainDelayRightDelayTime,
-		ParameterFXChainDelayFeedback,
+		// Delay parameters
+		ParameterFXDelayEnable,
+		ParameterFXDelayLeftDelayTime,
+		ParameterFXDelayRightDelayTime,
+		ParameterFXDelayFeedback,
+		ParameterFXDelayFlutterRate,
+		ParameterFXDelayFlutterAmount,
 
-		// FXChain > ShimmerReverb parameters
-		ParameterFXChainShimmerReverbEnable,
-		ParameterFXChainShimmerReverbWet,
-		ParameterFXChainShimmerReverbInputGain,
-		ParameterFXChainShimmerReverbTime,
-		ParameterFXChainShimmerReverbDiffusion,
-		ParameterFXChainShimmerReverbLP,
-		#endif
-		// END FXRack global parameters definition
+		// ShimmerReverb parameters
+		ParameterFXShimmerReverbEnable,
+		ParameterFXShimmerReverbInputGain,
+		ParameterFXShimmerReverbTime,
+		ParameterFXShimmerReverbDiffusion,
+		ParameterFXShimmerReverbLP,
+
+		// Tube Return parameters
+		ParameterFXTube_ChorusReturn,
+		ParameterFXTube_FlangerReturn,
+		ParameterFXTube_OrbitoneReturn,
+		ParameterFXTube_PhaserReturn,
+		ParameterFXTube_DelayReturn,
+		ParameterFXTube_ReverbReturn,
+		ParameterFXTube_ShimmerReturn,
+
+		// Chorus Return parameters
+		ParameterFXChorus_TubeReturn,
+		ParameterFXChorus_FlangerReturn,
+		ParameterFXChorus_OrbitoneReturn,
+		ParameterFXChorus_PhaserReturn,
+		ParameterFXChorus_DelayReturn,
+		ParameterFXChorus_ReverbReturn,
+		ParameterFXChorus_ShimmerReturn,
+
+		// Flanger Return parameters
+		ParameterFXFlanger_TubeReturn,
+		ParameterFXFlanger_ChorusReturn,
+		ParameterFXFlanger_OrbitoneReturn,
+		ParameterFXFlanger_PhaserReturn,
+		ParameterFXFlanger_DelayReturn,
+		ParameterFXFlanger_ReverbReturn,
+		ParameterFXFlanger_ShimmerReturn,
+
+		// Orbitone Return parameters
+		ParameterFXOrbitone_TubeReturn,
+		ParameterFXOrbitone_ChorusReturn,
+		ParameterFXOrbitone_FlangerReturn,
+		ParameterFXOrbitone_PhaserReturn,
+		ParameterFXOrbitone_DelayReturn,
+		ParameterFXOrbitone_ReverbReturn,
+		ParameterFXOrbitone_ShimmerReturn,
+
+		// Phaser Return parameters
+		ParameterFXPhaser_TubeReturn,
+		ParameterFXPhaser_ChorusReturn,
+		ParameterFXPhaser_FlangerReturn,
+		ParameterFXPhaser_OrbitoneReturn,
+		ParameterFXPhaser_DelayReturn,
+		ParameterFXPhaser_ReverbReturn,
+		ParameterFXPhaser_ShimmerReturn,
+
+		// Delay Return parameters
+		ParameterFXDelay_TubeReturn,
+		ParameterFXDelay_ChorusReturn,
+		ParameterFXDelay_FlangerReturn,
+		ParameterFXDelay_OrbitoneReturn,
+		ParameterFXDelay_PhaserReturn,
+		ParameterFXDelay_ReverbReturn,
+		ParameterFXDelay_ShimmerReturn,
+
+		// Reverb Return parameters
+		ParameterFXReverb_TubeReturn,
+		ParameterFXReverb_ChorusReturn,
+		ParameterFXReverb_FlangerReturn,
+		ParameterFXReverb_OrbitoneReturn,
+		ParameterFXReverb_PhaserReturn,
+		ParameterFXReverb_DelayReturn,
+		ParameterFXReverb_ShimmerReturn,
+
+		// Shimmer Return parameters
+		ParameterFXShimmer_TubeReturn,
+		ParameterFXShimmer_ChorusReturn,
+		ParameterFXShimmer_FlangerReturn,
+		ParameterFXShimmer_OrbitoneReturn,
+		ParameterFXShimmer_PhaserReturn,
+		ParameterFXShimmer_DelayReturn,
+		ParameterFXShimmer_ReverbReturn,
+
+		// END FX global parameters definition
+	#endif
 
 		ParameterUnknown
 	};
@@ -217,7 +288,9 @@ public:
 		TGParameterCutoff,
 		TGParameterResonance,
 		TGParameterMIDIChannel,
+#ifndef MIXING_CONSOLE_ENABLE
 		TGParameterReverbSend,
+#endif // undef MIXING_CONSOLE_ENABLE
 		TGParameterPitchBendRange, 
 		TGParameterPitchBendStep,
 		TGParameterPortamentoMode,
@@ -245,6 +318,18 @@ public:
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
 		
+#ifdef MIXING_CONSOLE_ENABLE
+		TGParameterMixingSendFXTube,
+		TGParameterMixingSendFXChorus,
+		TGParameterMixingSendFXFlanger,
+		TGParameterMixingSendFXOrbittone,
+		TGParameterMixingSendFXPhaser,
+		TGParameterMixingSendFXDelay,
+		TGParameterMixingSendFXPlateReverb,
+		TGParameterMixingSendFXShimmerReverb,
+		TGParameterMixingSendFXMainOutput,
+#endif // MIXING_CONSOLE_ENABLE
+
 		TGParameterUnknown
 	};
 
@@ -315,8 +400,13 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
+#ifdef MIXING_CONSOLE_ENABLE
+	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
+	unsigned m_nFXReturnLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+#else
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
-  
+#endif
+
 	uint8_t m_nRawVoiceData[156]; 
 	
 	
@@ -345,15 +435,16 @@ private:
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
+#ifdef MIXING_CONSOLE_ENABLE
+	Mixer* mixing_console_;
+#else
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
+#endif
 
 	CSpinLock m_FXSpinLock;
 
-#ifdef FXRACK_ENABLE
-	FXRack* fx_rack;
-#endif
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;

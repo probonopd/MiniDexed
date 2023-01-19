@@ -49,5 +49,7 @@ sdcard
 
 # temporary tests
 src/test/fxrack_test
+src/test/all_tests
+src/test/waves/
 src/test/result*.wav
 src/test/*.csv

@@ -55,9 +55,19 @@ public:
 	// To be called from the MIDI device on reception of a MIDI CC message
 	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
+#ifdef DEBUG
+public:
+	void clear();
+	void log(const char* txt);
+	void log(float32_t v);
+	void log(unsigned v);
+	void log(int v);
+#else
 private:
+#endif
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
+private:
 	void EncoderEventHandler (CKY040::TEvent Event);
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
 	void UIButtonsEventHandler (CUIButton::BtnEvent Event);

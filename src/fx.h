@@ -22,6 +22,8 @@
 #include <arm_math.h>
 #include "common.h"
 
+#include "extra_features.h"
+
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
   TypeName(const TypeName&) = delete;      \
   void operator=(const TypeName&) = delete

@@ -229,6 +229,68 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	LCDWrite (Msg);
 }
 
+#ifdef DEBUG
+#include "cstring"
+
+void CUserInterface::clear()
+{
+	static size_t nbChars = this->m_pConfig->GetLCDColumns() * this->m_pConfig->GetLCDRows();
+
+	std::string txt("\x1B[H\E[?25l");
+	txt.append(nbChars, ' ');
+	txt.append("\x1B[K");
+
+	if (this->m_pLCDBuffered)
+	{
+		this->m_pLCDBuffered->Write(txt.c_str(), txt.length());
+		this->m_pLCDBuffered->Update ();
+	}
+}
+
+void CUserInterface::log(const char* txt)
+{
+	if (this->m_pLCDBuffered)
+	{
+		this->m_pLCDBuffered->Write(txt, strlen(txt));
+		this->m_pLCDBuffered->Update ();
+	}
+}
+
+void CUserInterface::log(float32_t v)
+{
+	std::ostringstream ss;
+  	ss << std::fixed << std::setprecision(2) << v;
+  	std::string txt = ss.str();
+	if (this->m_pLCDBuffered)
+	{
+		this->m_pLCDBuffered->Write(txt.c_str(), txt.length());
+		this->m_pLCDBuffered->Update ();
+	}
+}
+
+void CUserInterface::log(unsigned v)
+{
+	std::string txt = std::to_string(v);
+	if (this->m_pLCDBuffered)
+	{
+		this->m_pLCDBuffered->Write(txt.c_str(), txt.length());
+		this->m_pLCDBuffered->Update ();
+	}
+}
+
+void CUserInterface::log(int v)
+{
+	std::string txt = std::to_string(v);
+	if (this->m_pLCDBuffered)
+	{
+		this->m_pLCDBuffered->Write(txt.c_str(), txt.length());
+		this->m_pLCDBuffered->Update ();
+	}
+}
+
+
+#endif
+
 void CUserInterface::LCDWrite (const char *pString)
 {
 	if (m_pLCDBuffered)

@@ -24,6 +24,7 @@
 #define _performanceconfig_h
 
 #include "config.h"
+#include "mixing_console_constants.h"
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
@@ -117,78 +118,64 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
-#ifdef ARM_ALLOW_MULTI_CORE
-	bool GetFXChainEnable(void) const;
-	unsigned GetFXChainWet(void) const;
-	bool GetFXChainTubeEnable(void) const;
-	unsigned GetFXChainTubeWet(void) const;
-	unsigned GetFXChainTubeOverdrive(void) const;
-	bool GetFXChainChorusEnable(void) const;
-	unsigned GetFXChainChorusWet(void) const;
-	unsigned GetFXChainChorusRate(void) const;
-	unsigned GetFXChainChorusDepth(void) const;
-	bool GetFXChainFlangerEnable(void) const;
-	unsigned GetFXChainFlangerWet(void) const;
-	unsigned GetFXChainFlangerRate(void) const;
-	unsigned GetFXChainFlangerDepth(void) const;
-	unsigned GetFXChainFlangerFeedback(void) const;
-	bool GetFXChainOrbitoneEnable(void) const;
-	unsigned GetFXChainOrbitoneWet(void) const;
-	unsigned GetFXChainOrbitoneRate(void) const;
-	unsigned GetFXChainOrbitoneDepth(void) const;
-	bool GetFXChainPhaserEnable(void) const;
-	unsigned GetFXChainPhaserWet(void) const;
-	unsigned GetFXChainPhaserRate(void) const;
-	unsigned GetFXChainPhaserDepth(void) const;
-	unsigned GetFXChainPhaserFeedback(void) const;
-	unsigned GetFXChainPhaserNbStages(void) const;
-	bool GetFXChainDelayEnable(void) const;
-	unsigned GetFXChainDelayWet(void) const;
-	unsigned GetFXChainDelayLeftDelayTime(void) const;
-	unsigned GetFXChainDelayRightDelayTime(void) const;
-	unsigned GetFXChainDelayFeedback(void) const;
-	bool GetFXChainShimmerReverbEnable(void) const;
-	unsigned GetFXChainShimmerReverbWet(void) const;
-	unsigned GetFXChainShimmerReverbInputGain(void) const;
-	unsigned GetFXChainShimmerReverbTime(void) const;
-	unsigned GetFXChainShimmerReverbDiffusion(void) const;
-	unsigned GetFXChainShimmerReverbLP(void) const;
+#ifdef MIXING_CONSOLE_ENABLE
+	bool GetFXTubeEnable(void) const;
+	unsigned GetFXTubeOverdrive(void) const;
+	bool GetFXChorusEnable(void) const;
+	unsigned GetFXChorusRate(void) const;
+	unsigned GetFXChorusDepth(void) const;
+	bool GetFXFlangerEnable(void) const;
+	unsigned GetFXFlangerRate(void) const;
+	unsigned GetFXFlangerDepth(void) const;
+	unsigned GetFXFlangerFeedback(void) const;
+	bool GetFXOrbitoneEnable(void) const;
+	unsigned GetFXOrbitoneRate(void) const;
+	unsigned GetFXOrbitoneDepth(void) const;
+	bool GetFXPhaserEnable(void) const;
+	unsigned GetFXPhaserRate(void) const;
+	unsigned GetFXPhaserDepth(void) const;
+	unsigned GetFXPhaserFeedback(void) const;
+	unsigned GetFXPhaserNbStages(void) const;
+	bool GetFXDelayEnable(void) const;
+	unsigned GetFXDelayLeftDelayTime(void) const;
+	unsigned GetFXDelayRightDelayTime(void) const;
+	unsigned GetFXDelayFeedback(void) const;
+	bool GetFXShimmerReverbEnable(void) const;
+	unsigned GetFXShimmerReverbInputGain(void) const;
+	unsigned GetFXShimmerReverbTime(void) const;
+	unsigned GetFXShimmerReverbDiffusion(void) const;
+	unsigned GetFXShimmerReverbLP(void) const;
+	unsigned GetFXSendLevel(unsigned in, MixerOutput fx) const;
+	unsigned GetFXReturnLevel(MixerOutput ret, MixerOutput fx) const;
 
-	void SetFXChainEnable(bool bValue);
-	void SetFXChainWet(unsigned nValue);
-	void SetFXChainTubeEnable(bool bValue);
-	void SetFXChainTubeWet(unsigned nValue);
-	void SetFXChainTubeOverdrive(unsigned nValue);
-	void SetFXChainChorusEnable(bool bValue);
-	void SetFXChainChorusWet(unsigned nValue);
-	void SetFXChainChorusRate(unsigned nValue);
-	void SetFXChainChorusDepth(unsigned nValue);
-	void SetFXChainFlangerEnable(bool bValue);
-	void SetFXChainFlangerWet(unsigned nValue);
-	void SetFXChainFlangerRate(unsigned nValue);
-	void SetFXChainFlangerDepth(unsigned nValue);
-	void SetFXChainFlangerFeedback(unsigned nValue);
-	void SetFXChainOrbitoneEnable(bool bValue);
-	void SetFXChainOrbitoneWet(unsigned nValue);
-	void SetFXChainOrbitoneRate(unsigned nValue);
-	void SetFXChainOrbitoneDepth(unsigned nValue);
-	void SetFXChainPhaserEnable(bool bValue);
-	void SetFXChainPhaserWet(unsigned nValue);
-	void SetFXChainPhaserRate(unsigned nValue);
-	void SetFXChainPhaserDepth(unsigned nValue);
-	void SetFXChainPhaserFeedback(unsigned nValue);
-	void SetFXChainPhaserNbStages(unsigned nValue);
-	void SetFXChainDelayEnable(unsigned nValue);
-	void SetFXChainDelayWet(unsigned nValue);
-	void SetFXChainDelayLeftDelayTime(unsigned nValue);
-	void SetFXChainDelayRightDelayTime(unsigned nValue);
-	void SetFXChainDelayFeedback(unsigned nValue);
-	void SetFXChainShimmerReverbEnable(unsigned nValue);
-	void SetFXChainShimmerReverbWet(unsigned nValue);
-	void SetFXChainShimmerReverbInputGain(unsigned nValue);
-	void SetFXChainShimmerReverbTime(unsigned nValue);
-	void SetFXChainShimmerReverbDiffusion(unsigned nValue);
-	void SetFXChainShimmerReverbLP(unsigned nValue);
+	void SetFXTubeEnable(bool bValue);
+	void SetFXTubeOverdrive(unsigned nValue);
+	void SetFXChorusEnable(bool bValue);
+	void SetFXChorusRate(unsigned nValue);
+	void SetFXChorusDepth(unsigned nValue);
+	void SetFXFlangerEnable(bool bValue);
+	void SetFXFlangerRate(unsigned nValue);
+	void SetFXFlangerDepth(unsigned nValue);
+	void SetFXFlangerFeedback(unsigned nValue);
+	void SetFXOrbitoneEnable(bool bValue);
+	void SetFXOrbitoneRate(unsigned nValue);
+	void SetFXOrbitoneDepth(unsigned nValue);
+	void SetFXPhaserEnable(bool bValue);
+	void SetFXPhaserRate(unsigned nValue);
+	void SetFXPhaserDepth(unsigned nValue);
+	void SetFXPhaserFeedback(unsigned nValue);
+	void SetFXPhaserNbStages(unsigned nValue);
+	void SetFXDelayEnable(unsigned nValue);
+	void SetFXDelayLeftDelayTime(unsigned nValue);
+	void SetFXDelayRightDelayTime(unsigned nValue);
+	void SetFXDelayFeedback(unsigned nValue);
+	void SetFXShimmerReverbEnable(unsigned nValue);
+	void SetFXShimmerReverbInputGain(unsigned nValue);
+	void SetFXShimmerReverbTime(unsigned nValue);
+	void SetFXShimmerReverbDiffusion(unsigned nValue);
+	void SetFXShimmerReverbLP(unsigned nValue);
+	void SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
+	void SetFXReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nValue);
 #endif
 
 	bool VoiceDataFilled(unsigned nTG);
@@ -258,42 +245,38 @@ private:
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
 
-#ifdef ARM_ALLOW_MULTI_CORE
-	bool m_bFXChainEnable;
-	unsigned m_nFXChainWet;
-	bool m_bFXChainTubeEnable;
-	unsigned m_nFXChainTubeWet;
-	unsigned m_nFXChainTubeOverdrive;
-	bool m_bFXChainChorusEnable;
-	unsigned m_nFXChainChorusWet;
-	unsigned m_nFXChainChorusRate;
-	unsigned m_nFXChainChorusDepth;
-	bool m_bFXChainFlangerEnable;
-	unsigned m_nFXChainFlangerWet;
-	unsigned m_nFXChainFlangerRate;
-	unsigned m_nFXChainFlangerDepth;
-	unsigned m_nFXChainFlangerFeedback;
-	bool m_bFXChainOrbitoneEnable;
-	unsigned m_nFXChainOrbitoneWet;
-	unsigned m_nFXChainOrbitoneRate;
-	unsigned m_nFXChainOrbitoneDepth;
-	bool m_bFXChainPhaserEnable;
-	unsigned m_nFXChainPhaserWet;
-	unsigned m_nFXChainPhaserRate;
-	unsigned m_nFXChainPhaserDepth;
-	unsigned m_nFXChainPhaserFeedback;
-	unsigned m_nFXChainPhaserNbStages;
-	bool m_bFXChainDelayEnable;
-	unsigned m_nFXChainDelayWet;
-	unsigned m_nFXChainDelayLeftDelayTime;
-	unsigned m_nFXChainDelayRightDelayTime;
-	unsigned m_nFXChainDelayFeedback;
-	bool m_bFXChainShimmerReverbEnable;
-	unsigned m_nFXChainShimmerReverbWet;
-	unsigned m_nFXChainShimmerReverbInputGain;
-	unsigned m_nFXChainShimmerReverbTime;
-	unsigned m_nFXChainShimmerReverbDiffusion;
-	unsigned m_nFXChainShimmerReverbLP;
+#ifdef MIXING_CONSOLE_ENABLE
+	bool m_bFXTubeEnable;
+	unsigned m_nFXTubeWet;
+	unsigned m_nFXTubeOverdrive;
+	bool m_bFXChorusEnable;
+	unsigned m_nFXChorusRate;
+	unsigned m_nFXChorusDepth;
+	bool m_bFXFlangerEnable;
+	unsigned m_nFXFlangerRate;
+	unsigned m_nFXFlangerDepth;
+	unsigned m_nFXFlangerFeedback;
+	bool m_bFXOrbitoneEnable;
+	unsigned m_nFXOrbitoneRate;
+	unsigned m_nFXOrbitoneDepth;
+	bool m_bFXPhaserEnable;
+	unsigned m_nFXPhaserRate;
+	unsigned m_nFXPhaserDepth;
+	unsigned m_nFXPhaserFeedback;
+	unsigned m_nFXPhaserNbStages;
+	bool m_bFXDelayEnable;
+	unsigned m_nFXDelayLeftDelayTime;
+	unsigned m_nFXDelayRightDelayTime;
+	unsigned m_nFXDelayFeedback;
+	bool m_bFXShimmerReverbEnable;
+	unsigned m_nFXShimmerReverbInputGain;
+	unsigned m_nFXShimmerReverbTime;
+	unsigned m_nFXShimmerReverbDiffusion;
+	unsigned m_nFXShimmerReverbLP;
+
+	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
+	unsigned m_nFXReturnLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+
 #endif
 };
 

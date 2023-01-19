@@ -48,7 +48,7 @@ public:
     float32_t getRate() const;
 
 private:
-    typedef FxEngine<2048, FORMAT_16_BIT, false> Engine;
+    typedef FxEngine<2048, Format::FORMAT_FLOAT32, false> Engine;
     Engine engine_;
 
     float32_t rate_;            // Normalized frequency for the 2 LFOs frequencies (0.0 - 10.0)

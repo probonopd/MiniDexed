@@ -20,6 +20,11 @@
 
 #if defined(ARM_ALLOW_MULTI_CORE)
 
-#define FXRACK_ENABLE //Add support for the FXRack
+#define MIXING_CONSOLE_ENABLE //Add support for the MixingConsole
 
+#endif
+
+#ifdef DEBUG
+#include <iostream>
+#include <iomanip>
 #endif

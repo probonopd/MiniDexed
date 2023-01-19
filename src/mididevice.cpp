@@ -47,7 +47,10 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_RESONANCE			71
 	#define MIDI_CC_FREQUENCY_CUTOFF	74
 	#define MIDI_CC_REVERB_LEVEL		91
+	#define MIDI_CC_ORBITONE_LEVEL		92	// added with mixing console
+	#define MIDI_CC_CHORUS_LEVEL		93	// added with mixing console
 	#define MIDI_CC_DETUNE_LEVEL		94
+	#define MIDI_CC_PHASER_LEVEL		95	// added with mixing console
 	#define MIDI_CC_ALL_SOUND_OFF		120
 	#define MIDI_CC_ALL_NOTES_OFF		123
 #define MIDI_PROGRAM_CHANGE	0b1100
@@ -300,9 +303,25 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_REVERB_LEVEL:
+#ifdef MIXING_CONSOLE_ENABLE
+							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, maplong(pMessage[2], 0, 127, 0, 99));
+#else
 							m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+#endif
 							break;
-		
+
+#ifdef MIXING_CONSOLE_ENABLE
+						case MIDI_CC_ORBITONE_LEVEL:
+							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone, maplong(pMessage[2], 0, 127, 0, 99));
+							break;
+						case MIDI_CC_CHORUS_LEVEL:
+							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Chorus, maplong(pMessage[2], 0, 127, 0, 99));
+							break;
+						case MIDI_CC_PHASER_LEVEL:
+							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Phaser, maplong(pMessage[2], 0, 127, 0, 99));
+							break;
+#endif
+
 						case MIDI_CC_DETUNE_LEVEL:
 							if (pMessage[2] == 0)
 							{

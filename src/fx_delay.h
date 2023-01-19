@@ -44,6 +44,7 @@ class Delay : public FXElement
     private:
         StateVariableFilter lpf_;
         StateVariableFilter hpf_;
+        float32_t ratio_;
     };
 
 
@@ -60,8 +61,14 @@ public:
     void setRightDelayTime(float32_t delay_time);
     float32_t getRightDelayTime() const;
 
-    void setFeedbak(float32_t feedback);
-    float32_t getFeedbackLevel() const;
+    void setFeedback(float32_t feedback);
+    float32_t getFeedback() const;
+
+    void setFlutterRate(float32_t rate);
+    float32_t getFlutterRate() const;
+
+    void setFlutterAmount(float32_t amount);
+    float32_t getFlutterAmount() const;
 
 private:
     const size_t MaxSampleDelayTime;
@@ -72,6 +79,8 @@ private:
     float32_t delay_time_L_;        // Left delay time in seconds (0.0 - 2.0)
     float32_t delay_time_R_;        // Right delay time in seconds (0.0 - 2.0)
     float32_t feedback_;            // Feedback (0.0 - 1.0)
+    float32_t jitter_amount_;
 
     LowHighPassFilter filter_;
+    PerlinNoiseGenerator jitter_generator_;
 };
