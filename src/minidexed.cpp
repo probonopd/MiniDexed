@@ -20,9 +20,9 @@
 #include "minidexed.h"
 #include <circle/logger.h>
 #include <circle/memory.h>
-#include <circle/pwmsoundbasedevice.h>
-#include <circle/i2ssoundbasedevice.h>
-#include <circle/hdmisoundbasedevice.h>
+#include <circle/sound/pwmsoundbasedevice.h>
+#include <circle/sound/i2ssoundbasedevice.h>
+#include <circle/sound/hdmisoundbasedevice.h>
 #include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>

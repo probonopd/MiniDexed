@@ -37,7 +37,7 @@
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
-#include <circle/soundbasedevice.h>
+#include <circle/sound/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
