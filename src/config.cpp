@@ -84,6 +84,8 @@ void CConfig::Load (void)
 	m_nSSD1306LCDI2CAddress = m_Properties.GetNumber ("SSD1306LCDI2CAddress", 0);
 	m_nSSD1306LCDWidth = m_Properties.GetNumber ("SSD1306LCDWidth", 128);
 	m_nSSD1306LCDHeight = m_Properties.GetNumber ("SSD1306LCDHeight", 32);
+	m_bSSD1306LCDRotate = m_Properties.GetNumber ("SSD1306LCDRotate", 0) != 0;
+	m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
 
 	m_nLCDColumns = m_Properties.GetNumber ("LCDColumns", 16);
 	m_nLCDRows = m_Properties.GetNumber ("LCDRows", 2);
@@ -229,6 +231,16 @@ unsigned CConfig::GetSSD1306LCDWidth (void) const
 unsigned CConfig::GetSSD1306LCDHeight (void) const
 {
 	return m_nSSD1306LCDHeight;
+}
+
+bool CConfig::GetSSD1306LCDRotate (void) const
+{
+	return m_bSSD1306LCDRotate;
+}
+
+bool CConfig::GetSSD1306LCDMirror (void) const
+{
+	return m_bSSD1306LCDMirror;
 }
 
 unsigned CConfig::GetLCDColumns (void) const
