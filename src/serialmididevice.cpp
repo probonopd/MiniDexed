@@ -98,7 +98,13 @@ void CSerialMIDIDevice::Process (void)
 			continue;
 		}
 
-		if(m_nSysEx > 0)
+		// System Real Time messages may appear anywhere in the byte stream, so handle them specially
+		if(uchData == 0xF8 || uchData == 0xFA || uchData == 0xFB || uchData == 0xFC || uchData == 0xFE || uchData == 0xFF)
+		{
+			MIDIMessageHandler (&uchData, 1);
+			continue;
+		}
+		else if(m_nSysEx > 0)
 		{
 			m_SerialMessage[m_nSysEx++]=uchData;
 			if ((uchData & 0x80) == 0x80 || m_nSysEx >= MAX_MIDI_MESSAGE)
