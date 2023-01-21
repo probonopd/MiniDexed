@@ -1,15 +1,15 @@
-CXX := gcc
+CXX := g++
 # CXXFLAGS := -O2
-CXXFLAGS := -g
+CXXFLAGS := -g -std=c++20
 DEFINES := -DCPU=x86 -DDEBUG=1
 INCLUDES := -I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
-			-I../../circle-stdlib/libs/circle/include \
-			-I../../circle-stdlib/libs/circle/addon \
 			-I../../Synth_Dexed/src
+			# -I../../circle-stdlib/libs/circle/include \
+			# -I../../circle-stdlib/libs/circle/addon \
 GCC := $(CXX) $(INCLUDES) $(CXXFLAGS)
 
-LD := gcc
+LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
 OBJS :=	\
@@ -117,7 +117,7 @@ arm_functions.o: arm_functions.cpp
 # effect_platervbstereo.o: ../effect_platervbstereo.cpp
 # 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
 
-fxrack_test.cpp: ../mixing_console.h ../mixing_console.cpp 
+fxrack_test.cpp: ../mixing_console.h ../mixing_console.cpp
 	touch $@
 
 fxrack_test.o: fxrack_test.cpp

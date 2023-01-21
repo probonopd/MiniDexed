@@ -2,100 +2,100 @@
 
 #include <gtest/gtest.h>
 
-#include "../mixing_console_constants.h"
+#include "../mixing_console.h"
 
-TEST(MixerOutputTest, GetMixerOutputStringForTube)
+TEST(MixerOutputTest, toStringForTube)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Tube);
+    auto v = toString(MixerOutput::FX_Tube);
     EXPECT_EQ(v, "Tube");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForChorus)
+TEST(MixerOutputTest, toStringForChorus)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Chorus);
+    auto v = toString(MixerOutput::FX_Chorus);
     EXPECT_EQ(v, "Chorus");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForFlanger)
+TEST(MixerOutputTest, toStringForFlanger)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Flanger);
+    auto v = toString(MixerOutput::FX_Flanger);
     EXPECT_EQ(v, "Flanger");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForOrbitone)
+TEST(MixerOutputTest, toStringForOrbitone)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Orbitone);
+    auto v = toString(MixerOutput::FX_Orbitone);
     EXPECT_EQ(v, "Orbitone");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForPhaser)
+TEST(MixerOutputTest, toStringForPhaser)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Phaser);
+    auto v = toString(MixerOutput::FX_Phaser);
     EXPECT_EQ(v, "Phaser");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForDelay)
+TEST(MixerOutputTest, toStringForDelay)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_Delay);
+    auto v = toString(MixerOutput::FX_Delay);
     EXPECT_EQ(v, "Delay");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForPlateReverb)
+TEST(MixerOutputTest, toStringForPlateReverb)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_PlateReverb);
+    auto v = toString(MixerOutput::FX_PlateReverb);
     EXPECT_EQ(v, "PlateReverb");
 }
 
-TEST(MixerOutputTest, GetMixerOutputStringForShimmerReverb)
+TEST(MixerOutputTest, toStringForShimmerReverb)
 {
-    auto v = getMixerOutputString(MixerOutput::FX_ShimmerReverb);
+    auto v = toString(MixerOutput::FX_ShimmerReverb);
     EXPECT_EQ(v, "ShimmerReverb");
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringTube)
+TEST(MixerOutputTest, toIndexTube)
 {
-    MixerOutput v = getMixerOutputFromString("Tube");
+    MixerOutput v = toIndex("Tube");
     EXPECT_EQ(v, MixerOutput::FX_Tube);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringChorus)
+TEST(MixerOutputTest, toIndexChorus)
 {
-    MixerOutput v = getMixerOutputFromString("Chorus");
+    MixerOutput v = toIndex("Chorus");
     EXPECT_EQ(v, MixerOutput::FX_Chorus);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringFlanger)
+TEST(MixerOutputTest, toIndexFlanger)
 {
-    MixerOutput v = getMixerOutputFromString("Flanger");
+    MixerOutput v = toIndex("Flanger");
     EXPECT_EQ(v, MixerOutput::FX_Flanger);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringOrbitone)
+TEST(MixerOutputTest, toIndexOrbitone)
 {
-    MixerOutput v = getMixerOutputFromString("Orbitone");
+    MixerOutput v = toIndex("Orbitone");
     EXPECT_EQ(v, MixerOutput::FX_Orbitone);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringPhaser)
+TEST(MixerOutputTest, toIndexPhaser)
 {
-    MixerOutput v = getMixerOutputFromString("Phaser");
+    MixerOutput v = toIndex("Phaser");
     EXPECT_EQ(v, MixerOutput::FX_Phaser);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringDelay)
+TEST(MixerOutputTest, toIndexDelay)
 {
-    MixerOutput v = getMixerOutputFromString("Delay");
+    MixerOutput v = toIndex("Delay");
     EXPECT_EQ(v, MixerOutput::FX_Delay);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringPlateReverb)
+TEST(MixerOutputTest, toIndexPlateReverb)
 {
-    MixerOutput v = getMixerOutputFromString("PlateReverb");
+    MixerOutput v = toIndex("PlateReverb");
     EXPECT_EQ(v, MixerOutput::FX_PlateReverb);
 }
 
-TEST(MixerOutputTest, GetMixerOutputFromStringShimmerReverb)
+TEST(MixerOutputTest, toIndexShimmerReverb)
 {
-    MixerOutput v = getMixerOutputFromString("ShimmerReverb");
+    MixerOutput v = toIndex("ShimmerReverb");
     EXPECT_EQ(v, MixerOutput::FX_ShimmerReverb);
 }

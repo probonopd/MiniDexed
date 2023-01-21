@@ -22,6 +22,41 @@
 
 #include "mixing_console.h"
 
+std::string_view toString(MixerOutput enum_val)
+{
+    static constexpr std::array<std::string_view, MixerOutput::kFXCount> names
+    { 
+        "Tube",
+        "Chorus",
+        "Flanger",
+        "Orbitone",
+        "Phaser",
+        "Delay",
+        "PlateReverb",
+        "ShimmerReverb",
+        "MainOutput"
+    };
+    static_assert(names.size() == MixerOutput::kFXCount, "Enum class and string array size mismatch");
+
+    return names[static_cast<size_t>(enum_val)];
+}
+
+MixerOutput toIndex(std::string str)
+{
+    if(str == "Tube") return MixerOutput::FX_Tube;
+    if(str == "Chorus") return MixerOutput::FX_Chorus;
+    if(str == "Flanger") return MixerOutput::FX_Flanger;
+    if(str == "Orbitone") return MixerOutput::FX_Orbitone;
+    if(str == "Phaser") return MixerOutput::FX_Phaser;
+    if(str == "Delay") return MixerOutput::FX_Delay;
+    if(str == "PlateReverb") return MixerOutput::FX_PlateReverb;
+    if(str == "ShimmerReverb") return MixerOutput::FX_ShimmerReverb;
+    if(str == "MainOutput") return MixerOutput::MainOutput;
+
+    throw std::invalid_argument("Invalid MixerOutput string");
+}
+
+
 template<size_t nb_inputs>
 MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_size) :
     FXBase(sampling_rate),

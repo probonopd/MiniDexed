@@ -1,5 +1,6 @@
 #include "MixerOutputTest.hpp"
-#include "UIMenuTest.hpp"
+// #include "UIMenuTest.hpp"
+#include "CppOptimizationsTest.hpp"
 
 int main(int argc, char **argv)
 {
