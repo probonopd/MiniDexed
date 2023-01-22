@@ -1,7 +1,11 @@
+OBJDIR := objects
+OUTPUT_FOLDER = results
+EXECUTABLE := all_test.bin
+
 CXX := g++
 # CXXFLAGS := -O2
 CXXFLAGS := -g -std=c++20
-DEFINES := -DCPU=x86 -DDEBUG=1
+DEFINES := -DCPU=x86 -DDEBUG=1 -DOUTPUT_FOLDER=$(OUTPUT_FOLDER)
 INCLUDES := -I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src
@@ -12,126 +16,49 @@ GCC := $(CXX) $(INCLUDES) $(CXXFLAGS)
 LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
-OBJS :=	\
-		fx.o \
-		fx_components.o \
-		fx_svf.o \
-		fx_tube.o \
-		fx_chorus.o \
-		fx_phaser.o \
-		fx_orbitone.o \
-		fx_flanger.o \
-		fx_delay.o \
-		fx_shimmer_reverb.o \
-		fx_dry.o \
-		fx_rack.o \
-		effect_platervbstereo.o \
-		arm_functions.o \
-		wavein.o \
-		waveout.o \
-		fxrack_test.o
+SRCS = $(filter-out waveplay.cpp, $(wildcard *.cpp))
+SRCS += ../fx.cpp
+SRCS += ../fx_svf.cpp
+SRCS += ../fx_tube.cpp
+SRCS += ../fx_chorus.cpp
+SRCS += ../fx_phaser.cpp
+SRCS += ../fx_orbitone.cpp
+SRCS += ../fx_flanger.cpp
+SRCS += ../fx_delay.cpp
+SRCS += ../effect_platervbstereo.cpp
+SRCS += ../fx_shimmer_reverb.cpp
+SRCS += ../fx_dry.cpp
+SRCS += ../fx_rack.cpp
 
-OBJS2:=	\
-		fx.o \
-		fx_components.o \
-		fx_svf.o \
-		fx_tube.o \
-		fx_chorus.o \
-		fx_phaser.o \
-		fx_orbitone.o \
-		fx_flanger.o \
-		fx_delay.o \
-		fx_shimmer_reverb.o \
-		fx_dry.o \
-		fx_rack.o \
-		effect_platervbstereo.o \
-		arm_functions.o \
-		wavein.o \
-		waveout.o \
-		all_tests.o
+OBJS = $(SRCS:.cpp=.o)
+# OBJS = $(addprefix $(OBJDIR)/,$(OBJ))
 
-test: all_tests fxrack_test
-	./all_tests
-	./fxrack_test
+all: $(EXECUTABLE)
 
-../%.cpp: ../%.h
+test: all
+	rm -f $(OUTPUT_FOLDER)/*
+	./$(EXECUTABLE)
+
+clean-all: clean test
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+$(OBJDIR)/%.o: %.cpp $(OBJDIR)
+	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $< -o $@
+	# mv -f $@ $(OBJDIR)
+
+test_mixing_console.cpp: ../mixing_console.h ../mixing_console.cpp
 	touch $@
 
-%.o: ../%.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+$(EXECUTABLE): $(OBJS)
+	echo "***************************"
+	echo $(OBJS)
+	echo "***************************"
+	$(LD) $(OBJS) -o $@ $(LIBS)
 
-wavein.o: wavein.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-waveout.o: waveout.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-arm_functions.o: arm_functions.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# # waveplay.o: waveplay.cpp
-# # 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx.o: ../fx.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_components.o: ../fx_components.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_svf.o: ../fx_svf.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_tube.o: ../fx_tube.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# ../fx_chorus.cpp: ../fx_engine.hpp
-# 	touch ../fx_chorus.cpp
-
-# fx_chorus.o: ../fx_chorus.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_phaser.o: ../fx_phaser.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# ../fx_orbitone.cpp: ../fx_engine.hpp
-# 	touch ../fx_orbitone.cpp
-
-# fx_orbitone.o: ../fx_orbitone.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_flanger.o: ../fx_flanger.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_delay.o: ../fx_delay.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# ../fx_shimmer_reverb.cpp: ../fx_engine.hpp
-# 	touch ../fx_shimmer_reverb.cpp
-
-# fx_shimmer_reverb.o: ../fx_shimmer_reverb.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# fx_rack.o: ../fx_rack.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-# effect_platervbstereo.o: ../effect_platervbstereo.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-fxrack_test.cpp: ../mixing_console.h ../mixing_console.cpp
-	touch $@
-
-fxrack_test.o: fxrack_test.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-all_tests.o: all_tests.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-
-fxrack_test: $(OBJS)
-	$(LD) $(OBJS) -o fxrack_test $(LIBS)
-
-all_tests: $(OBJS2)
-	$(LD) $(OBJS2) -o all_tests $(LIBS)
+$(OUTPUT_FOLDER):
+	mkdir -p $@
 
 clean:
-	rm -f *.o fxrack_test
+	rm -rf $(OUTPUT_FOLDER) *.o $(EXECUTABLE)

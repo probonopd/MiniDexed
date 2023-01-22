@@ -139,11 +139,7 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
-#ifdef ARM_ALLOW_MULTI_CORE
-	static const TMenuItem s_ReverbMenu[];
-#endif
 #ifdef MIXING_CONSOLE_ENABLE
-	static const TMenuItem s_FXMenu[];
 	static const TMenuItem s_FXTube[];
 	static const TMenuItem s_FXTubeReturn[];
 	static const TMenuItem s_FXChorus[];
@@ -156,6 +152,12 @@ private:
 	static const TMenuItem s_FXPhaserReturn[];
 	static const TMenuItem s_FXDelay[];
 	static const TMenuItem s_FXDelayReturn[];
+#endif
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_FXPlateReverb[];
+#endif
+#ifdef MIXING_CONSOLE_ENABLE
+	static const TMenuItem s_FXPlateReverbReturn[];
 	static const TMenuItem s_FXShimmerReverb[];
 	static const TMenuItem s_FXShimmerReverbReturn[];
 #endif

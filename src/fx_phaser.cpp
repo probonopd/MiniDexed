@@ -35,7 +35,7 @@ void Phaser::AllpassDelay::setDelay(float32_t delay)
 
 Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
     FXElement(sampling_rate),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 2.5f),
+    lfo_(sampling_rate, 0.0f, 2.5f),
     depth_(0.0f),
     feedback_(0.0f),
     dmin_(0.0f),

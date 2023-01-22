@@ -32,7 +32,8 @@ public:
         Sin1 = 0,
         Sin2,
         Cos1,
-        Cos2
+        Cos2,
+        kLFOCount
     };
 
     Chorus(float32_t sampling_rate);
@@ -56,5 +57,5 @@ private:
     float32_t fullscale_depth_; // Equivalent to depth_ but in the range of (0.0 - 384.0)
     float32_t feedback_;        // Feedback level of the chorus (0.0 - 1.0)
 
-    LFO* lfo_[4];
+    LFO* lfo_[LFOIndex::kLFOCount];
 };

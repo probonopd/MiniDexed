@@ -34,7 +34,8 @@ public:
         Slow240,
         Fast0,
         Fast120,
-        Fast240
+        Fast240,
+        kLFOCount
     };
 
     Orbitone(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f);
@@ -56,5 +57,5 @@ private:
     float32_t depth_;
     float32_t fullscale_depth_;
 
-    LFO* lfo_[6];
+    LFO* lfo_[LFOIndex::kLFOCount];
 };

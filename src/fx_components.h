@@ -33,9 +33,80 @@ struct Constants
     const static float32_t M1_PI;  // 1 / PI
 };
 
-class LFO : public FXBase
+
+class FastLFO : public FXBase
 {
-    DISALLOW_COPY_AND_ASSIGN(LFO);
+    DISALLOW_COPY_AND_ASSIGN(FastLFO);
+
+public:
+    FastLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    virtual ~FastLFO();
+
+    void setNormalizedFrequency(float32_t normalized_frequency);
+    float32_t getNormalizedFrequency() const;
+
+    void setFrequency(float32_t frequency);
+    float32_t getFrequency() const;
+
+    virtual void reset() override;
+    float32_t process();
+    float32_t current() const;
+
+private:
+    void updateCoefficient();
+
+    const float32_t InitialPhase;
+    const float32_t min_frequency_;
+    const float32_t max_frequency_;
+    float32_t       frequency_;
+    float32_t       normalized_frequency_;
+    float32_t       unitary_frequency_;
+
+    float32_t       y0_;
+    float32_t       y1_;
+    float32_t       iir_coefficient_;
+    float32_t       initial_amplitude_;
+    float32_t       current_;
+};
+
+
+class InterpolatedSineOscillator : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(InterpolatedSineOscillator);
+
+public:
+    InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    virtual ~InterpolatedSineOscillator();
+
+    void setNormalizedFrequency(float32_t normalized_frequency);
+    float32_t getNormalizedFrequency() const;
+
+    void setFrequency(float32_t frequency);
+    float32_t getFrequency() const;
+
+    virtual void reset() override;
+    float32_t process();
+    float32_t current() const;
+
+private:
+    static bool ClassInitializer();
+    static const size_t DataPointSize = 192000;
+    static const float32_t DeltaTime; 
+    static float32_t DataPoints[];
+
+    const float32_t                             InitialPhase;
+    const float32_t                             min_frequency_;
+    const float32_t                             max_frequency_;
+    float32_t                                   frequency_;
+    float32_t                                   normalized_frequency_;
+    float32_t                                   phase_index_;
+    float32_t                                   phase_index_increment_;
+    float32_t                                   current_sample_;
+};
+
+class ComplexLFO : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(ComplexLFO);
 
 public:
     typedef enum {
@@ -46,8 +117,8 @@ public:
         Noise
     } Waveform;
 
-    LFO(float32_t sampling_rate, Waveform waveform = Waveform::Sine, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
-    ~LFO();
+    ComplexLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    virtual ~ComplexLFO();
 
     void setWaveform(Waveform waveform);
     Waveform getWaveform() const;
@@ -77,6 +148,9 @@ private:
     std::mt19937                                rnd_generator_;
     std::uniform_real_distribution<float32_t>   rnd_distribution_;
 };
+
+
+typedef InterpolatedSineOscillator LFO;
 
 
 class JitterGenerator : public FXBase

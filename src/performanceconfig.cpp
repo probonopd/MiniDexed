@@ -201,9 +201,10 @@ bool CPerformanceConfig::Load (void)
 		}
 	}
 
-	for(unsigned ret = 0; ret < (MixerOutput::kFXCount - 1); ++ret)
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t ret = 0; ret < end; ++ret)
 	{
-		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			std::ostringstream oss("FXReturnLevel_");
 			oss << ret << "_x_" << fx;
@@ -370,7 +371,8 @@ bool CPerformanceConfig::Save (void)
 		}
 	}
 
-	for(unsigned ret = 0; ret < (MixerOutput::kFXCount - 1); ++ret)
+	size_t end = MixerOutput::kFXCount - 1;
+	for(unsigned ret = 0; ret < end; ++ret)
 	{
 		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{

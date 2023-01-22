@@ -23,6 +23,8 @@
 #include "fx_components.h"
 #include "fx_engine.hpp"
 
+#define SHIMMER_REVERB_BUFFER_SIZE 16384
+
 class ShimmerReverb : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(ShimmerReverb);
@@ -47,7 +49,7 @@ public:
     float32_t getLP() const;
 
 private:
-    typedef FxEngine<16384, Format::FORMAT_FLOAT32, true> Engine;
+    typedef FxEngine<SHIMMER_REVERB_BUFFER_SIZE, Format::FORMAT_FLOAT32, true> Engine;
     Engine engine_;
 
     float32_t input_gain_;

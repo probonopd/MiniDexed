@@ -32,3 +32,8 @@ FX::FX(float32_t sampling_rate) :
 FX::~FX()
 {
 }
+
+void FXBase::prepare()
+{
+
+}

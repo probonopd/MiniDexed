@@ -13,15 +13,15 @@ Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) :
     depth_(0.0f),
     fullscale_depth_(0.0f)
 {
-    this->lfo_[LFOIndex::Slow0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFOIndex::Slow120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFOIndex::Slow240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Slow0  ] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFOIndex::Slow120] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Slow240] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-    this->lfo_[LFOIndex::Fast0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFOIndex::Fast120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFOIndex::Fast240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Fast0  ] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFOIndex::Fast120] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Fast240] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-    for(unsigned i = 0; i < 6; ++i)
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {
         this->lfo_[i]->setNormalizedFrequency(rate);
     }
@@ -31,7 +31,7 @@ Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) :
 
 Orbitone::~Orbitone()
 {
-    for(unsigned i = 0; i < 6; ++i)
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {
         delete this->lfo_[i];
     }
@@ -40,7 +40,7 @@ Orbitone::~Orbitone()
 void Orbitone::reset()
 {
     this->engine_.reset();
-    for(unsigned i = 0; i < 6; ++i)
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {
         this->lfo_[i]->reset();
     }
@@ -96,7 +96,7 @@ void Orbitone::setRate(float32_t rate)
     rate = constrain(rate, 0.0f, 1.0f);
     if(this->lfo_[LFOIndex::Slow0]->getNormalizedFrequency() != rate)
     {
-        for(unsigned i = 0; i < 6; ++i)
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
         {
             this->lfo_[i]->setNormalizedFrequency(rate);
         }

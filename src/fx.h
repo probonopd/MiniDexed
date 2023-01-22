@@ -14,7 +14,7 @@
 //
 // fx.h
 //
-// Base class for Stereo audio effects proposed in the context of the MiniDexed project
+// Base classes for Stereo audio effects proposed in the context of the MiniDexed project
 //
 #pragma once
 
@@ -23,10 +23,6 @@
 #include "common.h"
 
 #include "extra_features.h"
-
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&) = delete;      \
-  void operator=(const TypeName&) = delete
 
 class FXBase
 {
@@ -40,6 +36,8 @@ public:
     float32_t getSamplingRate() const;
 
     virtual void reset() = 0;
+    // virtual void prepare() = 0;
+    virtual void prepare();
 
 private:
     const float32_t SamplingRate;

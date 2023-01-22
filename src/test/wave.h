@@ -4,11 +4,30 @@
 #include <arm_math.h>
 #include <string>
 
+inline uint32_t id2int(const char id[4])
+{
+    uint32_t v = id[3];
+    v <<= 8;
+    v += id[2];
+    v <<= 8;
+    v += id[1];
+    v <<= 8;
+    v += id[0];
+
+    return v;
+}
+
+union ChunkID
+{
+    char ID[4];
+    uint32_t Value;
+};
+
 struct WaveHeader {
-    char chunkId[4];
+    ChunkID chunkId;
     uint32_t chunkSize;
-    char format[4];
-    char subchunk1Id[4];
+    ChunkID format;
+    ChunkID subchunk1Id;
     uint32_t subchunk1Size;
     uint16_t audioFormat;
     uint16_t numChannels;
@@ -16,6 +35,28 @@ struct WaveHeader {
     uint32_t byteRate;
     uint16_t blockAlign;
     uint16_t bitsPerSample;
+    ChunkID subchunk2Id;
+    uint32_t subchunk2Size;
+};
+
+struct WaveHeaderRIFF {
+    ChunkID chunkId;
+    uint32_t chunkSize;
+    ChunkID format;
+};
+
+struct WaveHeaderFMT {
+    ChunkID subchunk1Id;
+    uint32_t subchunk1Size;
+    uint16_t audioFormat;
+    uint16_t numChannels;
+    uint32_t sampleRate;
+    uint32_t byteRate;
+    uint16_t blockAlign;
+    uint16_t bitsPerSample;
+};
+
+struct WaveHeaderDATA {
     char subchunk2Id[4];
     uint32_t subchunk2Size;
 };

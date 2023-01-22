@@ -4,6 +4,29 @@
 #include <iostream>
 #include <cassert>
 
+template<typename T>
+bool readChunk(std::ifstream& in, uint32_t id, T& chunk)
+{
+    ChunkID chunkID;
+    while(!in.eof())
+    {
+        in.read((char*)&chunkID.Value, sizeof(chunkID.Value));
+        if(chunkID.Value == id)
+        {
+            in.seekg(-sizeof(chunkID.Value), in.cur);
+            in.read((char*)&chunk, sizeof(chunk));
+            return true; 
+        }
+        else
+        {
+            in.read((char*)&chunkID.Value, sizeof(chunkID.Value));
+            in.seekg(chunkID.Value, in.cur);
+        }
+    }
+
+    return false;
+}
+
 float32_t** readWaveFile(const std::string& fileName, unsigned& size)
 {
     std::ifstream file(fileName, std::ios::binary);
@@ -13,38 +36,53 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
         return nullptr;
     }
 
-    WaveHeader header;
-    file.read((char*)&header, sizeof(header));
-
-    std::cout << "Sampling rate: " << header.sampleRate << std::endl;
-    std::cout << "# channels: " << header.numChannels << std::endl;
-    std::cout << "Resolution: " << header.bitsPerSample << " bits" << std::endl;
-
-    if(strncmp(header.chunkId, "RIFF", 4) != 0 || strncmp(header.format, "WAVE", 4) != 0)
+    WaveHeaderRIFF riff;
+    if(!readChunk(file, id2int("RIFF"), riff))
     {
-        std::cerr << "Error: not a WAVE file" << std::endl;
+        std::cerr << "The file " << fileName << " does not contain any 'RIFF' chunk" << std::endl;
         return nullptr;
     }
 
-    if(header.audioFormat != 1)
+    if(riff.format.Value != id2int("WAVE"))
+    {
+        std::cerr << "The file " << fileName << " is not a 'WAVE' file but a '" << riff.format.ID << "'" << std::endl;
+        return nullptr;
+    }
+
+    WaveHeaderFMT fmt;
+    if(!readChunk(file, id2int("fmt "), fmt))
+    {
+        std::cerr << "The file " << fileName << " does not contain any 'fmt ' chunk" << std::endl;
+        return nullptr;
+    }
+
+    WaveHeaderDATA data;
+    if(!readChunk(file, id2int("data"), data))
+    {
+        std::cerr << "The file " << fileName << " does not contain any 'data' chunk" << std::endl;
+        return nullptr;
+    }
+
+    if(fmt.audioFormat != 1)
     {
         std::cerr << "Error: only support PCM format" << std::endl;
         return nullptr;
     }
 
-    size = header.subchunk2Size / (header.bitsPerSample / 8);
+    size = data.subchunk2Size / (fmt.bitsPerSample / 8);
     float32_t* LChannel = new float32_t[size];
     float32_t* RChannel = new float32_t[size];
 
+    unsigned increment = fmt.numChannels;
     unsigned i = 0;
     while(!file.eof() && i < size)
     {
-        if(header.bitsPerSample == 8)
+        if(fmt.bitsPerSample == 8)
         {
             uint8_t LSample;
             file.read((char*)&LSample, 1);
             LChannel[i] = LSample / 128.0f - 1.0f;
-            if(header.numChannels == 2)
+            if(fmt.numChannels == 2)
             {
                 uint8_t RSample;
                 file.read((char*)&RSample, 1);
@@ -55,12 +93,12 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
                 RChannel[i] = LChannel[i];
             }
         }
-        else if (header.bitsPerSample == 16)
+        else if(fmt.bitsPerSample == 16)
         {
             int16_t LSample;
             file.read((char*)&LSample, 2);
             LChannel[i] = LSample / 32768.0f;
-            if(header.numChannels == 2)
+            if(fmt.numChannels == 2)
             {
                 int16_t RSample;
                 file.read((char*)&RSample, 2);
@@ -71,12 +109,12 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
                 RChannel[i] = LChannel[i];
             }
         }
-        else if (header.bitsPerSample == 24)
+        else if(fmt.bitsPerSample == 24)
         {
             int32_t LSample;
             file.read((char*)&LSample, 3);
             LChannel[i] = LSample / 8388608.0f;
-            if(header.numChannels == 2)
+            if(fmt.numChannels == 2)
             {
                 int32_t RSample;
                 file.read((char*)&RSample, 3);
@@ -87,12 +125,12 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
                 RChannel[i] = LChannel[i];
             }
         }
-        else if (header.bitsPerSample == 32)
+        else if(fmt.bitsPerSample == 32)
         {
             int32_t LSample;
             file.read((char*)&LSample, 4);
             LChannel[i] = LSample / 2147483648.0f;
-            if(header.numChannels == 2)
+            if(fmt.numChannels == 2)
             {
                 int32_t RSample;
                 file.read((char*)&RSample, 4);
@@ -105,11 +143,11 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
         }
         else
         {
-            std::cerr << "Error: unsupported bit depth: " << header.bitsPerSample << std::endl;
+            std::cerr << "Error: unsupported bit depth: " << fmt.bitsPerSample << std::endl;
             return nullptr;
         }
 
-        ++i;
+        i += increment;
     }
     assert(i == size);
 

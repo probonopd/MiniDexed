@@ -101,7 +101,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 
 #ifdef MIXING_CONSOLE_ENABLE
-	for(size_t ret = 0; ret < (MixerOutput::kFXCount - 1); ++ret)
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t ret = 0; ret < end; ++ret)
 	{
 		memset(this->m_nFXReturnLevel[ret], 0, MixerOutput::kFXCount * sizeof(unsigned));
 	}
@@ -205,7 +206,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	this->SetParameter(ParameterFXShimmerReverbDiffusion, 80);
 	this->SetParameter(ParameterFXShimmerReverbLP, 70);
 
-#else 
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
@@ -269,7 +272,9 @@ bool CMiniDexed::Initialize (void)
 		float32_t sendRev = this->m_nFXSendLevel[i][MixerOutput::FX_PlateReverb] / 99.0f;
 		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, sendRev);
 		this->mixing_console_->setSendLevel(i, MixerOutput::MainOutput, 1.0f - sendRev);
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
 		tg_mixer->gain(i,1.0f);
 		reverb_send_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
@@ -491,7 +496,9 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 
 #ifdef MIXING_CONSOLE_ENABLE
 	this->mixing_console_->setPan(nTG, mapfloat(nPan, 0, 127, 0.0f, 1.0f));
-#else	
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 #endif
@@ -531,7 +538,9 @@ void CMiniDexed::setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, un
 	this->m_UI.ParameterChanged ();
 }
 
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 {
@@ -545,7 +554,7 @@ void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-#endif // MIXING_CONSOLE_ENABLE
+#endif
 
 void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 {
@@ -741,7 +750,9 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
 #ifdef MIXING_CONSOLE_ENABLE
 	assert(this->mixing_console_);
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 	assert (reverb);
 #endif
 
@@ -893,7 +904,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXDelayFeedback: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getDelay()->setFeedbak(nValue / 99.0f);
+		this->mixing_console_->getDelay()->setFeedback(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 
@@ -979,7 +990,9 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->m_FXSpinLock.Release();
 		break;
 
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
@@ -1353,7 +1366,9 @@ void CMiniDexed::ProcessSound (void)
 		else
 			arm_fill_q15(0, tmp_int, nFrames * 2);
 
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 
 		// swap stereo channels if needed
 		uint8_t indexL=0, indexR=1;
@@ -1505,7 +1520,9 @@ bool CMiniDexed::DoSavePerformance (void)
 		{
 			this->m_PerformanceConfig.SetFXSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_nFXSendLevel[nTG][fx]);
 		}
-#else	
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 #endif
 	}
@@ -1547,7 +1564,8 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXShimmerReverbDiffusion(this->m_nParameter[ParameterFXShimmerReverbDiffusion]);
 	this->m_PerformanceConfig.SetFXShimmerReverbLP(this->m_nParameter[ParameterFXShimmerReverbLP]);
 
-	for(size_t ret = 0; ret < (MixerOutput::kFXCount - 1); ++ret)
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t ret = 0; ret < end; ++ret)
 	{
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
@@ -1969,7 +1987,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 	this->SetParameter(ParameterFXShimmerReverbDiffusion, this->m_PerformanceConfig.GetFXShimmerReverbDiffusion());
 	this->SetParameter(ParameterFXShimmerReverbLP, this->m_PerformanceConfig.GetFXShimmerReverbLP());
 
-	for(size_t ret = 0; ret < (MixerOutput::kFXCount - 1); ++ret)
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t ret = 0; ret < end; ++ret)
 	{
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{

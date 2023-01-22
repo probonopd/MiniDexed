@@ -139,6 +139,9 @@ public:
 	enum TParameter
 	{
 		ParameterCompressorEnable,
+
+	#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE) 
+		// Plate Reverb parameters
 		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
@@ -146,9 +149,11 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
+	#endif
 
 	#ifdef MIXING_CONSOLE_ENABLE
 		// BEGIN FX global parameters definition
+
 		// Tube parameters
 		ParameterFXTubeEnable,
 		ParameterFXTubeOverdrive,
@@ -199,6 +204,7 @@ public:
 		ParameterFXTube_DelayReturn,
 		ParameterFXTube_ReverbReturn,
 		ParameterFXTube_ShimmerReturn,
+		ParameterFXTube_MainOutput,
 
 		// Chorus Return parameters
 		ParameterFXChorus_TubeReturn,
@@ -208,6 +214,7 @@ public:
 		ParameterFXChorus_DelayReturn,
 		ParameterFXChorus_ReverbReturn,
 		ParameterFXChorus_ShimmerReturn,
+		ParameterFXChorus_MainOutput,
 
 		// Flanger Return parameters
 		ParameterFXFlanger_TubeReturn,
@@ -217,6 +224,7 @@ public:
 		ParameterFXFlanger_DelayReturn,
 		ParameterFXFlanger_ReverbReturn,
 		ParameterFXFlanger_ShimmerReturn,
+		ParameterFXFlanger_MainOutput,
 
 		// Orbitone Return parameters
 		ParameterFXOrbitone_TubeReturn,
@@ -226,6 +234,7 @@ public:
 		ParameterFXOrbitone_DelayReturn,
 		ParameterFXOrbitone_ReverbReturn,
 		ParameterFXOrbitone_ShimmerReturn,
+		ParameterFXOrbitone_MainOutput,
 
 		// Phaser Return parameters
 		ParameterFXPhaser_TubeReturn,
@@ -235,6 +244,7 @@ public:
 		ParameterFXPhaser_DelayReturn,
 		ParameterFXPhaser_ReverbReturn,
 		ParameterFXPhaser_ShimmerReturn,
+		ParameterFXPhaser_MainOutput,
 
 		// Delay Return parameters
 		ParameterFXDelay_TubeReturn,
@@ -244,6 +254,7 @@ public:
 		ParameterFXDelay_PhaserReturn,
 		ParameterFXDelay_ReverbReturn,
 		ParameterFXDelay_ShimmerReturn,
+		ParameterFXDelay_MainOutput,
 
 		// Reverb Return parameters
 		ParameterFXReverb_TubeReturn,
@@ -253,6 +264,7 @@ public:
 		ParameterFXReverb_PhaserReturn,
 		ParameterFXReverb_DelayReturn,
 		ParameterFXReverb_ShimmerReturn,
+		ParameterFXReverb_MainOutput,
 
 		// Shimmer Return parameters
 		ParameterFXShimmer_TubeReturn,
@@ -262,6 +274,7 @@ public:
 		ParameterFXShimmer_PhaserReturn,
 		ParameterFXShimmer_DelayReturn,
 		ParameterFXShimmer_ReverbReturn,
+		ParameterFXShimmer_MainOutput,
 
 		// END FX global parameters definition
 	#endif
@@ -288,9 +301,9 @@ public:
 		TGParameterCutoff,
 		TGParameterResonance,
 		TGParameterMIDIChannel,
-#ifndef MIXING_CONSOLE_ENABLE
+#ifdef PLATE_REVERB_ENABLE
 		TGParameterReverbSend,
-#endif // undef MIXING_CONSOLE_ENABLE
+#endif
 		TGParameterPitchBendRange, 
 		TGParameterPitchBendStep,
 		TGParameterPortamentoMode,
@@ -437,7 +450,9 @@ private:
 
 #ifdef MIXING_CONSOLE_ENABLE
 	Mixer* mixing_console_;
-#else
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;

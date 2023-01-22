@@ -18,13 +18,76 @@
 //
 #pragma once
 
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete;      \
+  void operator=(const TypeName&) = delete
+
 #if defined(ARM_ALLOW_MULTI_CORE)
 
-#define MIXING_CONSOLE_ENABLE //Add support for the MixingConsole
+    #if RASPPI < 3
+        #define PLATE_REVERB_ENABLE   // Add support for the PlateReverb
+    #else
+        #define MIXING_CONSOLE_ENABLE // Add support for the MixingConsole
+    #endif
 
 #endif
 
 #ifdef DEBUG
+
 #include <iostream>
 #include <iomanip>
+#include <chrono>
+#include <unordered_map>
+#include <string>
+
+using namespace std;
+
+class Timer
+{
+    DISALLOW_COPY_AND_ASSIGN(Timer);
+
+public:
+    static Timer& getInstance()
+    {
+        static Timer instance;
+        return instance;
+    }
+
+    ~Timer()
+    {
+    }
+
+    long long int getElapseTime(std::string marker = "")
+    {
+        auto current_time = std::chrono::high_resolution_clock::now();
+        auto it = marker_times.find(marker);
+        if (it != marker_times.end())
+        {
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - it->second);
+            marker_times.erase(it);
+            return duration.count();
+        }
+        else
+        {
+            marker_times[marker] = current_time;
+            return 0;
+        }
+    }
+
+private:
+    Timer()
+    {
+    }
+    
+    std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> marker_times;
+};
+
+#define LAP_TIME(marker) Timer::getInstance().getElapseTime(marker)
+#define LOG_LAP_TIME(marker) { auto __d = Timer::getInstance().getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
+
+#else
+
+#define LAP_TIME(marker)
+#define LOG_LAP_TIME(marker)
+
 #endif

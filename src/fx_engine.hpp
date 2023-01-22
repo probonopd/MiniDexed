@@ -124,7 +124,7 @@ public:
         FXBase(sampling_rate)
     {
         this->buffer_ = new T[size];
-        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo1_frequency) : nullptr;
         this->clear();
     }
 
@@ -367,7 +367,10 @@ public:
         c->write_ptr_ = write_ptr_;
         if(enable_lfo)
         {
-            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) c->lfo_value_[i] = this->lfo_[i]->process();
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) 
+            {
+                c->lfo_value_[i] = this->lfo_[i]->process();
+            }
         }
     }
 

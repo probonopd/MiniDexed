@@ -64,6 +64,7 @@ public:
 
     void init();
     virtual void reset() override;
+    virtual void prepare() override;
     void processSample(float32_t& outL, float32_t& outR);
     void process(float32_t* outL, float32_t* outR);
 
