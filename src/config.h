@@ -76,6 +76,7 @@ public:
 	const char *GetMIDIThruOut (void) const;	// "" if not specified
 	bool GetMIDIRXProgramChange (void) const;	// true if not specified
 	bool GetIgnoreAllNotesOff (void) const;
+	bool GetMIDIAutoVoiceDumpOnPC (void) const; // true if not specified
 
 	// HD44780 LCD
 	// GPIO pin numbers are chip numbers, not header positions
@@ -155,6 +156,7 @@ private:
 	std::string m_MIDIThruOut;
 	bool m_bMIDIRXProgramChange;
 	bool m_bIgnoreAllNotesOff;
+	bool m_bMIDIAutoVoiceDumpOnPC;
 
 	bool m_bLCDEnabled;
 	unsigned m_nLCDPinEnable;
