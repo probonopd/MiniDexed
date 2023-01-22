@@ -20,11 +20,17 @@ jobs:
       run: |
            set -ex
            git submodule update --init --recursive
-    - name: Use Circle develop branch for WM8960 and i2c display support until it is merged upstream
+    - name: Use Circle develop branch for SSD1306 display rotation support until it is merged upstream
       run: |
            set -ex
+           cd circle-stdlib/
+           git checkout e318f89 # Needed to support Circle develop?
+           cd -
            cd circle-stdlib/libs/circle
-           git checkout 646c362 # develop
+           git checkout ec09d7e # develop
+           cd -
+           cd circle-stdlib/libs/circle-newlib
+           git checkout 48bf91d # needed for circle ec09d7e
            cd -
     - name: Install toolchains
       run: |
