@@ -42,48 +42,27 @@
 
 using namespace std;
 
-class Timer
+inline long long int getElapseTime(std::string marker = "")
 {
-    DISALLOW_COPY_AND_ASSIGN(Timer);
+    static std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> marker_times;
 
-public:
-    static Timer& getInstance()
+    auto current_time = std::chrono::high_resolution_clock::now();
+    auto it = marker_times.find(marker);
+    if (it != marker_times.end())
     {
-        static Timer instance;
-        return instance;
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - it->second);
+        marker_times.erase(it);
+        return duration.count();
     }
-
-    ~Timer()
+    else
     {
+        marker_times[marker] = current_time;
+        return 0;
     }
+}
 
-    long long int getElapseTime(std::string marker = "")
-    {
-        auto current_time = std::chrono::high_resolution_clock::now();
-        auto it = marker_times.find(marker);
-        if (it != marker_times.end())
-        {
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - it->second);
-            marker_times.erase(it);
-            return duration.count();
-        }
-        else
-        {
-            marker_times[marker] = current_time;
-            return 0;
-        }
-    }
-
-private:
-    Timer()
-    {
-    }
-    
-    std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> marker_times;
-};
-
-#define LAP_TIME(marker) Timer::getInstance().getElapseTime(marker)
-#define LOG_LAP_TIME(marker) { auto __d = Timer::getInstance().getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
+#define LAP_TIME(marker) getElapseTime(marker)
+#define LOG_LAP_TIME(marker) { auto __d = getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
 
 #else
 
