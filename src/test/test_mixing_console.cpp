@@ -3,7 +3,7 @@
 #include "test_fx_helper.h"
 #include "wave.h"
 
-#include "../mixing_console.h"
+#include "../mixing_console.hpp"
 
 TEST(MixerOutputTest, toStringForTube)
 {

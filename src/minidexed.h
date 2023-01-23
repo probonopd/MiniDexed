@@ -46,7 +46,7 @@
 #include "effect_compressor.h"
 
 #ifdef MIXING_CONSOLE_ENABLE
-#include "mixing_console.h"
+#include "mixing_console.hpp"
 
 typedef MixingConsole<CConfig::ToneGenerators> Mixer;
 #endif

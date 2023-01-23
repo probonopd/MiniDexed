@@ -6,7 +6,6 @@
 
 #include "../fx_rack.h"
 #include "../effect_platervbstereo.h"
-#include "../mixing_console.h"
 
 using namespace std;
 

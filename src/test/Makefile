@@ -50,12 +50,8 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)
 $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
-# $(EXE): $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS))
 $(EXE): $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
-
-test_mixing_console.cpp: ../mixing_console.h ../mixing_console.cpp
-	touch $@
 
 clean:
 	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)

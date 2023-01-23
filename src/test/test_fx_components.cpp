@@ -14,7 +14,7 @@
 
 #include "../fx_rack.h"
 #include "../effect_platervbstereo.h"
-#include "../mixing_console.h"
+#include "../mixing_console.hpp"
 
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100

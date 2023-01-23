@@ -120,11 +120,11 @@ public:
         kLFOCount
     };
 
-    FxEngine(float32_t sampling_rate, float32_t max_lfo1_frequency = 1.0f, float32_t max_lfo2_frequency = 1.0f) :
+    FxEngine(float32_t sampling_rate, float32_t max_lfo_frequency = 20.0f) :
         FXBase(sampling_rate)
     {
         this->buffer_ = new T[size];
-        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo1_frequency) : nullptr;
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency) : nullptr;
         this->clear();
     }
 

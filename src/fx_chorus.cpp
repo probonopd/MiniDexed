@@ -9,7 +9,7 @@
 
 Chorus::Chorus(float32_t sampling_rate) :
     FXElement(sampling_rate),
-    engine_(sampling_rate, 0.0f, 0.0f),
+    engine_(sampling_rate, 0.0f),
     rate_(0.0f),
     depth_(0.0f),
     fullscale_depth_(0.0f),
