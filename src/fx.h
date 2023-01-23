@@ -36,7 +36,6 @@ public:
     float32_t getSamplingRate() const;
 
     virtual void reset() = 0;
-    // virtual void prepare() = 0;
     virtual void prepare();
 
 private:

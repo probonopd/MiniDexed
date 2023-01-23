@@ -1,8 +1,8 @@
 #include "test_fx_helper.h"
 
-string getScenarioName(int scenario)
+std::string getScenarioName(int scenario)
 {
-    stringstream ss;
+    std::stringstream ss;
 
     bool fxTube = Active(scenario, FXSwitch::FX__Tube);
     bool fxChorus = Active(scenario, FXSwitch::FX__Chorus);
@@ -26,56 +26,49 @@ string getScenarioName(int scenario)
     if(fxChorus) 
     {
         if(!first) ss << ", ";
-        ss << "Chorus";
+        ss << "Chrs";
         first = false;
     }
 
     if(fxPhaser) 
     {
         if(!first) ss << ", ";
-        ss << "Phaser";
+        ss << "Phsr";
         first = false;
     }
 
     if(fxOrbitone) 
     {
         if(!first) ss << ", ";
-        ss << "Orbitone";
+        ss << "Orbt";
         first = false;
     }
 
     if(fxFlanger) 
     {
         if(!first) ss << ", ";
-        ss << "Flanger";
+        ss << "Flgr";
         first = false;
     }
 
     if(fxDelay) 
     {
         if(!first) ss << ", ";
-        ss << "Delay";
-        first = false;
-    }
-
-    if(fxDelay) 
-    {
-        if(!first) ss << ", ";
-        ss << "Delay";
+        ss << "Dely";
         first = false;
     }
 
     if(fxReverb) 
     {
         if(!first) ss << ", ";
-        ss << "Reverb";
+        ss << "Revb";
         first = false;
     }
 
     if(fxShimmer) 
     {
         if(!first) ss << ", ";
-        ss << "Shimmer";
+        ss << "Shim";
         first = false;
     }
 

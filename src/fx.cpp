@@ -35,5 +35,5 @@ FX::~FX()
 
 void FXBase::prepare()
 {
-
+    // does nothing by default
 }

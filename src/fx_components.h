@@ -150,7 +150,7 @@ private:
 };
 
 
-typedef InterpolatedSineOscillator LFO;
+typedef ComplexLFO LFO;
 
 
 class JitterGenerator : public FXBase
