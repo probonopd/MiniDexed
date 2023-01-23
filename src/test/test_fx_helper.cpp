@@ -96,27 +96,16 @@ void setupOuputStreamFocCSV(std::ostream& out)
     out << fixed << showpoint;
 }
 
-FxComponentFixture::FxComponentFixture() :
-    testing::Test(),
-    gen_(rd_()),
-    dist_(-1.0f, 1.0f)
+std::string getResultFile(const std::string& filename)
 {
+    return std::string(OUTPUT_FOLDER) + "/" + filename;
 }
 
-void FxComponentFixture::SetUp()
+float32_t getRandomValue()
 {
-}
+    static random_device rd;
+    static mt19937 gen(rd());
+    static uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
 
-void FxComponentFixture::TearDown()
-{
-}
-
-string FxComponentFixture::getResultFile(const std::string& filename)
-{
-    return std::string(STR(OUTPUT_FOLDER)) + "/" + filename;
-}
-
-float32_t FxComponentFixture::getRandomValue()
-{
-    return this->dist_(this->gen_);
+    return dist(gen);
 }

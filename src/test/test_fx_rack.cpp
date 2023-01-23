@@ -77,7 +77,7 @@ TEST_P(FXScenarioTest, FXRackResetAllScenarios)
     delete rack;
 }
 
-TEST_P(FXScenarioTest, FXRackProcessAllScenarios)
+TEST_P(FXScenarioTest, ScenarioProcessing)
 {
     const unsigned nbRepeats = 1;
     unsigned size;
@@ -104,9 +104,9 @@ TEST_P(FXScenarioTest, FXRackProcessAllScenarios)
         rack->process(samples[0], samples[1], sampleOutL + i * size, sampleOutR + i * size, size);
     }
 
-    stringstream ss("FXRack-");
-    ss << name << ".wav";
-    saveWaveFile(ss.str(), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+    stringstream ss;
+    ss << "result-fx-rack" << name << ".wav";
+    saveWaveFile(getResultFile(ss.str()), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
     delete rack;
 
@@ -117,4 +117,4 @@ TEST_P(FXScenarioTest, FXRackProcessAllScenarios)
     delete[] sampleOutR;
 }
 
-INSTANTIATE_TEST_SUITE_P(FXTestInstance, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__ShimmerReverb + 1)));
+INSTANTIATE_TEST_SUITE_P(FXRack, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__ShimmerReverb + 1)));

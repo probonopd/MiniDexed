@@ -203,7 +203,7 @@ TEST(MixingConsole, DryProcessing)
     delete mixer;
 }
 
-TEST_F(FxComponentFixture, SimpleProcessing)
+TEST(MixingConsole, SimpleProcessing)
 {
     const unsigned nbRepeats = 4;
     unsigned size;
@@ -238,7 +238,7 @@ TEST_F(FxComponentFixture, SimpleProcessing)
         mixer->setInputSampleBuffer(0, samples[0], samples[1]);
         mixer->process(sampleOutL + j * size, sampleOutR + j * size);
     }
-    saveWaveFile(this->getResultFile("result-mixing-console.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);    
+    saveWaveFile(getResultFile("result-mixing-console.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);    
 
     delete mixer;
 

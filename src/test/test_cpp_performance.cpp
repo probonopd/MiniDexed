@@ -59,19 +59,20 @@ TEST(CppPerformance, LFOPerformance_ComplexLFO_FastLFO)
     EXPECT_GE(d1, d2);
 }
 
-TEST_F(FxComponentFixture, FastLFOTuning)
+TEST(CppPerformance, FastLFOTuning)
 {
-    float32_t freq = 10.0f;
+    float32_t freq = 5.0f;
 
     size_t NB = static_cast<size_t>(1.0f * SAMPLING_FREQUENCY);
 
-    FastLFO lfo1(SAMPLING_FREQUENCY, 10.0f, 440.0f);
+    FastLFO lfo1(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo1.setFrequency(freq);
 
-    ComplexLFO lfo2(SAMPLING_FREQUENCY, 10.0f, 440.0f);
+    ComplexLFO lfo2(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo2.setFrequency(freq);
 
-    std::ofstream out(this->getResultFile("FastLFO-data.csv"));
+    std::ofstream out(getResultFile("CppPerformance.FastLFOTuning-data.csv"));
+    setupOuputStreamFocCSV(out);
     out << "index;FastLFO;ComplexLFO" << std::endl;
     for(size_t i = 0; i < NB; ++i)
     {

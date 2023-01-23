@@ -1,11 +1,10 @@
 OBJDIR := objects
 OUTPUT_FOLDER = results
-EXECUTABLE := all_test.bin
+EXE := all_test.bin
 
 CXX := g++
-# CXXFLAGS := -O2
 CXXFLAGS = 	-g -std=c++20
-DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER=$(OUTPUT_FOLDER)
+DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
 INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src/
@@ -15,46 +14,48 @@ INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
-SRCS := $(filter-out waveplay.cpp, $(wildcard *.cpp))
-SRCS += ../fx.cpp
-SRCS += ../fx_components.cpp
-SRCS += ../fx_svf.cpp
-SRCS += ../fx_tube.cpp
-SRCS += ../fx_chorus.cpp
-SRCS += ../fx_phaser.cpp
-SRCS += ../fx_orbitone.cpp
-SRCS += ../fx_flanger.cpp
-SRCS += ../fx_delay.cpp
-SRCS += ../effect_platervbstereo.cpp
-SRCS += ../fx_shimmer_reverb.cpp
-SRCS += ../fx_dry.cpp
-SRCS += ../fx_rack.cpp
+TST_SRCS := $(filter-out waveplay.cpp, $(wildcard *.cpp))
+FX__SRCS := ../fx.cpp
+FX__SRCS += ../fx_components.cpp
+FX__SRCS += ../fx_svf.cpp
+FX__SRCS += ../fx_tube.cpp
+FX__SRCS += ../fx_chorus.cpp
+FX__SRCS += ../fx_phaser.cpp
+FX__SRCS += ../fx_orbitone.cpp
+FX__SRCS += ../fx_flanger.cpp
+FX__SRCS += ../fx_delay.cpp
+FX__SRCS += ../effect_platervbstereo.cpp
+FX__SRCS += ../fx_shimmer_reverb.cpp
+FX__SRCS += ../fx_dry.cpp
+FX__SRCS += ../fx_rack.cpp
 
-OBJ = $(SRCS:.cpp=.o)
-OBJS = $(addprefix $(OBJDIR)/,$(OBJ))
+TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
+FX__OBJS = $(patsubst ../%, $(OBJDIR)/%, $(FX__SRCS:.cpp=.o))
 
-all: $(EXECUTABLE)
+all: $(EXE) test
 
-test: all
+test: $(EXE) $(OUTPUT_FOLDER)
 	rm -f $(OUTPUT_FOLDER)/*
-	./$(EXECUTABLE)
-
-clean-all: clean test
+	./$(EXE)
 
 $(OBJDIR):
-	mkdir -p $(OBJDIR)
-
-$(OBJDIR)/%.o: %.cpp $(OBJDIR)
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
-
-test_mixing_console.cpp: ../mixing_console.h ../mixing_console.cpp
-	touch $@
-
-$(EXECUTABLE): $(OBJS)
-	$(LD) $(OBJS) -o $@ $(LIBS)
+	mkdir -p $@
 
 $(OUTPUT_FOLDER):
 	mkdir -p $@
 
+$(OBJDIR)/%.o: %.cpp $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
+
+$(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
+
+# $(EXE): $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS))
+$(EXE): $(TST_OBJS) $(FX__OBJS)
+	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
+
+test_mixing_console.cpp: ../mixing_console.h ../mixing_console.cpp
+	touch $@
+
 clean:
-	rm -rf $(OUTPUT_FOLDER) *.o $(EXECUTABLE)
+	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)

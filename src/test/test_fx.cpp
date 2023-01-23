@@ -5,7 +5,7 @@
 
 #include "../effect_platervbstereo.h"
 
-TEST_F(FxComponentFixture, PlateReverb)
+TEST(FXElement, PlateReverbMigration)
 {
     const unsigned nbRepeats = 4;
 
@@ -34,7 +34,7 @@ TEST_F(FxComponentFixture, PlateReverb)
             ++index;
         }
     }
-    saveWaveFile(this->getResultFile("result-PlateReverb-new.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+    saveWaveFile(getResultFile("result-PlateReverb-new.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
     unsigned indexOut = 0;
     for (unsigned i = 0; i < nbRepeats; ++i)
@@ -54,7 +54,7 @@ TEST_F(FxComponentFixture, PlateReverb)
         }
 
     }
-    saveWaveFile(this->getResultFile("result-PlateReverb-legacy.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+    saveWaveFile(getResultFile("result-PlateReverb-legacy.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
     delete[] sampleOutL;
     delete[] sampleOutR;

@@ -19,7 +19,7 @@
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
-TEST_F(FxComponentFixture, LFO)
+TEST(FXComponent, LFO)
 {
     const float32_t freq = 10.0f;
 
@@ -28,7 +28,7 @@ TEST_F(FxComponentFixture, LFO)
     float32_t rate = 0.0f;
     float32_t rate_increment = freq / 2.0f / SAMPLING_FREQUENCY;
 
-    std::ofstream out(this->getResultFile("result-LFO.csv"));
+    std::ofstream out(getResultFile("FXComponent.LFO.csv"));
     setupOuputStreamFocCSV(out);
     out << fixed << showpoint;
 
@@ -58,7 +58,7 @@ TEST(FXComponent, Flutter)
     }
 }
 
-TEST_F(FxComponentFixture, SVF)
+TEST(FXComponent, SVF)
 {
     float32_t inL, inR;
     float32_t outL, outR;
@@ -73,8 +73,8 @@ TEST_F(FxComponentFixture, SVF)
         while(nbErrors < MAX_NB_ERRORS && nbSamples < MAX_SVF_SAMPLES)
         {
             nbSamples++;
-            inL = this->getRandomValue();
-            inR = this->getRandomValue();
+            inL = getRandomValue();
+            inR = getRandomValue();
             svf.processSample(inL, inR, outL, outR);
 
             if(std::abs(outL) > 1.0f)
@@ -94,8 +94,8 @@ TEST_F(FxComponentFixture, SVF)
         while(nbErrors < MAX_NB_ERRORS && nbSamples < MAX_SVF_SAMPLES)
         {
             nbSamples++;
-            inL = this->getRandomValue();
-            inR = this->getRandomValue();
+            inL = getRandomValue();
+            inR = getRandomValue();
             svf.processSample(inL, inR, outL, outR);
 
             if(std::abs(outL) > 1.0f)
