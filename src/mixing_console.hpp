@@ -22,7 +22,6 @@
 #pragma once
 
 #include "mixing_console_constants.h"
-#include "fx.h"
 #include "fx_tube.h"
 #include "fx_chorus.h"
 #include "fx_flanger.h"
@@ -238,6 +237,9 @@ public:
 
     void init()
     {
+        memset(this->channel_level_, 0, nb_inputs * sizeof(float32_t));
+        for(size_t i = 0; i <= StereoChannels::kNumChannels; ++i) memset(this->pan_[i], 0, nb_inputs * sizeof(float32_t));
+
         for(size_t i = 0; i < MixerOutput::kFXCount; ++i)
             memset(this->levels_[i], 0, (nb_inputs + MixerOutput::kFXCount - 1) * sizeof(float32_t));
         
@@ -372,4 +374,130 @@ private:
     FXUnit2<AudioEffectPlateReverb>* plate_reverb_;
     FXUnit2<ShimmerReverb>* shimmer_reverb_;
     FXUnit2<Dry>* dry_;
+
+#if defined(DEBUG)
+public:
+    void dump(std::ostream& out, const std::string& key = "") const
+    {
+        std::stringstream ss;
+        ss.fill(' ');
+        ss.precision(4);
+        ss << std::fixed;
+
+        out << "\t" << "MixingConsole dump - START - " << key.c_str() << std::endl;
+
+        out << "\t" << "Input levels & Pan:" << std::endl;
+        
+        ss.str("");
+        ss << std::left;
+        ss << "\t";
+        ss.width(11);
+        ss << "";
+        ss.width(8);
+        ss << "Level";
+        ss.width(8);
+        ss << "Pan L";
+        ss.width(8);
+        ss << "Pan R";
+        ss.width(8);
+        ss << "Pan";
+        out << ss.str() << std::endl;
+
+        ss.str("");
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            ss << std::left;
+            ss << "\t" << "* Input " << (i + 1) << ": ";
+
+            ss.precision(4);
+            ss << std::showpos;
+            ss << std::fixed;
+            ss.width(8);
+            ss << this->channel_level_[i];
+            ss.width(8);
+            ss << this->pan_[StereoChannels::Left][i];
+            ss.width(8);
+            ss << this->pan_[StereoChannels::Right][i];
+            ss.width(8);
+            ss << this->pan_[StereoChannels::kNumChannels][i];
+            ss << std::endl;
+        }
+        out << ss.str() << std::endl;
+        
+        out << "\t" << "Mixing Console input samples:" << std::endl;
+        ss.str("");
+        ss.fill(' ');
+        ss << std::left;
+        ss << "\t";
+        ss.width(11);
+        ss << "";
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            ss << "Input " << (i + 1) << " ";
+        }
+        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+        {
+            ss.width(7);
+            ss << toString(static_cast<MixerOutput>(i)) << " ";
+        }
+        out << ss.str() << std::endl;
+
+        const char* LR = "LR";
+        ss.str("");
+        for(size_t c = 0; c < StereoChannels::kNumChannels; ++c)
+        {
+            ss << std::left;
+            ss << "\t" << "* Input " << LR[c] << ": ";
+            ss.precision(4);
+            ss << std::showpos;
+            ss << std::fixed;
+            for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+            {
+                ss.width(8);
+                ss << this->input_samples_[c][i];
+            }
+            ss << std::endl;
+        }
+        out << ss.str() << std::endl;
+
+        out << "\t" << "Mixing Console levels:" << std::endl;
+        ss.str("");
+        ss << std::left;
+        ss << "\t";
+        ss.width(11);
+        ss << " ";
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            ss << "Input " << (i + 1) << " ";
+        }
+        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+        {
+            ss.width(7);
+            ss << toString(static_cast<MixerOutput>(i)) << " ";
+        }
+        out << ss.str() << std::endl;
+
+        ss.str("");
+        for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
+        {
+            ss << std::left;
+            ss << "\t";
+            ss.width(9);
+            ss << toString(static_cast<MixerOutput>(c));
+            ss << ": ";
+            ss.precision(4);
+            ss << std::showpos;
+            ss << std::fixed;
+            for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+            {
+                ss.width(8);
+                ss << this->levels_[c][i];
+            }
+            ss << std::endl;
+        }
+        out << ss.str() << std::endl;
+
+        out << "MixingConsole dump - END - " << key.c_str() << std::endl;
+    }
+#endif
 };

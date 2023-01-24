@@ -169,11 +169,16 @@ TEST(MixingConsole, DryProcessing)
     float32_t out[StereoChannels::kNumChannels][length];
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out[i], 0, length * sizeof(float32_t));
 
+    mixer->dump(std::cout);
+
     mixer->setInputSampleBuffer(0, in);
+    mixer->dump(std::cout);
     mixer->process(
         out[StereoChannels::Left ],
         out[StereoChannels::Right]
     );
+    mixer->dump(std::cout);
+
     EXPECT_EQ(out[StereoChannels::Left ][0], out[StereoChannels::Right][0]);
     EXPECT_EQ(out[StereoChannels::Left ][1], out[StereoChannels::Right][1]);
     EXPECT_LT(std::abs(out[StereoChannels::Left ][0] - (sqrt(2.0f) / 20.0f)), epsilon);
@@ -183,20 +188,26 @@ TEST(MixingConsole, DryProcessing)
     mixer->setSendLevel(0, MixerOutput::FX_ShimmerReverb, 1.0f);
     mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 1.0f);
     mixer->setPan(0, 0.5f);
+    mixer->dump(std::cout);
 
     mixer->setInputSampleBuffer(0, in);
+    mixer->dump(std::cout);
     mixer->process(
         out[StereoChannels::Left ],
         out[StereoChannels::Right]
     );
+    mixer->dump(std::cout);
 
     float32_t out2[StereoChannels::kNumChannels][length];
     mixer->reset();
+    mixer->dump(std::cout);
     mixer->setInputSampleBuffer(0, in);
+    mixer->dump(std::cout);
     mixer->process(
         out2[StereoChannels::Left ],
         out2[StereoChannels::Right]
     );
+    mixer->dump(std::cout);
     EXPECT_EQ(out[StereoChannels::Left ][0], out2[StereoChannels::Left ][0]);
     EXPECT_EQ(out[StereoChannels::Left ][1], out2[StereoChannels::Left ][1]);
 

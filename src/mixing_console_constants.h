@@ -28,7 +28,7 @@ enum MixerOutput
     kFXCount
 };
 
-inline const char* toString(MixerOutput enum_val)
+inline std::string toString(MixerOutput enum_val)
 {
     static constexpr std::array<const char*, MixerOutput::kFXCount> names
     { 
@@ -38,13 +38,13 @@ inline const char* toString(MixerOutput enum_val)
         "Orbitone",
         "Phaser",
         "Delay",
-        "PlateReverb",
-        "ShimmerReverb",
-        "MainOutput"
+        "Plate Reverb",
+        "Shimmer Reverb",
+        "Main Output"
     };
     static_assert(names.size() == MixerOutput::kFXCount, "Enum MixerOutput and string array size mismatch");
 
-    return names[static_cast<size_t>(enum_val)];
+    return std::string(names[static_cast<size_t>(enum_val)]);
 }
 
 inline MixerOutput toIndex(const char* str)
