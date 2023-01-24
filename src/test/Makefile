@@ -1,6 +1,7 @@
 OBJDIR := objects
 OUTPUT_FOLDER = results
 EXE := all_test.bin
+BETA := beta.bin
 
 CXX := g++
 CXXFLAGS = 	-g -std=c++20
@@ -14,7 +15,7 @@ INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
-TST_SRCS := $(filter-out waveplay.cpp, $(wildcard *.cpp))
+TST_SRCS := $(filter-out waveplay.cpp, $(filter-out beta.cpp, $(wildcard *.cpp)))
 FX__SRCS := ../fx.cpp
 FX__SRCS += ../fx_components.cpp
 FX__SRCS += ../fx_svf.cpp
@@ -38,6 +39,10 @@ test: $(EXE) $(OUTPUT_FOLDER)
 	rm -f $(OUTPUT_FOLDER)/*
 	./$(EXE)
 
+test-debug: $(EXE) $(OUTPUT_FOLDER)
+	rm -f $(OUTPUT_FOLDER)/*
+	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
+
 $(OBJDIR):
 	mkdir -p $@
 
@@ -52,6 +57,10 @@ $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 
 $(EXE): $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
+
+$(BETA): $(FX__OBJS) beta.cpp
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c beta.cpp -o $(OBJDIR)/beta.o
+	$(LD) $(CXXFLAGS) $(call wildcard,$(OBJDIR)/beta.o) $(call wildcard,$(OBJDIR)/arm_functions.o)  $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
 clean:
 	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)

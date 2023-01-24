@@ -64,6 +64,8 @@ inline long long int getElapseTime(std::string marker = "")
 #define LAP_TIME(marker) getElapseTime(marker)
 #define LOG_LAP_TIME(marker) { auto __d = getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
 
+#define DEBUG_VALUE(lbl, idx, v) std::cout << lbl << " " << idx << ": " << v << std::endl
+
 #else
 
 #define LAP_TIME(marker)

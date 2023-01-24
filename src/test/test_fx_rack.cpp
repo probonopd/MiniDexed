@@ -45,8 +45,8 @@ void setupRack(FXRack* rack)
     rack->getDelay()->setFlutterRate(0.15f);
     rack->getDelay()->setFlutterAmount(0.75f);
 
-    rack->getShimmerReverb()->setWetLevel(0.5f);
-    rack->getShimmerReverb()->setInputGain(0.35f);
+    rack->getShimmerReverb()->setWetLevel(0.6f);
+    rack->getShimmerReverb()->setInputGain(0.55f);
     rack->getShimmerReverb()->setTime(0.89f);
     rack->getShimmerReverb()->setDiffusion(0.75f);
     rack->getShimmerReverb()->setLP(0.8f);

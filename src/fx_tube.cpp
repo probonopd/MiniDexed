@@ -4,8 +4,9 @@
 
 Tube::Tube(float32_t samplingRate) :
     FXElement(samplingRate),
-    overdrive_(0.0f),
-    saturator_factor_(0.0f)
+    overdrive_(1.0f),
+    saturator_factor_(1.0f),
+    gain_factor_(1.0f)
 {
     this->setOverdrive(0.0f);
 }
@@ -21,19 +22,29 @@ void Tube::reset()
 
 void Tube::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    outL = softSaturator4(inL, this->saturator_factor_);
-    outR = softSaturator4(inR, this->saturator_factor_);
+    float32_t x = inL * this->saturator_factor_;
+    float32_t abs_x = std::abs(x);
+    float32_t sat_x = std::log(1.0f + abs_x) * this->gain_factor_;
+    
+    outL = inL > 0 ? sat_x : -sat_x;
+
+    x = inR * this->saturator_factor_;
+    abs_x = std::abs(x);
+    sat_x = std::log(1.0f + abs_x) * this->gain_factor_;
+
+    outR = inR > 0 ? sat_x : -sat_x;
 }
 
 void Tube::setOverdrive(float32_t overdrive)
 {
-    static const float32_t N = 200.0f;
+    static constexpr float32_t N = 200.0f;
 
     overdrive = constrain(overdrive, 0.0f, 1.0f);
     if(this->overdrive_ != overdrive)
     {
         this->overdrive_ = overdrive;
         this->saturator_factor_ = 1.0f + N * overdrive;
+        this->gain_factor_ = 1.0f / std::log(1.0f + this->saturator_factor_);
     }
 }
 

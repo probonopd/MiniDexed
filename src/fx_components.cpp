@@ -20,6 +20,7 @@ FastLFO::FastLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max
     InitialPhase(initial_phase),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
+    frequency_(0.0f),
     y0_(0.0f),
     y1_(0.0f),
     iir_coefficient_(0.0f),
@@ -628,9 +629,9 @@ float32_t softSaturator3(float32_t input, float32_t overdrive)
 
 float32_t softSaturator4(float32_t input, float32_t saturator_factor)
 {
-    float32_t x = input * (saturator_factor);
-    float32_t abs_x = std::fabs(x);
-    float32_t sat_x = std::log(1.0 + abs_x) / std::log(1.0f + saturator_factor);
+    float32_t x = input * saturator_factor;
+    float32_t abs_x = std::abs(x);
+    float32_t sat_x = std::log(1.0f + abs_x) / std::log(1.0f + saturator_factor);
     return x > 0 ? sat_x : -sat_x;
 }
 

@@ -18,7 +18,7 @@
 //
 #pragma once
 
-#include "fx_components.h"
+#include "fx.h"
 
 class Tube : public FXElement
 {
@@ -37,4 +37,5 @@ public:
 private:
     float32_t overdrive_;
     float32_t saturator_factor_;
+    float32_t gain_factor_;
 };
