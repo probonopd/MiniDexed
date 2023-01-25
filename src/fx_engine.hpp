@@ -235,7 +235,7 @@ public:
         template <typename D>
         inline void write(D& d, int32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             T w = DataType<format>::compress(this->accumulator_);
             if(offset == -1)
             {
@@ -270,7 +270,7 @@ public:
         template <typename D>
         inline void read(D& d, int32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             T r;
             if(offset == -1)
             {
@@ -306,7 +306,7 @@ public:
         template <typename D>
         inline void interpolate(D& d, float32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             MAKE_INTEGRAL_FRACTIONAL(offset);
             float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
             float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
@@ -318,7 +318,7 @@ public:
         template <typename D>
         inline void interpolate(D& d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             assert(index < LFOIndex::kLFOCount);
             offset += amplitude * this->lfo_value_[index];
             MAKE_INTEGRAL_FRACTIONAL(offset);
@@ -364,8 +364,8 @@ public:
         }
         c->accumulator_ = 0.0f;
         c->previous_read_ = 0.0f;
-        c->buffer_ = buffer_;
-        c->write_ptr_ = write_ptr_;
+        c->buffer_ = this->buffer_;
+        c->write_ptr_ = this->write_ptr_;
         if(enable_lfo)
         {
             for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) 

@@ -33,6 +33,10 @@
 #include "fx_dry.h"
 #include "fx_unit2.hpp"
 
+#if defined(DEBUG)
+typedef void (*ValueInpector)(const std::string&, size_t, const float32_t);
+#endif
+
 template<size_t nb_inputs>
 class MixingConsole : public FXBase
 {
@@ -101,6 +105,7 @@ private:
 #if defined(DEBUG)
 public:
     void dump(std::ostream& out, const std::string& key = "") const;
+    void inspect(ValueInpector inspector, bool checkInputBuffer = false) const;
 #endif
 };
 
@@ -602,9 +607,51 @@ void MixingConsole<nb_inputs>::dump(std::ostream& out, const std::string& key) c
 #define DUMP1(mixer, out) mixer->dump(cout)
 #define DUMP2(mixer, out, tag) mixer->dump(cout, tag)
 
+template<size_t nb_inputs>
+void MixingConsole<nb_inputs>::inspect(ValueInpector inspector, bool checkInputBuffer) const
+{
+    for(size_t i = 0; i < nb_inputs; ++i)
+    {
+        inspector("Level  ", i, this->channel_level_[i]);
+        inspector("Pan L  ", i, this->pan_[StereoChannels::Left][i]);
+        inspector("Pan R  ", i, this->pan_[StereoChannels::Right][i]);
+        inspector("Pan    ", i, this->pan_[StereoChannels::kNumChannels][i]);
+    }
+
+    for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+    {
+        inspector("Input L", i, this->input_samples_[StereoChannels::Left ][i]);
+        inspector("Input R", i, this->input_samples_[StereoChannels::Right][i]);
+    }
+
+    for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
+    {
+        for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+        {
+            inspector("Levels ", c * 100 + i, this->levels_[c][i]);
+        }
+    }
+
+    if(checkInputBuffer)
+    {
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            for(size_t k = 0; k < this->BufferSize; ++k)
+            {
+                inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Left ][i][k]);
+                inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Right][i][k]);
+            }
+        }
+    }
+}
+
+#define INSPECT(mixer, inspector) mixer->inspect(inspector, true);
+
 #else
 
 #define DUMP1(mixer, out)
 #define DUMP2(mixer, out, tag)
+
+#define INSPECT(mixer, inspector)
 
 #endif
