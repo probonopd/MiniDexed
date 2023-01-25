@@ -41,7 +41,7 @@ test: $(EXE) $(OUTPUT_FOLDER)
 
 test-debug: $(EXE) $(OUTPUT_FOLDER)
 	rm -f $(OUTPUT_FOLDER)/*
-	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
+	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --error-limit=no --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
 
 $(OBJDIR):
 	mkdir -p $@
