@@ -199,7 +199,7 @@ public:
             buffer_(nullptr),
             write_ptr_(0)
         {
-            memset(this->lfo_value_, 0, LFOIndex::kLFOCount * sizeof(T));
+            memset(this->lfo_value_, 0, LFOIndex::kLFOCount * sizeof(float32_t));
         }
 
         ~Context()

@@ -20,9 +20,6 @@
 
 #include "fx_components.h"
 
-#include <iostream>
-using namespace std;
-
 class FXUnitModule2
 {
     DISALLOW_COPY_AND_ASSIGN(FXUnitModule2);

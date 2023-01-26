@@ -92,7 +92,7 @@ TEST_P(FXScenarioTest, ScenarioProcessing)
     setupRack(rack);
 
     rack->reset();
-    int fxSwitch = GetParam();
+    int fxSwitch = this->GetParam();
 
     activateRackFXUnitScenario(rack, fxSwitch);
 

@@ -38,26 +38,28 @@ inline std::string toString(MixerOutput enum_val)
         "Orbitone",
         "Phaser",
         "Delay",
-        "Plate Reverb",
-        "Shimmer Reverb",
-        "Main Output"
+        "PlateReverb",
+        "ShimmerReverb",
+        "MainOutput"
     };
     static_assert(names.size() == MixerOutput::kFXCount, "Enum MixerOutput and string array size mismatch");
 
     return std::string(names[static_cast<size_t>(enum_val)]);
 }
 
+#define TO_INDEX_CHECK(str, fx) if(std::strcmp(str, toString(fx).c_str()) == 0) return fx;
+
 inline MixerOutput toIndex(const char* str)
 {
-    if(strcmp(str, "Tube") == 0) return MixerOutput::FX_Tube;
-    if(strcmp(str, "Chorus") == 0) return MixerOutput::FX_Chorus;
-    if(strcmp(str, "Flanger") == 0) return MixerOutput::FX_Flanger;
-    if(strcmp(str, "Orbitone") == 0) return MixerOutput::FX_Orbitone;
-    if(strcmp(str, "Phaser") == 0) return MixerOutput::FX_Phaser;
-    if(strcmp(str, "Delay") == 0) return MixerOutput::FX_Delay;
-    if(strcmp(str, "PlateReverb") == 0) return MixerOutput::FX_PlateReverb;
-    if(strcmp(str, "ShimmerReverb") == 0) return MixerOutput::FX_ShimmerReverb;
-    if(strcmp(str, "MainOutput") == 0) return MixerOutput::MainOutput;
+    TO_INDEX_CHECK(str, MixerOutput::FX_Tube);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Chorus);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Flanger);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Orbitone);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Phaser);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Delay);
+    TO_INDEX_CHECK(str, MixerOutput::FX_PlateReverb);
+    TO_INDEX_CHECK(str, MixerOutput::FX_ShimmerReverb);
+    TO_INDEX_CHECK(str, MixerOutput::MainOutput);
 
     throw std::invalid_argument("Invalid MixerOutput string");
 }
