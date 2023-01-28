@@ -6,13 +6,6 @@
 #include <cstring>
 #include <stdexcept>
 
-enum StereoChannels
-{
-    Left = 0,
-    Right,
-    kNumChannels
-};
-
 enum MixerOutput
 {
     OutputStart = 0,

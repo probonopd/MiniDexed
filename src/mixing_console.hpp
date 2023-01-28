@@ -34,7 +34,7 @@
 #include "fx_unit2.hpp"
 
 #if defined(DEBUG)
-typedef void (*ValueInpector)(const std::string&, size_t, const float32_t);
+typedef size_t (*ValueInpector)(const std::string&, size_t, const float32_t);
 #endif
 
 template<size_t nb_inputs>
@@ -47,40 +47,39 @@ public:
     ~MixingConsole();
 
     // Send section
-    void setChannelLevel(size_t in, float32_t lvl);
-    void setPan(size_t in, float32_t pan);
-    void setSendLevel(size_t in, MixerOutput fx, float32_t lvl);
-    void setInputSample(size_t in, float32_t sampleL, float32_t sampleR);
-    void setInputSampleBuffer(size_t in, float32_t* samples);
-    void setInputSampleBuffer(size_t in, float32_t* samplesL, float32_t* samplesR);
+    inline void setChannelLevel(size_t in, float32_t lvl);
+    inline void setPan(size_t in, float32_t pan);
+    inline void setSendLevel(size_t in, MixerOutput fx, float32_t lvl);
+    inline void setInputSample(size_t in, float32_t sampleL, float32_t sampleR);
+    inline void setInputSampleBuffer(size_t in, float32_t* samples);
+    inline void setInputSampleBuffer(size_t in, float32_t* samplesL, float32_t* samplesR);
 
     // Return section
-    void setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
-    void setReturnSample(MixerOutput ret, float32_t sampleL, float32_t sampleR);
+    inline void setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
+    inline void setReturnSample(MixerOutput ret, float32_t sampleL, float32_t sampleR);
 
     // Get FX
-    FXElement* getFX(size_t fx);
-    FXUnit2<Tube>* getTube();
-    FXUnit2<Chorus>* getChorus();
-    FXUnit2<Flanger>* getFlanger();
-    FXUnit2<Orbitone>* getOrbitone();
-    FXUnit2<Phaser>* getPhaser();
-    FXUnit2<Delay>* getDelay();
-    FXUnit2<AudioEffectPlateReverb>* getPlateReverb();
-    FXUnit2<ShimmerReverb>* getShimmerReverb();
-    FXUnit2<Dry>* getDry();
+    inline FXElement* getFX(size_t fx);
+    inline FXUnit2<Tube>* getTube();
+    inline FXUnit2<Chorus>* getChorus();
+    inline FXUnit2<Flanger>* getFlanger();
+    inline FXUnit2<Orbitone>* getOrbitone();
+    inline FXUnit2<Phaser>* getPhaser();
+    inline FXUnit2<Delay>* getDelay();
+    inline FXUnit2<AudioEffectPlateReverb>* getPlateReverb();
+    inline FXUnit2<ShimmerReverb>* getShimmerReverb();
+    inline FXUnit2<Dry>* getDry();
 
     // Processing
-    void init();
-    void reset();
-    void processSample(float32_t& outL, float32_t& outR);
-    void prepare();
+    inline void init();
+    inline void reset();
+    inline void processSample(float32_t& outL, float32_t& outR);
     void process(float32_t* outL, float32_t* outR);
 
 protected:
-    void updatePan(size_t in);
-    void setLevel(size_t in, MixerOutput fx, float32_t lvl);
-    void setSample(size_t in, float32_t sampleL, float32_t sampleR);
+    inline void updatePan(size_t in);
+    inline void setLevel(size_t in, MixerOutput fx, float32_t lvl);
+    inline void setSample(size_t in, float32_t sampleL, float32_t sampleR);
 
 private:
     const size_t BufferSize;
@@ -105,7 +104,7 @@ private:
 #if defined(DEBUG)
 public:
     void dump(std::ostream& out, const std::string& key = "") const;
-    void inspect(ValueInpector inspector, bool checkInputBuffer = false) const;
+    size_t inspect(ValueInpector inspector, bool checkInputBuffer = false) const;
 #endif
 };
 
@@ -119,11 +118,9 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
     {
         this->input_sample_buffer_[StereoChannels::Left ][i] = new float32_t[this->BufferSize];
         this->input_sample_buffer_[StereoChannels::Right][i] = new float32_t[this->BufferSize];
-        memset(this->input_sample_buffer_[StereoChannels::Left ][i], 0, this->BufferSize);
-        memset(this->input_sample_buffer_[StereoChannels::Right][i], 0, this->BufferSize);
+        memset(this->input_sample_buffer_[StereoChannels::Left ][i], 0, sizeof(float32_t) * this->BufferSize);
+        memset(this->input_sample_buffer_[StereoChannels::Right][i], 0, sizeof(float32_t) * this->BufferSize);
     }
-
-    memset(this->fx_, 0, MixerOutput::kFXCount * sizeof(FXElement*));
 
     this->fx_[MixerOutput::FX_Tube] = this->tube_ = new FXUnit2<Tube>(sampling_rate);
     this->fx_[MixerOutput::FX_Chorus] = this->chorus_ = new FXUnit2<Chorus>(sampling_rate);
@@ -396,19 +393,8 @@ void MixingConsole<nb_inputs>::processSample(float32_t& outL, float32_t& outR)
 }
 
 template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::prepare()
-{
-    for(size_t i = 0; i < MixerOutput::kFXCount; ++i)
-    {
-        this->fx_[i]->prepare();
-    }
-}
-
-template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
 {
-    this->prepare();
-
     for(size_t s = 0; s < this->BufferSize; ++s)
     {
         for(size_t in = 0; in < nb_inputs; ++in)
@@ -608,27 +594,29 @@ void MixingConsole<nb_inputs>::dump(std::ostream& out, const std::string& key) c
 #define DUMP2(mixer, out, tag) mixer->dump(cout, tag)
 
 template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::inspect(ValueInpector inspector, bool checkInputBuffer) const
+size_t MixingConsole<nb_inputs>::inspect(ValueInpector inspector, bool checkInputBuffer) const
 {
+    size_t nb_errors = 0;
+
     for(size_t i = 0; i < nb_inputs; ++i)
     {
-        inspector("Level  ", i, this->channel_level_[i]);
-        inspector("Pan L  ", i, this->pan_[StereoChannels::Left][i]);
-        inspector("Pan R  ", i, this->pan_[StereoChannels::Right][i]);
-        inspector("Pan    ", i, this->pan_[StereoChannels::kNumChannels][i]);
+        nb_errors += inspector("Level  ", i, this->channel_level_[i]);
+        nb_errors += inspector("Pan L  ", i, this->pan_[StereoChannels::Left][i]);
+        nb_errors += inspector("Pan R  ", i, this->pan_[StereoChannels::Right][i]);
+        nb_errors += inspector("Pan    ", i, this->pan_[StereoChannels::kNumChannels][i]);
     }
 
     for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
     {
-        inspector("Input L", i, this->input_samples_[StereoChannels::Left ][i]);
-        inspector("Input R", i, this->input_samples_[StereoChannels::Right][i]);
+        nb_errors += inspector("Input L", i, this->input_samples_[StereoChannels::Left ][i]);
+        nb_errors += inspector("Input R", i, this->input_samples_[StereoChannels::Right][i]);
     }
 
     for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
     {
         for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
         {
-            inspector("Levels ", c * 100 + i, this->levels_[c][i]);
+            nb_errors += inspector("Levels ", c * 100 + i, this->levels_[c][i]);
         }
     }
 
@@ -638,14 +626,16 @@ void MixingConsole<nb_inputs>::inspect(ValueInpector inspector, bool checkInputB
         {
             for(size_t k = 0; k < this->BufferSize; ++k)
             {
-                inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Left ][i][k]);
-                inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Right][i][k]);
+                nb_errors += inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Left ][i][k]);
+                nb_errors += inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Right][i][k]);
             }
         }
     }
+
+    return nb_errors;
 }
 
-#define INSPECT(mixer, inspector) mixer->inspect(inspector, true);
+#define INSPECT(mixer, inspector) mixer->inspect(inspector, true)
 
 #else
 

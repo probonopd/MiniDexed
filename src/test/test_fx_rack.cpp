@@ -12,67 +12,62 @@ using namespace std;
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
-void setupRack(FXRack* rack)
+void setupRack(FXRack* rack, int scenario)
 {
     rack->setWetLevel(1.0f);
 
+    rack->getTube()->setEnable(Active(scenario, FXSwitch::FX__Tube));
     rack->getTube()->setWetLevel(0.25f);
     rack->getTube()->setOverdrive(0.25f);
 
+    rack->getChorus()->setEnable(Active(scenario, FXSwitch::FX__Chorus));
     rack->getChorus()->setWetLevel(0.5f);
     rack->getChorus()->setRate(0.4f);
     rack->getChorus()->setDepth(0.5f);
     
+    rack->getFlanger()->setEnable(Active(scenario, FXSwitch::FX__Flanger));
+    rack->getFlanger()->setWetLevel(0.5f);
+    rack->getFlanger()->setRate(0.03f);
+    rack->getFlanger()->setDepth(0.75f);
+    rack->getFlanger()->setFeedback(0.5f);
+
+    rack->getOrbitone()->setEnable(Active(scenario, FXSwitch::FX__Orbitone));
+    rack->getOrbitone()->setWetLevel(0.8f);
+    rack->getOrbitone()->setRate(0.4f);
+    rack->getOrbitone()->setDepth(0.5f);
+
+    rack->getPhaser()->setEnable(Active(scenario, FXSwitch::FX__Phaser));
     rack->getPhaser()->setWetLevel(1.0f);
     rack->getPhaser()->setRate(0.1f);
     rack->getPhaser()->setDepth(1.0f);
     rack->getPhaser()->setFeedback(0.5f);
     rack->getPhaser()->setNbStages(12);
 
-    rack->getOrbitone()->setWetLevel(0.8f);
-    rack->getOrbitone()->setRate(0.4f);
-    rack->getOrbitone()->setDepth(0.5f);
-
-    rack->getFlanger()->setWetLevel(0.5f);
-    rack->getFlanger()->setRate(0.03f);
-    rack->getFlanger()->setDepth(0.75f);
-    rack->getFlanger()->setFeedback(0.5f);
-
+    rack->getDelay()->setEnable(Active(scenario, FXSwitch::FX__Delay));
     rack->getDelay()->setWetLevel(0.6f);
     rack->getDelay()->setLeftDelayTime(0.15f);
     rack->getDelay()->setLeftDelayTime(0.2f);
     rack->getDelay()->setFeedback(0.35f);
-    rack->getDelay()->setFlutterRate(0.15f);
-    rack->getDelay()->setFlutterAmount(0.75f);
+    rack->getDelay()->setFlutterRate(0.0f);
+    rack->getDelay()->setFlutterAmount(0.0f);
 
-    rack->getShimmerReverb()->setWetLevel(0.6f);
-    rack->getShimmerReverb()->setInputGain(0.55f);
+    rack->getShimmerReverb()->setEnable(Active(scenario, FXSwitch::FX__ShimmerReverb));
+    rack->getShimmerReverb()->setWetLevel(0.5f);
+    rack->getShimmerReverb()->setInputGain(0.35f);
     rack->getShimmerReverb()->setTime(0.89f);
     rack->getShimmerReverb()->setDiffusion(0.75f);
     rack->getShimmerReverb()->setLP(0.8f);
 }
 
-void activateRackFXUnitScenario(FXRack* rack, int scenario)
-{
-    rack->getTube()->setEnable(Active(scenario, FXSwitch::FX__Tube));
-    rack->getChorus()->setEnable(Active(scenario, FXSwitch::FX__Chorus));
-    rack->getPhaser()->setEnable(Active(scenario, FXSwitch::FX__Phaser));
-    rack->getOrbitone()->setEnable(Active(scenario, FXSwitch::FX__Orbitone));
-    rack->getFlanger()->setEnable(Active(scenario, FXSwitch::FX__Flanger));
-    rack->getDelay()->setEnable(Active(scenario, FXSwitch::FX__Delay));
-    rack->getShimmerReverb()->setEnable(Active(scenario, FXSwitch::FX__ShimmerReverb));
-}
-
 TEST_P(FXScenarioTest, FXRackResetAllScenarios)
 {
     FXRack *rack = new FXRack(SAMPLING_FREQUENCY);
+
+    int fxSwitch = this->GetParam();
     rack->setEnable(true);
-    setupRack(rack);
-
-    int fxSwitch = GetParam();
-    activateRackFXUnitScenario(rack, fxSwitch);
-
+    setupRack(rack, fxSwitch);
     rack->reset();
+
     delete rack;
 }
 
@@ -87,14 +82,11 @@ TEST_P(FXScenarioTest, ScenarioProcessing)
     memset(sampleOutR, 0, size * nbRepeats * sizeof(float32_t));
 
     FXRack *rack = new FXRack(SAMPLING_FREQUENCY);
-    rack->setEnable(true);
 
-    setupRack(rack);
-
-    rack->reset();
     int fxSwitch = this->GetParam();
-
-    activateRackFXUnitScenario(rack, fxSwitch);
+    rack->setEnable(true);
+    setupRack(rack, fxSwitch);
+    rack->reset();
 
     string name = getScenarioName(fxSwitch);
 

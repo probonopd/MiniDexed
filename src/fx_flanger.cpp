@@ -25,8 +25,10 @@ Flanger::~Flanger()
     delete[] this->delay_lineL_;
     delete[] this->delay_lineR_;
 
-    delete this->lfo_[LFOIndex::LFO_L];
-    delete this->lfo_[LFOIndex::LFO_R];
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
+    {
+        delete this->lfo_[i];
+    }
 }
 
 inline float32_t linearIterpolationnterp(float32_t inX, float32_t inY, float32_t inPhase)
@@ -41,8 +43,10 @@ void Flanger::reset()
     memset(this->feedback_samples_, 0, 2 * sizeof(float32_t));
     this->write_index_ = 0;
 
-    this->lfo_[LFOIndex::LFO_L]->reset();
-    this->lfo_[LFOIndex::LFO_R]->reset();
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
+    {
+        this->lfo_[i]->reset();
+    }
 }
 
 void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -58,8 +62,8 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     }
 
     // Configure LFO for effect processing
-    float32_t lfo_l = this->lfo_[LFO_L]->process() * this->depth_;
-    float32_t lfo_r = this->lfo_[LFO_R]->process() * this->depth_;
+    float32_t lfo_l = this->lfo_[LFOIndex::LFO_L]->process() * this->depth_;
+    float32_t lfo_r = this->lfo_[LFOIndex::LFO_R]->process() * this->depth_;
 
     // Map LFO range to millisecond range according to Chorus or Flanger effect
 	float32_t lfoMappedL = mapfloat(lfo_l, -1.0f, 1.0f, 0.001f, 0.005f);
@@ -104,8 +108,8 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     float32_t delay_sample_r = linearIterpolationnterp(this->delay_lineR_[currentR], this->delay_lineR_[nextR], fractionR);
 
     // Store delayed samples as feedback
-    this->feedback_samples_[0] = delay_sample_l * this->feedback_;
-    this->feedback_samples_[1] = delay_sample_r * this->feedback_;
+    this->feedback_samples_[StereoChannels::Left ] = delay_sample_l * this->feedback_;
+    this->feedback_samples_[StereoChannels::Right] = delay_sample_r * this->feedback_;
 
     outL = delay_sample_l;
     outR = delay_sample_r;

@@ -22,7 +22,7 @@
 #include <arm_math.h>
 #include "common.h"
 
-#include "extra_features.h"
+#include "fx_base.h"
 
 class FXBase
 {
@@ -30,13 +30,13 @@ class FXBase
     
 protected:
     FXBase(float32_t sampling_rate);
-    virtual ~FXBase();
 
 public:
+    virtual ~FXBase();
+    
     float32_t getSamplingRate() const;
 
     virtual void reset() = 0;
-    virtual void prepare();
 
 private:
     const float32_t SamplingRate;

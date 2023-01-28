@@ -80,8 +80,8 @@ void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     this->z_[0] = sampleL;
     this->z_[1] = sampleR;
 
-    outL = inL + this->z_[0] * this->depth_;
-    outR = inR + this->z_[1] * this->depth_;
+    outL = inL + this->z_[StereoChannels::Left ] * this->depth_;
+    outR = inR + this->z_[StereoChannels::Right] * this->depth_;
 }
 
 void Phaser::setFrequencyRange(float32_t min_frequency, float32_t max_frequency)

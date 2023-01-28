@@ -11,7 +11,7 @@ Dry::~Dry()
 
 void Dry::reset()
 {
-    // does nothing
+    // nothing to be done
 }
 
 void Dry::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)

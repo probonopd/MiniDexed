@@ -44,7 +44,7 @@ void Chorus::reset()
 void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     typedef Engine::Reserve<2047> Memory;
-    Engine::DelayLine<Memory, 0> line;
+    static Engine::DelayLine<Memory, 0> line;
     Engine::Context c;
 
     this->engine_.start(&c);

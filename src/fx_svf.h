@@ -19,7 +19,6 @@
 //
 
 #include "fx.h"
-#include "mixing_console_constants.h"
 
 class StateVariableFilter : public FXElement
 {

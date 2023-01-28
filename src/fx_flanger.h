@@ -30,7 +30,8 @@ public:
     enum LFOIndex
     {
         LFO_L = 0,
-        LFO_R
+        LFO_R,
+        kLFOCount
     };
 
     Flanger(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f, float32_t feedback = 0.0f);
@@ -53,9 +54,9 @@ private:
     float32_t* delay_lineL_;
     float32_t* delay_lineR_;
     unsigned write_index_;
-    float32_t feedback_samples_[2];
+    float32_t feedback_samples_[StereoChannels::kNumChannels];
 
-    LFO* lfo_[2];
+    LFO* lfo_[LFOIndex::kLFOCount];
     float32_t depth_;           // Depth of the flanger effect in milliseconds (0.0 - 10.0)
     float32_t feedback_;        // Amount of feedback to apply to the delay line
 };

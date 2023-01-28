@@ -17,7 +17,7 @@ Tube::~Tube()
 
 void Tube::reset()
 {
-    // does nothing
+    // nothing to be done
 }
 
 void Tube::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)

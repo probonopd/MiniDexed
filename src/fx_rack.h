@@ -19,7 +19,6 @@
 #pragma once
 
 #include "fx.h"
-#include "fx_unit.hpp"
 #include "fx_tube.h"
 #include "fx_chorus.h"
 #include "fx_flanger.h"
@@ -27,6 +26,7 @@
 #include "fx_phaser.h"
 #include "fx_delay.h"
 #include "fx_shimmer_reverb.h"
+#include "fx_unit.hpp"
 
 #include <vector>
 
@@ -42,7 +42,6 @@ public:
 
     virtual void reset() override;
     virtual inline void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
-    virtual void prepare() override;
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
 
     void setEnable(bool enable = true);

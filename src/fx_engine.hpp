@@ -1,21 +1,22 @@
 #pragma once
 
-#include "fx_components.h"
+#if defined(DEBUG)
+#include <iostream>
+#include <cmath>
+#endif
 
 #include <algorithm>
 #include <climits>
 #include <cassert>
 
-#define MAKE_INTEGRAL_FRACTIONAL(x) \
-    int32_t x ## _integral = static_cast<int32_t>(x); \
-    float32_t x ## _fractional = x - static_cast<float32_t>(x ## _integral);
+#include "fx_components.h"
 
 enum Format
 {
-    FORMAT_FLOAT32,
     FORMAT_12_BIT,
     FORMAT_16_BIT,
-    FORMAT_32_BIT
+    FORMAT_32_BIT,
+    FORMAT_FLOAT32
 };
 
 template <Format format>
@@ -37,22 +38,6 @@ inline int16_t clip16(int32_t x)
 
     return static_cast<int16_t>(x);
 }
-
-template <>
-struct DataType<Format::FORMAT_FLOAT32>
-{
-    typedef float32_t T;
-
-    static inline float32_t decompress(T value)
-    {
-        return value;
-    }
-
-    static inline T compress(float32_t value)
-    {
-        return constrain(value, -1.0f, 1.0f);
-    }
-};
 
 template <>
 struct DataType<Format::FORMAT_12_BIT>
@@ -99,6 +84,22 @@ struct DataType<Format::FORMAT_32_BIT>
     static inline T compress(float32_t value)
     {
         return value * static_cast<float32_t>(INT32_MAX);
+    }
+};
+
+template <>
+struct DataType<Format::FORMAT_FLOAT32>
+{
+    typedef float32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return value;
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return constrain(value, -1.0f, 1.0f);
     }
 };
 
@@ -307,10 +308,14 @@ public:
         inline void interpolate(D& d, float32_t offset, float32_t scale)
         {
             assert((D::base + D::length) <= size);
-            MAKE_INTEGRAL_FRACTIONAL(offset);
+
+            int32_t offset_integral = static_cast<int32_t>(offset);
+            float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
+
             float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
             float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
             float32_t x = a + (b - a) * offset_fractional;
+
             this->previous_read_ = x;
             this->accumulator_ += x * scale;
         }
@@ -318,15 +323,9 @@ public:
         template <typename D>
         inline void interpolate(D& d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
         {
-            assert((D::base + D::length) <= size);
             assert(index < LFOIndex::kLFOCount);
-            offset += amplitude * this->lfo_value_[index];
-            MAKE_INTEGRAL_FRACTIONAL(offset);
-            float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
-            float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
-            float32_t x = a + (b - a) * offset_fractional;
-            this->previous_read_ = x;
-            this->accumulator_ += x * scale;
+
+            this->interpolate(d, offset + amplitude * this->lfo_value_[index], scale);
         }
 
     private:
@@ -355,7 +354,7 @@ public:
         }
     }
 
-    inline void start(Context *c)
+    inline void start(Context* c)
     {
         --this->write_ptr_;
         if(this->write_ptr_ < 0)

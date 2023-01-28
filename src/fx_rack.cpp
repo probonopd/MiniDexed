@@ -50,7 +50,7 @@ inline void FXRack::reset()
 
 inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    auto end = this->fx_chain_.end();
+    FXChain::iterator end = this->fx_chain_.end();
     for(FXChain::iterator it = this->fx_chain_.begin(); it != end; it++)
     {
         (*it)->processSample(inL, inR, outL, outR);
@@ -60,19 +60,8 @@ inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL,
     }
 }
 
-void FXRack::prepare()
-{
-    auto end = this->fx_chain_.end();
-    for(FXChain::iterator it = this->fx_chain_.begin(); it != end; it++)
-    {
-        (*it)->prepare();
-    }
-}
-
 void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
 {
-    this->prepare();
-
     float32_t sampleInL;
     float32_t sampleInR;
     float32_t sampleOutL;

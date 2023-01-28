@@ -42,7 +42,7 @@ public:
 
     private:
         float32_t a1_;
-        float32_t z_[2];
+        float32_t z_[StereoChannels::kNumChannels];
     };
 
     Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f, unsigned nb_stages = 12);
@@ -73,5 +73,5 @@ private:
     float32_t dmax_;
     unsigned nb_stages_;
     AllpassDelay stages_[MAX_NB_PHASES];
-    float32_t z_[2];
+    float32_t z_[StereoChannels::kNumChannels];
 };
