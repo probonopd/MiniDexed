@@ -196,6 +196,9 @@ private:
 
     uint32_t lfo2_phase_acc;    // LFO 2
     uint32_t lfo2_adder;
+
+    IMPLEMENT_DUMP()
+    IMPLEMENT_INSPECT(return 0u;)
 };
 
 #endif // _EFFECT_PLATEREV_H

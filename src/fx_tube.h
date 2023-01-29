@@ -38,4 +38,43 @@ private:
     float32_t overdrive_;
     float32_t saturator_factor_;
     float32_t gain_factor_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 17;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "overdrive_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "saturator_factor_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "gain_factor_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->overdrive_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->saturator_factor_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->gain_factor_);
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0;
+
+        nb_errors += inspector(tag + ".overdrive_", this->overdrive_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".saturator_factor_", this->saturator_factor_, 1.0f, 201.0f, deepInspection);
+        nb_errors += inspector(tag + ".gain_factor_", this->gain_factor_, 0.0f, 4.0f, deepInspection);
+
+        return nb_errors;
+    )
 };

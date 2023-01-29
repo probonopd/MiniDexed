@@ -5,8 +5,6 @@
 #define LFO_SLOW_MAX_FREQUENCY 1.0f
 #define LFO_FAST_MAX_FREQUENCY 8.8f
 
-#define FULLSCALE_DEPTH_RATIO 256.0f
-
 Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) : 
     FXElement(sampling_rate),
     engine_(sampling_rate, 0.0f),
@@ -114,7 +112,7 @@ void Orbitone::setDepth(float32_t depth)
     if(this->depth_ != depth)
     {
         this->depth_ = depth;
-        this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+        this->fullscale_depth_ = this->depth_ * ORBITONE_FULLSCALE_DEPTH_RATIO;
     }
 }
 

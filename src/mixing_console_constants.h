@@ -23,7 +23,7 @@ enum MixerOutput
 
 inline std::string toString(MixerOutput enum_val)
 {
-    static constexpr std::array<const char*, MixerOutput::kFXCount> names
+    static const std::array<const char*, MixerOutput::kFXCount> names
     { 
         "Tube",
         "Chorus",

@@ -109,10 +109,10 @@ TEST(FXComponent, SVF)
 
 TEST(CppOptimization, InterpolatedSineOscillatorPrecisionTest)
 {
-    constexpr float32_t freq = 0.15f;
-    constexpr size_t NB = static_cast<size_t>(2.0f * SAMPLING_FREQUENCY);
+    const float32_t freq = 0.15f;
+    const size_t NB = static_cast<size_t>(2.0f * SAMPLING_FREQUENCY);
 
-    constexpr float32_t epsilon = 1e-3;
+    const float32_t epsilon = 1e-3;
 
     ComplexLFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f);
     InterpolatedSineOscillator lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f);
@@ -131,10 +131,10 @@ TEST(CppOptimization, InterpolatedSineOscillatorPrecisionTest)
 
 TEST(CppOptimization, FastLFOPrecisionTest)
 {
-    constexpr float32_t freq = 0.15f;
-    constexpr size_t NB = static_cast<size_t>(2.0f * SAMPLING_FREQUENCY);
+    const float32_t freq = 0.15f;
+    const size_t NB = static_cast<size_t>(2.0f * SAMPLING_FREQUENCY);
 
-    constexpr float32_t epsilon = 1e-3;
+    const float32_t epsilon = 1e-3;
 
     ComplexLFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f);
     FastLFO lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f);

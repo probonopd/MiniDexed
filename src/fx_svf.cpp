@@ -31,7 +31,9 @@ void StateVariableFilter::setFilterType(Type type)
 
 void StateVariableFilter::setCutoff(float32_t cutoff)
 {
-    cutoff = constrain(cutoff, 1.0f, this->getSamplingRate() / 2.0f);
+    static const float32_t max_frequency = 0.45f * this->getSamplingRate();
+
+    cutoff = constrain(cutoff, 1.0f, max_frequency);
     if(this->cutoff_ != cutoff)
     {
         this->cutoff_ = cutoff;
@@ -72,7 +74,6 @@ void StateVariableFilter::updateCoefficients()
 
     switch(this->type_)
     {
-
     case Type::LPF:
         this->d1_ = 0.0f;
         this->d0_ = 0.25f * this->c1_ * this->c2_;

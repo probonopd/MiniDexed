@@ -27,7 +27,7 @@ class Phaser : public FXElement
     DISALLOW_COPY_AND_ASSIGN(Phaser);
 
 public:
-    class AllpassDelay
+    class AllpassDelay : public FXElement
     {
         DISALLOW_COPY_AND_ASSIGN(AllpassDelay);
 
@@ -43,6 +43,39 @@ public:
     private:
         float32_t a1_;
         float32_t z_[StereoChannels::kNumChannels];
+
+        IMPLEMENT_DUMP(
+            const size_t space = 10;
+            const size_t precision = 6;
+
+            std::stringstream ss;
+
+            out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS__TEXT(ss, ' ', space, std::left, '|', "a1_");
+            SS__TEXT(ss, ' ', space, std::left, '|', "z_[ L ]");
+            SS__TEXT(ss, ' ', space, std::left, '|', "z_[ R ]");
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->a1_);
+            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->z_[StereoChannels::Left ]);
+            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->z_[StereoChannels::Right]);
+            out << "\t" << ss.str() << std::endl;
+
+            out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+        )
+
+        IMPLEMENT_INSPECT(
+            return 0u;
+        )
     };
 
     Phaser(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 1.0f, float32_t feedback = 0.7f, unsigned nb_stages = 12);
@@ -74,4 +107,67 @@ private:
     unsigned nb_stages_;
     AllpassDelay stages_[MAX_NB_PHASES];
     float32_t z_[StereoChannels::kNumChannels];
+
+    IMPLEMENT_DUMP(
+        const size_t space = 12;
+        const size_t precision = 6;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "depth_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "feedback_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "dmin_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "dmax_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "nb_stages_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->depth_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->feedback_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->dmin_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->dmax_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->nb_stages_);
+        out << "\t" << ss.str() << std::endl;
+
+        if(deepInspection)
+        {
+            this->lfo_.dump(out, deepInspection, tag + ".lfo_");
+            for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
+            {
+                this->stages_[i].dump(out, deepInspection, tag + ".stages_[ " + std::to_string(i) + " ]");
+            }
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".depth_", this->depth_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".feedback_", this->feedback_, 0.0f, 0.97f, deepInspection);
+        nb_errors += inspector(tag + ".nb_stages_", static_cast<float32_t>(this->nb_stages_), 0.0f, static_cast<float32_t>(MAX_NB_PHASES), deepInspection);
+
+        if(deepInspection)
+        {
+            nb_errors += this->lfo_.inspect(inspector, deepInspection, tag + ".lfo_");
+            for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
+            {
+                nb_errors += this->stages_[i].inspect(inspector, deepInspection, tag + ".stages_[ " + std::to_string(i) + " ]");
+            }
+        }
+
+        return nb_errors;
+    )
 };

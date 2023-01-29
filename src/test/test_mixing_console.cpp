@@ -6,29 +6,6 @@
 
 #include "../mixing_console.hpp"
 
-size_t nanValueInspector(const std::string& el, size_t idx, const float32_t value)
-{
-    if(std::isnan(value))
-    {
-        return 1u;
-    }
-
-    return 0u;
-}
-
-size_t normalizedValueInspector(const std::string& el, size_t idx, const float32_t value)
-{
-    if(!std::isnan(value))
-    {
-        if(value != constrain(value, -1.0f, 1.0f))
-        {
-            return 1u;
-        }
-    }
-
-    return 0u;
-}
-
 class MixingConsoleScenarioTest : public testing::TestWithParam<MixerOutput> {};
 
 TEST_P(MixingConsoleScenarioTest, MixerOutputTest)
@@ -92,8 +69,8 @@ void setupMixingConsoleFX(Mixer* mixer)
 
 TEST(MixingConsole, DryProcessing)
 {
-    constexpr float32_t epsilon = 1e-7;
-    constexpr size_t length = 2;
+    const float32_t epsilon = 1e-7;
+    const size_t length = 2;
 
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, length);
     mixer->reset();
@@ -115,23 +92,20 @@ TEST(MixingConsole, DryProcessing)
     mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
     mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     float32_t in[length] = {0.1, 0.2};
     float32_t out[StereoChannels::kNumChannels][length];
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out[i], 0, length * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, in);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     mixer->process(
         out[StereoChannels::Left ],
         out[StereoChannels::Right]
     );
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     EXPECT_EQ(out[StereoChannels::Left ][0], out[StereoChannels::Right][0]);
     EXPECT_EQ(out[StereoChannels::Left ][1], out[StereoChannels::Right][1]);
@@ -143,8 +117,8 @@ TEST(MixingConsole, DryProcessing)
 
 TEST(MixingConsole, ShimmerProcessing)
 {
-    constexpr float32_t epsilon = 1e-7;
-    constexpr size_t length = 2;
+    const float32_t epsilon = 1e-7;
+    const size_t length = 2;
 
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, length);
     mixer->reset();
@@ -154,8 +128,7 @@ TEST(MixingConsole, ShimmerProcessing)
     mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 1.0f);
     mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
 
     float32_t in[length] = {0.1, 0.2};
@@ -163,31 +136,26 @@ TEST(MixingConsole, ShimmerProcessing)
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out1[i], 0, length * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, in);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     mixer->process(
         out1[StereoChannels::Left ],
         out1[StereoChannels::Right]
     );
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     mixer->reset();
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     float32_t out2[StereoChannels::kNumChannels][length];
     mixer->setInputSampleBuffer(0, in);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     mixer->process(
         out2[StereoChannels::Left ],
         out2[StereoChannels::Right]
     );
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     EXPECT_EQ(out1[StereoChannels::Left ][0], out2[StereoChannels::Left ][0]);
     EXPECT_EQ(out1[StereoChannels::Right][0], out2[StereoChannels::Right][0]);
@@ -199,7 +167,7 @@ TEST(MixingConsole, ShimmerProcessing)
 
 TEST(MixingConsole, ShimmerNoiseProcessing)
 {
-    constexpr size_t length = 1024;
+    const size_t length = 1024;
 
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, length);
     mixer->reset();
@@ -209,8 +177,7 @@ TEST(MixingConsole, ShimmerNoiseProcessing)
     mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 1.0f);
     mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     float32_t in[length];
     for(size_t i = 0; i < length; ++i) in[i] = getRandomValue();
@@ -219,15 +186,13 @@ TEST(MixingConsole, ShimmerNoiseProcessing)
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out[i], 0, length * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, in);
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     mixer->process(
         out[StereoChannels::Left ],
         out[StereoChannels::Right]
     );
-    EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-    EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+    EXPECT_EQ(0, INSPECT(mixer, fullInspector));
 
     delete mixer;
 }
@@ -266,8 +231,7 @@ TEST(MixingConsole, SimpleProcessing)
     {
         mixer->setInputSampleBuffer(0, samples[0], samples[1]);
         mixer->process(sampleOutL + j * size, sampleOutR + j * size);
-        EXPECT_EQ(0, INSPECT(mixer, nanValueInspector));
-        EXPECT_EQ(0, INSPECT(mixer, normalizedValueInspector));
+        EXPECT_EQ(0, INSPECT(mixer, fullInspector));
     }
     saveWaveFile(getResultFile("result-mixing-console.wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);    
 

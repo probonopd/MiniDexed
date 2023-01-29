@@ -410,6 +410,9 @@ JitterGenerator::~JitterGenerator()
 
 void JitterGenerator::setSpeed(float32_t speed)
 {
+    static const float32_t max_frequency = 0.45f * this->getSamplingRate();
+
+    speed = constrain(speed, 0.0f, max_frequency);
     if(this->speed_ != speed)
     {
         this->speed_ = speed;
@@ -424,7 +427,7 @@ float32_t JitterGenerator::getSpeed() const
 
 void JitterGenerator::setMagnitude(float32_t magnitude)
 {
-    this->magnitude_ = magnitude;
+    this->magnitude_ = constrain(magnitude, 0.0f, 1.0f);
 }
 
 float32_t JitterGenerator::getMagnitude() const
@@ -588,8 +591,8 @@ float32_t softSaturator1(float32_t in, float32_t threshold)
 
 float32_t softSaturator2(float32_t input, float32_t saturation)
 {
-    constexpr static float kTubeCurve = 4.0f;
-    constexpr static float kTubeBias  = 0.5f;
+    const static float kTubeCurve = 4.0f;
+    const static float kTubeBias  = 0.5f;
 
     float absInput = std::abs(input);
     float output = 0.0f;

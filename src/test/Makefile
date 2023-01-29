@@ -4,13 +4,14 @@ EXE := all_test.bin
 BETA := beta.bin
 
 CXX := g++
-CXXFLAGS = 	-g -std=c++20
+CXXFLAGS = 	-g -std=c++20 -MMD -MP
 DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
 INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src/
-			# -I../../circle-stdlib/libs/circle/include \
-			# -I../../circle-stdlib/libs/circle/addon \
+
+-include $(TST_OBJS:.o=.d)
+-include $(FX__OBJS:.o=.d)
 
 LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread

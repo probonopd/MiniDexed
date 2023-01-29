@@ -5,8 +5,6 @@
 #define LFO1_MAX_FREQ 0.25f
 #define LFO2_MAX_FREQ 0.35f
 
-#define FULLSCALE_DEPTH_RATIO 1536.0f
-
 Chorus::Chorus(float32_t sampling_rate) :
     FXElement(sampling_rate),
     engine_(sampling_rate, 0.0f),
@@ -93,7 +91,7 @@ void Chorus::setDepth(float32_t depth)
     if(this->depth_ != depth)
     {
         this->depth_ = depth;
-        this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+        this->fullscale_depth_ = this->depth_ * CHORUS_FULLSCALE_DEPTH_RATIO;
     }
 }
 

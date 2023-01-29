@@ -67,6 +67,66 @@ private:
     float32_t       iir_coefficient_;
     float32_t       initial_amplitude_;
     float32_t       current_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 21;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "InitialPhase");
+        SS__TEXT(ss, ' ', space, std::left, '|', "frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "normalized_frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "unitary_frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "y0_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "y1_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "iir_coefficient_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "initial_amplitude_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "current_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->InitialPhase);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->normalized_frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->unitary_frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->y0_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->y1_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->iir_coefficient_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->initial_amplitude_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->current_);
+
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".InitialPhase", this->InitialPhase, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".frequency_", this->frequency_, this->min_frequency_, this->max_frequency_, deepInspection);
+        nb_errors += inspector(tag + ".normalized_frequency_", this->normalized_frequency_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".unitary_frequency_", this->unitary_frequency_, this->min_frequency_ / this->getSamplingRate(), this->max_frequency_ / this->getSamplingRate(), deepInspection);
+        nb_errors += inspector(tag + ".current_", this->current_, -1.0f, 1.0f, deepInspection);
+
+        return nb_errors;
+    )
 };
 
 
@@ -90,7 +150,7 @@ public:
 
 private:
     static bool ClassInitializer();
-    static const size_t DataPointSize = 192000;
+    static const size_t DataPointSize = 352800;
     static const float32_t DeltaTime; 
     static float32_t DataPoints[];
 
@@ -102,6 +162,56 @@ private:
     float32_t                                   phase_index_;
     float32_t                                   phase_index_increment_;
     float32_t                                   current_sample_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 22;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "InitialPhase");
+        SS__TEXT(ss, ' ', space, std::left, '|', "normalized_frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_index_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_index_increment_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "current_sample_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->InitialPhase);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->normalized_frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_index_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_index_increment_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->current_sample_);
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".InitialPhase", this->InitialPhase, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".normalized_frequency_", this->normalized_frequency_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".frequency_", this->frequency_, this->min_frequency_, this->max_frequency_, deepInspection);
+        nb_errors += inspector(tag + ".phase_index_", this->phase_index_, 0.0f, static_cast<float32_t>(InterpolatedSineOscillator::DataPointSize), deepInspection);
+        nb_errors += inspector(tag + ".current_sample_", this->current_sample_, -1.0f, 1.0f, deepInspection);
+
+        return nb_errors;
+    )
 };
 
 class ComplexLFO : public FXBase
@@ -147,6 +257,57 @@ private:
     std::random_device                          rnd_device_;
     std::mt19937                                rnd_generator_;
     std::uniform_real_distribution<float32_t>   rnd_distribution_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 21;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "InitialPhase");
+        SS__TEXT(ss, ' ', space, std::left, '|', "normalized_frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_increment_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "current_sample_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->InitialPhase);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->normalized_frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_increment_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->current_sample_);
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".InitialPhase", this->InitialPhase, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".normalized_frequency_", this->normalized_frequency_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".frequency_", this->frequency_, this->min_frequency_, this->max_frequency_, deepInspection);
+        nb_errors += inspector(tag + ".phase_", this->phase_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".phase_increment_", this->phase_increment_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".current_sample_", this->current_sample_, -1.0f, 1.0f, deepInspection);
+
+        return nb_errors;
+    )
 };
 
 
@@ -178,6 +339,49 @@ private:
     float32_t magnitude_;
     float32_t phase_;
     float32_t phase_increment_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 16;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "speed_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "magnitude_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_increment_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->speed_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->magnitude_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_increment_);
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".speed_", this->speed_, 0.0f, 0.45f * this->getSamplingRate(), deepInspection);
+        nb_errors += inspector(tag + ".magnitude_", this->magnitude_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".phase_", this->phase_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".phase_increment_", this->phase_increment_, 0.0f, 0.45f * Constants::M2PI, deepInspection);
+
+        return nb_errors;
+    )
 };
 
 
@@ -208,6 +412,49 @@ private:
     float32_t current_;
 
     static const float32_t Gradients[];
+
+    IMPLEMENT_DUMP(
+        const size_t space = 16;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "rate_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_increment_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "current_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->rate_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_increment_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->current_);
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".rate_", this->rate_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".phase_", this->phase_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".phase_increment_", this->phase_increment_, 0.0f, Constants::M2PI / this->getSamplingRate(), deepInspection);
+        nb_errors += inspector(tag + ".current_", this->current_, -1.0f, 1.0f, deepInspection);
+
+        return nb_errors;
+    )
 };
 
 float32_t softSaturator1(float32_t in, float32_t threshold);

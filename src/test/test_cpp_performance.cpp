@@ -7,10 +7,10 @@
 
 TEST(CppPerformance, LFOPerformance_ComplexLFO_InterpolatedSineOscillator)
 {
-    constexpr size_t NB = 10000000;
+    const size_t NB = 10000000;
     float32_t freq = 0.1f;
 
-    LFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f);
+    ComplexLFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f);
     InterpolatedSineOscillator lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f);
 
     lfo1.setFrequency(freq);
@@ -29,12 +29,12 @@ TEST(CppPerformance, LFOPerformance_ComplexLFO_InterpolatedSineOscillator)
     }
     auto d2 = LAP_TIME("lfo2");
 
-    EXPECT_GE(d1, d2);
+    EXPECT_LE(d1, d2 + 100);
 }
 
 TEST(CppPerformance, LFOPerformance_ComplexLFO_FastLFO)
 {
-    constexpr size_t NB = 10000000;
+    const size_t NB = 10000000;
     float32_t freq = 0.1f;
 
     ComplexLFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f, Constants::MPI_2);

@@ -37,7 +37,7 @@ void Tube::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_
 
 void Tube::setOverdrive(float32_t overdrive)
 {
-    static constexpr float32_t N = 200.0f;
+    static const float32_t N = 200.0f;
 
     overdrive = constrain(overdrive, 0.0f, 1.0f);
     if(this->overdrive_ != overdrive)

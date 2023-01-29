@@ -22,9 +22,10 @@
 #include <arm_math.h>
 #include "common.h"
 
+#include "debug.hpp"
 #include "fx_base.h"
 
-class FXBase
+class INSPECTABLE(FXBase)
 {
     DISALLOW_COPY_AND_ASSIGN(FXBase);
     

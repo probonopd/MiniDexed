@@ -11,8 +11,6 @@
 
 #define SAMPLING_FREQUENCY 44100.0f
 
-#define stringify( x ) # x
-
 #define Active(scenarioKey, FxID) ((scenarioKey & (1 << FxID)) == (1 << FxID))
 
 std::string getScenarioName(int scenario);

@@ -30,4 +30,13 @@ public:
 
     virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
+
+    IMPLEMENT_DUMP(
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        return 0u;
+    )
 };

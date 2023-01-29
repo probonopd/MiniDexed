@@ -4,6 +4,7 @@
 #include <cmath>
 
 Phaser::AllpassDelay::AllpassDelay() :
+    FXElement(0.0f),
     a1_(0.0f)
 {
     this->reset();

@@ -33,10 +33,6 @@
 #include "fx_dry.h"
 #include "fx_unit2.hpp"
 
-#if defined(DEBUG)
-typedef size_t (*ValueInpector)(const std::string&, size_t, const float32_t);
-#endif
-
 template<size_t nb_inputs>
 class MixingConsole : public FXBase
 {
@@ -101,11 +97,218 @@ private:
     FXUnit2<ShimmerReverb>* shimmer_reverb_;
     FXUnit2<Dry>* dry_;
 
-#if defined(DEBUG)
-public:
-    void dump(std::ostream& out, const std::string& key = "") const;
-    size_t inspect(ValueInpector inspector, bool checkInputBuffer = false) const;
-#endif
+    IMPLEMENT_DUMP(
+        const size_t space = 10;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        out << "\t" << "Input levels & Pan:" << std::endl;
+        {
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, ' ', space, std::left, '|');
+            SS__TEXT(ss, ' ', space, std::left, '|', "Level");
+            SS__TEXT(ss, ' ', space, std::left, '|', "Pan L");
+            SS__TEXT(ss, ' ', space, std::left, '|', "Pan R");
+            SS__TEXT(ss, ' ', space, std::left, '|', "Pan");
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            out << "\t" << ss.str() << std::endl;
+
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                std::stringstream s;
+                s << "* Input ";
+                s << (i + 1);
+
+                SS_RESET(ss, precision, std::left);
+                SS__TEXT(ss, ' ', space, std::left, '|', s.str());
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->channel_level_[i]);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::Left][i]);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::Right][i]);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::kNumChannels][i]);
+
+                out << "\t" << ss.str() << std::endl;
+            }
+        }
+        out << std::endl;
+
+        out << "\t" << "Mixing Console input samples:" << std::endl;
+        {
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, ' ', space, std::left, '|');
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                std::stringstream s;
+                s << "Input ";
+                s << (i + 1);
+
+                SS__TEXT(ss, ' ', space, std::left, '|', s.str());
+            }
+            for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+            {
+                std::string s = toString(static_cast<MixerOutput>(i));
+                s.resize(space);
+                SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
+            }
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                SS_SPACE(ss, '-', space, std::left, '+');
+            }
+            for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+            {
+                SS_SPACE(ss, '-', space, std::left, '+');
+            }
+            out << "\t" << ss.str() << std::endl;
+
+            const char* LR = "LR";
+            for(size_t c = 0; c < StereoChannels::kNumChannels; ++c)
+            {
+                std::stringstream s;
+                s << "* Input ";
+                s << LR[c];
+
+                SS_RESET(ss, precision, std::left);
+                SS__TEXT(ss, ' ', space, std::left, '|', s.str());
+                for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+                {
+                    SS__TEXT(ss, ' ', space - 1, std::right, " |", this->input_samples_[c][i]);
+                }
+                out << "\t" << ss.str() << std::endl;
+            }
+        }
+        out << std::endl;
+
+        out << "\t" << "Mixing Console levels:" << std::endl;
+        {
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, ' ', space, std::left, '|');
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                std::stringstream s;
+                s << "Input ";
+                s << (i + 1);
+
+                SS__TEXT(ss, ' ', space, std::left, '|', s.str());
+            }
+            for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+            {
+                std::string s = toString(static_cast<MixerOutput>(i));
+                s.resize(space);
+                SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
+            }
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                SS_SPACE(ss, '-', space, std::left, '+');
+            }
+            for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+            {
+                SS_SPACE(ss, '-', space, std::left, '+');
+            }
+            out << "\t" << ss.str() << std::endl;
+
+            for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
+            {
+                SS_RESET(ss, precision, std::left);
+                std::string s = toString(static_cast<MixerOutput>(c));
+                s.resize(space);
+                SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
+                for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+                {
+                    SS__TEXT(ss, ' ', space - 1, std::right, " |", this->levels_[c][i]);
+                }
+                out << "\t" << ss.str() << std::endl;
+            }
+        }
+        out << std::endl;
+
+        if(deepInspection)
+        {
+            this->tube_->dump(out, deepInspection, tag + ".tube_");
+            this->chorus_->dump(out, deepInspection, tag + ".chorus_");
+            this->flanger_->dump(out, deepInspection, tag + ".flanger_");
+            this->orbitone_->dump(out, deepInspection, tag + ".orbitone_");
+            this->phaser_->dump(out, deepInspection, tag + ".phaser_");
+            this->delay_->dump(out, deepInspection, tag + ".delay_");
+            this->plate_reverb_->dump(out, deepInspection, tag + ".plate_reverb_");
+            this->shimmer_reverb_->dump(out, deepInspection, tag + ".shimmer_reverb_");
+            this->dry_->dump(out, deepInspection, tag + ".dry_");
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0;
+
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            nb_errors += inspector(tag + ".level[ input #" + std::to_string(i) + " ]" , this->channel_level_[i], -1.0f, 1.0f, deepInspection);
+            nb_errors += inspector(tag + ".pan[ L ][ input #" + std::to_string(i) + " ]", this->pan_[StereoChannels::Left][i], -1.0f, 1.0f, deepInspection);
+            nb_errors += inspector(tag + ".pan[ R ][ input #" + std::to_string(i) + " ]", this->pan_[StereoChannels::Right][i], -1.0f, 1.0f, deepInspection);
+            nb_errors += inspector(tag + ".pan[ input #" + std::to_string(i) + " ]", this->pan_[StereoChannels::kNumChannels][i], -1.0f, 1.0f, deepInspection);
+        }
+
+        for(size_t i = 0; i < nb_inputs; ++i)
+        {
+            nb_errors += inspector(tag + ".input[ L ][ input #" + std::to_string(i) + " ]", this->input_samples_[StereoChannels::Left ][i], -1.0f, 1.0f, deepInspection);
+            nb_errors += inspector(tag + ".input[ R ][ input #" + std::to_string(i) + " ]", this->input_samples_[StereoChannels::Right][i], -1.0f, 1.0f, deepInspection);
+        }
+
+        for(size_t i = nb_inputs; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+        {
+            nb_errors += inspector(tag + ".input[ L ][ input " + toString(static_cast<MixerOutput>(i - nb_inputs)) + " ]", this->input_samples_[StereoChannels::Left ][i], -1.0f, 1.0f, deepInspection);
+            nb_errors += inspector(tag + ".input[ R ][ input " + toString(static_cast<MixerOutput>(i - nb_inputs)) + " ]", this->input_samples_[StereoChannels::Right][i], -1.0f, 1.0f, deepInspection);
+        }
+
+        for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
+        {
+            for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
+            {
+                nb_errors += inspector(tag + ".levels[ " + std::to_string(c) + " ][ " + std::to_string(i) + " ]", this->levels_[c][i], -1.0f, 1.0f, deepInspection);
+            }
+        }
+
+        if(deepInspection)
+        {
+            for(size_t i = 0; i < nb_inputs; ++i)
+            {
+                for(size_t k = 0; k < this->BufferSize; ++k)
+                {
+                    nb_errors += inspector(tag + ".input_sample_buffer_[ L ][ " + std::to_string(i) + " ][ " + std::to_string(k) +" ] ", this->input_sample_buffer_[StereoChannels::Left ][i][k], -1.0f, 1.0f, deepInspection);
+                    nb_errors += inspector(tag + ".input_sample_buffer_[ R ][ " + std::to_string(i) + " ][ " + std::to_string(k) +" ] ", this->input_sample_buffer_[StereoChannels::Right][i][k], -1.0f, 1.0f, deepInspection);
+                }
+            }
+
+            nb_errors += this->tube_->inspect(inspector, deepInspection, tag + ".tube_");
+            nb_errors += this->chorus_->inspect(inspector, deepInspection, tag + ".chorus_");
+            nb_errors += this->flanger_->inspect(inspector, deepInspection, tag + ".flanger_");
+            nb_errors += this->orbitone_->inspect(inspector, deepInspection, tag + ".orbitone_");
+            nb_errors += this->phaser_->inspect(inspector, deepInspection, tag + ".phaser_");
+            nb_errors += this->delay_->inspect(inspector, deepInspection, tag + ".delay_");
+            nb_errors += this->plate_reverb_->inspect(inspector, deepInspection, tag + ".plate_reverb_");
+            nb_errors += this->shimmer_reverb_->inspect(inspector, deepInspection, tag + ".shimmer_reverb_");
+            nb_errors += this->dry_->inspect(inspector, deepInspection, tag + ".dry_");
+        }
+
+        return nb_errors;
+    )
 };
 
 
@@ -340,8 +543,8 @@ void MixingConsole<nb_inputs>::reset()
 {
     for(size_t i = 0; i < nb_inputs; ++i)
     {
-        memset(this->input_sample_buffer_[StereoChannels::Left ][i], 0, this->BufferSize);
-        memset(this->input_sample_buffer_[StereoChannels::Right][i], 0, this->BufferSize);
+        memset(this->input_sample_buffer_[StereoChannels::Left ][i], 0, this->BufferSize * sizeof(float32_t));
+        memset(this->input_sample_buffer_[StereoChannels::Right][i], 0, this->BufferSize * sizeof(float32_t));
     }
 
     for(size_t i = 0; i < MixerOutput::kFXCount; ++i)
@@ -358,7 +561,7 @@ void MixingConsole<nb_inputs>::reset()
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::processSample(float32_t& outL, float32_t& outR)
 {
-    constexpr size_t bufferSize = nb_inputs + MixerOutput::kFXCount - 1;
+    const size_t bufferSize = nb_inputs + MixerOutput::kFXCount - 1;
 
     float32_t fx_inputs_[MixerOutput::kFXCount][StereoChannels::kNumChannels];
     float32_t fx_outputs_[MixerOutput::kFXCount][StereoChannels::kNumChannels];
@@ -436,212 +639,3 @@ void MixingConsole<nb_inputs>::setSample(size_t in, float32_t sampleL, float32_t
     this->input_samples_[StereoChannels::Left ][in] = sampleL;
     this->input_samples_[StereoChannels::Right][in] = sampleR;
 }
-
-
-#if defined(DEBUG)
-
-#define SS_RESET(ss, prec, align)               ss.str(""); ss.precision(prec); ss << align; ss << std::fixed
-#define SS_SPACE(ss, spc, nb, align, sep)       ss.fill(spc); ss.width(nb); ss << "" << sep
-#define SS__TEXT(ss, spc, nb, align, sep, txt)  ss << align; ss.fill(spc); ss.width(nb); ss << txt << sep
-
-template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::dump(std::ostream& out, const std::string& key) const
-{
-    constexpr size_t space = 10;
-    constexpr size_t precision = 5;
-
-    std::stringstream ss;
-
-    out << "MixingConsole dump - START - " << key.c_str() << std::endl << std::endl;
-
-    out << "\t" << "Input levels & Pan:" << std::endl;
-    {
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, ' ', space, std::left, '|');
-        SS__TEXT(ss, ' ', space, std::left, '|', "Level");
-        SS__TEXT(ss, ' ', space, std::left, '|', "Pan L");
-        SS__TEXT(ss, ' ', space, std::left, '|', "Pan R");
-        SS__TEXT(ss, ' ', space, std::left, '|', "Pan");
-        out << "\t" << ss.str() << std::endl;
-
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, '-', space, std::left, '+');
-        SS_SPACE(ss, '-', space, std::left, '+');
-        SS_SPACE(ss, '-', space, std::left, '+');
-        SS_SPACE(ss, '-', space, std::left, '+');
-        SS_SPACE(ss, '-', space, std::left, '+');
-        out << "\t" << ss.str() << std::endl;
-
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            std::stringstream s;
-            s << "* Input ";
-            s << (i + 1);
-
-            SS_RESET(ss, precision, std::left);
-            SS__TEXT(ss, ' ', space, std::left, '|', s.str());
-            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->channel_level_[i]);
-            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::Left][i]);
-            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::Right][i]);
-            SS__TEXT(ss, ' ', space - 1, std::right, " |", this->pan_[StereoChannels::kNumChannels][i]);
-
-            out << "\t" << ss.str() << std::endl;
-        }
-    }
-    out << std::endl;
-
-    out << "\t" << "Mixing Console input samples:" << std::endl;
-    {
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, ' ', space, std::left, '|');
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            std::stringstream s;
-            s << "Input ";
-            s << (i + 1);
-
-            SS__TEXT(ss, ' ', space, std::left, '|', s.str());
-        }
-        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
-        {
-            std::string s = toString(static_cast<MixerOutput>(i));
-            s.resize(space);
-            SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
-        }
-        out << "\t" << ss.str() << std::endl;
-
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, '-', space, std::left, '+');
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            SS_SPACE(ss, '-', space, std::left, '+');
-        }
-        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
-        {
-            SS_SPACE(ss, '-', space, std::left, '+');
-        }
-        out << "\t" << ss.str() << std::endl;
-
-        const char* LR = "LR";
-        for(size_t c = 0; c < StereoChannels::kNumChannels; ++c)
-        {
-            std::stringstream s;
-            s << "* Input ";
-            s << LR[c];
-
-            SS_RESET(ss, precision, std::left);
-            SS__TEXT(ss, ' ', space, std::left, '|', s.str());
-            for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
-            {
-                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->input_samples_[c][i]);
-            }
-            out << "\t" << ss.str() << std::endl;
-        }
-    }
-    out << std::endl;
-
-    out << "\t" << "Mixing Console levels:" << std::endl;
-    {
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, ' ', space, std::left, '|');
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            std::stringstream s;
-            s << "Input ";
-            s << (i + 1);
-
-            SS__TEXT(ss, ' ', space, std::left, '|', s.str());
-        }
-        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
-        {
-            std::string s = toString(static_cast<MixerOutput>(i));
-            s.resize(space);
-            SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
-        }
-        out << "\t" << ss.str() << std::endl;
-
-        SS_RESET(ss, precision, std::left);
-        SS_SPACE(ss, '-', space, std::left, '+');
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            SS_SPACE(ss, '-', space, std::left, '+');
-        }
-        for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
-        {
-            SS_SPACE(ss, '-', space, std::left, '+');
-        }
-        out << "\t" << ss.str() << std::endl;
-
-        for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
-        {
-            SS_RESET(ss, precision, std::left);
-            std::string s = toString(static_cast<MixerOutput>(c));
-            s.resize(space);
-            SS__TEXT(ss, ' ', space, std::left, '|', s.c_str());
-            for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
-            {
-                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->levels_[c][i]);
-            }
-            out << "\t" << ss.str() << std::endl;
-        }
-    }
-    out << std::endl;
-
-    out << "MixingConsole dump - END - " << key.c_str() << std::endl;
-}
-
-#define DUMP1(mixer, out) mixer->dump(cout)
-#define DUMP2(mixer, out, tag) mixer->dump(cout, tag)
-
-template<size_t nb_inputs>
-size_t MixingConsole<nb_inputs>::inspect(ValueInpector inspector, bool checkInputBuffer) const
-{
-    size_t nb_errors = 0;
-
-    for(size_t i = 0; i < nb_inputs; ++i)
-    {
-        nb_errors += inspector("Level  ", i, this->channel_level_[i]);
-        nb_errors += inspector("Pan L  ", i, this->pan_[StereoChannels::Left][i]);
-        nb_errors += inspector("Pan R  ", i, this->pan_[StereoChannels::Right][i]);
-        nb_errors += inspector("Pan    ", i, this->pan_[StereoChannels::kNumChannels][i]);
-    }
-
-    for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
-    {
-        nb_errors += inspector("Input L", i, this->input_samples_[StereoChannels::Left ][i]);
-        nb_errors += inspector("Input R", i, this->input_samples_[StereoChannels::Right][i]);
-    }
-
-    for(size_t c = 0; c < MixerOutput::kFXCount; ++c)
-    {
-        for(size_t i = 0; i < (nb_inputs + MixerOutput::kFXCount - 1); ++i)
-        {
-            nb_errors += inspector("Levels ", c * 100 + i, this->levels_[c][i]);
-        }
-    }
-
-    if(checkInputBuffer)
-    {
-        for(size_t i = 0; i < nb_inputs; ++i)
-        {
-            for(size_t k = 0; k < this->BufferSize; ++k)
-            {
-                nb_errors += inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Left ][i][k]);
-                nb_errors += inspector("Buffer ", k * 100 + i, this->input_sample_buffer_[StereoChannels::Right][i][k]);
-            }
-        }
-    }
-
-    return nb_errors;
-}
-
-#define INSPECT(mixer, inspector) mixer->inspect(inspector, true)
-
-#else
-
-#define DUMP1(mixer, out)
-#define DUMP2(mixer, out, tag)
-
-#define INSPECT(mixer, inspector)
-
-#endif

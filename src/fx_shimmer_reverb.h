@@ -59,4 +59,7 @@ private:
 
     float32_t lp_decay_1_;
     float32_t lp_decay_2_;
+
+    IMPLEMENT_DUMP()
+    IMPLEMENT_INSPECT(return 0u;)
 };

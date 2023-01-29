@@ -384,4 +384,82 @@ private:
     int32_t write_ptr_;
 
     LFO* lfo_[LFOIndex::kLFOCount];
+
+    IMPLEMENT_DUMP(
+        const size_t space = 10;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "write_ptr_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->write_ptr_);
+        out << "\t" << ss.str() << std::endl;
+
+        if(deepInspection)
+        {
+            out << "FXEngine internal buffer:" << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS__TEXT(ss, ' ', space, std::left, '|', "index");
+            SS__TEXT(ss, ' ', space, std::left, '|', "buffer_");
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            out << "\t" << ss.str() << std::endl;
+
+            for(size_t i = 0; i < size; ++i)
+            {
+                SS_RESET(ss, precision, std::left);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", i);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->buffer_[i]);
+                out << "\t" << ss.str() << std::endl;
+            }
+
+            if(enable_lfo)
+            {
+                for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
+                {
+                    this->lfo_[i]->dump(out, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+                }        
+            }
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".write_ptr_", static_cast<float32_t>(this->write_ptr_), 0.0f, static_cast<float32_t>(size), deepInspection);
+        if(deepInspection)
+        {
+            for(size_t i = 0; i < size; ++i)
+            {
+                nb_errors += inspector(tag + ".buffer[ " + std::to_string(i) + " ]", this->buffer_[i], -1.0f, 1.0f, deepInspection);
+            }
+
+            if(enable_lfo)
+            {
+                for(size_t i = 0; i < size; ++i)
+                {
+                    this->lfo_[i]->inspect(inspector, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+                }
+            }
+        }
+
+        return nb_errors;
+
+    )
 };
