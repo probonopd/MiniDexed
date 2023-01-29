@@ -18,8 +18,48 @@
 //
 #pragma once
 
-#if defined(ARM_ALLOW_MULTI_CORE)
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete;      \
+  void operator=(const TypeName&) = delete
 
+#if defined(ARM_ALLOW_MULTI_CORE)
 #define FXRACK_ENABLE //Add support for the FXRack
+#endif
+
+#ifdef DEBUG
+
+#include <iostream>
+#include <iomanip>
+#include <chrono>
+#include <unordered_map>
+#include <string>
+
+inline long long int getElapseTime(std::string marker = "")
+{
+    static std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> marker_times;
+    auto current_time = std::chrono::high_resolution_clock::now();
+    auto it = marker_times.find(marker);
+    if (it != marker_times.end())
+    {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - it->second);
+        marker_times.erase(it);
+        return duration.count();
+    }
+    else
+    {
+        marker_times[marker] = current_time;
+        return 0;
+    }
+}
+
+#define LAP_TIME(marker) getElapseTime(marker)
+#define LOG_LAP_TIME(marker) { auto __d = getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
+#define DEBUG_VALUE(lbl, idx, v) std::cout << lbl << " " << idx << ": " << v << std::endl
+
+#else
+
+#define LAP_TIME(marker)
+#define LOG_LAP_TIME(marker)
+#define DEBUG_VALUE(lbl, idx, v)
 
 #endif

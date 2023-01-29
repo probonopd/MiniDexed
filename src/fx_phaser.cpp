@@ -3,17 +3,23 @@
 #include <algorithm>
 #include <cmath>
 
-AllpassDelay::AllpassDelay() :
+Phaser::AllpassDelay::AllpassDelay() :
+    FXElement(0.0f),
     a1_(0.0f)
+{
+    this->reset();
+}
+
+Phaser::AllpassDelay::~AllpassDelay()
+{
+}
+
+void Phaser::AllpassDelay::reset()
 {
     memset(this->z_, 0, 2 * sizeof(float32_t));
 }
 
-AllpassDelay::~AllpassDelay()
-{
-}
-
-void AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+void Phaser::AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     outL = inL * -this->a1_ + this->z_[0];
     this->z_[0] = outL * this->a1_ + inL;
@@ -22,15 +28,15 @@ void AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, 
     this->z_[1] = outR * this->a1_ + inR;
 }
 
-void AllpassDelay::setDelay(float32_t delay)
+void Phaser::AllpassDelay::setDelay(float32_t delay)
 {
     this->a1_ = (1.0f - delay) / (1.0f + delay);
 }
 
 
-Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) : 
+Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
     FXElement(sampling_rate),
-    lfo_(sampling_rate, LFO::Waveform::Sine, 0.0f, 2.5f),
+    lfo_(sampling_rate, 0.0f, 2.5f),
     depth_(0.0f),
     feedback_(0.0f),
     dmin_(0.0f),
@@ -39,13 +45,25 @@ Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32
     this->setRate(rate);
     this->setDepth(depth);
     this->setFeedback(feedback);
+    this->setNbStages(nb_stages);
     this->setFrequencyRange(440.0f, 1600.0f);
 
-    memset(this->z_, 0, 2 * sizeof(float32_t));
+    this->reset();
 }
 
 Phaser::~Phaser()
 {
+}
+
+void Phaser::reset()
+{
+    memset(this->z_, 0, 2 * sizeof(float32_t));
+
+    for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
+    {
+        this->stages_[i].reset();
+    }
+    this->lfo_.reset();
 }
 
 void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -63,8 +81,8 @@ void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     this->z_[0] = sampleL;
     this->z_[1] = sampleR;
 
-    outL = inL + this->z_[0] * this->depth_;
-    outR = inR + this->z_[1] * this->depth_;
+    outL = inL + this->z_[StereoChannels::Left ] * this->depth_;
+    outR = inR + this->z_[StereoChannels::Right] * this->depth_;
 }
 
 void Phaser::setFrequencyRange(float32_t min_frequency, float32_t max_frequency)

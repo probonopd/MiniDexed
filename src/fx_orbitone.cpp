@@ -5,23 +5,21 @@
 #define LFO_SLOW_MAX_FREQUENCY 1.0f
 #define LFO_FAST_MAX_FREQUENCY 8.8f
 
-#define FULLSCALE_DEPTH_RATIO 256.0f
-
 Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) : 
     FXElement(sampling_rate),
-    engine_(sampling_rate, 0.0f, 0.0f),
+    engine_(sampling_rate, 0.0f),
     depth_(0.0f),
     fullscale_depth_(0.0f)
 {
-    this->lfo_[LFO_Index::Slow0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFO_Index::Slow120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFO_Index::Slow240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Slow0  ] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFOIndex::Slow120] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Slow240] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-    this->lfo_[LFO_Index::Fast0  ] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFO_Index::Fast120] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFO_Index::Fast240] = new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Fast0  ] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
+    this->lfo_[LFOIndex::Fast120] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Fast240] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
 
-    for(unsigned i = 0; i < 6; ++i)
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {
         this->lfo_[i]->setNormalizedFrequency(rate);
     }
@@ -31,9 +29,18 @@ Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) :
 
 Orbitone::~Orbitone()
 {
-    for(unsigned i = 0; i < 6; ++i)
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {
         delete this->lfo_[i];
+    }
+}
+
+void Orbitone::reset()
+{
+    this->engine_.reset();
+    for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
+    {
+        this->lfo_[i]->reset();
     }
 }
 
@@ -46,13 +53,13 @@ void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, floa
 
     this->engine_.start(&c);
     
-    float32_t slow_0   = this->lfo_[LFO_Index::Slow0  ]->process();
-    float32_t slow_120 = this->lfo_[LFO_Index::Slow120]->process();
-    float32_t slow_240 = this->lfo_[LFO_Index::Slow240]->process();
+    float32_t slow_0   = this->lfo_[LFOIndex::Slow0  ]->process();
+    float32_t slow_120 = this->lfo_[LFOIndex::Slow120]->process();
+    float32_t slow_240 = this->lfo_[LFOIndex::Slow240]->process();
 
-    float32_t fast_0   = this->lfo_[LFO_Index::Fast0  ]->process();
-    float32_t fast_120 = this->lfo_[LFO_Index::Fast120]->process();
-    float32_t fast_240 = this->lfo_[LFO_Index::Fast240]->process();
+    float32_t fast_0   = this->lfo_[LFOIndex::Fast0  ]->process();
+    float32_t fast_120 = this->lfo_[LFOIndex::Fast120]->process();
+    float32_t fast_240 = this->lfo_[LFOIndex::Fast240]->process();
       
     float32_t a = this->fullscale_depth_ * 1.0f;
     float32_t b = this->fullscale_depth_ * 0.1f;
@@ -85,9 +92,9 @@ void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, floa
 void Orbitone::setRate(float32_t rate)
 {
     rate = constrain(rate, 0.0f, 1.0f);
-    if(this->lfo_[LFO_Index::Slow0]->getNormalizedFrequency() != rate)
+    if(this->lfo_[LFOIndex::Slow0]->getNormalizedFrequency() != rate)
     {
-        for(unsigned i = 0; i < 6; ++i)
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
         {
             this->lfo_[i]->setNormalizedFrequency(rate);
         }
@@ -96,7 +103,7 @@ void Orbitone::setRate(float32_t rate)
 
 float32_t Orbitone::getRate() const
 {
-    return this->lfo_[LFO_Index::Slow0]->getNormalizedFrequency();
+    return this->lfo_[LFOIndex::Slow0]->getNormalizedFrequency();
 }
 
 void Orbitone::setDepth(float32_t depth)
@@ -105,7 +112,7 @@ void Orbitone::setDepth(float32_t depth)
     if(this->depth_ != depth)
     {
         this->depth_ = depth;
-        this->fullscale_depth_ = this->depth_ * FULLSCALE_DEPTH_RATIO;
+        this->fullscale_depth_ = this->depth_ * ORBITONE_FULLSCALE_DEPTH_RATIO;
     }
 }
 

@@ -48,6 +48,6 @@ sdcard
 .vscode/
 
 # temporary tests
-src/test/fxrack_test
-src/test/result*.wav
-src/test/*.csv
+src/test/*.bin
+src/test/results
+src/test/objects

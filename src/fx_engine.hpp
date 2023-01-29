@@ -1,26 +1,22 @@
 #pragma once
 
-#include "fx_components.h"
+#if defined(DEBUG)
+#include <iostream>
+#include <cmath>
+#endif
 
 #include <algorithm>
 #include <climits>
 #include <cassert>
 
-#define MAKE_INTEGRAL_FRACTIONAL(x) \
-    int32_t x ## _integral = static_cast<int32_t>(x); \
-    float x ## _fractional = x - static_cast<float>(x ## _integral);
+#include "fx_components.h"
 
 enum Format
 {
     FORMAT_12_BIT,
     FORMAT_16_BIT,
-    FORMAT_32_BIT
-};
-
-enum LFOIndex
-{
-    LFO_1,
-    LFO_2
+    FORMAT_32_BIT,
+    FORMAT_FLOAT32
 };
 
 template <Format format>
@@ -44,7 +40,7 @@ inline int16_t clip16(int32_t x)
 }
 
 template <>
-struct DataType<FORMAT_16_BIT>
+struct DataType<Format::FORMAT_12_BIT>
 {
     typedef uint16_t T;
 
@@ -59,9 +55,57 @@ struct DataType<FORMAT_16_BIT>
     }
 };
 
+template <>
+struct DataType<Format::FORMAT_16_BIT>
+{
+    typedef uint32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return static_cast<float32_t>(static_cast<int16_t>(value)) / 65536.0f;
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return clip16(static_cast<int32_t>(value * 65536.0f));
+    }
+};
+
+template <>
+struct DataType<Format::FORMAT_32_BIT>
+{
+    typedef uint32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return static_cast<float32_t>(static_cast<int64_t>(value)) / static_cast<float32_t>(UINT32_MAX);
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return value * static_cast<float32_t>(INT32_MAX);
+    }
+};
+
+template <>
+struct DataType<Format::FORMAT_FLOAT32>
+{
+    typedef float32_t T;
+
+    static inline float32_t decompress(T value)
+    {
+        return value;
+    }
+
+    static inline T compress(float32_t value)
+    {
+        return constrain(value, -1.0f, 1.0f);
+    }
+};
+
 template <
     size_t size,
-    Format format = FORMAT_16_BIT,
+    Format format,
     bool enable_lfo = true>
 class FxEngine : public FXBase
 {
@@ -70,12 +114,19 @@ class FxEngine : public FXBase
 public:
     typedef typename DataType<format>::T T;
 
-    FxEngine(float32_t sampling_rate, float32_t max_lfo1_frequency = 1.0f, float32_t max_lfo2_frequency = 1.0f) :
-        FXBase(sampling_rate)
+    enum LFOIndex
     {
-        this->buffer_ = new uint16_t[size];
-        this->lfo_[LFO_1] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo1_frequency) : nullptr;
-        this->lfo_[LFO_2] = enable_lfo ? new LFO(sampling_rate, LFO::Waveform::Sine, 0.0f, max_lfo2_frequency) : nullptr;
+        LFO_1 = 0,
+        LFO_2,
+        kLFOCount
+    };
+
+    FxEngine(float32_t sampling_rate, float32_t max_lfo_frequency = 20.0f) :
+        FXBase(sampling_rate),
+        write_ptr_(0)
+    {
+        this->buffer_ = new T[size];
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency) : nullptr;
         this->clear();
     }
 
@@ -84,15 +135,23 @@ public:
         delete[] this->buffer_;
         if(enable_lfo)
         {
-            delete this->lfo_[LFO_1];
-            delete this->lfo_[LFO_2]; 
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) delete this->lfo_[i];
         }
     }
 
     void clear()
     {
-        memset(this->buffer_, 0, size * sizeof(uint16_t));
+        memset(this->buffer_, 0, size * sizeof(T));
         this->write_ptr_ = 0;
+    }
+
+    virtual void reset() override
+    {
+        this->clear();
+        if(enable_lfo)
+        {
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i]->reset();
+        }
     }
 
     struct Empty
@@ -141,7 +200,7 @@ public:
             buffer_(nullptr),
             write_ptr_(0)
         {
-            memset(this->lfo_value_, 0, 2 * sizeof(float32_t));
+            memset(this->lfo_value_, 0, LFOIndex::kLFOCount * sizeof(float32_t));
         }
 
         ~Context()
@@ -177,7 +236,7 @@ public:
         template <typename D>
         inline void write(D& d, int32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             T w = DataType<format>::compress(this->accumulator_);
             if(offset == -1)
             {
@@ -212,7 +271,7 @@ public:
         template <typename D>
         inline void read(D& d, int32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
+            assert((D::base + D::length) <= size);
             T r;
             if(offset == -1)
             {
@@ -248,11 +307,15 @@ public:
         template <typename D>
         inline void interpolate(D& d, float32_t offset, float32_t scale)
         {
-            assert(D::base + D::length <= size);
-            MAKE_INTEGRAL_FRACTIONAL(offset);
+            assert((D::base + D::length) <= size);
+
+            int32_t offset_integral = static_cast<int32_t>(offset);
+            float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
+
             float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
             float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
             float32_t x = a + (b - a) * offset_fractional;
+
             this->previous_read_ = x;
             this->accumulator_ += x * scale;
         }
@@ -260,26 +323,22 @@ public:
         template <typename D>
         inline void interpolate(D& d, float32_t offset, LFOIndex index, float32_t amplitude, float32_t scale)
         {
-            assert(D::base + D::length <= size);
-            offset += amplitude * this->lfo_value_[index];
-            MAKE_INTEGRAL_FRACTIONAL(offset);
-            float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
-            float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
-            float32_t x = a + (b - a) * offset_fractional;
-            this->previous_read_ = x;
-            this->accumulator_ += x * scale;
+            assert(index < LFOIndex::kLFOCount);
+
+            this->interpolate(d, offset + amplitude * this->lfo_value_[index], scale);
         }
 
     private:
         float32_t accumulator_;
         float32_t previous_read_;
-        float32_t lfo_value_[2];
+        float32_t lfo_value_[LFOIndex::kLFOCount];
         T* buffer_;
         int32_t write_ptr_;
     };
 
     inline void setLFOFrequency(LFOIndex index, float32_t frequency)
     {
+        assert(index < LFOIndex::kLFOCount);
         if(enable_lfo)
         {
             this->lfo_[index]->setFrequency(frequency);
@@ -288,13 +347,14 @@ public:
 
     inline void setLFONormalizedFrequency(LFOIndex index, float32_t normalized_frequency)
     {
+        assert(index < LFOIndex::kLFOCount);
         if(enable_lfo)
         {
             this->lfo_[index]->setNormalizedFrequency(normalized_frequency);
         }
     }
 
-    inline void start(Context *c)
+    inline void start(Context* c)
     {
         --this->write_ptr_;
         if(this->write_ptr_ < 0)
@@ -303,12 +363,14 @@ public:
         }
         c->accumulator_ = 0.0f;
         c->previous_read_ = 0.0f;
-        c->buffer_ = buffer_;
-        c->write_ptr_ = write_ptr_;
+        c->buffer_ = this->buffer_;
+        c->write_ptr_ = this->write_ptr_;
         if(enable_lfo)
         {
-            c->lfo_value_[LFO_1] = this->lfo_[LFO_1]->process();
-            c->lfo_value_[LFO_2] = this->lfo_[LFO_2]->process();
+            for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) 
+            {
+                c->lfo_value_[i] = this->lfo_[i]->process();
+            }
         }
     }
 
@@ -318,8 +380,86 @@ private:
         MASK = size - 1
     };
 
-    uint16_t* buffer_;
-    unsigned write_ptr_;
+    T* buffer_;
+    int32_t write_ptr_;
 
-    LFO* lfo_[2];
+    LFO* lfo_[LFOIndex::kLFOCount];
+
+    IMPLEMENT_DUMP(
+        const size_t space = 10;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "write_ptr_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->write_ptr_);
+        out << "\t" << ss.str() << std::endl;
+
+        if(deepInspection)
+        {
+            out << "FXEngine internal buffer:" << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS__TEXT(ss, ' ', space, std::left, '|', "index");
+            SS__TEXT(ss, ' ', space, std::left, '|', "buffer_");
+            out << "\t" << ss.str() << std::endl;
+
+            SS_RESET(ss, precision, std::left);
+            SS_SPACE(ss, '-', space, std::left, '+');
+            SS_SPACE(ss, '-', space, std::left, '+');
+            out << "\t" << ss.str() << std::endl;
+
+            for(size_t i = 0; i < size; ++i)
+            {
+                SS_RESET(ss, precision, std::left);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", i);
+                SS__TEXT(ss, ' ', space - 1, std::right, " |", this->buffer_[i]);
+                out << "\t" << ss.str() << std::endl;
+            }
+
+            if(enable_lfo)
+            {
+                for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
+                {
+                    this->lfo_[i]->dump(out, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+                }        
+            }
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".write_ptr_", static_cast<float32_t>(this->write_ptr_), 0.0f, static_cast<float32_t>(size), deepInspection);
+        if(deepInspection)
+        {
+            for(size_t i = 0; i < size; ++i)
+            {
+                nb_errors += inspector(tag + ".buffer[ " + std::to_string(i) + " ]", this->buffer_[i], -1.0f, 1.0f, deepInspection);
+            }
+
+            if(enable_lfo)
+            {
+                for(size_t i = 0; i < size; ++i)
+                {
+                    this->lfo_[i]->inspect(inspector, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+                }
+            }
+        }
+
+        return nb_errors;
+
+    )
 };

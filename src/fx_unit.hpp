@@ -70,7 +70,8 @@ class FXUnit : public virtual FXUnitModule, public virtual _FXElement
 public:
     FXUnit(float32_t sampling_rate, bool enable = true, float32_t wet_level = 0.5f) :
         FXUnitModule(),
-        _FXElement(sampling_rate)
+        _FXElement(sampling_rate),
+        is_reset_(false)
     {
         this->setEnable(enable);
         this->setWetLevel(wet_level);
@@ -80,15 +81,27 @@ public:
     {
     }
 
+    void reset()
+    {
+        if(!this->is_reset_)
+        {
+            _FXElement::reset();
+            this->is_reset_ = true;
+        }
+    }
+
     void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
     {
         if(!this->isEnable() || this->getWetLevel() == 0.0f)
         {
+            this->reset();
+
             outL = inL;
             outR = inR;
         }
         else
         {
+            this->is_reset_ = false;
             _FXElement::processSample(inL, inR, outL, outR);
 
             float32_t dry = 1.0f - this->getWetLevel();
@@ -96,4 +109,7 @@ public:
             outR = this->getWetLevel() * outR + dry * inR;
         }
     }
+
+private:
+    bool is_reset_;
 };

@@ -1,92 +1,63 @@
-CXX := gcc
-# CXXFLAGS := -O2
-CXXFLAGS := -g 
-DEFINES := -DCPU=x86
-INCLUDES := -I../../CMSIS_5/CMSIS/DSP/Include/ -I../../CMSIS_5/CMSIS/Core/Include/
-GCC := $(CXX) $(INCLUDES) $(CXXFLAGS)
+OBJDIR := objects
+OUTPUT_FOLDER = results
+EXE := all_test.bin
+BETA := beta.bin
 
-LD := gcc
-LIBS := -lm -lstdc++
+CXX := g++
+CXXFLAGS = 	-g -std=c++20 -MMD -MP
+DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
+INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
+			-I../../CMSIS_5/CMSIS/Core/Include/ \
+			-I../../Synth_Dexed/src/
 
-OBJS :=	\
-		wavein.o \
-		waveout.o \
-		fx.o \
-		fx_components.o \
-		fx_svf.o \
-		fx_tube.o \
-		fx_chorus.o \
-		fx_phaser.o \
-		fx_orbitone.o \
-		fx_flanger.o \
-		fx_delay.o \
-		fx_shimmer_reverb.o \
-		fx_rack.o \
-		fxrack_test.o
+-include $(TST_OBJS:.o=.d)
+-include $(FX__OBJS:.o=.d)
 
-test: fxrack_test
-	./fxrack_test
+LD := g++
+LIBS := -lm -lstdc++ -lgtest -lpthread
 
-# %.o: ../%.cpp
-#  	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+FX__SRCS := ../fx.cpp
+FX__SRCS += ../fx_components.cpp
+FX__SRCS += ../fx_svf.cpp
+FX__SRCS += ../fx_tube.cpp
+FX__SRCS += ../fx_chorus.cpp
+FX__SRCS += ../fx_phaser.cpp
+FX__SRCS += ../fx_orbitone.cpp
+FX__SRCS += ../fx_flanger.cpp
+FX__SRCS += ../fx_delay.cpp
+FX__SRCS += ../effect_platervbstereo.cpp
+FX__SRCS += ../fx_shimmer_reverb.cpp
+FX__SRCS += ../fx_rack.cpp
 
-wavein.o: wavein.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+TST_SRCS := $(filter-out waveplay.cpp, $(wildcard *.cpp))
 
-waveout.o: waveout.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+FX__OBJS = $(patsubst ../%, $(OBJDIR)/%, $(FX__SRCS:.cpp=.o))
+TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
 
-# waveplay.o: waveplay.cpp
-# 	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+all: $(EXE) test
 
-fx.o: ../fx.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+test: $(EXE) $(OUTPUT_FOLDER)
+	rm -rf $(OUTPUT_FOLDER)/*
+	./$(EXE)
 
-fx_components.o: ../fx_components.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+test-debug: $(EXE) $(OUTPUT_FOLDER)
+	rm -rf $(OUTPUT_FOLDER)/*
+	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --error-limit=no --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
 
-fx_svf.o: ../fx_svf.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+$(OBJDIR):
+	mkdir -p $@
 
-fx_tube.o: ../fx_tube.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+$(OUTPUT_FOLDER):
+	mkdir -p $@
 
-../fx_chorus.cpp: ../fx_engine.hpp
-	touch ../fx_chorus.cpp
+$(OBJDIR)/%.o: %.cpp $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
-fx_chorus.o: ../fx_chorus.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
+$(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
-fx_phaser.o: ../fx_phaser.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-../fx_orbitone.cpp: ../fx_engine.hpp
-	touch ../fx_orbitone.cpp
-
-fx_orbitone.o: ../fx_orbitone.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-fx_flanger.o: ../fx_flanger.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-fx_delay.o: ../fx_delay.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-../fx_shimmer_reverb.cpp: ../fx_engine.hpp
-	touch ../fx_shimmer_reverb.cpp
-
-fx_shimmer_reverb.o: ../fx_shimmer_reverb.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-fx_rack.o: ../fx_rack.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-fxrack_test.o: fxrack_test.cpp
-	$(CXX) $(DEFINES) $(INCLUDES) $(CXXFLAGS) -c $^ -o $@
-
-
-fxrack_test: $(OBJS)
-	$(LD) $(OBJS) -o fxrack_test $(LIBS)
+$(EXE): $(TST_OBJS) $(FX__OBJS)
+	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
 clean:
-	rm -f *.o fxrack_test
+	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)

@@ -19,7 +19,6 @@
 #pragma once
 
 #include "fx.h"
-#include "fx_unit.hpp"
 #include "fx_tube.h"
 #include "fx_chorus.h"
 #include "fx_flanger.h"
@@ -27,6 +26,7 @@
 #include "fx_phaser.h"
 #include "fx_delay.h"
 #include "fx_shimmer_reverb.h"
+#include "fx_unit.hpp"
 
 #include <vector>
 
@@ -40,6 +40,7 @@ public:
     FXRack(float32_t sampling_rate, bool enable = true, float32_t wet = 1.0f);
     virtual ~FXRack();
 
+    virtual void reset() override;
     virtual inline void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
     virtual void process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples) override;
 
@@ -71,4 +72,61 @@ private:
     FXUnit<Phaser>* fxPhaser_;
     FXUnit<Delay>* fxDelay_;
     FXUnit<ShimmerReverb>* fxShimmerReverb_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 10;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "enable_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "wet_level_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->enable_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->wet_level_);
+        out << "\t" << ss.str() << std::endl;
+
+        if(deepInspection)
+        {
+            this->fxTube_->dump(out, deepInspection, tag + ".fxTube_");
+            this->fxChorus_->dump(out, deepInspection, tag + ".fxChorus_");
+            this->fxFlanger_->dump(out, deepInspection, tag + ".fxFlanger_");
+            this->fxOrbitone_->dump(out, deepInspection, tag + ".fxOrbitone_");
+            this->fxPhaser_->dump(out, deepInspection, tag + ".fxPhaser_");
+            this->fxDelay_->dump(out, deepInspection, tag + ".fxDelay_");
+            this->fxShimmerReverb_->dump(out, deepInspection, tag + ".fxShimmerReverb_");
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0;
+
+        nb_errors += inspector(tag + ".enable_", this->enable_, -1.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".wet_level_", this->wet_level_, -1.0f, 1.0f, deepInspection);
+
+        if(deepInspection)
+        {
+            nb_errors += this->fxTube_->inspect(inspector, deepInspection, tag + ".fxTube_");
+            nb_errors += this->fxChorus_->inspect(inspector, deepInspection, tag + ".fxChorus_");
+            nb_errors += this->fxFlanger_->inspect(inspector, deepInspection, tag + ".fxFlanger_");
+            nb_errors += this->fxOrbitone_->inspect(inspector, deepInspection, tag + ".fxOrbitone_");
+            nb_errors += this->fxPhaser_->inspect(inspector, deepInspection, tag + ".fxPhaser_");
+            nb_errors += this->fxDelay_->inspect(inspector, deepInspection, tag + ".fxDelay_");
+            nb_errors += this->fxShimmerReverb_->inspect(inspector, deepInspection, tag + ".fxShimmerReverb_");
+        }
+
+        return nb_errors;
+    )
 };

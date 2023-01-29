@@ -22,24 +22,28 @@
 #include "fx_components.h"
 #include "fx_engine.hpp"
 
+#define ORBITONE_FULLSCALE_DEPTH_RATIO 256.0f
+
 class Orbitone : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Orbitone);
 
 public:
-    enum LFO_Index
+    enum LFOIndex
     {
         Slow0 = 0,
         Slow120,
         Slow240,
         Fast0,
         Fast120,
-        Fast240
+        Fast240,
+        kLFOCount
     };
 
     Orbitone(float32_t sampling_rate, float32_t rate = 0.5f, float32_t depth = 0.5f);
     virtual ~Orbitone();
 
+    virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
     void setRate(float32_t rate);
@@ -49,11 +53,66 @@ public:
     float32_t getDepth() const;
 
 private:
-    typedef FxEngine<4096, FORMAT_16_BIT, false> Engine;
+    typedef FxEngine<4096, Format::FORMAT_FLOAT32, false> Engine;
     Engine engine_;
 
     float32_t depth_;
     float32_t fullscale_depth_;
 
-    LFO* lfo_[6];
+    LFO* lfo_[LFOIndex::kLFOCount];
+
+    IMPLEMENT_DUMP(
+        const size_t space = 16;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "depth_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "fullscale_depth_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->depth_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->fullscale_depth_);
+        out << "\t" << ss.str() << std::endl;
+
+        if(deepInspection)
+        {
+            this->engine_.dump(out, deepInspection, tag + ".engine_");
+
+            for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
+            {
+                this->lfo_[i]->dump(out, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+            }
+        }
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".depth_", this->depth_, -1.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".fullscale_depth_", this->fullscale_depth_, 0.0f, ORBITONE_FULLSCALE_DEPTH_RATIO, deepInspection);
+
+        if(deepInspection)
+        {
+            this->engine_.inspect(inspector, deepInspection, tag + ".engine_");
+
+            for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
+            {
+                this->lfo_[i]->inspect(inspector, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
+            }
+        }
+
+        return nb_errors;
+    )
 };

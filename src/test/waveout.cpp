@@ -7,7 +7,7 @@
 void saveWaveFile(const std::string& fileName,
                   float32_t* LChannel,
                   float32_t* RChannel,
-                  unsigned size,
+                  size_t size,
                   int sampleRate,
                   int bitsPerSample)
 {
@@ -30,10 +30,14 @@ void saveWaveFile(const std::string& fileName,
     header.subchunk1Size = 16;
     header.audioFormat = 1;
 
-    std::strncpy(header.chunkId, "RIFF", 4);
-    std::strncpy(header.format, "WAVE", 4);
-    std::strncpy(header.subchunk1Id, "fmt ", 4);
-    std::strncpy(header.subchunk2Id, "data", 4);
+    header.chunkId.Value = id2int("RIFF");
+    header.format.Value = id2int("WAVE");
+    header.subchunk1Id.Value = id2int("fmt ");
+    header.subchunk2Id.Value = id2int("data");
+    // std::strncpy(header.chunkId, "RIFF", 4);
+    // std::strncpy(header.format, "WAVE", 4);
+    // std::strncpy(header.subchunk1Id, "fmt ", 4);
+    // std::strncpy(header.subchunk2Id, "data", 4);
 
     file.write((char*)&header, sizeof(header));
 
