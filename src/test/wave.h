@@ -61,12 +61,12 @@ struct WaveHeaderDATA {
     uint32_t subchunk2Size;
 };
 
-float32_t** readWaveFile(const std::string& fileName, unsigned& size);
+float32_t** readWaveFile(const std::string& fileName, size_t& size);
 
 void saveWaveFile(const std::string& fileName,
                   float32_t* LChannel,
                   float32_t* RChannel,
-                  unsigned size,
+                  size_t size,
                   int sampleRate,
                   int bitsPerSample);
 

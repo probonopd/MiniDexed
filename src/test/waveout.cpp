@@ -7,7 +7,7 @@
 void saveWaveFile(const std::string& fileName,
                   float32_t* LChannel,
                   float32_t* RChannel,
-                  unsigned size,
+                  size_t size,
                   int sampleRate,
                   int bitsPerSample)
 {

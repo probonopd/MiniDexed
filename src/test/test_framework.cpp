@@ -1,14 +1,13 @@
 #include <gtest/gtest.h>
 
 #include "test_fx_helper.h"
-#include "wave.h"
 
 #include "../debug.hpp"
 #include "../fx_base.h"
 
 TEST(Framework, TestWaveIn)
 {
-    unsigned size;
+    size_t size;
     float32_t** samples = readWaveFile(AUDIO_SOURCE_FILE, size);
 
     size_t nb_errors = 0;

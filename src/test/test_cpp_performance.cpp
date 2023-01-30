@@ -61,9 +61,13 @@ TEST(CppPerformance, LFOPerformance_ComplexLFO_FastLFO)
 
 TEST(CppPerformance, FastLFOTuning)
 {
-    float32_t freq = 5.0f;
-
+    const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
+    std::string full_test_name = test_info->test_case_name();
+    full_test_name += ".";
+    full_test_name += test_info->name();
+    
     size_t NB = static_cast<size_t>(1.0f * SAMPLING_FREQUENCY);
+    float32_t freq = 5.0f;
 
     FastLFO lfo1(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo1.setFrequency(freq);
@@ -71,8 +75,8 @@ TEST(CppPerformance, FastLFOTuning)
     ComplexLFO lfo2(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo2.setFrequency(freq);
 
-    std::ofstream out(getResultFile("CppPerformance.FastLFOTuning-data.csv"));
-    setupOuputStreamFocCSV(out);
+    std::ofstream out(getResultFile(full_test_name + ".FastLFOTuning-data.csv", true));
+    setupOuputStreamForCSV(out);
     out << "index;FastLFO;ComplexLFO" << std::endl;
     for(size_t i = 0; i < NB; ++i)
     {

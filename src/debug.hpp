@@ -81,6 +81,11 @@ public:\
         code\
     }
 
+#define DUMP(clazz, out) clazz->dump(out, true, "")
+#define DUMP2(clazz, out, tag) clazz->dump(out, true, tag)
+#define FAST_DUMP(clazz, out, tag) clazz->dump(out, false, "")
+#define FAST_DUMP2(clazz, out, tag) clazz->dump(out, false, tag)
+
 #define IMPLEMENT_INSPECT(code) \
 public:\
     virtual size_t inspect(ValueInpector inspector, bool deepInspection = true, const std::string& tag = "") const override\
@@ -89,7 +94,9 @@ public:\
     }
 
 #define INSPECT(obj, inspector) obj->inspect(inspector, true)
-#define INSPECT2(obj, inspector, deepInspection) obj->inpect(inspector, deepInspection)
+#define INSPECT2(obj, inspector, deepInspection) obj->inspect(inspector, deepInspection)
+#define FULL_INSPECT(obj, deepInspection) obj->inspect(fullInspector, deepInspection)
+#define FULL_INSPECT2(obj, deepInspection, tag) obj->inspect(fullInspector, deepInspection, tag)
 
 #else
 
@@ -97,7 +104,14 @@ public:\
 #define IMPLEMENT_DUMP(code)
 #define IMPLEMENT_INSPECT(code) 
 
+#define DUMP(clazz, out)
+#define DUMP2(clazz, out, tag)
+#define FAST_DUMP(clazz, out, tag)
+#define FAST_DUMP2(clazz, out, tag)
+
 #define INSPECT(obj, inspector)
 #define INSPECT2(obj, inspector, deepInspection)
+#define FULL_INSPECT(obj, deepInspection)
+#define FULL_INSPECT2(obj, deepInspection, tag)
 
 #endif

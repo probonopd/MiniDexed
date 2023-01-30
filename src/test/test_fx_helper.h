@@ -4,10 +4,10 @@
 #include <string>
 #include <gtest/gtest.h>
 
+#include "wave.h"
 #include "../fx.h"
-#include "../mixing_console_constants.h"
 
-#define AUDIO_SOURCE_FILE "test2.wav"
+#define AUDIO_SOURCE_FILE "test.wav"
 
 #define SAMPLING_FREQUENCY 44100.0f
 
@@ -24,12 +24,15 @@ enum FXSwitch
     FX__Phaser,
     FX__Delay,
     FX__ShimmerReverb,
-    FX__PlateReverb
+    FX__PlateReverb,
+    __kFXCount
 };
 
-void setupOuputStreamFocCSV(std::ostream& out);
+void setupOuputStreamForCSV(std::ostream& out);
 
-std::string getResultFile(const string& filename);
+bool createFolderStructure(std::string& path);
+
+std::string getResultFile(const std::string& filename, bool createPath);
 
 float32_t getRandomValue();
 

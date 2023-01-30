@@ -16,7 +16,6 @@ INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 LD := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
-TST_SRCS := $(filter-out waveplay.cpp, $(filter-out beta.cpp, $(wildcard *.cpp)))
 FX__SRCS := ../fx.cpp
 FX__SRCS += ../fx_components.cpp
 FX__SRCS += ../fx_svf.cpp
@@ -31,17 +30,28 @@ FX__SRCS += ../fx_shimmer_reverb.cpp
 FX__SRCS += ../fx_dry.cpp
 FX__SRCS += ../fx_rack.cpp
 
-TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
+TST_SRCS := $(filter-out waveplay.cpp, $(filter-out beta.cpp, $(wildcard *.cpp)))
+
+BETASRCS := beta.cpp
+BETASRCS += arm_functions.cpp
+BETASRCS += wavein.cpp
+BETASRCS += waveout.cpp
+BETASRCS += test_fx_helper.cpp
+
 FX__OBJS = $(patsubst ../%, $(OBJDIR)/%, $(FX__SRCS:.cpp=.o))
+TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
+BETAOBJS = $(BETASRCS:%.cpp=$(OBJDIR)/%.o)
 
 all: $(EXE) test
 
+bin: $(EXE)
+
 test: $(EXE) $(OUTPUT_FOLDER)
-	rm -f $(OUTPUT_FOLDER)/*
+	rm -rf $(OUTPUT_FOLDER)/*
 	./$(EXE)
 
 test-debug: $(EXE) $(OUTPUT_FOLDER)
-	rm -f $(OUTPUT_FOLDER)/*
+	rm -rf $(OUTPUT_FOLDER)/*
 	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --error-limit=no --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
 
 $(OBJDIR):
@@ -59,9 +69,8 @@ $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 $(EXE): $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
-$(BETA): $(FX__OBJS) beta.cpp
-	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c beta.cpp -o $(OBJDIR)/beta.o
-	$(LD) $(CXXFLAGS) $(call wildcard,$(OBJDIR)/beta.o) $(call wildcard,$(OBJDIR)/arm_functions.o)  $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
+$(BETA): $(BETAOBJS) beta.cpp
+	$(LD) $(CXXFLAGS) $(BETAOBJS) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
 clean:
 	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)

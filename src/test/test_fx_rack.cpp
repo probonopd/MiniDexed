@@ -2,10 +2,8 @@
 #include <cmath>
 
 #include "test_fx_helper.h"
-#include "wave.h"
 
 #include "../fx_rack.h"
-#include "../effect_platervbstereo.h"
 
 using namespace std;
 
@@ -73,8 +71,13 @@ TEST_P(FXScenarioTest, FXRackResetAllScenarios)
 
 TEST_P(FXScenarioTest, ScenarioProcessing)
 {
+    const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
+    std::string full_test_name = test_info->test_case_name();
+    full_test_name += ".";
+    full_test_name += test_info->name();
+
     const unsigned nbRepeats = 1;
-    unsigned size;
+    size_t size;
     float32_t** samples = readWaveFile(AUDIO_SOURCE_FILE, size);
     float32_t* sampleOutL = new float32_t[size * nbRepeats];
     float32_t* sampleOutR = new float32_t[size * nbRepeats];
@@ -96,16 +99,17 @@ TEST_P(FXScenarioTest, ScenarioProcessing)
     }
 
     stringstream ss;
-    ss << "result-fx-rack" << name << ".wav";
-    saveWaveFile(getResultFile(ss.str()), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
-
-    delete rack;
+    ss << full_test_name << "-fx-rack" << name << ".wav";
+    saveWaveFile(getResultFile(ss.str(), true), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
     delete[] samples[0];
     delete[] samples[1];
     delete[] samples;
+
     delete[] sampleOutL;
     delete[] sampleOutR;
+
+    delete rack;
 }
 
 INSTANTIATE_TEST_SUITE_P(FXRack, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__ShimmerReverb + 1)));

@@ -4,6 +4,12 @@
 #include <iostream>
 #include <cassert>
 
+#if defined(DEBUG)
+#define ASSERT_NORMALIZED(x) assert(x <= 1.0f && x >= -1.0f)
+#else
+#define ASSERT_NORMALIZED(x)
+#endif
+
 template<typename T>
 bool readChunk(std::ifstream& in, uint32_t id, T& chunk)
 {
@@ -27,7 +33,7 @@ bool readChunk(std::ifstream& in, uint32_t id, T& chunk)
     return false;
 }
 
-float32_t** readWaveFile(const std::string& fileName, unsigned& size)
+float32_t** readWaveFile(const std::string& fileName, size_t& size)
 {
     std::ifstream file(fileName, std::ios::binary);
     if(!file)
@@ -146,6 +152,9 @@ float32_t** readWaveFile(const std::string& fileName, unsigned& size)
             std::cerr << "Error: unsupported bit depth: " << fmt.bitsPerSample << std::endl;
             return nullptr;
         }
+
+        // ASSERT_NORMALIZED(LChannel[i]);
+        // ASSERT_NORMALIZED(RChannel[i]);
 
         i += increment;
     }

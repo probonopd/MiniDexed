@@ -2,13 +2,6 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <string>
-#include <locale>
-#include <ctime>
-#include <cmath>
-#include <random>
-#include "wave.h"
 
 #include "test_fx_helper.h"
 
@@ -21,6 +14,11 @@
 
 TEST(FXComponent, LFO)
 {
+    const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
+    std::string full_test_name = test_info->test_case_name();
+    full_test_name += ".";
+    full_test_name += test_info->name();
+    
     const float32_t freq = 10.0f;
 
     LFO lfo(SAMPLING_FREQUENCY, 0.0f, freq);
@@ -28,9 +26,9 @@ TEST(FXComponent, LFO)
     float32_t rate = 0.0f;
     float32_t rate_increment = freq / 2.0f / SAMPLING_FREQUENCY;
 
-    std::ofstream out(getResultFile("FXComponent.LFO.csv"));
-    setupOuputStreamFocCSV(out);
-    out << fixed << showpoint;
+    std::ofstream out(getResultFile(full_test_name + ".FXComponent.LFO.csv", true));
+    setupOuputStreamForCSV(out);
+    out << std::fixed << std::showpoint;
 
     out << "index;LFO" << std::endl;
     for(unsigned i = 0; i < size; ++i)

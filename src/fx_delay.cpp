@@ -88,12 +88,15 @@ void Delay::reset()
 void Delay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     static const float32_t max_delay_time = MAX_DELAY_TIME * this->getSamplingRate();
-    float32_t jitter_ratio = this->jitter_generator_.process();
     float32_t jitter_delay_time = 0.0f;
-    if(jitter_ratio != 0.0f)
+    if(this->jitter_amount_ != 0.0f)
     {
-        jitter_ratio *= this->jitter_amount_;
-        jitter_delay_time = MAX_FLUTTER_DELAY_TIME * jitter_ratio * this->getSamplingRate();
+        float32_t jitter_ratio = this->jitter_generator_.process();
+        if(jitter_ratio != 0.0f)
+        {
+            jitter_ratio *= this->jitter_amount_;
+            jitter_delay_time = MAX_FLUTTER_DELAY_TIME * jitter_ratio * this->getSamplingRate();
+        }
     }
 
     // this->filter_.setCutoffChangeRatio(jitter_ratio);

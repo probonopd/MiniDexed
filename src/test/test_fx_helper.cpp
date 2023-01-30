@@ -1,5 +1,8 @@
 #include "test_fx_helper.h"
 
+#include <iostream>
+#include <filesystem>
+
 std::string getScenarioName(int scenario)
 {
     std::stringstream ss;
@@ -78,27 +81,52 @@ std::string getScenarioName(int scenario)
 }
 
 
-void setupOuputStreamFocCSV(std::ostream& out)
+void setupOuputStreamForCSV(std::ostream& out)
 {
-    struct comma_separator : numpunct<char>
+    struct comma_separator : std::numpunct<char>
     {
         virtual char do_decimal_point() const override { return ','; }
     };
 
-    out.imbue(locale(out.getloc(), new comma_separator));
-    out << fixed << showpoint;
+    out.imbue(std::locale(out.getloc(), new comma_separator));
+    out << std::fixed << std::showpoint;
 }
 
-std::string getResultFile(const std::string& filename)
+bool createFolderStructure(std::string& path)
 {
-    return std::string(OUTPUT_FOLDER) + "/" + filename;
+    try
+    {
+        std::filesystem::path file_path(path);
+        if(!std::filesystem::exists(file_path.parent_path()))
+        {
+            std::filesystem::create_directories(file_path.parent_path());
+        }
+
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+}
+
+std::string getResultFile(const std::string& filename, bool createPath)
+{
+    std::string f = std::string(OUTPUT_FOLDER) + "/" + filename;
+    if(createPath)
+    {
+        createFolderStructure(f);
+    }
+
+    return f;
 }
 
 float32_t getRandomValue()
 {
-    static random_device rd;
-    static mt19937 gen(rd());
-    static uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
 
     return dist(gen);
 }

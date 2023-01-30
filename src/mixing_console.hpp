@@ -383,7 +383,7 @@ template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::setSendLevel(size_t in, MixerOutput fx, float32_t lvl)
 {
     assert(in < nb_inputs);
-    assert(fx < kFXCount);
+    assert(fx < MixerOutput::kFXCount);
 
     this->setLevel(in, fx, lvl);
 }
@@ -440,8 +440,8 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl)
 {
-    assert(ret < (kFXCount - 1));
-    assert(dest < kFXCount);
+    assert(ret < (MixerOutput::kFXCount - 1));
+    assert(dest < MixerOutput::kFXCount);
 
     if(ret == dest)
     {
@@ -455,7 +455,7 @@ void MixingConsole<nb_inputs>::setReturnLevel(MixerOutput ret, MixerOutput dest,
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::setReturnSample(MixerOutput ret, float32_t sampleL, float32_t sampleR)
 {
-    assert(ret < (kFXCount - 1));
+    assert(ret < (MixerOutput::kFXCount - 1));
 
     this->setSample(nb_inputs + ret, sampleL, sampleR);
 }

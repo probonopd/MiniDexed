@@ -22,8 +22,6 @@
 #include "fx_components.h"
 #include "fx_svf.h"
 
-#include <random>
-
 class Delay : public FXElement
 {
     DISALLOW_COPY_AND_ASSIGN(Delay);
