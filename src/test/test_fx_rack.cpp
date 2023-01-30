@@ -2,10 +2,8 @@
 #include <cmath>
 
 #include "test_fx_helper.h"
-#include "wave.h"
 
 #include "../fx_rack.h"
-#include "../effect_platervbstereo.h"
 
 using namespace std;
 

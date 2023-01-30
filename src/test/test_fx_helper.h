@@ -4,6 +4,7 @@
 #include <string>
 #include <gtest/gtest.h>
 
+#include "wave.h"
 #include "../fx.h"
 
 #define AUDIO_SOURCE_FILE "test.wav"

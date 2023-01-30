@@ -2,13 +2,6 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <string>
-#include <locale>
-#include <ctime>
-#include <cmath>
-#include <random>
-#include "wave.h"
 
 #include "test_fx_helper.h"
 

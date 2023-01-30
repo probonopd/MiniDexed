@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "test_fx_helper.h"
-#include "wave.h"
 
 #include "../debug.hpp"
 #include "../fx_base.h"

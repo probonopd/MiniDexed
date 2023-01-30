@@ -1,11 +1,10 @@
 #include <gtest/gtest.h>
 
 #include "test_fx_helper.h"
-#include "wave.h"
 
 #include "../effect_platervbstereo.h"
 
-TEST(FXElement, PlateReverbMigration)
+TEST(FXPlateReverb, Migration)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();

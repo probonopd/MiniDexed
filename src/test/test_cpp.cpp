@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "../fx_components.h"
-#include <chrono>
-#include <fstream>
 
 int nb = 0;
 
