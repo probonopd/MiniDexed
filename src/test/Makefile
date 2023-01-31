@@ -1,7 +1,9 @@
+BINDIR := bin
 OBJDIR := objects
-OUTPUT_FOLDER = results
-EXE := all_test.bin
-BETA := beta.bin
+OUTPUT_FOLDER := results
+
+EXE := $(BINDIR)/all_test.bin
+BETA := $(BINDIR)/beta.bin
 
 CXX := g++
 CXXFLAGS = 	-g -std=c++20 -MMD -MP
@@ -44,7 +46,7 @@ BETAOBJS = $(BETASRCS:%.cpp=$(OBJDIR)/%.o)
 
 all: $(EXE) test
 
-bin: $(EXE)
+build: $(EXE)
 
 test: $(EXE) $(OUTPUT_FOLDER)
 	rm -rf $(OUTPUT_FOLDER)/*
@@ -53,6 +55,9 @@ test: $(EXE) $(OUTPUT_FOLDER)
 test-debug: $(EXE) $(OUTPUT_FOLDER)
 	rm -rf $(OUTPUT_FOLDER)/*
 	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --error-limit=no --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
+
+$(BINDIR):
+	mkdir -p $@
 
 $(OBJDIR):
 	mkdir -p $@
@@ -66,11 +71,11 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)
 $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
-$(EXE): $(TST_OBJS) $(FX__OBJS)
+$(EXE): $(BINDIR) $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
-$(BETA): $(BETAOBJS) beta.cpp
+$(BETA): $(BINDIR) $(BETAOBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(BETAOBJS) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
 clean:
-	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)
+	rm -rf $(OBJDIR) $(BINDIR) $(OUTPUT_FOLDER)

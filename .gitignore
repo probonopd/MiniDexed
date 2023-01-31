@@ -48,8 +48,7 @@ sdcard
 .vscode/
 
 # temporary tests
-src/test/*.bin
+src/test/bin/
 src/test/objects/
 src/test/results/
-src/test/*.csv
 *xtleak.kcg*

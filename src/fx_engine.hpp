@@ -11,6 +11,8 @@
 
 #include "fx_components.h"
 
+#define STEP_UP(x) x
+
 enum Format
 {
     FORMAT_12_BIT,
@@ -369,7 +371,7 @@ public:
         {
             for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) 
             {
-                c->lfo_value_[i] = this->lfo_[i]->process();
+                c->lfo_value_[i] = STEP_UP(this->lfo_[i]->process());
             }
         }
     }

@@ -10,7 +10,9 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate) :
     engine_(sampling_rate),
     input_gain_(-1.0f),
     diffusion_(-1.0f),
-    lp_(-1.0f)
+    lp_(-1.0f),
+    lp_decay_1_(0.0f),
+    lp_decay_2_(0.0f)
 {
     this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_1, 0.5f);
     this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_2, 0.3f);
@@ -27,6 +29,8 @@ ShimmerReverb::~ShimmerReverb()
 void ShimmerReverb::reset()
 {
     this->engine_.reset();
+    this->lp_decay_1_ = 0.0f;
+    this->lp_decay_2_ = 0.0f;
 }
 
 void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -96,7 +100,7 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     c.write(del1, 2.0f);
     c.write(wet, 0.0f);
 
-    outR = wet;
+    outL = wet;
 
     c.load(apout);
     c.interpolate(del1, 4450.0f, Engine::LFOIndex::LFO_1, 50.0f, krt);
