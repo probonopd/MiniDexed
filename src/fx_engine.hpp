@@ -274,6 +274,7 @@ public:
         inline void read(D& d, int32_t offset, float32_t scale)
         {
             assert((D::base + D::length) <= size);
+
             T r;
             if(offset == -1)
             {
@@ -314,8 +315,9 @@ public:
             int32_t offset_integral = static_cast<int32_t>(offset);
             float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
 
-            float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
-            float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
+            int32_t index = this->write_ptr_ + offset_integral + D::base;
+            float32_t a = DataType<format>::decompress(this->buffer_[index & MASK]);
+            float32_t b = DataType<format>::decompress(this->buffer_[(index + 1) & MASK]);
             float32_t x = a + (b - a) * offset_fractional;
 
             this->previous_read_ = x;

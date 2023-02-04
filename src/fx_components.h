@@ -150,7 +150,7 @@ public:
 
 private:
     static bool ClassInitializer();
-    static const size_t DataPointSize = 352800;
+    static const size_t DataPointSize = 176400;
     static const float32_t DeltaTime; 
     static float32_t DataPoints[];
 
@@ -311,7 +311,7 @@ private:
 };
 
 
-typedef ComplexLFO LFO;
+typedef InterpolatedSineOscillator LFO;
 
 
 class JitterGenerator : public FXBase

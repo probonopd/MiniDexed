@@ -2,7 +2,7 @@ BINDIR := bin
 OBJDIR := objects
 OUTPUT_FOLDER := results
 
-EXE := $(BINDIR)/all_test.bin
+EXE := $(BINDIR)/all_tests.bin
 BETA := $(BINDIR)/beta.bin
 
 CXX := g++
@@ -32,9 +32,9 @@ FX__SRCS += ../fx_shimmer_reverb.cpp
 FX__SRCS += ../fx_dry.cpp
 FX__SRCS += ../fx_rack.cpp
 
-TST_SRCS := $(filter-out waveplay.cpp, $(filter-out beta.cpp, $(wildcard *.cpp)))
+TST_SRCS := $(filter-out waveplay.cpp $(wildcard beta*.cpp), $(wildcard *.cpp))
 
-BETASRCS := beta.cpp
+BETASRCS := $(wildcard beta*.cpp)
 BETASRCS += arm_functions.cpp
 BETASRCS += wavein.cpp
 BETASRCS += waveout.cpp

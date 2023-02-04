@@ -7,7 +7,7 @@
 #include "wave.h"
 #include "../fx.h"
 
-#define AUDIO_SOURCE_FILE "test.wav"
+#define AUDIO_SOURCE_FILE "test2.wav"
 
 #define SAMPLING_FREQUENCY 44100.0f
 

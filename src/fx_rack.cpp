@@ -50,10 +50,9 @@ inline void FXRack::reset()
 
 inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    FXChain::iterator end = this->fx_chain_.end();
-    for(FXChain::iterator it = this->fx_chain_.begin(); it != end; it++)
+    for(FXElement* fx : this->fx_chain_)
     {
-        (*it)->processSample(inL, inR, outL, outR);
+        fx->processSample(inL, inR, outL, outR);
 
         inL = outL;
         inR = outR;

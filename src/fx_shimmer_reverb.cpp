@@ -97,20 +97,20 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     c.writeAllPass(dap1a, kap);
     c.read(dap1b TAIL, kap);
     c.writeAllPass(dap1b, -kap);
-    c.write(del1, 2.0f);
+    c.write(del1, 1.5f);
     c.write(wet, 0.0f);
 
     outL = wet;
 
     c.load(apout);
-    c.interpolate(del1, 4450.0f, Engine::LFOIndex::LFO_1, 50.0f, krt);
+    // c.interpolate(del1, 4450.0f, Engine::LFOIndex::LFO_1, 50.0f, krt);
     c.read(del1 TAIL, krt);
     c.lp(lp_2, klp);
     c.read(dap2a TAIL, kap);
     c.writeAllPass(dap2a, -kap);
     c.read(dap2b TAIL, -kap);
     c.writeAllPass(dap2b, kap);
-    c.write(del2, 2.0f);
+    c.write(del2, 1.5f);
     c.write(wet, 0.0f);
 
     outR = wet;
