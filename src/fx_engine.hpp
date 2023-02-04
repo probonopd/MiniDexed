@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(DEBUG)
-#include <iostream>
-#include <cmath>
-#endif
-
 #include <algorithm>
 #include <climits>
 #include <cassert>

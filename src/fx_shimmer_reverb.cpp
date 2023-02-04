@@ -103,7 +103,6 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     outL = wet;
 
     c.load(apout);
-    c.interpolate(del1, 4450.0f, Engine::LFOIndex::LFO_1, 50.0f, krt);
     c.read(del1 TAIL, krt);
     c.lp(lp_2, klp);
     c.read(dap2a TAIL, kap);

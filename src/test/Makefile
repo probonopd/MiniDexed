@@ -1,6 +1,6 @@
 OBJDIR := objects
 OUTPUT_FOLDER = results
-EXE := all_test.bin
+EXE := all_tests.bin
 BETA := beta.bin
 
 CXX := g++
@@ -29,7 +29,7 @@ FX__SRCS += ../effect_platervbstereo.cpp
 FX__SRCS += ../fx_shimmer_reverb.cpp
 FX__SRCS += ../fx_rack.cpp
 
-TST_SRCS := $(filter-out waveplay.cpp, $(wildcard *.cpp))
+TST_SRCS := $(filter-out waveplay.cpp $(wildcard beta*.cpp), $(wildcard *.cpp))
 
 FX__OBJS = $(patsubst ../%, $(OBJDIR)/%, $(FX__SRCS:.cpp=.o))
 TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
