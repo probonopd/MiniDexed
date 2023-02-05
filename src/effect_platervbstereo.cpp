@@ -84,11 +84,10 @@ const int16_t AudioWaveformSine[257] = {
 };
 
 AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate) :
-    FXElement(samplerate)
+    FXElement(samplerate, 2.54f),
+    input_attn(0.5f),
+    in_allp_k(INP_ALLP_COEFF)
 {
-    input_attn = 0.5f;
-    in_allp_k = INP_ALLP_COEFF;
-
     memset(in_allp1_bufL, 0, sizeof(in_allp1_bufL));
     memset(in_allp2_bufL, 0, sizeof(in_allp2_bufL));
     memset(in_allp3_bufL, 0, sizeof(in_allp3_bufL));
@@ -97,6 +96,8 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate) :
     in_allp2_idxL = 0;
     in_allp3_idxL = 0;
     in_allp4_idxL = 0;
+
+    in_allp_out_L = 0.0f;
 
     memset(in_allp1_bufR, 0, sizeof(in_allp1_bufR));
     memset(in_allp2_bufR, 0, sizeof(in_allp2_bufR));
@@ -149,6 +150,9 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate) :
     master_lowpass_l = 0.0f;
     master_lowpass_r = 0.0f;
 
+    rv_time_k = 0.0f;
+    rv_time_scaler = 0.0f;
+
     lfo1_phase_acc = 0;
     lfo1_adder = (UINT32_MAX + 1)/(samplerate * LFO1_FREQ_HZ);
     lfo2_phase_acc = 0;
@@ -173,14 +177,14 @@ void AudioEffectPlateReverb::reset()
     memset(in_allp2_bufR, 0, sizeof(in_allp2_bufR));
     memset(in_allp3_bufR, 0, sizeof(in_allp3_bufR));
     memset(in_allp4_bufR, 0, sizeof(in_allp4_bufR));
-    memset(lp_allp1_buf, 0, sizeof(lp_allp1_buf));
-    memset(lp_allp2_buf, 0, sizeof(lp_allp2_buf));
-    memset(lp_allp3_buf, 0, sizeof(lp_allp3_buf));
-    memset(lp_allp4_buf, 0, sizeof(lp_allp4_buf));
-    memset(lp_dly1_buf, 0, sizeof(lp_dly1_buf));
-    memset(lp_dly2_buf, 0, sizeof(lp_dly2_buf));
-    memset(lp_dly3_buf, 0, sizeof(lp_dly3_buf));
-    memset(lp_dly4_buf, 0, sizeof(lp_dly4_buf));
+    memset(lp_allp1_buf,  0, sizeof(lp_allp1_buf));
+    memset(lp_allp2_buf,  0, sizeof(lp_allp2_buf));
+    memset(lp_allp3_buf,  0, sizeof(lp_allp3_buf));
+    memset(lp_allp4_buf,  0, sizeof(lp_allp4_buf));
+    memset(lp_dly1_buf,   0, sizeof(lp_dly1_buf));
+    memset(lp_dly2_buf,   0, sizeof(lp_dly2_buf));
+    memset(lp_dly3_buf,   0, sizeof(lp_dly3_buf));
+    memset(lp_dly4_buf,   0, sizeof(lp_dly4_buf));
 }
 
 void AudioEffectPlateReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
@@ -398,7 +402,7 @@ void AudioEffectPlateReverb::processSample(float32_t inL, float32_t inR, float32
     temp1 = acc - master_lowpass_l;
     master_lowpass_l += temp1 * master_lowpass_f;
 
-	outL = master_lowpass_l;
+	outL = master_lowpass_l * this->OutputLevelCorrector;
 
     // Channel R
 #ifdef TAP1_MODULATED
@@ -442,7 +446,7 @@ void AudioEffectPlateReverb::processSample(float32_t inL, float32_t inR, float32
     temp1 = acc - master_lowpass_r;
     master_lowpass_r += temp1 * master_lowpass_f;
 
-	outR = master_lowpass_r;
+	outR = master_lowpass_r * this->OutputLevelCorrector;
 }
 
 void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR, uint16_t len)

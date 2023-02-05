@@ -1,12 +1,10 @@
 #include "fx_orbitone.h"
 
-#include <cmath>
-
 #define LFO_SLOW_MAX_FREQUENCY 1.0f
 #define LFO_FAST_MAX_FREQUENCY 8.8f
 
 Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) : 
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 1.8f),
     engine_(sampling_rate, 0.0f),
     depth_(0.0f),
     fullscale_depth_(0.0f)
@@ -47,8 +45,8 @@ void Orbitone::reset()
 void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     typedef Engine::Reserve<2047, Engine::Reserve<2047> > Memory;
-    Engine::DelayLine<Memory, 0> line_l;
-    Engine::DelayLine<Memory, 1> line_r;
+    Engine::DelayLine<Memory, StereoChannels::Left > line_l;
+    Engine::DelayLine<Memory, StereoChannels::Right> line_r;
     Engine::Context c;
 
     this->engine_.start(&c);
@@ -70,23 +68,20 @@ void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, floa
 
     float32_t wet = 0.0f;
 
-    // Sum L & R channel to send to chorus line.
-    c.read(inL, 1.0f);
-    c.write(line_l, 0.0f);
-    c.read(inR, 1.0f);
-    c.write(line_r, 0.0f);
+    c.directWrite(inL, line_l);
+    c.directWrite(inR, line_r);
 
     c.interpolate(line_l, mod_1 + 1024, 0.33f);
     c.interpolate(line_l, mod_2 + 1024, 0.33f);
     c.interpolate(line_r, mod_3 + 1024, 0.33f);
-    c.write(wet, 0.0f);
-    outL = wet;
+    c.writeAndLoad(wet, 0.0f);
+    outL = wet * this->OutputLevelCorrector;
     
     c.interpolate(line_r, mod_1 + 1024, 0.33f);
     c.interpolate(line_r, mod_2 + 1024, 0.33f);
     c.interpolate(line_l, mod_3 + 1024, 0.33f);
-    c.write(wet, 0.0f);
-    outR = wet;
+    c.writeAndLoad(wet, 0.0f);
+    outR = wet * this->OutputLevelCorrector;
 }
 
 void Orbitone::setRate(float32_t rate)

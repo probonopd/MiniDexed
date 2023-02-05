@@ -81,7 +81,7 @@ public:
     {
     }
 
-    void reset()
+    void reset() override
     {
         if(!this->is_reset_)
         {
@@ -90,7 +90,7 @@ public:
         }
     }
 
-    void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+    void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override
     {
         if(!this->isEnable() || this->getWetLevel() == 0.0f)
         {

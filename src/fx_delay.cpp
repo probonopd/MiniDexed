@@ -50,7 +50,7 @@ void Delay::LowHighPassFilter::processSample(float32_t inL, float32_t inR, float
 }
 
 Delay::Delay(const float32_t sampling_rate, float32_t default_delay_time, float32_t default_flutter_level, float32_t default_feedback_level) :
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 3.46f),
     MaxSampleDelayTime((MAX_DELAY_TIME + MAX_FLUTTER_DELAY_TIME) * sampling_rate * MAX_DELAY_TIME),
     read_pos_L_(0),
     read_pos_R_(0),
@@ -133,6 +133,9 @@ void Delay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32
     {
         this->read_pos_R_ -= this->MaxSampleDelayTime;
     }
+
+    outL *= this->OutputLevelCorrector;
+    outR *= this->OutputLevelCorrector;
 }
 
 void Delay::setLeftDelayTime(float32_t delay_time)

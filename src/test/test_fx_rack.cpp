@@ -1,6 +1,3 @@
-#include <gtest/gtest.h>
-#include <cmath>
-
 #include "test_fx_helper.h"
 
 #include "../fx_rack.h"
@@ -32,7 +29,7 @@ void setupRack(FXRack* rack, int scenario)
     rack->getOrbitone()->setEnable(Active(scenario, FXSwitch::FX__Orbitone));
     rack->getOrbitone()->setWetLevel(0.8f);
     rack->getOrbitone()->setRate(0.4f);
-    rack->getOrbitone()->setDepth(0.5f);
+    rack->getOrbitone()->setDepth(0.7f);
 
     rack->getPhaser()->setEnable(Active(scenario, FXSwitch::FX__Phaser));
     rack->getPhaser()->setWetLevel(1.0f);

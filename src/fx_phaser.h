@@ -35,13 +35,13 @@ public:
         AllpassDelay();
         virtual ~AllpassDelay();
 
-        virtual void reset();
-        virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR);
+        virtual void reset() override;
+        virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-        void setDelay(float32_t delay);
+        void setDelay(float32_t delayL, float32_t delayR);
 
     private:
-        float32_t a1_;
+        float32_t a1_[StereoChannels::kNumChannels];
         float32_t z_[StereoChannels::kNumChannels];
 
         IMPLEMENT_DUMP(
@@ -99,8 +99,9 @@ public:
     unsigned getNbStages() const;
 
 private:
-    LFO lfo_;
+    LFO* lfo_[StereoChannels::kNumChannels];
     float32_t depth_;
+    float32_t gain_;
     float32_t feedback_;
     float32_t dmin_;
     float32_t dmax_;
@@ -142,7 +143,8 @@ private:
 
         if(deepInspection)
         {
-            this->lfo_.dump(out, deepInspection, tag + ".lfo_");
+            this->lfo_[StereoChannels::Left ]->dump(out, deepInspection, tag + ".lfo_[ L ]");
+            this->lfo_[StereoChannels::Right]->dump(out, deepInspection, tag + ".lfo_[ R ]");
             for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
             {
                 this->stages_[i].dump(out, deepInspection, tag + ".stages_[ " + std::to_string(i) + " ]");
@@ -161,7 +163,8 @@ private:
 
         if(deepInspection)
         {
-            nb_errors += this->lfo_.inspect(inspector, deepInspection, tag + ".lfo_");
+            nb_errors += this->lfo_[StereoChannels::Left ]->inspect(inspector, deepInspection, tag + ".lfo_[ L ]");
+            nb_errors += this->lfo_[StereoChannels::Right]->inspect(inspector, deepInspection, tag + ".lfo_[ R ]");
             for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
             {
                 nb_errors += this->stages_[i].inspect(inspector, deepInspection, tag + ".stages_[ " + std::to_string(i) + " ]");

@@ -1,14 +1,22 @@
+BINDIR := bin
 OBJDIR := objects
-OUTPUT_FOLDER = results
-EXE := all_tests.bin
-BETA := beta.bin
+OUTPUT_FOLDER := results
 
-CXX := g++
-CXXFLAGS = 	-g -std=c++20 -MMD -MP
+EXE := $(BINDIR)/all_tests.bin
+BETA := $(BINDIR)/beta.bin
+
+CXX = g++
+CXXFLAGS = 	-g -Wall -std=c++20 -MMD -MP
 DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
 INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src/
+
+CPPCHECK = cppcheck
+CHECKFLAGS = 	-q -j 8 --enable=all --force --language=c++ \
+				$(INCLUDES) --platform=unix64 \
+				--error-exitcode=0 \
+				--suppressions-list=cppcheck-suppression-list.txt
 
 -include $(TST_OBJS:.o=.d)
 -include $(FX__OBJS:.o=.d)
@@ -36,6 +44,7 @@ TST_OBJS = $(TST_SRCS:%.cpp=$(OBJDIR)/%.o)
 
 all: $(EXE) test
 
+build: $(EXE)
 test: $(EXE) $(OUTPUT_FOLDER)
 	rm -rf $(OUTPUT_FOLDER)/*
 	./$(EXE)
@@ -43,6 +52,9 @@ test: $(EXE) $(OUTPUT_FOLDER)
 test-debug: $(EXE) $(OUTPUT_FOLDER)
 	rm -rf $(OUTPUT_FOLDER)/*
 	valgrind --leak-check=full --leak-resolution=high --show-leak-kinds=all --xtree-leak=yes --show-mismatched-frees=yes --error-limit=no --log-file=$(OUTPUT_FOLDER)/valgrind-analysis-results.txt ./$(EXE)
+
+$(BINDIR):
+	mkdir -p $@
 
 $(OBJDIR):
 	mkdir -p $@
@@ -56,8 +68,8 @@ $(OBJDIR)/%.o: %.cpp $(OBJDIR)
 $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $< -o $@
 
-$(EXE): $(TST_OBJS) $(FX__OBJS)
+$(EXE): $(BINDIR) $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
 clean:
-	rm -rf *.o $(OBJDIR) $(EXE) $(OUTPUT_FOLDER)
+	rm -rf $(OBJDIR) $(BINDIR) $(OUTPUT_FOLDER)

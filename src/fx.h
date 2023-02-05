@@ -48,7 +48,9 @@ class FXElement : public FXBase
     DISALLOW_COPY_AND_ASSIGN(FXElement);
 
 protected:
-    FXElement(float32_t sampling_rate);
+    FXElement(float32_t sampling_rate, float32_t output_level_corrector = 1.0f);
+
+    const float32_t OutputLevelCorrector;
 
 public:
     virtual ~FXElement();

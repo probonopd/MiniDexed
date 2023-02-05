@@ -37,6 +37,7 @@
 inline long long int getElapseTime(std::string marker = "")
 {
     static std::unordered_map<std::string, std::chrono::high_resolution_clock::time_point> marker_times;
+
     auto current_time = std::chrono::high_resolution_clock::now();
     auto it = marker_times.find(marker);
     if (it != marker_times.end())
@@ -54,12 +55,12 @@ inline long long int getElapseTime(std::string marker = "")
 
 #define LAP_TIME(marker) getElapseTime(marker)
 #define LOG_LAP_TIME(marker) { auto __d = getElapseTime(marker); if(__d > 0) std::cout << "Execution time for " << marker << ": " << __d << std::endl; }
+
 #define DEBUG_VALUE(lbl, idx, v) std::cout << lbl << " " << idx << ": " << v << std::endl
 
 #else
 
 #define LAP_TIME(marker)
 #define LOG_LAP_TIME(marker)
-#define DEBUG_VALUE(lbl, idx, v)
 
 #endif

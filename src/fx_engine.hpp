@@ -207,14 +207,14 @@ public:
             this->accumulator_ = value;
         }
 
-        inline void read(float32_t value, float32_t scale)
-        {
-            this->accumulator_ += value * scale;
-        }
-
         inline void read(float32_t value)
         {
             this->accumulator_ += value;
+        }
+
+        inline void read(float32_t value, float32_t scale)
+        {
+            this->accumulator_ += value * scale;
         }
 
         inline void write(float32_t& value)
@@ -228,10 +228,24 @@ public:
             this->accumulator_ *= scale;
         }
 
+        inline void writeAndLoad(float32_t& value, float32_t newValue)
+        {
+            value = this->accumulator_;
+            this->load(newValue);
+        }
+
         template <typename D>
-        inline void write(D& d, int32_t offset, float32_t scale)
+        inline void directWrite(float32_t value, D& d)
+        {
+            this->load(value);
+            this->writeAndLoad(d, 0, 0.0f);
+        }
+
+        template <typename D>
+        inline void write(D& d, int32_t offset)
         {
             assert((D::base + D::length) <= size);
+
             T w = DataType<format>::compress(this->accumulator_);
             if(offset == -1)
             {
@@ -241,13 +255,32 @@ public:
             {
                 this->buffer_[(this->write_ptr_ + D::base + offset) & MASK] = w;
             }
+        }
+
+        template <typename D>
+        inline void write(D& d, int32_t offset, float32_t scale)
+        {
+            this->write(d, offset);
             this->accumulator_ *= scale;
+        }
+
+        template <typename D>
+        inline void writeAndLoad(D& d, int32_t offset, float32_t newValue)
+        {
+            this->write(d, offset);
+            this->load(newValue);
         }
 
         template <typename D>
         inline void write(D& d, float32_t scale)
         {
             this->write(d, 0, scale);
+        }
+
+        template <typename D>
+        inline void writeAndLoad(D& d, float32_t newValue)
+        {
+            this->writeAndLoad(d, 0, newValue);
         }
 
         template <typename D>
@@ -267,6 +300,7 @@ public:
         inline void read(D& d, int32_t offset, float32_t scale)
         {
             assert((D::base + D::length) <= size);
+
             T r;
             if(offset == -1)
             {
@@ -307,8 +341,9 @@ public:
             int32_t offset_integral = static_cast<int32_t>(offset);
             float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
 
-            float32_t a = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base) & MASK]);
-            float32_t b = DataType<format>::decompress(this->buffer_[(this->write_ptr_ + offset_integral + D::base + 1) & MASK]);
+            int32_t index = this->write_ptr_ + offset_integral + D::base;
+            float32_t a = DataType<format>::decompress(this->buffer_[index & MASK]);
+            float32_t b = DataType<format>::decompress(this->buffer_[(index + 1) & MASK]);
             float32_t x = a + (b - a) * offset_fractional;
 
             this->previous_read_ = x;

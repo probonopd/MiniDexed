@@ -145,5 +145,5 @@ TEST(CppOptimization, FastLFOPrecisionTest)
 
         max_delta = std::max(max_delta, std::abs(v1 - v2));
     }
-    // EXPECT_GT(epsilon, max_delta);
+    EXPECT_GT(epsilon, max_delta);
 }
