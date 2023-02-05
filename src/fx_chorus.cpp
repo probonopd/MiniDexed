@@ -6,7 +6,7 @@
 #define LFO2_MAX_FREQ 0.35f
 
 Chorus::Chorus(float32_t sampling_rate) :
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 1.18f),
     engine_(sampling_rate, 0.0f),
     rate_(0.0f),
     depth_(0.0f),
@@ -56,19 +56,18 @@ void Chorus::processSample(float32_t inL, float32_t inR, float32_t& outL, float3
     float32_t wet;
 
     // Sum L & R channel to send to chorus line.
-    c.read(inL, 0.5f);
-    c.read(inR, 0.5f);
-    c.write(line, 0.0f);
+    c.read(inL + inR, 0.5f);
+    c.writeAndLoad(line, 0.0f);
 
     c.interpolate(line, sin_1 * this->fullscale_depth_ + 1200, 0.5f);
     c.interpolate(line, sin_2 * this->fullscale_depth_ + 800, 0.5f);
-    c.write(wet, 0.0f);
-    outL = wet;
+    c.writeAndLoad(wet, 0.0f);
+    outL = wet * this->OutputLevelCorrector;
     
     c.interpolate(line, cos_1 * this->fullscale_depth_ + 800, 0.5f);
     c.interpolate(line, cos_2 * this->fullscale_depth_ + 1200, 0.5f);
-    c.write(wet, 0.0f);
-    outR = wet;
+    c.writeAndLoad(wet, 0.0f);
+    outR = wet * this->OutputLevelCorrector;
 }
 
 void Chorus::setRate(float32_t rate)
