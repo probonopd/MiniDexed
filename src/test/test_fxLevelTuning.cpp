@@ -15,20 +15,11 @@ TEST(LevelTuning, Tube)
     fx.reset();
     fx.setOverdrive(0.75f);
     
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -37,11 +28,9 @@ TEST(LevelTuning, Tube)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -57,20 +46,11 @@ TEST(LevelTuning, Chorus)
     fx.setRate(0.4f);
     fx.setDepth(0.5f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -79,11 +59,9 @@ TEST(LevelTuning, Chorus)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -101,20 +79,11 @@ TEST(LevelTuning, Flanger)
     fx.setDepth(0.75f);
     fx.setFeedback(0.5f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -123,11 +92,9 @@ TEST(LevelTuning, Flanger)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -144,20 +111,11 @@ TEST(LevelTuning, Orbitone)
     fx.setRate(0.4f);
     fx.setDepth(0.5f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -166,11 +124,9 @@ TEST(LevelTuning, Orbitone)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -189,20 +145,11 @@ TEST(LevelTuning, Phaser)
     fx.setFeedback(0.5f);
     fx.setNbStages(12);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -211,11 +158,9 @@ TEST(LevelTuning, Phaser)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -235,20 +180,11 @@ TEST(LevelTuning, Delay)
     fx.setFlutterRate(0.0f);
     fx.setFlutterAmount(0.0f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -257,11 +193,9 @@ TEST(LevelTuning, Delay)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -283,20 +217,11 @@ TEST(LevelTuning, PlateReverb)
     fx.diffusion(0.65f);
     fx.level(1.0f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -305,11 +230,9 @@ TEST(LevelTuning, PlateReverb)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
@@ -327,20 +250,11 @@ TEST(LevelTuning, ShimmerReverb)
     fx.setDiffusion(0.75f);
     fx.setLP(0.8f);
 
-    size_t size;
-    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
-
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;
     float32_t sumOut = 0.0f;
-
     size_t nb_errors = 0;
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        float32_t inL = inSamples[0][i];
-        float32_t inR = inSamples[1][i];
-        float32_t outL;
-        float32_t outR;
+    AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR,
         sumIn += inL * inL;
 
         fx.processSample(inL, inR, outL, outR);
@@ -349,11 +263,9 @@ TEST(LevelTuning, ShimmerReverb)
 
         nb_errors += std::abs(outL) > 1.0f ? 1 : 0;
         nb_errors += std::abs(outR) > 1.0f ? 1 : 0;
-    }
+    );
 
-    delete[] inSamples[0];
-    delete[] inSamples[1];
-    delete[] inSamples;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
