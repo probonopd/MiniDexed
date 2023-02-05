@@ -5,8 +5,8 @@
 #include <cstring>
 
 void saveWaveFile(const std::string& fileName,
-                  float32_t* LChannel,
-                  float32_t* RChannel,
+                  const float32_t* LChannel,
+                  const float32_t* RChannel,
                   size_t size,
                   int sampleRate,
                   int bitsPerSample)

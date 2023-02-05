@@ -1,6 +1,3 @@
-#include <gtest/gtest.h>
-#include <cmath>
-
 #include "test_fx_helper.h"
 
 #include "../fx_rack.h"
@@ -32,7 +29,7 @@ void setupRack(FXRack* rack, int scenario)
     rack->getOrbitone()->setEnable(Active(scenario, FXSwitch::FX__Orbitone));
     rack->getOrbitone()->setWetLevel(0.8f);
     rack->getOrbitone()->setRate(0.4f);
-    rack->getOrbitone()->setDepth(0.5f);
+    rack->getOrbitone()->setDepth(0.7f);
 
     rack->getPhaser()->setEnable(Active(scenario, FXSwitch::FX__Phaser));
     rack->getPhaser()->setWetLevel(1.0f);
@@ -59,57 +56,32 @@ void setupRack(FXRack* rack, int scenario)
 
 TEST_P(FXScenarioTest, FXRackResetAllScenarios)
 {
-    FXRack *rack = new FXRack(SAMPLING_FREQUENCY);
+    FXRack rack(SAMPLING_FREQUENCY);
 
     int fxSwitch = this->GetParam();
-    rack->setEnable(true);
-    setupRack(rack, fxSwitch);
-    rack->reset();
-
-    delete rack;
+    rack.setEnable(true);
+    setupRack(&rack, fxSwitch);
+    rack.reset();
 }
 
 TEST_P(FXScenarioTest, ScenarioProcessing)
 {
-    const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
-    std::string full_test_name = test_info->test_case_name();
-    full_test_name += ".";
-    full_test_name += test_info->name();
-
-    const unsigned nbRepeats = 1;
-    size_t size;
-    float32_t** samples = readWaveFile(AUDIO_SOURCE_FILE, size);
-    float32_t* sampleOutL = new float32_t[size * nbRepeats];
-    float32_t* sampleOutR = new float32_t[size * nbRepeats];
-    memset(sampleOutL, 0, size * nbRepeats * sizeof(float32_t));
-    memset(sampleOutR, 0, size * nbRepeats * sizeof(float32_t));
-
-    FXRack *rack = new FXRack(SAMPLING_FREQUENCY);
-
     int fxSwitch = this->GetParam();
-    rack->setEnable(true);
-    setupRack(rack, fxSwitch);
-    rack->reset();
-
     string name = getScenarioName(fxSwitch);
 
-    for(unsigned i = 0; i < nbRepeats; ++i)
-    {
-        rack->process(samples[0], samples[1], sampleOutL + i * size, sampleOutR + i * size, size);
-    }
+    FXRack rack(SAMPLING_FREQUENCY);
+    rack.setEnable(true);
+    setupRack(&rack, fxSwitch);
+    rack.reset();
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    rack.process(inSamples[0], inSamples[1], outSamples[0], outSamples[1], size);
 
     stringstream ss;
     ss << full_test_name << "-fx-rack" << name << ".wav";
-    saveWaveFile(getResultFile(ss.str(), true), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+    saveWaveFile(getResultFile(ss.str(), true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
-    delete[] samples[0];
-    delete[] samples[1];
-    delete[] samples;
-
-    delete[] sampleOutL;
-    delete[] sampleOutR;
-
-    delete rack;
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
 INSTANTIATE_TEST_SUITE_P(FXRack, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__ShimmerReverb + 1)));

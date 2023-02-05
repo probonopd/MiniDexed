@@ -1,7 +1,5 @@
 #include "fx_tube.h"
 
-#include <cmath>
-
 Tube::Tube(float32_t samplingRate) :
     FXElement(samplingRate),
     overdrive_(1.0f),
@@ -44,7 +42,7 @@ void Tube::setOverdrive(float32_t overdrive)
     {
         this->overdrive_ = overdrive;
         this->saturator_factor_ = 1.0f + N * overdrive;
-        this->gain_factor_ = 1.0f / std::log(1.0f + this->saturator_factor_);
+        this->gain_factor_ = this->OutputLevelCorrector / std::log(1.0f + this->saturator_factor_);
     }
 }
 

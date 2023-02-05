@@ -1,9 +1,7 @@
 #include "fx_flanger.h"
 
-#include <cmath>
-
 Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) :
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 1.17f),
     MaxDelayLineSize(static_cast<unsigned>(MAX_FLANGER_DELAY * sampling_rate)),
     write_index_(0)
 {
@@ -40,7 +38,7 @@ void Flanger::reset()
 {
     memset(this->delay_lineL_, 0, this->MaxDelayLineSize * sizeof(float32_t));
     memset(this->delay_lineR_, 0, this->MaxDelayLineSize * sizeof(float32_t));
-    memset(this->feedback_samples_, 0, 2 * sizeof(float32_t));
+    memset(this->feedback_samples_, 0, StereoChannels::kNumChannels * sizeof(float32_t));
     this->write_index_ = 0;
 
     for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
@@ -52,8 +50,8 @@ void Flanger::reset()
 void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     // Write sample and any feedback into delay buffers
-    this->delay_lineL_[this->write_index_] = inL + this->feedback_samples_[0];
-    this->delay_lineR_[this->write_index_] = inR + this->feedback_samples_[1];
+    this->delay_lineL_[this->write_index_] = inL + this->feedback_samples_[StereoChannels::Left ];
+    this->delay_lineR_[this->write_index_] = inR + this->feedback_samples_[StereoChannels::Right];
 
     ++this->write_index_;
     if(this->write_index_ >= this->MaxDelayLineSize)
@@ -86,8 +84,8 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     }
 
 	// Calculate linear interpolation point for left channel
-	int currentL = (int)delayReadHeadL;
-	int nextL = currentL + 1;
+	int32_t currentL = static_cast<int32_t>(delayReadHeadL);
+	int32_t nextL = currentL + 1;
 	float32_t fractionL = delayReadHeadL - currentL;
 	if(nextL >= static_cast<int>(this->MaxDelayLineSize))
     {
@@ -95,8 +93,8 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     }
 
 	// Calculate linear interpolation point for right channel
-	int currentR = (int)delayReadHeadR;
-	int nextR = currentR + 1;
+	int32_t currentR = static_cast<int32_t>(delayReadHeadR);
+	int32_t nextR = currentR + 1;
 	float32_t fractionR = delayReadHeadR - currentR;
 	if(nextR >= static_cast<int>(this->MaxDelayLineSize))
 	{
@@ -111,8 +109,8 @@ void Flanger::processSample(float32_t inL, float32_t inR, float32_t& outL, float
     this->feedback_samples_[StereoChannels::Left ] = delay_sample_l * this->feedback_;
     this->feedback_samples_[StereoChannels::Right] = delay_sample_r * this->feedback_;
 
-    outL = delay_sample_l;
-    outR = delay_sample_r;
+    outL = delay_sample_l * this->OutputLevelCorrector;
+    outR = delay_sample_r * this->OutputLevelCorrector;
 }
 
 void Flanger::setRate(float32_t rate)

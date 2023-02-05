@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <arm_math.h>
 #include <string>
+#include <iostream>
 
 inline uint32_t id2int(const char id[4])
 {
@@ -57,15 +58,21 @@ struct WaveHeaderFMT {
 };
 
 struct WaveHeaderDATA {
-    char subchunk2Id[4];
+    ChunkID subchunk2Id;
     uint32_t subchunk2Size;
 };
 
-float32_t** readWaveFile(const std::string& fileName, size_t& size);
+std::ostream& operator<<(std::ostream& out, const ChunkID& id);
+std::ostream& operator<<(std::ostream& out, const WaveHeader& hdr);
+std::ostream& operator<<(std::ostream& out, const WaveHeaderRIFF& riff);
+std::ostream& operator<<(std::ostream& out, const WaveHeaderFMT& fmt);
+std::ostream& operator<<(std::ostream& out, const WaveHeaderDATA& data);
+
+float32_t** readWaveFile(const std::string& fileName, size_t& size, WaveHeader* hdr = nullptr);
 
 void saveWaveFile(const std::string& fileName,
-                  float32_t* LChannel,
-                  float32_t* RChannel,
+                  const float32_t* LChannel,
+                  const float32_t* RChannel,
                   size_t size,
                   int sampleRate,
                   int bitsPerSample);

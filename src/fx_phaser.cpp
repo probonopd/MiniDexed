@@ -1,11 +1,7 @@
 #include "fx_phaser.h"
 
-#include <algorithm>
-#include <cmath>
-
 Phaser::AllpassDelay::AllpassDelay() :
-    FXElement(0.0f),
-    a1_(0.0f)
+    FXElement(0.0f)
 {
     this->reset();
 }
@@ -16,32 +12,37 @@ Phaser::AllpassDelay::~AllpassDelay()
 
 void Phaser::AllpassDelay::reset()
 {
-    memset(this->z_, 0, 2 * sizeof(float32_t));
+    memset(this->a1_, 0, StereoChannels::kNumChannels * sizeof(float32_t));
+    memset(this->z_, 0, StereoChannels::kNumChannels * sizeof(float32_t));
 }
 
 void Phaser::AllpassDelay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    outL = inL * -this->a1_ + this->z_[0];
-    this->z_[0] = outL * this->a1_ + inL;
+    outL = inL * -this->a1_[StereoChannels::Left ] + this->z_[StereoChannels::Left ];
+    this->z_[StereoChannels::Left ] = outL * this->a1_[StereoChannels::Left ] + inL;
 
-    outR = inR * -this->a1_ + this->z_[1];
-    this->z_[1] = outR * this->a1_ + inR;
+    outR = inR * -this->a1_[StereoChannels::Right] + this->z_[StereoChannels::Right];
+    this->z_[StereoChannels::Right] = outR * this->a1_[StereoChannels::Right] + inR;
 }
 
-void Phaser::AllpassDelay::setDelay(float32_t delay)
+void Phaser::AllpassDelay::setDelay(float32_t delayL, float32_t delayR)
 {
-    this->a1_ = (1.0f - delay) / (1.0f + delay);
+    this->a1_[StereoChannels::Left ] = (1.0f - delayL) / (1.0f + delayL);
+    this->a1_[StereoChannels::Right] = (1.0f - delayR) / (1.0f + delayR);
 }
 
 
 Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
     FXElement(sampling_rate),
-    lfo_(sampling_rate, 0.0f, 2.5f),
     depth_(0.0f),
+    gain_(1.0f),
     feedback_(0.0f),
     dmin_(0.0f),
     dmax_(0.0f)
 {
+    this->lfo_[StereoChannels::Left ] = new LFO(sampling_rate, 0.0f, 2.5f);
+    this->lfo_[StereoChannels::Right] = new LFO(sampling_rate, 0.0f, 2.5f, Constants::MPI_2);
+
     this->setRate(rate);
     this->setDepth(depth);
     this->setFeedback(feedback);
@@ -53,36 +54,42 @@ Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32
 
 Phaser::~Phaser()
 {
+    delete this->lfo_[StereoChannels::Left ];
+    delete this->lfo_[StereoChannels::Right];
 }
 
 void Phaser::reset()
 {
-    memset(this->z_, 0, 2 * sizeof(float32_t));
+    memset(this->z_, 0, StereoChannels::kNumChannels * sizeof(float32_t));
 
     for(unsigned i = 0; i < MAX_NB_PHASES; ++i)
     {
         this->stages_[i].reset();
     }
-    this->lfo_.reset();
+    this->lfo_[StereoChannels::Left ]->reset();
+    this->lfo_[StereoChannels::Right]->reset();
 }
 
 void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    float32_t d = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_.process()) / 2.0f);
+    float32_t dL = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_[StereoChannels::Left ]->process()) / 2.0f);
+    float32_t dR = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_[StereoChannels::Right]->process()) / 2.0f);
 
-    float32_t sampleL = inL + this->feedback_ * this->z_[0];
-    float32_t sampleR = inR + this->feedback_ * this->z_[1];
+    float32_t sampleL = inL + this->feedback_ * this->z_[StereoChannels::Left ];
+    float32_t sampleR = inR + this->feedback_ * this->z_[StereoChannels::Right];
     for(unsigned i = 0; i < this->nb_stages_; ++i)
     {
-        this->stages_[i].setDelay(d);
-
+        this->stages_[i].setDelay(dL, dR);
         this->stages_[i].processSample(sampleL, sampleR, sampleL, sampleR);
     }
-    this->z_[0] = sampleL;
-    this->z_[1] = sampleR;
+    this->z_[StereoChannels::Left ] = sampleL;
+    this->z_[StereoChannels::Right] = sampleR;
 
     outL = inL + this->z_[StereoChannels::Left ] * this->depth_;
     outR = inR + this->z_[StereoChannels::Right] * this->depth_;
+
+    outL *= this->gain_;
+    outR *= this->gain_;
 }
 
 void Phaser::setFrequencyRange(float32_t min_frequency, float32_t max_frequency)
@@ -94,21 +101,23 @@ void Phaser::setFrequencyRange(float32_t min_frequency, float32_t max_frequency)
 void Phaser::setRate(float32_t rate)
 {
     rate = constrain(rate, 0.0f, 1.0f);
-    this->lfo_.setNormalizedFrequency(rate);
+    this->lfo_[StereoChannels::Left ]->setNormalizedFrequency(rate);
+    this->lfo_[StereoChannels::Right]->setNormalizedFrequency(rate);
 }
 
-inline float32_t Phaser::getRate() const
+float32_t Phaser::getRate() const
 {
-    return this->lfo_.getNormalizedFrequency();
+    return this->lfo_[StereoChannels::Left]->getNormalizedFrequency();
 }
 
 void Phaser::setDepth(float32_t depth)
 {
     depth = constrain(depth, 0.0f, 1.0f);
     this->depth_ = depth;
+    this->gain_ = this->OutputLevelCorrector / (1.0f + depth);
 }
 
-inline float32_t Phaser::getDepth() const
+float32_t Phaser::getDepth() const
 {
     return this->depth_;
 }
@@ -119,7 +128,7 @@ void Phaser::setFeedback(float32_t feedback)
     this->feedback_ = feedback;
 }
 
-inline float32_t Phaser::getFeedback() const
+float32_t Phaser::getFeedback() const
 {
     return this->feedback_;
 }

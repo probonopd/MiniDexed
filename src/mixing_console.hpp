@@ -68,7 +68,7 @@ public:
 
     // Processing
     inline void init();
-    inline void reset();
+    inline void reset() override;
     inline void processSample(float32_t& outL, float32_t& outR);
     void process(float32_t* outL, float32_t* outR);
 

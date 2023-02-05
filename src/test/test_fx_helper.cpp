@@ -1,6 +1,5 @@
 #include "test_fx_helper.h"
 
-#include <iostream>
 #include <filesystem>
 
 std::string getScenarioName(int scenario)
@@ -21,7 +20,7 @@ std::string getScenarioName(int scenario)
 
     if(fxTube) 
     {
-        if(!first) ss << ", ";
+        // if(!first) ss << ", ";
         ss << "Tube";
         first = false;
     }
@@ -72,7 +71,7 @@ std::string getScenarioName(int scenario)
     {
         if(!first) ss << ", ";
         ss << "Shim";
-        first = false;
+        // first = false;
     }
 
     ss << " ]";
@@ -129,4 +128,23 @@ float32_t getRandomValue()
     static std::uniform_real_distribution<float32_t> dist(-1.0f, 1.0f);
 
     return dist(gen);
+}
+
+float32_t** loadAudioTest(size_t& size, WaveHeader* hdr)
+{
+    float32_t** samples = readWaveFile(AUDIO_SOURCE_FILE, size, hdr);
+    assert(samples != nullptr);
+
+    return samples;
+}
+
+void freeAudioSamples(float32_t** samples, size_t size)
+{
+    assert(samples != nullptr);
+
+    for(size_t i = 0; i < size; ++i)
+    {
+        delete[] samples[i];
+    }
+    delete[] samples;
 }

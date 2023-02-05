@@ -498,7 +498,7 @@ float32_t PerlinNoiseGenerator::getRate() const
     return this->rate_;
 }
 
-float32_t PerlinNoiseGenerator::getCurrent() const
+float32_t PerlinNoiseGenerator::current() const
 {
     return this->current_;
 }

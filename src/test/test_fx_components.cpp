@@ -7,7 +7,6 @@
 
 #include "../fx_rack.h"
 #include "../effect_platervbstereo.h"
-#include "../mixing_console.hpp"
 
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
@@ -146,5 +145,5 @@ TEST(CppOptimization, FastLFOPrecisionTest)
 
         max_delta = std::max(max_delta, std::abs(v1 - v2));
     }
-    // EXPECT_GT(epsilon, max_delta);
+    EXPECT_GT(epsilon, max_delta);
 }

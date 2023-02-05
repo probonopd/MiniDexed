@@ -1,9 +1,4 @@
-#include <gtest/gtest.h>
-#include <cmath>
-#include <iostream>
-
 #include "test_fx_helper.h"
-#include "../mixing_console.hpp"
 
 TEST(BetaTest, WavefileSamplesBoundariesTest)
 {
@@ -21,7 +16,7 @@ TEST(BetaTest, WavefileSamplesBoundariesTest)
         nb_errors += fullInspector(full_test_name + ".rawWaveSampleTest", samples[0][i], -1.0f, 1.0f, true);
         nb_errors += fullInspector(full_test_name + ".rawWaveSampleTest", samples[1][i], -1.0f, 1.0f, true);
     }
-    EXPECT_EQ(0, nb_errors) << full_test_name << ".rawWaveSampleTest";
+    ASSERT_EQ(0, nb_errors) << full_test_name << ".rawWaveSampleTest";
 
     delete[] samples[0];
     delete[] samples[1];
@@ -54,14 +49,14 @@ TEST(BetaTest, MixingConsoleShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
-    EXPECT_EQ(0, FULL_INSPECT(mixer, true));
+    ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
-    EXPECT_EQ(0, FULL_INSPECT(mixer, true));
+    ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.process";
     for(size_t s = 0; s < size; ++s)
     {
-        EXPECT_EQ(outSamples[0][s], outSamples[1][s]);
-        EXPECT_EQ(outSamples[0][s], inSamples[s] * SINPI_4);
+        EXPECT_FLOAT_EQ(outSamples[0][s], outSamples[1][s]);
+        EXPECT_FLOAT_EQ(outSamples[0][s], inSamples[s] * SINPI_4);
     }
 
     delete mixer;
@@ -96,12 +91,10 @@ TEST(BetaTest, MixingConsoleShimmerShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
-    EXPECT_EQ(0, FULL_INSPECT(mixer, true));
-    // FAST_DUMP(mixer, std::cerr, full_test_name + ".setInputSampleBuffer");
+    ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
-    EXPECT_EQ(0, FULL_INSPECT(mixer, true));
-    // FAST_DUMP(mixer, std::cerr, full_test_name + ".process");
+    ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.process";
 
     delete mixer;
 }
@@ -140,7 +133,7 @@ TEST(BetaTest, MixingConsoleDrySamplesBoundariesTest)
         nb_errors += fullInspector(full_test_name + ".outputSampleTest", inSamples[0][i], -1.0f, 1.0f, true);
         nb_errors += fullInspector(full_test_name + ".outputSampleTest", inSamples[1][i], -1.0f, 1.0f, true);
     }
-    EXPECT_EQ(0, nb_errors) << full_test_name << ".outputSampleTest";
+    ASSERT_EQ(0, nb_errors) << full_test_name << ".outputSampleTest";
 
     delete[] inSamples[0];
     delete[] inSamples[1];
@@ -186,8 +179,8 @@ TEST(BetaTest, MixingConsoleShimmerSamplesBoundariesTest)
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
     mixer->process(outSamples[0], outSamples[1]);
-FAST_DUMP(mixer, std::cerr, full_test_name);
-    //EXPECT_EQ(0, FULL_INSPECT2(mixer, true, full_test_name + "Mixer.process")) << full_test_name << "Mixer.process";
+    ASSERT_EQ(0, FULL_INSPECT2(mixer, true, full_test_name + "Mixer.process")) << full_test_name << " Mixer.process";
+
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
 
     size_t nb_errors = 0;
@@ -196,7 +189,7 @@ FAST_DUMP(mixer, std::cerr, full_test_name);
         nb_errors += fullInspector(full_test_name + ".outputSampleTest", inSamples[0][i], -1.0f, 1.0f, true);
         nb_errors += fullInspector(full_test_name + ".outputSampleTest", inSamples[1][i], -1.0f, 1.0f, true);
     }
-    EXPECT_EQ(0, nb_errors) << full_test_name << ".outputSampleTest";
+    ASSERT_EQ(0, nb_errors) << full_test_name << ".outputSampleTest";
 
     delete[] inSamples[0];
     delete[] inSamples[1];

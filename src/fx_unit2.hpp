@@ -36,7 +36,7 @@ public:
 
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) = 0;
 
-    void setMute(bool mute = false)
+    inline void setMute(bool mute = false)
     {
         this->mute_ = mute;
     }
@@ -68,7 +68,7 @@ public:
     {
     }
 
-    void reset()
+    inline void reset() override
     {
         if(!this->is_reset_)
         {
@@ -77,7 +77,7 @@ public:
         }
     }
 
-    void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+    inline void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override
     {
         if(this->isMute())
         {

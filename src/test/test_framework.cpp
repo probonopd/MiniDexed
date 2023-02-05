@@ -17,5 +17,5 @@ TEST(Framework, TestWaveIn)
         nb_errors += fullInspector("R", samples[StereoChannels::Right][i], -1.0f, 1.0f, true);
     }
 
-    EXPECT_EQ(nb_errors, 0);
+    ASSERT_EQ(nb_errors, 0) << "readWaveFile returns NaN of out of bounds samples: " << nb_errors << " out of " << size;
 }

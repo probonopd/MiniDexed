@@ -41,10 +41,9 @@ FXRack::~FXRack()
 
 inline void FXRack::reset()
 {
-    auto end = this->fx_chain_.end();
-    for(FXChain::iterator it = this->fx_chain_.begin(); it != end; it++)
+    for(FXElement* fx : this->fx_chain_)
     {
-        (*it)->reset();;
+        fx->reset();
     }
 }
 
@@ -61,19 +60,14 @@ inline void FXRack::processSample(float32_t inL, float32_t inR, float32_t& outL,
 
 void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* left_output, float32_t* right_output, size_t nSamples)
 {
-    float32_t sampleInL;
-    float32_t sampleInR;
-    float32_t sampleOutL;
-    float32_t sampleOutR;
-
     for(unsigned i = 0; i < nSamples; ++i)
     {
-        sampleInL = *left_input;
-        sampleInR = *right_input;
-        sampleOutL = 0.0f;
-        sampleOutR = 0.0f;
+        float32_t sampleInL = *left_input;
+        float32_t sampleInR = *right_input;
+        float32_t sampleOutL = 0.0f;
+        float32_t sampleOutR = 0.0f;
 
-        if(this->isEnable()) 
+        if(this->isEnable())
         {
             this->processSample(sampleInL, sampleInR, sampleOutL, sampleOutR);
 
@@ -86,7 +80,7 @@ void FXRack::process(float32_t* left_input, float32_t* right_input, float32_t* l
             *left_output  = sampleInL;
             *right_output = sampleInR;
         }
-    
+
         // Move inputs by 1 sample
         ++left_input;
         ++right_input;

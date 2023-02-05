@@ -357,7 +357,7 @@ void processShimmerSample(
 
     // Smear AP1 inside the loop.
     c.interpolate(ap1, 10.0f, Engine::LFOIndex::LFO_1, 60.0f, 1.0f);
-    c.write(ap1, 100, 0.0f);
+    c.writeAndLoad(ap1, 100, 0.0f);
     c.read(inL + inR, gain);
 
     // Diffuse through 4 allpasses.
@@ -379,11 +379,10 @@ void processShimmerSample(
     c.writeAllPass(dap1a, kap);
     c.read(dap1b TAIL, kap);
     c.writeAllPass(dap1b, -kap);
-    c.write(del1, 1.5f);
-    c.write(wet, 0.0f);
+    c.write(del1, 2.0f);
+    c.writeAndLoad(wet, 0.0f);
 
     outL = wet;
-
 
     c.load(apout);
     c.read(del1 TAIL, krt);
@@ -392,8 +391,8 @@ void processShimmerSample(
     c.writeAllPass(dap2a, -kap);
     c.read(dap2b TAIL, -kap);
     c.writeAllPass(dap2b, kap);
-    c.write(del2, 1.5f);
-    c.write(wet, 0.0f);
+    c.write(del2, 2.0f);
+    c.writeAndLoad(wet, 0.0f);
 
     outR = wet;
 

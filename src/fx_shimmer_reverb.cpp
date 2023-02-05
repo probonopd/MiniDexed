@@ -1,14 +1,12 @@
 #include "fx_shimmer_reverb.h"
 
-#include <cmath>
-#include <algorithm>
-
 #define TAIL , -1
 
 ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
     FXElement(sampling_rate),
     engine_(sampling_rate),
     input_gain_(-1.0f),
+    reverb_time_(0.0f),
     diffusion_(-1.0f),
     lp_(-1.0f),
     lp_decay_1_(0.0f),
@@ -18,8 +16,11 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate) :
     this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_2, 0.3f);
     
     this->setInputGain(1.0f);
-    this->setLP(0.7f);
+    this->setTime(0.7f);
     this->setDiffusion(0.625f);
+    this->setLP(0.7f);
+
+    this->reset();
 }
 
 ShimmerReverb::~ShimmerReverb()
@@ -75,7 +76,7 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     
     // Smear AP1 inside the loop.
     c.interpolate(ap1, 10.0f, Engine::LFOIndex::LFO_1, 60.0f, 1.0f);
-    c.write(ap1, 100, 0.0f);
+    c.writeAndLoad(ap1, 100, 0.0f);
     c.read(inL + inR, gain);
 
     // Diffuse through 4 allpasses.
@@ -97,21 +98,20 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     c.writeAllPass(dap1a, kap);
     c.read(dap1b TAIL, kap);
     c.writeAllPass(dap1b, -kap);
-    c.write(del1, 1.5f);
-    c.write(wet, 0.0f);
+    c.write(del1, 2.0f);
+    c.writeAndLoad(wet, 0.0f);
 
     outL = wet;
 
     c.load(apout);
-    // c.interpolate(del1, 4450.0f, Engine::LFOIndex::LFO_1, 50.0f, krt);
     c.read(del1 TAIL, krt);
     c.lp(lp_2, klp);
     c.read(dap2a TAIL, kap);
     c.writeAllPass(dap2a, -kap);
     c.read(dap2b TAIL, -kap);
     c.writeAllPass(dap2b, kap);
-    c.write(del2, 1.5f);
-    c.write(wet, 0.0f);
+    c.write(del2, 2.0f);
+    c.writeAndLoad(wet, 0.0f);
 
     outR = wet;
 

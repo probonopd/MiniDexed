@@ -10,6 +10,72 @@
 #define ASSERT_NORMALIZED(x)
 #endif
 
+std::ostream& operator<<(std::ostream& out, const WaveHeader& hdr)
+{
+    out << "WaveHeader" << std::endl;
+    out << " + chunkId       : " << hdr.chunkId << std::endl;
+    out << " + chunkSize     : " << hdr.chunkSize << std::endl;
+    out << " + format        : " << hdr.format << std::endl;
+    out << " + subchunk1Id   : " << hdr.subchunk1Id << std::endl;
+    out << " + subchunk1Size : " << hdr.subchunk1Size << std::endl;
+    out << " + audioFormat   : " << hdr.audioFormat << std::endl;
+    out << " + numChannels   : " << hdr.numChannels << std::endl;
+    out << " + sampleRate    : " << hdr.sampleRate << std::endl;
+    out << " + byteRate      : " << hdr.byteRate << std::endl;
+    out << " + blockAlign    : " << hdr.blockAlign << std::endl;
+    out << " + bitsPerSample : " << hdr.bitsPerSample << std::endl;
+    out << " + subchunk2Id   : " << hdr.subchunk2Id << std::endl;
+    out << " + subchunk2Size : " << hdr.subchunk2Size << std::endl;
+
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const ChunkID& id)
+{
+    out << "'"
+        << id.ID[0]
+        << id.ID[1]
+        << id.ID[2]
+        << id.ID[3]
+        << "'";
+
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const WaveHeaderRIFF& riff)
+{
+    out << "WaveHeaderRIFF" << std::endl;
+    out << " + chunkId       : " << riff.chunkId << std::endl;
+    out << " + chunkSize     : " << riff.chunkSize << std::endl;
+    out << " + format        : " << riff.format << std::endl;
+
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const WaveHeaderFMT& fmt)
+{
+    out << "WaveHeaderFMT" << std::endl;
+    out << " + subchunk1Id   : " << fmt.subchunk1Id << std::endl;
+    out << " + subchunk1Size : " << fmt.subchunk1Size << std::endl;
+    out << " + audioFormat   : " << fmt.audioFormat << std::endl;
+    out << " + numChannels   : " << fmt.numChannels << std::endl;
+    out << " + sampleRate    : " << fmt.sampleRate << std::endl;
+    out << " + byteRate      : " << fmt.byteRate << std::endl;
+    out << " + blockAlign    : " << fmt.blockAlign << std::endl;
+    out << " + bitsPerSample : " << fmt.bitsPerSample << std::endl;
+
+    return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const WaveHeaderDATA& data)
+{
+    out << "WaveHeaderDATA" << std::endl;
+    out << " + subchunk2Id   : " << data.subchunk2Id << std::endl;
+    out << " + subchunk2Size : " << data.subchunk2Size << std::endl;
+
+    return out;
+}
+
 template<typename T>
 bool readChunk(std::ifstream& in, uint32_t id, T& chunk)
 {
@@ -33,7 +99,7 @@ bool readChunk(std::ifstream& in, uint32_t id, T& chunk)
     return false;
 }
 
-float32_t** readWaveFile(const std::string& fileName, size_t& size)
+float32_t** readWaveFile(const std::string& fileName, size_t& size, WaveHeader* hdr)
 {
     std::ifstream file(fileName, std::ios::binary);
     if(!file)
@@ -75,12 +141,28 @@ float32_t** readWaveFile(const std::string& fileName, size_t& size)
         return nullptr;
     }
 
-    size = data.subchunk2Size / (fmt.bitsPerSample / 8);
+    if(hdr != nullptr)
+    {
+        hdr->chunkId         = riff.chunkId;
+        hdr->chunkSize       = riff.chunkSize;
+        hdr->format          = riff.format;
+        hdr->subchunk1Id     = fmt.subchunk1Id;
+        hdr->subchunk1Size   = fmt.subchunk1Size;
+        hdr->audioFormat     = fmt.audioFormat;
+        hdr->numChannels     = fmt.numChannels;
+        hdr->sampleRate      = fmt.sampleRate;
+        hdr->byteRate        = fmt.byteRate;
+        hdr->blockAlign      = fmt.blockAlign;
+        hdr->bitsPerSample   = fmt.bitsPerSample;
+        hdr->subchunk2Id     = data.subchunk2Id;
+        hdr->subchunk2Size   = data.subchunk2Size;
+    }
+
+    size = data.subchunk2Size / fmt.blockAlign;
     float32_t* LChannel = new float32_t[size];
     float32_t* RChannel = new float32_t[size];
 
-    unsigned increment = fmt.numChannels;
-    unsigned i = 0;
+    size_t i = 0;
     while(!file.eof() && i < size)
     {
         if(fmt.bitsPerSample == 8)
@@ -153,10 +235,7 @@ float32_t** readWaveFile(const std::string& fileName, size_t& size)
             return nullptr;
         }
 
-        // ASSERT_NORMALIZED(LChannel[i]);
-        // ASSERT_NORMALIZED(RChannel[i]);
-
-        i += increment;
+        ++i;
     }
     assert(i == size);
 

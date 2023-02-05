@@ -1,17 +1,10 @@
 #pragma once
 
-#if defined(DEBUG)
-#include <iostream>
-#include <cmath>
-#endif
-
 #include <algorithm>
 #include <climits>
 #include <cassert>
 
 #include "fx_components.h"
-
-#define STEP_UP(x) x
 
 enum Format
 {
@@ -214,14 +207,14 @@ public:
             this->accumulator_ = value;
         }
 
-        inline void read(float32_t value, float32_t scale)
-        {
-            this->accumulator_ += value * scale;
-        }
-
         inline void read(float32_t value)
         {
             this->accumulator_ += value;
+        }
+
+        inline void read(float32_t value, float32_t scale)
+        {
+            this->accumulator_ += value * scale;
         }
 
         inline void write(float32_t& value)
@@ -235,10 +228,24 @@ public:
             this->accumulator_ *= scale;
         }
 
+        inline void writeAndLoad(float32_t& value, float32_t newValue)
+        {
+            value = this->accumulator_;
+            this->load(newValue);
+        }
+
         template <typename D>
-        inline void write(D& d, int32_t offset, float32_t scale)
+        inline void directWrite(float32_t value, D& d)
+        {
+            this->load(value);
+            this->writeAndLoad(d, 0, 0.0f);
+        }
+
+        template <typename D>
+        inline void write(D& d, int32_t offset)
         {
             assert((D::base + D::length) <= size);
+
             T w = DataType<format>::compress(this->accumulator_);
             if(offset == -1)
             {
@@ -248,13 +255,32 @@ public:
             {
                 this->buffer_[(this->write_ptr_ + D::base + offset) & MASK] = w;
             }
+        }
+
+        template <typename D>
+        inline void write(D& d, int32_t offset, float32_t scale)
+        {
+            this->write(d, offset);
             this->accumulator_ *= scale;
+        }
+
+        template <typename D>
+        inline void writeAndLoad(D& d, int32_t offset, float32_t newValue)
+        {
+            this->write(d, offset);
+            this->load(newValue);
         }
 
         template <typename D>
         inline void write(D& d, float32_t scale)
         {
             this->write(d, 0, scale);
+        }
+
+        template <typename D>
+        inline void writeAndLoad(D& d, float32_t newValue)
+        {
+            this->writeAndLoad(d, 0, newValue);
         }
 
         template <typename D>
@@ -373,7 +399,7 @@ public:
         {
             for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) 
             {
-                c->lfo_value_[i] = STEP_UP(this->lfo_[i]->process());
+                c->lfo_value_[i] = this->lfo_[i]->process();
             }
         }
     }
