@@ -33,6 +33,7 @@ FX__SRCS += ../fx_phaser.cpp
 FX__SRCS += ../fx_orbitone.cpp
 FX__SRCS += ../fx_flanger.cpp
 FX__SRCS += ../fx_delay.cpp
+FX__SRCS += ../fx_diffuser.cpp
 FX__SRCS += ../effect_platervbstereo.cpp
 FX__SRCS += ../fx_shimmer_reverb.cpp
 FX__SRCS += ../fx_dry.cpp
