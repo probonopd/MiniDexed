@@ -37,7 +37,7 @@ public:
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
 private:
-    typedef FxEngine<DIFFUSER_BUFFER_SIZE, Format::FORMAT_FLOAT32, true> Engine;
+    typedef FxEngine<DIFFUSER_BUFFER_SIZE, Format::FORMAT_FLOAT32, false> Engine;
     Engine engine_;
 
     IMPLEMENT_DUMP()
