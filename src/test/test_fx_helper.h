@@ -57,7 +57,7 @@ enum FXSwitch
     FX__Orbitone,
     FX__Phaser,
     FX__Delay,
-    FX__ShimmerReverb,
+    FX__Reverberator,
     FX__PlateReverb,
     __kFXCount
 };

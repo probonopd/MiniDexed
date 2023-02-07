@@ -140,11 +140,11 @@ public:
 	unsigned GetFXDelayLeftDelayTime(void) const;
 	unsigned GetFXDelayRightDelayTime(void) const;
 	unsigned GetFXDelayFeedback(void) const;
-	bool GetFXShimmerReverbEnable(void) const;
-	unsigned GetFXShimmerReverbInputGain(void) const;
-	unsigned GetFXShimmerReverbTime(void) const;
-	unsigned GetFXShimmerReverbDiffusion(void) const;
-	unsigned GetFXShimmerReverbLP(void) const;
+	bool GetFXReverberatorEnable(void) const;
+	unsigned GetFXReverberatorInputGain(void) const;
+	unsigned GetFXReverberatorTime(void) const;
+	unsigned GetFXReverberatorDiffusion(void) const;
+	unsigned GetFXReverberatorLP(void) const;
 	unsigned GetFXSendLevel(unsigned in, MixerOutput fx) const;
 	unsigned GetFXReturnLevel(MixerOutput ret, MixerOutput fx) const;
 
@@ -169,11 +169,11 @@ public:
 	void SetFXDelayLeftDelayTime(unsigned nValue);
 	void SetFXDelayRightDelayTime(unsigned nValue);
 	void SetFXDelayFeedback(unsigned nValue);
-	void SetFXShimmerReverbEnable(unsigned nValue);
-	void SetFXShimmerReverbInputGain(unsigned nValue);
-	void SetFXShimmerReverbTime(unsigned nValue);
-	void SetFXShimmerReverbDiffusion(unsigned nValue);
-	void SetFXShimmerReverbLP(unsigned nValue);
+	void SetFXReverberatorEnable(unsigned nValue);
+	void SetFXReverberatorInputGain(unsigned nValue);
+	void SetFXReverberatorTime(unsigned nValue);
+	void SetFXReverberatorDiffusion(unsigned nValue);
+	void SetFXReverberatorLP(unsigned nValue);
 	void SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
 	void SetFXReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nValue);
 #endif
@@ -268,11 +268,11 @@ private:
 	unsigned m_nFXDelayLeftDelayTime;
 	unsigned m_nFXDelayRightDelayTime;
 	unsigned m_nFXDelayFeedback;
-	bool m_bFXShimmerReverbEnable;
-	unsigned m_nFXShimmerReverbInputGain;
-	unsigned m_nFXShimmerReverbTime;
-	unsigned m_nFXShimmerReverbDiffusion;
-	unsigned m_nFXShimmerReverbLP;
+	bool m_bFXReverberatorEnable;
+	unsigned m_nFXReverberatorInputGain;
+	unsigned m_nFXReverberatorTime;
+	unsigned m_nFXReverberatorDiffusion;
+	unsigned m_nFXReverberatorLP;
 
 	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
 	unsigned m_nFXReturnLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];

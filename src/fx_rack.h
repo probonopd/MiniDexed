@@ -25,7 +25,7 @@
 #include "fx_orbitone.h"
 #include "fx_phaser.h"
 #include "fx_delay.h"
-#include "fx_shimmer_reverb.h"
+#include "fx_reverberator.h"
 #include "fx_unit.hpp"
 
 #include <vector>
@@ -56,7 +56,7 @@ public:
     FXUnit<Orbitone>* getOrbitone();
     FXUnit<Phaser>* getPhaser();
     FXUnit<Delay>* getDelay();
-    FXUnit<ShimmerReverb>* getShimmerReverb();
+    FXUnit<Reverberator>* getReverberator();
 
 private:
     void registerFX(FXElement* fx);
@@ -71,7 +71,7 @@ private:
     FXUnit<Orbitone>* fxOrbitone_;
     FXUnit<Phaser>* fxPhaser_;
     FXUnit<Delay>* fxDelay_;
-    FXUnit<ShimmerReverb>* fxShimmerReverb_;
+    FXUnit<Reverberator>* fxReverberator_;
 
     IMPLEMENT_DUMP(
         const size_t space = 10;
@@ -104,7 +104,7 @@ private:
             this->fxOrbitone_->dump(out, deepInspection, tag + ".fxOrbitone_");
             this->fxPhaser_->dump(out, deepInspection, tag + ".fxPhaser_");
             this->fxDelay_->dump(out, deepInspection, tag + ".fxDelay_");
-            this->fxShimmerReverb_->dump(out, deepInspection, tag + ".fxShimmerReverb_");
+            this->fxReverberator_->dump(out, deepInspection, tag + ".fxReverberator_");
         }
 
         out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
@@ -124,7 +124,7 @@ private:
             nb_errors += this->fxOrbitone_->inspect(inspector, deepInspection, tag + ".fxOrbitone_");
             nb_errors += this->fxPhaser_->inspect(inspector, deepInspection, tag + ".fxPhaser_");
             nb_errors += this->fxDelay_->inspect(inspector, deepInspection, tag + ".fxDelay_");
-            nb_errors += this->fxShimmerReverb_->inspect(inspector, deepInspection, tag + ".fxShimmerReverb_");
+            nb_errors += this->fxReverberator_->inspect(inspector, deepInspection, tag + ".fxReverberator_");
         }
 
         return nb_errors;

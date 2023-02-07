@@ -15,7 +15,7 @@ FXRack::FXRack(float32_t sampling_rate, bool enable, float32_t wet) :
     this->fxOrbitone_ = new FXUnit<Orbitone>(sampling_rate);
     this->fxPhaser_ = new FXUnit<Phaser>(sampling_rate);
     this->fxDelay_ = new FXUnit<Delay>(sampling_rate);
-    this->fxShimmerReverb_ = new FXUnit<ShimmerReverb>(sampling_rate);
+    this->fxReverberator_ = new FXUnit<Reverberator>(sampling_rate);
 
     this->registerFX(this->fxTube_);
     this->registerFX(this->fxChorus_);
@@ -23,7 +23,7 @@ FXRack::FXRack(float32_t sampling_rate, bool enable, float32_t wet) :
     this->registerFX(this->fxOrbitone_);
     this->registerFX(this->fxPhaser_);
     this->registerFX(this->fxDelay_);
-    this->registerFX(this->fxShimmerReverb_);
+    this->registerFX(this->fxReverberator_);
 }
 
 FXRack::~FXRack()
@@ -36,7 +36,7 @@ FXRack::~FXRack()
     delete this->fxOrbitone_;
     delete this->fxPhaser_;
     delete this->fxDelay_;
-    delete this->fxShimmerReverb_;
+    delete this->fxReverberator_;
 }
 
 inline void FXRack::reset()
@@ -147,7 +147,7 @@ FXUnit<Delay>* FXRack::getDelay()
     return this->fxDelay_;
 }
 
-FXUnit<ShimmerReverb>* FXRack::getShimmerReverb()
+FXUnit<Reverberator>* FXRack::getReverberator()
 {
-    return this->fxShimmerReverb_;
+    return this->fxReverberator_;
 }

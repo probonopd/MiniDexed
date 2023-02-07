@@ -182,11 +182,11 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXDelayLeftDelayTime = this->m_Properties.GetNumber("FXDelayLeftDelayTime", 15);
 	this->m_nFXDelayRightDelayTime = this->m_Properties.GetNumber("FXDelayRightDelayTime", 22);
 	this->m_nFXDelayFeedback = this->m_Properties.GetNumber("FXDelayFeedback", 35);
-	this->m_bFXShimmerReverbEnable = this->m_Properties.GetNumber("FXShimmerReverbEnable", 1);
-	this->m_nFXShimmerReverbInputGain = this->m_Properties.GetNumber("FXShimmerReverbInputGain", 30);
-	this->m_nFXShimmerReverbTime = this->m_Properties.GetNumber("FXShimmerReverbTime", 30);
-	this->m_nFXShimmerReverbDiffusion = this->m_Properties.GetNumber("FXShimmerReverbDiffusion", 30);
-	this->m_nFXShimmerReverbLP = this->m_Properties.GetNumber("FXShimmerReverbLP", 99);
+	this->m_bFXReverberatorEnable = this->m_Properties.GetNumber("FXReverberatorEnable", 1);
+	this->m_nFXReverberatorInputGain = this->m_Properties.GetNumber("FXReverberatorInputGain", 30);
+	this->m_nFXReverberatorTime = this->m_Properties.GetNumber("FXReverberatorTime", 30);
+	this->m_nFXReverberatorDiffusion = this->m_Properties.GetNumber("FXReverberatorDiffusion", 30);
+	this->m_nFXReverberatorLP = this->m_Properties.GetNumber("FXReverberatorLP", 99);
 
 	for(unsigned in = 0; in < CConfig::ToneGenerators; ++in)
 	{
@@ -355,11 +355,11 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXDelayLeftDelayTime", m_nFXDelayLeftDelayTime);
 	this->m_Properties.SetNumber("FXDelayRightDelayTime", m_nFXDelayRightDelayTime);
 	this->m_Properties.SetNumber("FXDelayFeedback", m_nFXDelayFeedback);
-	this->m_Properties.SetNumber("FXShimmerReverbEnable", m_bFXShimmerReverbEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXShimmerReverbInputGain", m_nFXShimmerReverbInputGain);
-	this->m_Properties.SetNumber("FXShimmerReverbTime", m_nFXShimmerReverbTime);
-	this->m_Properties.SetNumber("FXShimmerReverbDiffusion", m_nFXShimmerReverbDiffusion);
-	this->m_Properties.SetNumber("FXShimmerReverbLP", m_nFXShimmerReverbLP);
+	this->m_Properties.SetNumber("FXReverberatorEnable", m_bFXReverberatorEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXReverberatorInputGain", m_nFXReverberatorInputGain);
+	this->m_Properties.SetNumber("FXReverberatorTime", m_nFXReverberatorTime);
+	this->m_Properties.SetNumber("FXReverberatorDiffusion", m_nFXReverberatorDiffusion);
+	this->m_Properties.SetNumber("FXReverberatorLP", m_nFXReverberatorLP);
 
 	for(unsigned in = 0; in < CConfig::ToneGenerators; ++in)
 	{
@@ -1137,29 +1137,29 @@ unsigned CPerformanceConfig::GetFXDelayFeedback(void) const
 	return this->m_nFXDelayFeedback;
 }
 
-bool CPerformanceConfig::GetFXShimmerReverbEnable(void) const
+bool CPerformanceConfig::GetFXReverberatorEnable(void) const
 {
-	return this->m_bFXShimmerReverbEnable;
+	return this->m_bFXReverberatorEnable;
 }
 
-unsigned CPerformanceConfig::GetFXShimmerReverbInputGain(void) const
+unsigned CPerformanceConfig::GetFXReverberatorInputGain(void) const
 {
-	return this->m_nFXShimmerReverbInputGain;
+	return this->m_nFXReverberatorInputGain;
 }
 
-unsigned CPerformanceConfig::GetFXShimmerReverbTime(void) const
+unsigned CPerformanceConfig::GetFXReverberatorTime(void) const
 {
-	return this->m_nFXShimmerReverbTime;
+	return this->m_nFXReverberatorTime;
 }
 
-unsigned CPerformanceConfig::GetFXShimmerReverbDiffusion(void) const
+unsigned CPerformanceConfig::GetFXReverberatorDiffusion(void) const
 {
-	return this->m_nFXShimmerReverbDiffusion;
+	return this->m_nFXReverberatorDiffusion;
 }
 
-unsigned CPerformanceConfig::GetFXShimmerReverbLP(void) const
+unsigned CPerformanceConfig::GetFXReverberatorLP(void) const
 {
-	return this->m_nFXShimmerReverbLP;
+	return this->m_nFXReverberatorLP;
 }
 
 unsigned CPerformanceConfig::GetFXSendLevel(unsigned in, MixerOutput fx) const
@@ -1281,29 +1281,29 @@ void CPerformanceConfig::SetFXDelayFeedback(unsigned nValue)
 	this->m_nFXDelayFeedback = nValue;
 }
 
-void CPerformanceConfig::SetFXShimmerReverbEnable(unsigned bValue)
+void CPerformanceConfig::SetFXReverberatorEnable(unsigned bValue)
 {
-	this->m_bFXShimmerReverbEnable = bValue;
+	this->m_bFXReverberatorEnable = bValue;
 }
 
-void CPerformanceConfig::SetFXShimmerReverbInputGain(unsigned nValue)
+void CPerformanceConfig::SetFXReverberatorInputGain(unsigned nValue)
 {
-	this->m_nFXShimmerReverbInputGain = nValue;
+	this->m_nFXReverberatorInputGain = nValue;
 }
 
-void CPerformanceConfig::SetFXShimmerReverbTime(unsigned nValue)
+void CPerformanceConfig::SetFXReverberatorTime(unsigned nValue)
 {
-	this->m_nFXShimmerReverbTime = nValue;
+	this->m_nFXReverberatorTime = nValue;
 }
 
-void CPerformanceConfig::SetFXShimmerReverbDiffusion(unsigned nValue)
+void CPerformanceConfig::SetFXReverberatorDiffusion(unsigned nValue)
 {
-	this->m_nFXShimmerReverbDiffusion = nValue;
+	this->m_nFXReverberatorDiffusion = nValue;
 }
 
-void CPerformanceConfig::SetFXShimmerReverbLP(unsigned nValue)
+void CPerformanceConfig::SetFXReverberatorLP(unsigned nValue)
 {
-	this->m_nFXShimmerReverbLP = nValue;
+	this->m_nFXReverberatorLP = nValue;
 }
 
 void CPerformanceConfig::SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue)

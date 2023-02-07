@@ -72,7 +72,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Phaser-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXPhaser},
 	{"Delay-Send", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXDelay},
 	{"Reverb-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXPlateReverb},
-	{"ShimmR-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXShimmerReverb},
+	{"ShimmR-Send", EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXReverberator},
 	{"Main Out", 	EditTGParameter, 	0, CMiniDexed::TGParameterMixingSendFXMainOutput},
 #endif
 #ifdef PLATE_REVERB_ENABLE
@@ -105,7 +105,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 	{"Reverb",		MenuHandler, CUIMenu::s_FXPlateReverb},
 #endif
 #ifdef MIXING_CONSOLE_ENABLE
-	{"Shimmer", MenuHandler, CUIMenu::s_FXShimmerReverb},
+	{"Reverberator", MenuHandler, CUIMenu::s_FXReverberator},
 #endif
 	{0}
 };
@@ -223,14 +223,14 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXShimmerReverb[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXReverberator[] =
 {
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmerReverbEnable},
-	{"Gain",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbInputGain},
-	{"Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbTime},
-	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbDiffusion},
-	{"LowPass",	EditGlobalParameter,	0, CMiniDexed::ParameterFXShimmerReverbLP},
-	{"Return", 	MenuHandler, 			CUIMenu::s_FXShimmerReverbReturn},
+	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberatorEnable},
+	{"Gain",	EditGlobalParameter,	0, CMiniDexed::ParameterFXReverberatorInputGain},
+	{"Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXReverberatorTime},
+	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXReverberatorDiffusion},
+	{"LowPass",	EditGlobalParameter,	0, CMiniDexed::ParameterFXReverberatorLP},
+	{"Return", 	MenuHandler, 			CUIMenu::s_FXReverberatorReturn},
 	{0}
 };
 
@@ -242,7 +242,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXTubeReturn[] =
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_PhaserReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_DelayReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXTube_MainOutput},
 	{0}
 };
@@ -255,7 +255,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChorusReturn[] =
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_PhaserReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_DelayReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXChorus_MainOutput},
 	{0}
 };
@@ -268,7 +268,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXFlangerReturn[] =
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_PhaserReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_DelayReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXFlanger_MainOutput},
 	{0}
 };
@@ -281,7 +281,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXOrbitoneReturn[] =
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_PhaserReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_DelayReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXOrbitone_MainOutput},
 	{0}
 };
@@ -294,7 +294,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPhaserReturn[] =
 	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_OrbitoneReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_DelayReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXPhaser_MainOutput},
 	{0}
 };
@@ -307,7 +307,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelayReturn[] =
 	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_OrbitoneReturn},
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_PhaserReturn},
 	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_ReverbReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXDelay_MainOutput},
 	{0}
 };
@@ -320,21 +320,21 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPlateReverbReturn[] =
 	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_OrbitoneReturn},
 	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_PhaserReturn},
 	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_DelayReturn},
-	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_ShimmerReturn},
+	{"ShR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_ReverberatorReturn},
 	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverb_MainOutput},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXShimmerReverbReturn[] =
+const CUIMenu::TMenuItem CUIMenu::s_FXReverberatorReturn[] =
 {
-	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_TubeReturn},
-	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_ChorusReturn},
-	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_FlangerReturn},
-	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_OrbitoneReturn},
-	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_PhaserReturn},
-	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_DelayReturn},
-	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_ReverbReturn},
-	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXShimmer_MainOutput},
+	{"Tub Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_TubeReturn},
+	{"ChR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_ChorusReturn},
+	{"FlR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_FlangerReturn},
+	{"Orb Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_OrbitoneReturn},
+	{"PhR Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_PhaserReturn},
+	{"Del Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_DelayReturn},
+	{"Rev Rtn", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_ReverbReturn},
+	{"MainOut", EditGlobalParameter, 	0, CMiniDexed::ParameterFXReverberator_MainOutput},
 	{0}
 };
 
@@ -458,12 +458,12 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterFXDelayFlutterRate
 	{0,	99,	1},				// ParameterFXDelayFlutterAmount
 
-	// FX > ShimmerReverb parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXShimmerReverbEnable
-	{0,	99,	1},				// ParameterFXShimmerReverbInputGain
-	{0,	99,	1},				// ParameterFXShimmerReverbTime
-	{0,	99,	1},				// ParameterFXShimmerReverbDiffusion
-	{0,	99,	1},				// ParameterFXShimmerReverbLP
+	// FX > Reverberator parameters
+	{0,	1,	1,	ToOnOff},	// ParameterFXReverberatorEnable
+	{0,	99,	1},				// ParameterFXReverberatorInputGain
+	{0,	99,	1},				// ParameterFXReverberatorTime
+	{0,	99,	1},				// ParameterFXReverberatorDiffusion
+	{0,	99,	1},				// ParameterFXReverberatorLP
 
 	// FX > Tube Return parameters
 	{0, 99, 1},				// ParameterFXTube_ChorusReturn,
@@ -472,7 +472,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXTube_PhaserReturn,
 	{0, 99, 1},				// ParameterFXTube_DelayReturn,
 	{0, 99, 1},				// ParameterFXTube_ReverbReturn,
-	{0, 99, 1},				// ParameterFXTube_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXTube_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXTube_MainOutput,
 
 	// FX > Chorus Return parameters
@@ -482,7 +482,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXChorus_PhaserReturn,
 	{0, 99, 1},				// ParameterFXChorus_DelayReturn,
 	{0, 99, 1},				// ParameterFXChorus_ReverbReturn,
-	{0, 99, 1},				// ParameterFXChorus_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXChorus_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXChorus_MainOutput,
 
 	// FX > Flanger Return parameters
@@ -492,7 +492,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXFlanger_PhaserReturn,
 	{0, 99, 1},				// ParameterFXFlanger_DelayReturn,
 	{0, 99, 1},				// ParameterFXFlanger_ReverbReturn,
-	{0, 99, 1},				// ParameterFXFlanger_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXFlanger_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXFlanger_MainOutput,
 
 	// FX > Orbitone Return parameters
@@ -502,7 +502,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXOrbitone_PhaserReturn,
 	{0, 99, 1},				// ParameterFXOrbitone_DelayReturn,
 	{0, 99, 1},				// ParameterFXOrbitone_ReverbReturn,
-	{0, 99, 1},				// ParameterFXOrbitone_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXOrbitone_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXOrbitone_MainOutput,
 
 	// FX > Phaser Return parameters
@@ -512,7 +512,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXPhaser_OrbitoneReturn,
 	{0, 99, 1},				// ParameterFXPhaser_DelayReturn,
 	{0, 99, 1},				// ParameterFXPhaser_ReverbReturn,
-	{0, 99, 1},				// ParameterFXPhaser_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXPhaser_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXPhaser_MainOutput,
 
 	// FX > Delay Return parameters
@@ -522,7 +522,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXDelay_OrbitoneReturn,
 	{0, 99, 1},				// ParameterFXDelay_PhaserReturn,
 	{0, 99, 1},				// ParameterFXDelay_ReverbReturn,
-	{0, 99, 1},				// ParameterFXDelay_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXDelay_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXDelay_MainOutput,
 
 	// FX > Reverb Return parameters
@@ -532,18 +532,18 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0, 99, 1},				// ParameterFXReverb_OrbitoneReturn,
 	{0, 99, 1},				// ParameterFXReverb_PhaserReturn,
 	{0, 99, 1},				// ParameterFXReverb_DelayReturn,
-	{0, 99, 1},				// ParameterFXReverb_ShimmerReturn,
+	{0, 99, 1},				// ParameterFXReverb_ReverberatorReturn,
 	{0, 99, 1},				// ParameterFXReverb_MainOutput,
 
-	// FX > Shimmer Return parameters
-	{0, 99, 1},				// ParameterFXShimmer_TubeReturn,
-	{0, 99, 1},				// ParameterFXShimmer_ChorusReturn,
-	{0, 99, 1},				// ParameterFXShimmer_FlangerReturn,
-	{0, 99, 1},				// ParameterFXShimmer_OrbitoneReturn,
-	{0, 99, 1},				// ParameterFXShimmer_PhaserReturn,
-	{0, 99, 1},				// ParameterFXShimmer_DelayReturn,
-	{0, 99, 1},				// ParameterFXShimmer_ReverbReturn,
-	{0, 99, 1},				// ParameterFXShimmer_MainOutput,
+	// FX > Reverberator Return parameters
+	{0, 99, 1},				// ParameterFXReverberator_TubeReturn,
+	{0, 99, 1},				// ParameterFXReverberator_ChorusReturn,
+	{0, 99, 1},				// ParameterFXReverberator_FlangerReturn,
+	{0, 99, 1},				// ParameterFXReverberator_OrbitoneReturn,
+	{0, 99, 1},				// ParameterFXReverberator_PhaserReturn,
+	{0, 99, 1},				// ParameterFXReverberator_DelayReturn,
+	{0, 99, 1},				// ParameterFXReverberator_ReverbReturn,
+	{0, 99, 1},				// ParameterFXReverberator_MainOutput,
 
 	#endif
 	// END FX global parameters mapping definition

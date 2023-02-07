@@ -62,7 +62,7 @@ TEST(BetaTest, MixingConsoleShortBuffer)
     delete mixer;
 }
 
-TEST(BetaTest, MixingConsoleShimmerShortBuffer)
+TEST(BetaTest, MixingConsoleReverberatorShortBuffer)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -75,14 +75,14 @@ TEST(BetaTest, MixingConsoleShimmerShortBuffer)
     mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
 
-    mixer->getShimmerReverb()->setInputGain(0.35f);
-    mixer->getShimmerReverb()->setTime(0.69f);
-    mixer->getShimmerReverb()->setDiffusion(0.7f);
-    mixer->getShimmerReverb()->setLP(0.8f);
+    mixer->getReverberator()->setInputGain(0.35f);
+    mixer->getReverberator()->setTime(0.69f);
+    mixer->getReverberator()->setDiffusion(0.7f);
+    mixer->getReverberator()->setLP(0.8f);
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 0.4f);
-    mixer->setSendLevel(0, MixerOutput::FX_ShimmerReverb, 1.0f);
-    mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 0.6f);
+    mixer->setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
+    mixer->setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
 
     float32_t inSamples[size];
     for(size_t s = 0; s < size; ++s) inSamples[s] = getRandomValue();
@@ -146,7 +146,7 @@ TEST(BetaTest, MixingConsoleDrySamplesBoundariesTest)
     delete mixer;
 }
 
-TEST(BetaTest, MixingConsoleShimmerSamplesBoundariesTest)
+TEST(BetaTest, MixingConsoleReverberatorSamplesBoundariesTest)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -168,14 +168,14 @@ TEST(BetaTest, MixingConsoleShimmerSamplesBoundariesTest)
     mixer->setPan(0, 0.5f);
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 0.4f);
-    mixer->setSendLevel(0, MixerOutput::FX_ShimmerReverb, 1.0f);
-    mixer->setReturnLevel(MixerOutput::FX_ShimmerReverb, MixerOutput::MainOutput, 0.6f);
+    mixer->setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
+    mixer->setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
 
-    mixer->getShimmerReverb()->setMute(false);
-    mixer->getShimmerReverb()->setInputGain(0.35);
-    mixer->getShimmerReverb()->setTime(0.65);
-    mixer->getShimmerReverb()->setDiffusion(0.8);
-    mixer->getShimmerReverb()->setLP(0.7f);
+    mixer->getReverberator()->setMute(false);
+    mixer->getReverberator()->setInputGain(0.35);
+    mixer->getReverberator()->setTime(0.65);
+    mixer->getReverberator()->setDiffusion(0.8);
+    mixer->getReverberator()->setLP(0.7f);
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
     mixer->process(outSamples[0], outSamples[1]);

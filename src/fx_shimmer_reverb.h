@@ -13,10 +13,10 @@
 //
 
 //
-// fx_shimmer_reverb3.h
+// fx_shimmer_reverb.h
 //
-// Stereo Shimmer Reverb proposed in the context of the MiniDexed project 
-// It is adapted from the Shimmer Reverb that could be found on Cloud EuroRack module from Mutable Instrruments
+// Stereo ShimmerReverb Reverb proposed in the context of the MiniDexed project 
+// It is adapted from the ShimmerReverb Reverb that could be found on Cloud EuroRack module from Mutable Instrruments
 //
 #pragma once
 

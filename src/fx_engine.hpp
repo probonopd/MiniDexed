@@ -338,8 +338,7 @@ public:
         {
             assert((D::base + D::length) <= size);
 
-            int32_t offset_integral = static_cast<int32_t>(offset);
-            float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
+            MAKE_INTEGRAL_FRACTIONAL(offset);
 
             int32_t index = this->write_ptr_ + offset_integral + D::base;
             float32_t a = DataType<format>::decompress(this->buffer_[index & MASK]);

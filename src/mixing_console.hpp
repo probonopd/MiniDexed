@@ -29,7 +29,7 @@
 #include "fx_phaser.h"
 #include "fx_delay.h"
 #include "effect_platervbstereo.h"
-#include "fx_shimmer_reverb.h"
+#include "fx_reverberator.h"
 #include "fx_dry.h"
 #include "fx_unit2.hpp"
 
@@ -63,7 +63,7 @@ public:
     inline FXUnit2<Phaser>* getPhaser();
     inline FXUnit2<Delay>* getDelay();
     inline FXUnit2<AudioEffectPlateReverb>* getPlateReverb();
-    inline FXUnit2<ShimmerReverb>* getShimmerReverb();
+    inline FXUnit2<Reverberator>* getReverberator();
     inline FXUnit2<Dry>* getDry();
 
     // Processing
@@ -94,7 +94,7 @@ private:
     FXUnit2<Phaser>* phaser_;
     FXUnit2<Delay>* delay_;
     FXUnit2<AudioEffectPlateReverb>* plate_reverb_;
-    FXUnit2<ShimmerReverb>* shimmer_reverb_;
+    FXUnit2<Reverberator>* shimmer_reverb_;
     FXUnit2<Dry>* dry_;
 
     IMPLEMENT_DUMP(
@@ -332,7 +332,7 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
     this->fx_[MixerOutput::FX_Phaser] = this->phaser_ = new FXUnit2<Phaser>(sampling_rate);
     this->fx_[MixerOutput::FX_Delay] = this->delay_  = new FXUnit2<Delay>(sampling_rate);
     this->fx_[MixerOutput::FX_PlateReverb] = this->plate_reverb_ = new FXUnit2<AudioEffectPlateReverb>(sampling_rate);
-    this->fx_[MixerOutput::FX_ShimmerReverb] = this->shimmer_reverb_ = new FXUnit2<ShimmerReverb>(sampling_rate);
+    this->fx_[MixerOutput::FX_Reverberator] = this->shimmer_reverb_ = new FXUnit2<Reverberator>(sampling_rate);
     this->fx_[MixerOutput::MainOutput] = this->dry_ = new FXUnit2<Dry>(sampling_rate);
 
     this->init();
@@ -511,7 +511,7 @@ FXUnit2<AudioEffectPlateReverb>* MixingConsole<nb_inputs>::getPlateReverb()
 }
 
 template<size_t nb_inputs>
-FXUnit2<ShimmerReverb>* MixingConsole<nb_inputs>::getShimmerReverb()
+FXUnit2<Reverberator>* MixingConsole<nb_inputs>::getReverberator()
 {
     return this->shimmer_reverb_;
 }

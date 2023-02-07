@@ -25,7 +25,7 @@
 
 typedef FxEngine<16384, Format::FORMAT_FLOAT32, true> Engine;
 
-void processDebugShimmerSample(
+void processDebugReverberatorSample(
     Engine& engine_, size_t index, 
     float32_t& lp_decay_1_, float32_t& lp_decay_2_, 
     float32_t inL, float32_t inR, 
@@ -120,7 +120,7 @@ void processDebugShimmerSample(
     std::cout << std::endl << "***********************************************************************************************************" << std::endl << std::endl;
 }
 
-TEST(LowLevel, TestDiracShimmerAlgo)
+TEST(LowLevel, TestDiracReverberatorAlgo)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -147,7 +147,7 @@ TEST(LowLevel, TestDiracShimmerAlgo)
 
     for(size_t i = 0; i < size; ++i)
     {
-        processDebugShimmerSample(engine_, i, lp1, lp2, inSamples[i], inSamples[i], outSamplesL[i], outSamplesR[i]);
+        processDebugReverberatorSample(engine_, i, lp1, lp2, inSamples[i], inSamples[i], outSamplesL[i], outSamplesR[i]);
     }
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
@@ -158,7 +158,7 @@ TEST(LowLevel, TestDiracShimmerAlgo)
     delete[] inSamples;
 }
 
-void processShimmerSample(
+void processReverberatorSample(
     Engine& engine_L_, Engine& engine_R_, size_t index, 
     float32_t& lp_decay_1_, float32_t& lp_decay_2_, 
     float32_t inL, float32_t inR, 
@@ -269,7 +269,7 @@ void processShimmerSample(
     lp_decay_2_ = lp_2;
 }
 
-TEST(LowLevel, TestStereoShimmerAlgo)
+TEST(LowLevel, TestStereoReverberatorAlgo)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -298,7 +298,7 @@ TEST(LowLevel, TestStereoShimmerAlgo)
 
     for(size_t i = 0; i < size; ++i)
     {
-        processShimmerSample(engine_L_, engine_R_, i, lp1, lp2, inSamples[0][i], inSamples[1][i], outSamplesL[i], outSamplesR[i]);
+        processReverberatorSample(engine_L_, engine_R_, i, lp1, lp2, inSamples[0][i], inSamples[1][i], outSamplesL[i], outSamplesR[i]);
     }
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
@@ -311,7 +311,7 @@ TEST(LowLevel, TestStereoShimmerAlgo)
     delete[] inSamples;
 }
 
-void processShimmerSample(
+void processReverberatorSample(
     Engine& engine_, size_t index, 
     float32_t& lp_decay_1_, float32_t& lp_decay_2_, 
     float32_t inL, float32_t inR, 
@@ -401,7 +401,7 @@ void processShimmerSample(
     lp_decay_2_ = lp_2;
 }
 
-TEST(LowLevel, TestMonoShimmerAlgo)
+TEST(LowLevel, TestMonoReverberatorAlgo)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -426,7 +426,7 @@ TEST(LowLevel, TestMonoShimmerAlgo)
 
     for(size_t i = 0; i < size; ++i)
     {
-        processShimmerSample(engine_, i, lp1, lp2, inSamples[0][i], inSamples[1][i], outSamplesL[i], outSamplesR[i]);
+        processReverberatorSample(engine_, i, lp1, lp2, inSamples[0][i], inSamples[1][i], outSamplesL[i], outSamplesR[i]);
     }
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);

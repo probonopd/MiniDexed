@@ -199,12 +199,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	this->SetParameter(ParameterReverbDiffusion, 65);
 	this->SetParameter(ParameterReverbLevel, 99);
 
-	// ShimmerReverb parameters
-	this->SetParameter(ParameterFXShimmerReverbEnable, 1);
-	this->SetParameter(ParameterFXShimmerReverbInputGain, 99);
-	this->SetParameter(ParameterFXShimmerReverbTime, 80);
-	this->SetParameter(ParameterFXShimmerReverbDiffusion, 80);
-	this->SetParameter(ParameterFXShimmerReverbLP, 70);
+	// Reverberator parameters
+	this->SetParameter(ParameterFXReverberatorEnable, 1);
+	this->SetParameter(ParameterFXReverberatorInputGain, 99);
+	this->SetParameter(ParameterFXReverberatorTime, 80);
+	this->SetParameter(ParameterFXReverberatorDiffusion, 80);
+	this->SetParameter(ParameterFXReverberatorLP, 70);
 
 #endif
 
@@ -958,35 +958,35 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_FXSpinLock.Release ();
 		break;
 
-	// ShimmerReverb parameters
-	case ParameterFXShimmerReverbEnable: 
+	// Reverberator parameters
+	case ParameterFXReverberatorEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getShimmerReverb()->setMute(!nValue);
+		this->mixing_console_->getReverberator()->setMute(!nValue);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXShimmerReverbInputGain: 
+	case ParameterFXReverberatorInputGain: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getShimmerReverb()->setInputGain(nValue / 99.0f);
+		this->mixing_console_->getReverberator()->setInputGain(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXShimmerReverbTime: 
+	case ParameterFXReverberatorTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getShimmerReverb()->setTime(nValue / 99.0f);
+		this->mixing_console_->getReverberator()->setTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXShimmerReverbDiffusion: 
+	case ParameterFXReverberatorDiffusion: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getShimmerReverb()->setDiffusion(nValue / 99.0f);
+		this->mixing_console_->getReverberator()->setDiffusion(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
-	case ParameterFXShimmerReverbLP: 
+	case ParameterFXReverberatorLP: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getShimmerReverb()->setLP(nValue / 99.0f);
+		this->mixing_console_->getReverberator()->setLP(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 
@@ -1110,7 +1110,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterMixingSendFXPhaser:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Phaser, 		nValue); break;
 	case TGParameterMixingSendFXDelay:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Delay, 			nValue); break;
 	case TGParameterMixingSendFXPlateReverb:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, 	nValue); break;
-	case TGParameterMixingSendFXShimmerReverb:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_ShimmerReverb, 	nValue); break;
+	case TGParameterMixingSendFXReverberator:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Reverberator, 	nValue); break;
 	case TGParameterMixingSendFXMainOutput:		this->setMixingConsoleSendLevel(nTG, MixerOutput::MainOutput, 		nValue); break;
 #else
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
@@ -1558,11 +1558,11 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXDelayLeftDelayTime(this->m_nParameter[ParameterFXDelayLeftDelayTime]);
 	this->m_PerformanceConfig.SetFXDelayRightDelayTime(this->m_nParameter[ParameterFXDelayRightDelayTime]);
 	this->m_PerformanceConfig.SetFXDelayFeedback(this->m_nParameter[ParameterFXDelayFeedback]);
-	this->m_PerformanceConfig.SetFXShimmerReverbEnable(!!this->m_nParameter[ParameterFXShimmerReverbEnable]);
-	this->m_PerformanceConfig.SetFXShimmerReverbInputGain(this->m_nParameter[ParameterFXShimmerReverbInputGain]);
-	this->m_PerformanceConfig.SetFXShimmerReverbTime(this->m_nParameter[ParameterFXShimmerReverbTime]);
-	this->m_PerformanceConfig.SetFXShimmerReverbDiffusion(this->m_nParameter[ParameterFXShimmerReverbDiffusion]);
-	this->m_PerformanceConfig.SetFXShimmerReverbLP(this->m_nParameter[ParameterFXShimmerReverbLP]);
+	this->m_PerformanceConfig.SetFXReverberatorEnable(!!this->m_nParameter[ParameterFXReverberatorEnable]);
+	this->m_PerformanceConfig.SetFXReverberatorInputGain(this->m_nParameter[ParameterFXReverberatorInputGain]);
+	this->m_PerformanceConfig.SetFXReverberatorTime(this->m_nParameter[ParameterFXReverberatorTime]);
+	this->m_PerformanceConfig.SetFXReverberatorDiffusion(this->m_nParameter[ParameterFXReverberatorDiffusion]);
+	this->m_PerformanceConfig.SetFXReverberatorLP(this->m_nParameter[ParameterFXReverberatorLP]);
 
 	size_t end = MixerOutput::kFXCount - 1;
 	for(size_t ret = 0; ret < end; ++ret)
@@ -1981,11 +1981,11 @@ void CMiniDexed::LoadPerformanceParameters(void)
 	this->SetParameter(ParameterFXDelayLeftDelayTime, this->m_PerformanceConfig.GetFXDelayLeftDelayTime());
 	this->SetParameter(ParameterFXDelayRightDelayTime, this->m_PerformanceConfig.GetFXDelayRightDelayTime());
 	this->SetParameter(ParameterFXDelayFeedback, this->m_PerformanceConfig.GetFXDelayFeedback());
-	this->SetParameter(ParameterFXShimmerReverbEnable, this->m_PerformanceConfig.GetFXShimmerReverbEnable());
-	this->SetParameter(ParameterFXShimmerReverbInputGain, this->m_PerformanceConfig.GetFXShimmerReverbInputGain());
-	this->SetParameter(ParameterFXShimmerReverbTime, this->m_PerformanceConfig.GetFXShimmerReverbTime());
-	this->SetParameter(ParameterFXShimmerReverbDiffusion, this->m_PerformanceConfig.GetFXShimmerReverbDiffusion());
-	this->SetParameter(ParameterFXShimmerReverbLP, this->m_PerformanceConfig.GetFXShimmerReverbLP());
+	this->SetParameter(ParameterFXReverberatorEnable, this->m_PerformanceConfig.GetFXReverberatorEnable());
+	this->SetParameter(ParameterFXReverberatorInputGain, this->m_PerformanceConfig.GetFXReverberatorInputGain());
+	this->SetParameter(ParameterFXReverberatorTime, this->m_PerformanceConfig.GetFXReverberatorTime());
+	this->SetParameter(ParameterFXReverberatorDiffusion, this->m_PerformanceConfig.GetFXReverberatorDiffusion());
+	this->SetParameter(ParameterFXReverberatorLP, this->m_PerformanceConfig.GetFXReverberatorLP());
 
 	size_t end = MixerOutput::kFXCount - 1;
 	for(size_t ret = 0; ret < end; ++ret)

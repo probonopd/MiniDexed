@@ -7,7 +7,7 @@
 #include "../fx_phaser.h"
 #include "../fx_delay.h"
 #include "../effect_platervbstereo.h"
-#include "../fx_shimmer_reverb.h"
+#include "../fx_reverberator.h"
 
 TEST(LevelTuning, Tube)
 {
@@ -241,9 +241,9 @@ TEST(LevelTuning, PlateReverb)
     EXPECT_LE(1.0f / ratio, 1.1f);
 }
 
-TEST(LevelTuning, ShimmerReverb)
+TEST(LevelTuning, Reverberator)
 {
-    ShimmerReverb fx(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
     fx.reset();
     fx.setInputGain(0.35f);
     fx.setTime(0.89f);
@@ -269,7 +269,7 @@ TEST(LevelTuning, ShimmerReverb)
 
     float32_t ratio = std::sqrt(sumOut / sumIn);
 
-    ASSERT_EQ(nb_errors, 0) << "Sample value error for ShimmerReverb";
+    ASSERT_EQ(nb_errors, 0) << "Sample value error for Reverberator";
     EXPECT_GE(ratio, 0.9f);
     EXPECT_LE(1.0f / ratio, 1.1f);
 }

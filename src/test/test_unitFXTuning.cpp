@@ -8,7 +8,7 @@
 #include "../fx_phaser.h"
 #include "../fx_delay.h"
 #include "../effect_platervbstereo.h"
-#include "../fx_shimmer_reverb.h"
+#include "../fx_reverberator.h"
 
 TEST(UnitFXTuning, Dry)
 {
@@ -114,9 +114,9 @@ TEST(UnitFXTuning, PlateReverb)
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
-TEST(UnitFXTuning, ShimmerReverb)
+TEST(UnitFXTuning, Reverberator)
 {
-    ShimmerReverb fx(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
     fx.setInputGain(0.65f);
     fx.setTime(0.89f);
     fx.setDiffusion(0.75f);

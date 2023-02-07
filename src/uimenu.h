@@ -158,8 +158,8 @@ private:
 #endif
 #ifdef MIXING_CONSOLE_ENABLE
 	static const TMenuItem s_FXPlateReverbReturn[];
-	static const TMenuItem s_FXShimmerReverb[];
-	static const TMenuItem s_FXShimmerReverbReturn[];
+	static const TMenuItem s_FXReverberator[];
+	static const TMenuItem s_FXReverberatorReturn[];
 #endif
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];

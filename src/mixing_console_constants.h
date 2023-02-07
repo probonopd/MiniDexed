@@ -16,7 +16,7 @@ enum MixerOutput
     FX_Phaser,
     FX_Delay,
     FX_PlateReverb,
-    FX_ShimmerReverb,
+    FX_Reverberator,
     MainOutput,
     kFXCount
 };
@@ -32,7 +32,7 @@ inline std::string toString(MixerOutput enum_val)
         "Phaser",
         "Delay",
         "PlateReverb",
-        "ShimmerReverb",
+        "Reverberator",
         "MainOutput"
     };
     static_assert(names.size() == MixerOutput::kFXCount, "Enum MixerOutput and string array size mismatch");
@@ -51,7 +51,7 @@ inline MixerOutput toIndex(const char* str)
     TO_INDEX_CHECK(str, MixerOutput::FX_Phaser);
     TO_INDEX_CHECK(str, MixerOutput::FX_Delay);
     TO_INDEX_CHECK(str, MixerOutput::FX_PlateReverb);
-    TO_INDEX_CHECK(str, MixerOutput::FX_ShimmerReverb);
+    TO_INDEX_CHECK(str, MixerOutput::FX_Reverberator);
     TO_INDEX_CHECK(str, MixerOutput::MainOutput);
 
     throw std::invalid_argument("Invalid MixerOutput string");

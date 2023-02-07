@@ -189,12 +189,12 @@ public:
 		ParameterFXDelayFlutterRate,
 		ParameterFXDelayFlutterAmount,
 
-		// ShimmerReverb parameters
-		ParameterFXShimmerReverbEnable,
-		ParameterFXShimmerReverbInputGain,
-		ParameterFXShimmerReverbTime,
-		ParameterFXShimmerReverbDiffusion,
-		ParameterFXShimmerReverbLP,
+		// Reverberator parameters
+		ParameterFXReverberatorEnable,
+		ParameterFXReverberatorInputGain,
+		ParameterFXReverberatorTime,
+		ParameterFXReverberatorDiffusion,
+		ParameterFXReverberatorLP,
 
 		// Tube Return parameters
 		ParameterFXTube_ChorusReturn,
@@ -203,7 +203,7 @@ public:
 		ParameterFXTube_PhaserReturn,
 		ParameterFXTube_DelayReturn,
 		ParameterFXTube_ReverbReturn,
-		ParameterFXTube_ShimmerReturn,
+		ParameterFXTube_ReverberatorReturn,
 		ParameterFXTube_MainOutput,
 
 		// Chorus Return parameters
@@ -213,7 +213,7 @@ public:
 		ParameterFXChorus_PhaserReturn,
 		ParameterFXChorus_DelayReturn,
 		ParameterFXChorus_ReverbReturn,
-		ParameterFXChorus_ShimmerReturn,
+		ParameterFXChorus_ReverberatorReturn,
 		ParameterFXChorus_MainOutput,
 
 		// Flanger Return parameters
@@ -223,7 +223,7 @@ public:
 		ParameterFXFlanger_PhaserReturn,
 		ParameterFXFlanger_DelayReturn,
 		ParameterFXFlanger_ReverbReturn,
-		ParameterFXFlanger_ShimmerReturn,
+		ParameterFXFlanger_ReverberatorReturn,
 		ParameterFXFlanger_MainOutput,
 
 		// Orbitone Return parameters
@@ -233,7 +233,7 @@ public:
 		ParameterFXOrbitone_PhaserReturn,
 		ParameterFXOrbitone_DelayReturn,
 		ParameterFXOrbitone_ReverbReturn,
-		ParameterFXOrbitone_ShimmerReturn,
+		ParameterFXOrbitone_ReverberatorReturn,
 		ParameterFXOrbitone_MainOutput,
 
 		// Phaser Return parameters
@@ -243,7 +243,7 @@ public:
 		ParameterFXPhaser_OrbitoneReturn,
 		ParameterFXPhaser_DelayReturn,
 		ParameterFXPhaser_ReverbReturn,
-		ParameterFXPhaser_ShimmerReturn,
+		ParameterFXPhaser_ReverberatorReturn,
 		ParameterFXPhaser_MainOutput,
 
 		// Delay Return parameters
@@ -253,7 +253,7 @@ public:
 		ParameterFXDelay_OrbitoneReturn,
 		ParameterFXDelay_PhaserReturn,
 		ParameterFXDelay_ReverbReturn,
-		ParameterFXDelay_ShimmerReturn,
+		ParameterFXDelay_ReverberatorReturn,
 		ParameterFXDelay_MainOutput,
 
 		// Reverb Return parameters
@@ -263,18 +263,18 @@ public:
 		ParameterFXReverb_OrbitoneReturn,
 		ParameterFXReverb_PhaserReturn,
 		ParameterFXReverb_DelayReturn,
-		ParameterFXReverb_ShimmerReturn,
+		ParameterFXReverb_ReverberatorReturn,
 		ParameterFXReverb_MainOutput,
 
-		// Shimmer Return parameters
-		ParameterFXShimmer_TubeReturn,
-		ParameterFXShimmer_ChorusReturn,
-		ParameterFXShimmer_FlangerReturn,
-		ParameterFXShimmer_OrbitoneReturn,
-		ParameterFXShimmer_PhaserReturn,
-		ParameterFXShimmer_DelayReturn,
-		ParameterFXShimmer_ReverbReturn,
-		ParameterFXShimmer_MainOutput,
+		// Reverberator Return parameters
+		ParameterFXReverberator_TubeReturn,
+		ParameterFXReverberator_ChorusReturn,
+		ParameterFXReverberator_FlangerReturn,
+		ParameterFXReverberator_OrbitoneReturn,
+		ParameterFXReverberator_PhaserReturn,
+		ParameterFXReverberator_DelayReturn,
+		ParameterFXReverberator_ReverbReturn,
+		ParameterFXReverberator_MainOutput,
 
 		// END FX global parameters definition
 	#endif
@@ -339,7 +339,7 @@ public:
 		TGParameterMixingSendFXPhaser,
 		TGParameterMixingSendFXDelay,
 		TGParameterMixingSendFXPlateReverb,
-		TGParameterMixingSendFXShimmerReverb,
+		TGParameterMixingSendFXReverberator,
 		TGParameterMixingSendFXMainOutput,
 #endif // MIXING_CONSOLE_ENABLE
 
