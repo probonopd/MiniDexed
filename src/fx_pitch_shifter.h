@@ -36,8 +36,8 @@ public:
     virtual void reset() override;
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
 
-    void setRatio(float32_t ratio);
-    float32_t getRatio() const;
+    void setTranspose(float32_t transpose);
+    float32_t getTranspose() const;
 
     void setSize(float32_t size);
     float32_t getSize() const;
@@ -47,6 +47,7 @@ private:
     Engine engine_;
 
     float32_t phase_;
+    float32_t transpose_;
     float32_t ratio_;
     float32_t size_;
     float32_t sample_size_;

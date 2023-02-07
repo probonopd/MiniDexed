@@ -1,5 +1,3 @@
-#pragma once
-
 #include "fx_shimmer_helper.h"
 
 const float lut_pitch_ratio_high[] = {

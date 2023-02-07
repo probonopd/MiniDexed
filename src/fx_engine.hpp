@@ -481,7 +481,7 @@ private:
 
             if(enable_lfo)
             {
-                for(size_t i = 0; i < size; ++i)
+                for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
                 {
                     this->lfo_[i]->inspect(inspector, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
                 }

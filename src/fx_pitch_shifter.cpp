@@ -1,7 +1,10 @@
 #include "fx_pitch_shifter.h"
+#include "fx_shimmer_helper.h" 
 
 #include <cmath>
 #include <algorithm>
+
+#define PITCH_SHIFT_BOUND 36.0f
 
 #define ONE_POLE(out, in, coefficient) out += (coefficient) * ((in) - out);
 
@@ -11,11 +14,12 @@ PitchShifter::PitchShifter(float32_t sampling_rate) :
     FXElement(sampling_rate),
     engine_(sampling_rate),
     phase_(0.0f),
+    transpose_(0.0f),
     ratio_(0.0f),
     size_(-1.0f),
     sample_size_(0.0f)
 {
-    this->setRatio(0.5f);
+    this->setTranspose(0.0f);
     this->setSize(0.5f);
 }
 
@@ -68,14 +72,19 @@ void PitchShifter::processSample(float32_t inL, float32_t inR, float32_t& outL, 
     c.writeAndLoad(outR, 0.0f);
 }
 
-void PitchShifter::setRatio(float32_t ratio)
+void PitchShifter::setTranspose(float32_t transpose)
 {
-    this->ratio_ = constrain(ratio, 0.0f, 1.0f);
+    transpose = constrain(transpose, -PITCH_SHIFT_BOUND, PITCH_SHIFT_BOUND);
+    if(this->transpose_ != transpose)
+    {
+        this->transpose_ = transpose;
+        this->ratio_ = semitoneToRatio(transpose);
+    }
 }
 
-float32_t PitchShifter::getRatio() const
+float32_t PitchShifter::getTranspose() const
 {
-    return this->ratio_;
+    return this->transpose_;
 }
 
 void PitchShifter::setSize(float32_t size)

@@ -97,7 +97,7 @@ private:
 
         if(deepInspection)
         {
-            this->engine.dump(out, deepInspection, tag + ".engine_");
+            this->engine_.dump(out, deepInspection, tag + ".engine_");
         }
     )
 

@@ -131,7 +131,7 @@ TEST(UnitFXTuning, PitchShifter)
 {
     PitchShifter fx(SAMPLING_FREQUENCY);
     fx.setSize(0.2f);
-    fx.setRatio(0.8f);
+    fx.setTranspose(24.0f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);

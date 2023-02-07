@@ -6,14 +6,38 @@ CIRCLE_STDLIB_DIR = ../circle-stdlib
 SYNTH_DEXED_DIR = ../Synth_Dexed/src
 CMSIS_DIR = ../CMSIS_5/CMSIS
 
-OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
-       mididevice.o midikeyboard.o serialmididevice.o pckeyboard.o \
-       sysexfileloader.o performanceconfig.o perftimer.o \
-       effect_compressor.o effect_platervbstereo.o \
-       fx.o fx_components.o \
-       fx_svf.o fx_tube.o fx_chorus.o fx_flanger.o fx_orbitone.o fx_phaser.o \
-       fx_delay.o fx_diffuser.o fx_pitch_shifter.o fx_shimmer_reverb.o fx_dry.o \
-       uibuttons.o midipin.o
+OBJS := main.o
+OBJS += kernel.o
+OBJS += minidexed.o
+OBJS += config.o
+OBJS += userinterface.o
+OBJS += uimenu.o
+OBJS += mididevice.o
+OBJS += midikeyboard.o
+OBJS += serialmididevice.o
+OBJS += pckeyboard.o
+OBJS += sysexfileloader.o
+OBJS += performanceconfig.o
+OBJS += perftimer.o
+OBJS += effect_compressor.o
+OBJS += effect_platervbstereo.o
+OBJS += fx.o
+OBJS += fx_components.o
+OBJS += fx_svf.o
+OBJS += fx_tube.o
+OBJS += fx_chorus.o
+OBJS += fx_flanger.o
+OBJS += fx_orbitone.o
+OBJS += fx_phaser.o
+OBJS += fx_delay.o
+OBJS += fx_shimmer_helper.o
+OBJS += fx_diffuser.o
+OBJS += fx_pitch_shifter.o
+OBJS += fx_reverberator.o
+OBJS += fx_shimmer_reverb.o
+OBJS += fx_dry.o
+OBJS += uibuttons.o
+OBJS += midipin.o
 
 OPTIMIZE = -O3
 
