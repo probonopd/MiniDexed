@@ -9,8 +9,6 @@ Diffuser::Diffuser(float32_t sampling_rate) :
     FXElement(sampling_rate),
     engine_(sampling_rate)
 {
-    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_1, 0.5f);
-    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_2, 0.3f);
 }
 
 Diffuser::~Diffuser()

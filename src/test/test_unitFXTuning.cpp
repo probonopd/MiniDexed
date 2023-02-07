@@ -8,7 +8,10 @@
 #include "../fx_phaser.h"
 #include "../fx_delay.h"
 #include "../effect_platervbstereo.h"
+#include "../fx_diffuser.h"
+#include "../fx_pitch_shifter.h"
 #include "../fx_reverberator.h"
+#include "../fx_shimmer_reverb.h"
 
 TEST(UnitFXTuning, Dry)
 {
@@ -107,6 +110,28 @@ TEST(UnitFXTuning, PlateReverb)
     fx.lowpass(0.3f);
     fx.diffusion(0.65f);
     fx.level(1.0f);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST(UnitFXTuning, Diffuser)
+{
+    Diffuser fx(SAMPLING_FREQUENCY);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST(UnitFXTuning, PitchShifter)
+{
+    PitchShifter fx(SAMPLING_FREQUENCY);
+    fx.setSize(0.2f);
+    fx.setRatio(0.8f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
