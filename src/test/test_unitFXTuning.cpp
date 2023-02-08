@@ -130,8 +130,8 @@ TEST(UnitFXTuning, Diffuser)
 TEST(UnitFXTuning, PitchShifter)
 {
     PitchShifter fx(SAMPLING_FREQUENCY);
-    fx.setSize(0.2f);
-    fx.setTranspose(24.0f);
+    fx.setSize(0.5f);
+    fx.setTranspose(12.0f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
@@ -146,6 +146,22 @@ TEST(UnitFXTuning, Reverberator)
     fx.setTime(0.89f);
     fx.setDiffusion(0.75f);
     fx.setLP(0.8f);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST(UnitFXTuning, ShimmerReverb)
+{
+    const float32_t amount = 0.6f;
+
+    ShimmerReverb fx(SAMPLING_FREQUENCY);
+    fx.setInputGain(0.2f);
+    fx.setReverbAmount(amount);
+    fx.setDiffusion(0.7f);
+    fx.setFeedback(0.8f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);

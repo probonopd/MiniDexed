@@ -94,7 +94,7 @@ private:
     FXUnit2<Phaser>* phaser_;
     FXUnit2<Delay>* delay_;
     FXUnit2<AudioEffectPlateReverb>* plate_reverb_;
-    FXUnit2<Reverberator>* shimmer_reverb_;
+    FXUnit2<Reverberator>* reverberator_;
     FXUnit2<Dry>* dry_;
 
     IMPLEMENT_DUMP(
@@ -247,7 +247,7 @@ private:
             this->phaser_->dump(out, deepInspection, tag + ".phaser_");
             this->delay_->dump(out, deepInspection, tag + ".delay_");
             this->plate_reverb_->dump(out, deepInspection, tag + ".plate_reverb_");
-            this->shimmer_reverb_->dump(out, deepInspection, tag + ".shimmer_reverb_");
+            this->reverberator_->dump(out, deepInspection, tag + ".reverberator_");
             this->dry_->dump(out, deepInspection, tag + ".dry_");
         }
 
@@ -303,7 +303,7 @@ private:
             nb_errors += this->phaser_->inspect(inspector, deepInspection, tag + ".phaser_");
             nb_errors += this->delay_->inspect(inspector, deepInspection, tag + ".delay_");
             nb_errors += this->plate_reverb_->inspect(inspector, deepInspection, tag + ".plate_reverb_");
-            nb_errors += this->shimmer_reverb_->inspect(inspector, deepInspection, tag + ".shimmer_reverb_");
+            nb_errors += this->reverberator_->inspect(inspector, deepInspection, tag + ".reverberator_");
             nb_errors += this->dry_->inspect(inspector, deepInspection, tag + ".dry_");
         }
 
@@ -332,7 +332,7 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
     this->fx_[MixerOutput::FX_Phaser] = this->phaser_ = new FXUnit2<Phaser>(sampling_rate);
     this->fx_[MixerOutput::FX_Delay] = this->delay_  = new FXUnit2<Delay>(sampling_rate);
     this->fx_[MixerOutput::FX_PlateReverb] = this->plate_reverb_ = new FXUnit2<AudioEffectPlateReverb>(sampling_rate);
-    this->fx_[MixerOutput::FX_Reverberator] = this->shimmer_reverb_ = new FXUnit2<Reverberator>(sampling_rate);
+    this->fx_[MixerOutput::FX_Reverberator] = this->reverberator_ = new FXUnit2<Reverberator>(sampling_rate);
     this->fx_[MixerOutput::MainOutput] = this->dry_ = new FXUnit2<Dry>(sampling_rate);
 
     this->init();
@@ -513,7 +513,7 @@ FXUnit2<AudioEffectPlateReverb>* MixingConsole<nb_inputs>::getPlateReverb()
 template<size_t nb_inputs>
 FXUnit2<Reverberator>* MixingConsole<nb_inputs>::getReverberator()
 {
-    return this->shimmer_reverb_;
+    return this->reverberator_;
 }
 
 template<size_t nb_inputs>

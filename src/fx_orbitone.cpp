@@ -9,13 +9,13 @@ Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) :
     depth_(0.0f),
     fullscale_depth_(0.0f)
 {
-    this->lfo_[LFOIndex::Slow0  ] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFOIndex::Slow120] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFOIndex::Slow240] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Slow0  ] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 0.0f, false);
+    this->lfo_[LFOIndex::Slow120] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 2.0f * PI / 3.0, false);
+    this->lfo_[LFOIndex::Slow240] = new LFO(sampling_rate, 0.0f, LFO_SLOW_MAX_FREQUENCY, 4.0f * PI / 3.0, false);
 
-    this->lfo_[LFOIndex::Fast0  ] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f);
-    this->lfo_[LFOIndex::Fast120] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0);
-    this->lfo_[LFOIndex::Fast240] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0);
+    this->lfo_[LFOIndex::Fast0  ] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 0.0f, false);
+    this->lfo_[LFOIndex::Fast120] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 2.0f * PI / 3.0, false);
+    this->lfo_[LFOIndex::Fast240] = new LFO(sampling_rate, 0.0f, LFO_FAST_MAX_FREQUENCY, 4.0f * PI / 3.0, false);
 
     for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i)
     {

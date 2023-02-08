@@ -121,7 +121,7 @@ public:
         write_ptr_(0)
     {
         this->buffer_ = new T[size];
-        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency) : nullptr;
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency, 0.0f, false) : nullptr;
         this->clear();
     }
 
@@ -354,7 +354,7 @@ public:
         {
             assert(index < LFOIndex::kLFOCount);
 
-            this->interpolate(d, offset + amplitude * this->lfo_value_[index], scale);
+            this->interpolate(d, offset + amplitude * (this->lfo_value_[index] * 0.5f + 0.5f), scale);
         }
 
     private:

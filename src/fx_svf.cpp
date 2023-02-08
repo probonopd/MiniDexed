@@ -2,9 +2,9 @@
 
 #include <cmath>
 
-StateVariableFilter::StateVariableFilter(float32_t sampling_rate, Type type, float32_t cutoff) :
+StateVariableFilter::StateVariableFilter(float32_t sampling_rate, FilterMode mode, float32_t cutoff) :
     FXElement(sampling_rate),
-    type_(type),
+    mode_(mode),
     gain_(-1.0f),
     cutoff_(cutoff),
     resonance_(0.0f)
@@ -20,11 +20,11 @@ StateVariableFilter::~StateVariableFilter()
 {
 }
 
-void StateVariableFilter::setFilterType(Type type)
+void StateVariableFilter::setFilterMode(FilterMode mode)
 {
-    if(this->type_ != type)
+    if(this->mode_ != mode)
     {
-        this->type_ = type;
+        this->mode_ = mode;
         this->updateCoefficients();
     }
 }
@@ -72,17 +72,19 @@ void StateVariableFilter::updateCoefficients()
     this->c1_ = a_b / (1.0f + 0.5f * this->a_ + 0.25f * this->b_);
     this->c2_ = this->b_ / a_b;
 
-    switch(this->type_)
+    switch(this->mode_)
     {
-    case Type::LPF:
+    case FilterMode::LPF:
         this->d1_ = 0.0f;
         this->d0_ = 0.25f * this->c1_ * this->c2_;
         break;
-    case Type::HPF:
+
+    case FilterMode::HPF:
         this->d1_ = 0.0f;
         this->d0_ = 1.0f - 0.5f * this->c1_ + 0.25f * this->c1_ * this->c2_;
         break;
-    case Type::BPF:
+        
+    case FilterMode::BPF:
         this->d1_ = 1.0f - this->c2_;
         this->d0_ = this->d1_ * this->c1_ * 0.5f;
         break;
@@ -101,9 +103,9 @@ void StateVariableFilter::processSample(float32_t inL, float32_t inR, float32_t&
 {
     const float32_t gain = this->g_;
 
-    switch(this->type_)
+    switch(this->mode_)
     {
-    case Type::LPF:
+    case FilterMode::LPF:
         {
             const float32_t x = inL - this->z1_[StereoChannels::Left] - this->z2_[StereoChannels::Left] + 1e-20f;
             this->z2_[StereoChannels::Left] += this->c2_ * this->z1_[StereoChannels::Left];
@@ -118,7 +120,7 @@ void StateVariableFilter::processSample(float32_t inL, float32_t inR, float32_t&
         }
         break;
 
-    case Type::HPF:
+    case FilterMode::HPF:
         {
             const float32_t x = inL - this->z1_[StereoChannels::Left] - this->z2_[StereoChannels::Left] + 1e-20f;
             outL = gain * this->d0_ * x;
@@ -133,7 +135,7 @@ void StateVariableFilter::processSample(float32_t inL, float32_t inR, float32_t&
         }
         break;
 
-    case Type::BPF:
+    case FilterMode::BPF:
         {
             const float32_t x = inL - this->z1_[StereoChannels::Left] - this->z2_[StereoChannels::Left] + 1e-20f;
             outL = gain * (this->d0_ * x) + this->d1_ * this->z1_[StereoChannels::Left];

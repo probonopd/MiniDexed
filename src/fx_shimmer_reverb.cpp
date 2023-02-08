@@ -2,23 +2,23 @@
 
 #define TAIL , -1
 
-ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
-    FXElement(sampling_rate),
-    engine_(sampling_rate),
-    input_gain_(-1.0f),
-    reverb_time_(0.0f),
-    diffusion_(-1.0f),
-    lp_(-1.0f),
-    lp_decay_1_(0.0f),
-    lp_decay_2_(0.0f)
+ShimmerReverb::ShimmerReverb(float32_t sampling_frequency) : 
+    FXElement(sampling_frequency, 1.2f),
+    pitch_shifter_(sampling_frequency, PITCH_SHIFTER_TRANSPOSE_BOUNDARY),
+    lp_filter_(sampling_frequency, SVF::FilterMode::SVF_LP),
+    hp_filter_(sampling_frequency, SVF::FilterMode::SVF_HP),
+    reverberator_(sampling_frequency),
+    texture_(0.0f),
+    lp_cutoff_(0.0f),
+    hp_cutoff_(0.0f),
+    lpq_(0.0f),
+    amount_(0.0f),
+    feedback_(0.0f),
+    cutoff_(0.0f)
 {
-    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_1, 0.5f);
-    this->engine_.setLFOFrequency(Engine::LFOIndex::LFO_2, 0.3f);
-    
-    this->setInputGain(1.0f);
-    this->setTime(0.7f);
-    this->setDiffusion(0.625f);
-    this->setLP(0.7f);
+    this->setInputGain(0.2f);
+    this->setDiffusion(0.7f);
+    this->setCutoff(1.0f);
 
     this->reset();
 }
@@ -29,132 +29,141 @@ ShimmerReverb::~ShimmerReverb()
 
 void ShimmerReverb::reset()
 {
-    this->engine_.reset();
-    this->lp_decay_1_ = 0.0f;
-    this->lp_decay_2_ = 0.0f;
+    this->pitch_shifter_.reset();
+    this->lp_filter_.reset();
+    this->hp_filter_.reset();
+    this->reverberator_.reset();
 }
 
 void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    // This is the Griesinger topology described in the Dattorro paper
-    // (4 AP diffusers on the input, then a loop of 2x 2AP+1Delay).
-    // Modulation is applied in the loop of the first diffuser AP for additional
-    // smearing; and to the two long delays for a slow shimmer/chorus effect.
-    typedef Engine::Reserve< 113,
-            Engine::Reserve< 162,
-            Engine::Reserve< 241,
-            Engine::Reserve< 399,
-            Engine::Reserve<1653,
-            Engine::Reserve<2038,
-            Engine::Reserve<3411,
-            Engine::Reserve<1913,
-            Engine::Reserve<1663,
-            Engine::Reserve<4782> > > > > > > > > > Memory;
-    Engine::DelayLine<Memory, 0> ap1;
-    Engine::DelayLine<Memory, 1> ap2;
-    Engine::DelayLine<Memory, 2> ap3;
-    Engine::DelayLine<Memory, 3> ap4;
-    Engine::DelayLine<Memory, 4> dap1a;
-    Engine::DelayLine<Memory, 5> dap1b;
-    Engine::DelayLine<Memory, 6> del1;
-    Engine::DelayLine<Memory, 7> dap2a;
-    Engine::DelayLine<Memory, 8> dap2b;
-    Engine::DelayLine<Memory, 9> del2;
-    Engine::Context c;
+    this->pitch_shifter_.processSample(inL, inR, outL, outR);
+    this->lp_filter_.processSample(outL, outR, outL, outR);
+    this->hp_filter_.processSample(outL, outR, outL, outR);
+    this->reverberator_.processSample(outL, outR, outL, outR);
 
-    const float32_t kap = this->diffusion_;
-    const float32_t klp = this->lp_;
-    const float32_t krt = this->reverb_time_;
-    const float32_t gain = this->input_gain_;
-
-    float32_t lp_1 = this->lp_decay_1_;
-    float32_t lp_2 = this->lp_decay_2_;
-
-    float32_t wet = 0.0f;
-    float32_t apout = 0.0f;
-    engine_.start(&c);
-    
-    // Smear AP1 inside the loop.
-    c.interpolate(ap1, 10.0f, Engine::LFOIndex::LFO_1, 60.0f, 1.0f);
-    c.writeAndLoad(ap1, 100, 0.0f);
-    c.read(inL + inR, gain);
-
-    // Diffuse through 4 allpasses.
-    c.read(ap1 TAIL, kap);
-    c.writeAllPass(ap1, -kap);
-    c.read(ap2 TAIL, kap);
-    c.writeAllPass(ap2, -kap);
-    c.read(ap3 TAIL, kap);
-    c.writeAllPass(ap3, -kap);
-    c.read(ap4 TAIL, kap);
-    c.writeAllPass(ap4, -kap);
-    c.write(apout);
-      
-    // Main reverb loop.
-    c.load(apout);
-    c.interpolate(del2, 4680.0f, Engine::LFOIndex::LFO_2, 100.0f, krt);
-    c.lp(lp_1, klp);
-    c.read(dap1a TAIL, -kap);
-    c.writeAllPass(dap1a, kap);
-    c.read(dap1b TAIL, kap);
-    c.writeAllPass(dap1b, -kap);
-    c.write(del1, 2.0f);
-    c.writeAndLoad(wet, 0.0f);
-
-    outL = wet;
-
-    c.load(apout);
-    c.read(del1 TAIL, krt);
-    c.lp(lp_2, klp);
-    c.read(dap2a TAIL, kap);
-    c.writeAllPass(dap2a, -kap);
-    c.read(dap2b TAIL, -kap);
-    c.writeAllPass(dap2b, kap);
-    c.write(del2, 2.0f);
-    c.writeAndLoad(wet, 0.0f);
-
-    outR = wet;
-
-    this->lp_decay_1_ = lp_1;
-    this->lp_decay_2_ = lp_2;
+    outL *= this->OutputLevelCorrector;
+    outR *= this->OutputLevelCorrector;
 }
 
-void ShimmerReverb::setInputGain(float32_t gain)
+void ShimmerReverb::setInputGain(float32_t input_gain)
 {
-    this->input_gain_ = constrain(gain, 0.0f, 1.0f);
+    this->reverberator_.setInputGain(input_gain);
 }
 
 float32_t ShimmerReverb::getInputGain() const
 {
-    return this->input_gain_;
-}
-
-void ShimmerReverb::setTime(float32_t time)
-{
-    this->reverb_time_ = constrain(time, 0.0f, 1.0f);
-}
-
-float32_t ShimmerReverb::getTime() const
-{
-    return this->reverb_time_;
+    return this->reverberator_.getInputGain();
 }
 
 void ShimmerReverb::setDiffusion(float32_t diffusion)
 {
-    this->diffusion_ = constrain(diffusion, 0.0f, 1.0f);
+    this->reverberator_.setDiffusion(diffusion);
 }
 
 float32_t ShimmerReverb::getDiffusion() const
 {
-    return this->diffusion_;
+    return this->reverberator_.getDiffusion();
 }
 
-void ShimmerReverb::setLP(float32_t lp)
+void ShimmerReverb::setTime(float32_t time)
 {
-    this->lp_ = constrain(lp, 0.0f, 1.0f);
+    this->reverberator_.setTime(time);
 }
 
-float32_t ShimmerReverb::getLP() const
+float32_t ShimmerReverb::getTime() const
 {
-    return this->lp_;
+    return this->reverberator_.getTime();
+}
+
+void ShimmerReverb::setReverbAmount(float32_t amount)
+{
+    amount = constrain(amount, 0.0f, 1.0f);
+    if(this->amount_ != amount)
+    {
+        this->amount_ = amount;
+        this->updateReverberatorCoefficients();
+    }
+}
+
+void ShimmerReverb::setTexture(float32_t texture)
+{
+    texture = constrain(texture, 0.0f, 1.0f);
+    if(this->texture_ != texture)
+    {
+        this->texture_ = texture;
+        this->updateFilterCoefficients();
+    }
+}
+
+float32_t ShimmerReverb::getTexture() const
+{
+    return this->texture_;
+}
+
+void ShimmerReverb::setFeedback(float32_t feedback)
+{
+    feedback = constrain(feedback, 0.0f, 1.0f);
+    if(this->feedback_ != feedback)
+    {
+        this->feedback_ = feedback;
+        this->updateFilterCoefficients();
+        this->updateReverberatorCoefficients();
+    }
+}
+
+float32_t ShimmerReverb::getFeedback() const
+{
+    return this->feedback_;
+}
+
+void ShimmerReverb::setCutoff(float32_t cutoff)
+{
+    cutoff = constrain(cutoff, 0.0f, 1.0f);
+    if(this->cutoff_ != cutoff)
+    {
+        this->cutoff_ = cutoff;
+        this->updateFilterCoefficients();
+    }
+}
+
+void ShimmerReverb::updateFilterCoefficients()
+{
+    this->lp_cutoff_ = constrain(0.50f * semitoneToRatio((this->cutoff_ < 0.5f ? this->cutoff_ - 0.5f : 0.0f ) * 216.0f), 0.0f, 0.499f);
+    this->hp_cutoff_ = constrain(0.25f * semitoneToRatio((this->cutoff_ < 0.5f ? -0.5f : this->cutoff_ - 1.0f) * 216.0f), 0.0f, 0.499f);
+    this->lpq_ = 1.0f + 3.0f * (1.0f - this->feedback_) * (0.5f - this->lp_cutoff_);
+
+    this->lp_filter_.setFQ<SVF::FrequencyApproximation::FrequencyFast>(this->lp_cutoff_, this->lpq_);
+    this->hp_filter_.setFQ<SVF::FrequencyApproximation::FrequencyFast>(this->hp_cutoff_, 1.0f);
+
+    this->reverberator_.setLP(0.6f + 0.37f * this->feedback_);
+}
+
+void ShimmerReverb::updateReverberatorCoefficients()
+{
+    float32_t reverb_amount = this->amount_ * 0.95f;
+    reverb_amount += this->feedback_ * (2.0f - this->feedback_);
+    reverb_amount = constrain(reverb_amount, 0.0f, 1.0f);
+
+    this->setTime(0.35f + 0.63f * reverb_amount);
+}
+
+void ShimmerReverb::setPitch(float32_t pitch)
+{
+    this->pitch_shifter_.setTranspose(pitch);
+}
+
+float32_t ShimmerReverb::getPitch() const
+{
+    return this->pitch_shifter_.getTranspose();
+}
+
+void ShimmerReverb::setSize(float32_t size)
+{
+    this->pitch_shifter_.setSize(size);
+}
+
+float32_t ShimmerReverb::getSize() const
+{
+    return this->pitch_shifter_.getSize();
 }

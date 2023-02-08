@@ -8,8 +8,8 @@ Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float
     this->delay_lineL_ = new float32_t[this->MaxDelayLineSize];
     this->delay_lineR_ = new float32_t[this->MaxDelayLineSize];
 
-    this->lfo_[LFOIndex::LFO_L] = new LFO(sampling_rate, 0.1f, 5.0f);
-    this->lfo_[LFOIndex::LFO_R] = new LFO(sampling_rate, 0.1f, 5.0f, Constants::MPI_2);
+    this->lfo_[LFOIndex::LFO_L] = new LFO(sampling_rate, 0.1f, 5.0f, 0.0f, false);
+    this->lfo_[LFOIndex::LFO_R] = new LFO(sampling_rate, 0.1f, 5.0f, Constants::MPI_2, false);
 
     this->setRate(rate);
     this->setDepth(depth);

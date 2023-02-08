@@ -4,15 +4,14 @@
 #include <cmath>
 #include <algorithm>
 
-#define PITCH_SHIFT_BOUND 36.0f
-
 #define ONE_POLE(out, in, coefficient) out += (coefficient) * ((in) - out);
 
 #define TAIL , -1
 
-PitchShifter::PitchShifter(float32_t sampling_rate) : 
+PitchShifter::PitchShifter(float32_t sampling_rate, float32_t transpose_boundary) : 
     FXElement(sampling_rate),
     engine_(sampling_rate),
+    TransposeBoundary(transpose_boundary),
     phase_(0.0f),
     transpose_(0.0f),
     ratio_(0.0f),
@@ -74,7 +73,7 @@ void PitchShifter::processSample(float32_t inL, float32_t inR, float32_t& outL, 
 
 void PitchShifter::setTranspose(float32_t transpose)
 {
-    transpose = constrain(transpose, -PITCH_SHIFT_BOUND, PITCH_SHIFT_BOUND);
+    transpose = constrain(transpose, -this->TransposeBoundary, this->TransposeBoundary);
     if(this->transpose_ != transpose)
     {
         this->transpose_ = transpose;

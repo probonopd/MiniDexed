@@ -5,9 +5,9 @@
 
 #define TAIL , -1
 
-Diffuser::Diffuser(float32_t sampling_rate) : 
-    FXElement(sampling_rate),
-    engine_(sampling_rate)
+Diffuser::Diffuser(float32_t sampling_frequency) : 
+    FXElement(sampling_frequency),
+    engine_(sampling_frequency)
 {
 }
 

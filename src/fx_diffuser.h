@@ -30,7 +30,7 @@ class Diffuser : public FXElement
     DISALLOW_COPY_AND_ASSIGN(Diffuser);
 
 public:
-    Diffuser(float32_t sampling_rate);
+    Diffuser(float32_t sampling_frequency);
     virtual ~Diffuser();
 
     virtual void reset() override;
@@ -40,6 +40,25 @@ private:
     typedef FxEngine<DIFFUSER_BUFFER_SIZE, Format::FORMAT_FLOAT32, false> Engine;
     Engine engine_;
 
-    IMPLEMENT_DUMP()
-    IMPLEMENT_INSPECT(return 0u;)
+    IMPLEMENT_DUMP(
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        if(deepInspection)
+        {
+            this->engine_.dump(out, deepInspection, tag + ".engine_");
+        }
+    
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        if(deepInspection)
+        {
+            nb_errors += this->engine_.inspect(inspector, deepInspection, tag + ".engine_");
+        }
+
+        return nb_errors;
+    )
 };

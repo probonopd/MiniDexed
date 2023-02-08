@@ -5,15 +5,15 @@ OUTPUT_FOLDER := results
 EXE := $(BINDIR)/all_tests.bin
 BETA := $(BINDIR)/beta.bin
 
-CXX = g++
+CXX		 =	g++
 CXXFLAGS = 	-g -Wall -std=c++20 -MMD -MP
 DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
 INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src/
 
-CPPCHECK = cppcheck
-CHECKFLAGS = 	-q -j 8 --enable=all --force --language=c++ \
+CPPCHECK 	= cppcheck
+CHECKFLAGS 	= 	-q -j 8 --enable=all --force --language=c++ \
 				$(INCLUDES) --platform=unix64 \
 				--error-exitcode=0 \
 				--suppressions-list=cppcheck-suppression-list.txt
@@ -21,7 +21,7 @@ CHECKFLAGS = 	-q -j 8 --enable=all --force --language=c++ \
 -include $(TST_OBJS:.o=.d)
 -include $(FX__OBJS:.o=.d)
 
-LD := g++
+LD 	 := g++
 LIBS := -lm -lstdc++ -lgtest -lpthread
 
 FX__SRCS := ../fx.cpp

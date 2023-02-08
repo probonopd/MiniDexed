@@ -13,10 +13,10 @@ Chorus::Chorus(float32_t sampling_rate) :
     fullscale_depth_(0.0f),
     feedback_(0.0f)
 {
-    this->lfo_[LFOIndex::Sin1] = new LFO(sampling_rate, 0.0f, LFO1_MAX_FREQ);
-    this->lfo_[LFOIndex::Cos1] = new LFO(sampling_rate, 0.0f, LFO1_MAX_FREQ, Constants::MPI_2);
-    this->lfo_[LFOIndex::Sin2] = new LFO(sampling_rate, 0.0f, LFO2_MAX_FREQ);
-    this->lfo_[LFOIndex::Cos2] = new LFO(sampling_rate, 0.0f, LFO2_MAX_FREQ, Constants::MPI_2);
+    this->lfo_[LFOIndex::Sin1] = new LFO(sampling_rate, 0.0f, LFO1_MAX_FREQ, 0.0f, false);
+    this->lfo_[LFOIndex::Cos1] = new LFO(sampling_rate, 0.0f, LFO1_MAX_FREQ, Constants::MPI_2, false);
+    this->lfo_[LFOIndex::Sin2] = new LFO(sampling_rate, 0.0f, LFO2_MAX_FREQ, 0.0f, false);
+    this->lfo_[LFOIndex::Cos2] = new LFO(sampling_rate, 0.0f, LFO2_MAX_FREQ, Constants::MPI_2, false);
 
     this->setRate(0.1f);
     this->setDepth(0.15f);

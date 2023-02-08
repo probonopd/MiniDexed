@@ -10,8 +10,8 @@
 
 Delay::LowHighPassFilter::LowHighPassFilter(float32_t sampling_rate) :
     FXElement(sampling_rate),
-    lpf_(sampling_rate, StateVariableFilter::Type::LPF, LPF_CUTOFF_REF),
-    hpf_(sampling_rate, StateVariableFilter::Type::HPF, HPF_CUTOFF_REF),
+    lpf_(sampling_rate, StateVariableFilter::FilterMode::LPF, LPF_CUTOFF_REF),
+    hpf_(sampling_rate, StateVariableFilter::FilterMode::HPF, HPF_CUTOFF_REF),
     ratio_(1.0f)
 {
     this->setCutoffChangeRatio(0.0f);

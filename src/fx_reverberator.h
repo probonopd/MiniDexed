@@ -99,6 +99,8 @@ private:
         {
             this->engine_.dump(out, deepInspection, tag + ".engine_");
         }
+    
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
     )
 
     IMPLEMENT_INSPECT(
@@ -108,8 +110,8 @@ private:
         nb_errors += inspector(tag + ".reverb_time_", this->reverb_time_, 0.0f, 1.0f, deepInspection);
         nb_errors += inspector(tag + ".diffusion_", this->diffusion_, 0.0f, 1.0f, deepInspection);
         nb_errors += inspector(tag + ".lp_", this->lp_, 0.0f, 1.0f, deepInspection);
-        nb_errors += inspector(tag + ".lp_decay_1_", this->lp_decay_1_, 0.0f, 1.0f, deepInspection);
-        nb_errors += inspector(tag + ".lp_decay_2_", this->lp_decay_2_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".lp_decay_1_", this->lp_decay_1_, -1.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".lp_decay_2_", this->lp_decay_2_, -1.0f, 1.0f, deepInspection);
 
         if(deepInspection)
         {

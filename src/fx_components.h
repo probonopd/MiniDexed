@@ -26,6 +26,13 @@
 
 struct Constants
 {
+    const static float32_t M_PI_POW_2;  // PI^2
+    const static float32_t M_PI_POW_3;  // PI^3
+    const static float32_t M_PI_POW_5;  // PI^5
+    const static float32_t M_PI_POW_7;  // PI^7
+    const static float32_t M_PI_POW_9;  // PI^9
+    const static float32_t M_PI_POW_11; // PI^11
+
     const static float32_t M2PI;   // 2 * PI
     const static float32_t MPI_2;  // PI / 2
     const static float32_t MPI_3;  // PI / 3
@@ -39,7 +46,7 @@ class FastLFO : public FXBase
     DISALLOW_COPY_AND_ASSIGN(FastLFO);
 
 public:
-    FastLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    FastLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~FastLFO();
 
     void setNormalizedFrequency(float32_t normalized_frequency);
@@ -58,6 +65,7 @@ private:
     const float32_t InitialPhase;
     const float32_t min_frequency_;
     const float32_t max_frequency_;
+    const bool      centered_;
     float32_t       frequency_;
     float32_t       normalized_frequency_;
     float32_t       unitary_frequency_;
@@ -135,7 +143,7 @@ class InterpolatedSineOscillator : public FXBase
     DISALLOW_COPY_AND_ASSIGN(InterpolatedSineOscillator);
 
 public:
-    InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~InterpolatedSineOscillator();
 
     void setNormalizedFrequency(float32_t normalized_frequency);
@@ -152,16 +160,18 @@ private:
     static bool ClassInitializer();
     static const size_t DataPointSize = 176400;
     static const float32_t DeltaTime; 
-    static float32_t DataPoints[];
+    static float32_t CenteredDataPoints[];
+    static float32_t UpliftDataPoints[];
 
-    const float32_t                             InitialPhase;
-    const float32_t                             min_frequency_;
-    const float32_t                             max_frequency_;
-    float32_t                                   frequency_;
-    float32_t                                   normalized_frequency_;
-    float32_t                                   phase_index_;
-    float32_t                                   phase_index_increment_;
-    float32_t                                   current_sample_;
+    const float32_t InitialPhase;
+    const float32_t min_frequency_;
+    const float32_t max_frequency_;
+    const bool      centered_;
+    float32_t       frequency_;
+    float32_t       normalized_frequency_;
+    float32_t       phase_index_;
+    float32_t       phase_index_increment_;
+    float32_t       current_sample_;
 
     IMPLEMENT_DUMP(
         const size_t space = 22;
@@ -227,7 +237,7 @@ public:
         Noise
     } Waveform;
 
-    ComplexLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f);
+    ComplexLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~ComplexLFO();
 
     void setWaveform(Waveform waveform);
@@ -247,6 +257,7 @@ private:
     const float32_t                             InitialPhase;
     const float32_t                             min_frequency_;
     const float32_t                             max_frequency_;
+    const bool                                  centered_;
     Waveform                                    waveform_;
     float32_t                                   normalized_frequency_;
     float32_t                                   frequency_;
