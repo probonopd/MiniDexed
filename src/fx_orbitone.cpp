@@ -4,7 +4,7 @@
 #define LFO_FAST_MAX_FREQUENCY 8.8f
 
 Orbitone::Orbitone(float32_t sampling_rate, float32_t rate, float32_t depth) : 
-    FXElement(sampling_rate, 1.8f),
+    FXElement(sampling_rate, 1.4442f),
     engine_(sampling_rate, 0.0f),
     depth_(0.0f),
     fullscale_depth_(0.0f)

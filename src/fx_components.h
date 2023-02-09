@@ -24,6 +24,9 @@
 #include <random>
 #include <cassert>
 
+#define LFO_MIN_FREQUENCY 0.01f
+#define LFO_MAX_FREQUENCY 10.0f
+
 struct Constants
 {
     const static float32_t M_PI_POW_2;  // PI^2
@@ -46,7 +49,7 @@ class FastLFO : public FXBase
     DISALLOW_COPY_AND_ASSIGN(FastLFO);
 
 public:
-    FastLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
+    FastLFO(float32_t sampling_rate, float32_t min_frequency = LFO_MIN_FREQUENCY, float32_t max_frequency = LFO_MAX_FREQUENCY, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~FastLFO();
 
     void setNormalizedFrequency(float32_t normalized_frequency);
@@ -143,7 +146,7 @@ class InterpolatedSineOscillator : public FXBase
     DISALLOW_COPY_AND_ASSIGN(InterpolatedSineOscillator);
 
 public:
-    InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
+    InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = LFO_MIN_FREQUENCY, float32_t max_frequency = LFO_MAX_FREQUENCY, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~InterpolatedSineOscillator();
 
     void setNormalizedFrequency(float32_t normalized_frequency);
@@ -237,7 +240,7 @@ public:
         Noise
     } Waveform;
 
-    ComplexLFO(float32_t sampling_rate, float32_t min_frequency = 0.01f, float32_t max_frequency = 10.0f, float32_t initial_phase = 0.0f, bool centered = true);
+    ComplexLFO(float32_t sampling_rate, float32_t min_frequency = LFO_MIN_FREQUENCY, float32_t max_frequency = LFO_MAX_FREQUENCY, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~ComplexLFO();
 
     void setWaveform(Waveform waveform);

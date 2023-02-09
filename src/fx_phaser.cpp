@@ -33,7 +33,7 @@ void Phaser::AllpassDelay::setDelay(float32_t delayL, float32_t delayR)
 
 
 Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 1.3804f),
     depth_(0.0f),
     gain_(1.0f),
     feedback_(0.0f),

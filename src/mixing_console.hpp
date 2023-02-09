@@ -341,15 +341,15 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
 template<size_t nb_inputs>
 MixingConsole<nb_inputs>::~MixingConsole()
 {
-    for(size_t i = 0; i < nb_inputs; ++i)
-    {
-        delete this->input_sample_buffer_[StereoChannels::Left ][i];
-        delete this->input_sample_buffer_[StereoChannels::Right][i];
-    }
-
     for(size_t i = 0; i < MixerOutput::kFXCount; ++i)
     {
         delete this->fx_[i];
+    }
+
+    for(size_t i = 0; i < nb_inputs; ++i)
+    {
+        delete[] this->input_sample_buffer_[StereoChannels::Left ][i];
+        delete[] this->input_sample_buffer_[StereoChannels::Right][i];
     }
 }
 

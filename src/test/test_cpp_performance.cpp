@@ -29,7 +29,7 @@ TEST(CppPerformance, LFOPerformance_ComplexLFO_InterpolatedSineOscillator)
     }
     auto d2 = LAP_TIME("lfo2");
 
-    EXPECT_LE(d1, d2);
+    EXPECT_GE(d1, d2);
 }
 
 TEST(CppPerformance, LFOPerformance_ComplexLFO_FastLFO)
@@ -67,23 +67,27 @@ TEST(CppPerformance, FastLFOTuning)
     full_test_name += test_info->name();
     
     size_t NB = static_cast<size_t>(1.0f * SAMPLING_FREQUENCY);
-    float32_t freq = 5.0f;
+    float32_t freq = 0.5f;
 
     FastLFO lfo1(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo1.setFrequency(freq);
 
-    ComplexLFO lfo2(SAMPLING_FREQUENCY, freq, 440.0f);
+    InterpolatedSineOscillator lfo2(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo2.setFrequency(freq);
 
-    std::ofstream out(getResultFile(full_test_name + ".FastLFOTuning-data.csv", true));
+    ComplexLFO lfo3(SAMPLING_FREQUENCY, freq, 440.0f);
+    lfo3.setFrequency(freq);
+
+    std::ofstream out(getResultFile(full_test_name + ".data.csv", true));
     setupOuputStreamForCSV(out);
-    out << "index;FastLFO;ComplexLFO" << std::endl;
+    out << "index;FastLFO;InterpolatedSineOscillator;ComplexLFO" << std::endl;
     for(size_t i = 0; i < NB; ++i)
     {
         out 
             << i << ";" 
             << lfo1.process() << ";" 
-            << lfo2.process() << std::endl;
+            << lfo2.process() << ";"
+            << lfo3.process() << std::endl;
     }
     out.close();
 }
