@@ -72,6 +72,8 @@ private:
     float32_t       frequency_;
     float32_t       normalized_frequency_;
     float32_t       unitary_frequency_;
+    size_t          nb_sub_increment_;
+    size_t          sub_increment_;
 
     float32_t       y0_;
     float32_t       y1_;

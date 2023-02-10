@@ -67,7 +67,7 @@ TEST(CppPerformance, FastLFOTuning)
     full_test_name += test_info->name();
     
     size_t NB = static_cast<size_t>(1.0f * SAMPLING_FREQUENCY);
-    float32_t freq = 0.5f;
+    float32_t freq = 1.5f;
 
     FastLFO lfo1(SAMPLING_FREQUENCY, freq, 440.0f);
     lfo1.setFrequency(freq);
