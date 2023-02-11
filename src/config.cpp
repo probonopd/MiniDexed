@@ -70,6 +70,7 @@ void CConfig::Load (void)
 	
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
 	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
+	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 1) != 0;
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -84,6 +85,8 @@ void CConfig::Load (void)
 	m_nSSD1306LCDI2CAddress = m_Properties.GetNumber ("SSD1306LCDI2CAddress", 0);
 	m_nSSD1306LCDWidth = m_Properties.GetNumber ("SSD1306LCDWidth", 128);
 	m_nSSD1306LCDHeight = m_Properties.GetNumber ("SSD1306LCDHeight", 32);
+	m_bSSD1306LCDRotate = m_Properties.GetNumber ("SSD1306LCDRotate", 0) != 0;
+	m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
 
 	m_nLCDColumns = m_Properties.GetNumber ("LCDColumns", 16);
 	m_nLCDRows = m_Properties.GetNumber ("LCDRows", 2);
@@ -171,6 +174,11 @@ bool CConfig::GetIgnoreAllNotesOff (void) const
 	return m_bIgnoreAllNotesOff;
 }
 
+bool CConfig::GetMIDIAutoVoiceDumpOnPC (void) const
+{
+	return m_bMIDIAutoVoiceDumpOnPC;
+}
+
 bool CConfig::GetLCDEnabled (void) const
 {
 	return m_bLCDEnabled;
@@ -229,6 +237,16 @@ unsigned CConfig::GetSSD1306LCDWidth (void) const
 unsigned CConfig::GetSSD1306LCDHeight (void) const
 {
 	return m_nSSD1306LCDHeight;
+}
+
+bool CConfig::GetSSD1306LCDRotate (void) const
+{
+	return m_bSSD1306LCDRotate;
+}
+
+bool CConfig::GetSSD1306LCDMirror (void) const
+{
+	return m_bSSD1306LCDMirror;
 }
 
 unsigned CConfig::GetLCDColumns (void) const
