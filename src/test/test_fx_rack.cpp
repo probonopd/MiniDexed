@@ -40,18 +40,18 @@ void setupRack(FXRack* rack, int scenario)
 
     rack->getDelay()->setEnable(Active(scenario, FXSwitch::FX__Delay));
     rack->getDelay()->setWetLevel(0.6f);
-    rack->getDelay()->setLeftDelayTime(0.15f);
-    rack->getDelay()->setLeftDelayTime(0.2f);
+    rack->getDelay()->setLeftDelayTime(0.05f);
+    rack->getDelay()->setLeftDelayTime(0.07f);
     rack->getDelay()->setFeedback(0.35f);
     rack->getDelay()->setFlutterRate(0.0f);
     rack->getDelay()->setFlutterAmount(0.0f);
 
-    rack->getShimmerReverb()->setEnable(Active(scenario, FXSwitch::FX__ShimmerReverb));
-    rack->getShimmerReverb()->setWetLevel(0.5f);
-    rack->getShimmerReverb()->setInputGain(0.35f);
-    rack->getShimmerReverb()->setTime(0.89f);
-    rack->getShimmerReverb()->setDiffusion(0.75f);
-    rack->getShimmerReverb()->setLP(0.8f);
+    rack->getReverberator()->setEnable(Active(scenario, FXSwitch::FX__Reverberator));
+    rack->getReverberator()->setWetLevel(0.5f);
+    rack->getReverberator()->setInputGain(0.35f);
+    rack->getReverberator()->setTime(0.89f);
+    rack->getReverberator()->setDiffusion(0.75f);
+    rack->getReverberator()->setLP(0.8f);
 }
 
 TEST_P(FXScenarioTest, FXRackResetAllScenarios)
@@ -84,4 +84,4 @@ TEST_P(FXScenarioTest, ScenarioProcessing)
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
-INSTANTIATE_TEST_SUITE_P(FXRack, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__ShimmerReverb + 1)));
+INSTANTIATE_TEST_SUITE_P(FXRack, FXScenarioTest, testing::Range(0, 1 << (FXSwitch::FX__Reverberator + 1)));

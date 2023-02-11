@@ -49,5 +49,6 @@ sdcard
 
 # temporary tests
 src/test/*.bin
+src/test/bin
 src/test/results
 src/test/objects

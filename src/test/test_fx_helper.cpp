@@ -12,7 +12,7 @@ std::string getScenarioName(int scenario)
     bool fxOrbitone = Active(scenario, FXSwitch::FX__Orbitone);
     bool fxFlanger = Active(scenario, FXSwitch::FX__Flanger);
     bool fxDelay = Active(scenario, FXSwitch::FX__Delay);
-    bool fxShimmer = Active(scenario, FXSwitch::FX__ShimmerReverb);
+    bool fxReverberator = Active(scenario, FXSwitch::FX__Reverberator);
     bool fxReverb = Active(scenario, FXSwitch::FX__PlateReverb);
     bool first = true;
 
@@ -67,7 +67,7 @@ std::string getScenarioName(int scenario)
         first = false;
     }
 
-    if(fxShimmer) 
+    if(fxReverberator) 
     {
         if(!first) ss << ", ";
         ss << "Shim";

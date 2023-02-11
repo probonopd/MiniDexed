@@ -121,7 +121,7 @@ public:
         write_ptr_(0)
     {
         this->buffer_ = new T[size];
-        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency) : nullptr;
+        for(unsigned i = 0; i < LFOIndex::kLFOCount; ++i) this->lfo_[i] = enable_lfo ? new LFO(sampling_rate, 0.0f, max_lfo_frequency, 0.0f, false) : nullptr;
         this->clear();
     }
 
@@ -338,8 +338,7 @@ public:
         {
             assert((D::base + D::length) <= size);
 
-            int32_t offset_integral = static_cast<int32_t>(offset);
-            float32_t offset_fractional = offset - static_cast<float32_t>(offset_integral);
+            MAKE_INTEGRAL_FRACTIONAL(offset);
 
             int32_t index = this->write_ptr_ + offset_integral + D::base;
             float32_t a = DataType<format>::decompress(this->buffer_[index & MASK]);
@@ -355,7 +354,7 @@ public:
         {
             assert(index < LFOIndex::kLFOCount);
 
-            this->interpolate(d, offset + amplitude * this->lfo_value_[index], scale);
+            this->interpolate(d, offset + amplitude * (this->lfo_value_[index] * 0.5f + 0.5f), scale);
         }
 
     private:
@@ -482,7 +481,7 @@ private:
 
             if(enable_lfo)
             {
-                for(size_t i = 0; i < size; ++i)
+                for(size_t i = 0; i < LFOIndex::kLFOCount; ++i)
                 {
                     this->lfo_[i]->inspect(inspector, deepInspection, tag + ".lfo_[ " + std::to_string(i) + " ]");
                 }

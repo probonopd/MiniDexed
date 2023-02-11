@@ -1,15 +1,15 @@
 #include "fx_flanger.h"
 
 Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) :
-    FXElement(sampling_rate, 1.17f),
+    FXElement(sampling_rate, 0.9288f),
     MaxDelayLineSize(static_cast<unsigned>(MAX_FLANGER_DELAY * sampling_rate)),
     write_index_(0)
 {
     this->delay_lineL_ = new float32_t[this->MaxDelayLineSize];
     this->delay_lineR_ = new float32_t[this->MaxDelayLineSize];
 
-    this->lfo_[LFOIndex::LFO_L] = new LFO(sampling_rate, 0.1f, 5.0f);
-    this->lfo_[LFOIndex::LFO_R] = new LFO(sampling_rate, 0.1f, 5.0f, Constants::MPI_2);
+    this->lfo_[LFOIndex::LFO_L] = new LFO(sampling_rate, 0.1f, 5.0f, 0.0f, false);
+    this->lfo_[LFOIndex::LFO_R] = new LFO(sampling_rate, 0.1f, 5.0f, Constants::MPI_2, false);
 
     this->setRate(rate);
     this->setDepth(depth);

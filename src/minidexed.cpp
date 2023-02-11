@@ -936,37 +936,37 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterFXChainShimmerReverbEnable: 
 		nValue = constrain((int)nValue, 0, 1);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setEnable(!!nValue);
+		this->fx_rack->getReverberator()->setEnable(!!nValue);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbWet: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setWetLevel(nValue / 99.0f);
+		this->fx_rack->getReverberator()->setWetLevel(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbInputGain: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setInputGain(nValue / 99.0f);
+		this->fx_rack->getReverberator()->setInputGain(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbTime: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setTime(nValue / 99.0f);
+		this->fx_rack->getReverberator()->setTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbDiffusion: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setDiffusion(nValue / 99.0f);
+		this->fx_rack->getReverberator()->setDiffusion(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case ParameterFXChainShimmerReverbLP: 
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
-		this->fx_rack->getShimmerReverb()->setLP(nValue / 99.0f);
+		this->fx_rack->getReverberator()->setLP(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	#endif

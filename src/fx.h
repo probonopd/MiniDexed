@@ -25,6 +25,10 @@
 #include "debug.hpp"
 #include "fx_base.h"
 
+#define MAKE_INTEGRAL_FRACTIONAL(x) \
+    size_t x ## _integral = static_cast<size_t>(x); \
+    float32_t x ## _fractional = x - static_cast<float32_t>(x ## _integral)
+
 class INSPECTABLE(FXBase)
 {
     DISALLOW_COPY_AND_ASSIGN(FXBase);

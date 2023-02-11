@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "test_fx_helper.h"
-#include "../fx_shimmer_reverb.h"
+#include "../fx_reverberator.h"
 
-TEST(FXShimmerReverb, TransientSilence)
+TEST(FXReverberator, TransientSilence)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -19,17 +19,17 @@ TEST(FXShimmerReverb, TransientSilence)
     memset(outSamplesL, 0, size * sizeof(float32_t));
     memset(outSamplesR, 0, size * sizeof(float32_t));
 
-    ShimmerReverb* shimmer = new ShimmerReverb(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
 
-    shimmer->setInputGain(0.55f);
-    shimmer->setTime(0.75f);
-    shimmer->setDiffusion(0.8f);
-    shimmer->setLP(0.7f);
+    fx.setInputGain(0.55f);
+    fx.setTime(0.75f);
+    fx.setDiffusion(0.8f);
+    fx.setLP(0.7f);
 
-    shimmer->reset();
+    fx.reset();
     for(size_t i = 0; i < size; ++i)
     {
-        shimmer->processSample(
+        fx.processSample(
             inSamples[i], 
             inSamples[i], 
             outSamplesL[i], 
@@ -39,15 +39,13 @@ TEST(FXShimmerReverb, TransientSilence)
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
 
-    delete shimmer;
-
     delete[] inSamples;
 
     delete[] outSamplesL;
     delete[] outSamplesR;
 }
 
-TEST(FXShimmerReverb, TransientSilenceWithDirac)
+TEST(FXReverberator, TransientSilenceWithDirac)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -64,17 +62,17 @@ TEST(FXShimmerReverb, TransientSilenceWithDirac)
     memset(outSamplesL, 0, size * sizeof(float32_t));
     memset(outSamplesR, 0, size * sizeof(float32_t));
 
-    ShimmerReverb* shimmer = new ShimmerReverb(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
 
-    shimmer->setInputGain(0.55f);
-    shimmer->setTime(0.75f);
-    shimmer->setDiffusion(0.8f);
-    shimmer->setLP(0.7f);
+    fx.setInputGain(0.55f);
+    fx.setTime(0.75f);
+    fx.setDiffusion(0.8f);
+    fx.setLP(0.7f);
 
-    shimmer->reset();
+    fx.reset();
     for(size_t i = 0; i < size; ++i)
     {
-        shimmer->processSample(
+        fx.processSample(
             inSamples[i], 
             inSamples[i], 
             outSamplesL[i], 
@@ -84,15 +82,13 @@ TEST(FXShimmerReverb, TransientSilenceWithDirac)
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
 
-    delete shimmer;
-
     delete[] inSamples;
 
     delete[] outSamplesL;
     delete[] outSamplesR;
 }
 
-TEST(FXShimmerReverb, TransientNoise)
+TEST(FXReverberator, TransientNoise)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -108,17 +104,17 @@ TEST(FXShimmerReverb, TransientNoise)
     memset(outSamplesL, 0, size * sizeof(float32_t));
     memset(outSamplesR, 0, size * sizeof(float32_t));
 
-    ShimmerReverb* shimmer = new ShimmerReverb(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
 
-    shimmer->setInputGain(0.55f);
-    shimmer->setTime(0.75f);
-    shimmer->setDiffusion(0.8f);
-    shimmer->setLP(0.7f);
+    fx.setInputGain(0.55f);
+    fx.setTime(0.75f);
+    fx.setDiffusion(0.8f);
+    fx.setLP(0.7f);
 
-    shimmer->reset();
+    fx.reset();
     for(size_t i = 0; i < size; ++i)
     {
-        shimmer->processSample(
+        fx.processSample(
             inSamples[i], 
             inSamples[i], 
             outSamplesL[i], 
@@ -128,15 +124,13 @@ TEST(FXShimmerReverb, TransientNoise)
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
 
-    delete shimmer;
-
     delete[] inSamples;
 
     delete[] outSamplesL;
     delete[] outSamplesR;
 }
 
-TEST(FXShimmerReverb, TransientMusic)
+TEST(FXReverberator, TransientMusic)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -151,17 +145,17 @@ TEST(FXShimmerReverb, TransientMusic)
     memset(outSamplesL, 0, size * sizeof(float32_t));
     memset(outSamplesR, 0, size * sizeof(float32_t));
 
-    ShimmerReverb* shimmer = new ShimmerReverb(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
 
-    shimmer->setInputGain(0.55f);
-    shimmer->setTime(0.75f);
-    shimmer->setDiffusion(0.8f);
-    shimmer->setLP(0.7f);
+    fx.setInputGain(0.55f);
+    fx.setTime(0.75f);
+    fx.setDiffusion(0.8f);
+    fx.setLP(0.7f);
 
-    shimmer->reset();
+    fx.reset();
     for(size_t i = 0; i < size; ++i)
     {
-        shimmer->processSample(
+        fx.processSample(
             inSamples[0][i], 
             inSamples[1][i], 
             outSamplesL[i], 
@@ -170,8 +164,6 @@ TEST(FXShimmerReverb, TransientMusic)
     }
 
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamplesL, outSamplesR, size, SAMPLING_FREQUENCY, 16);
-
-    delete shimmer;
 
     delete[] inSamples[0];
     delete[] inSamples[1];

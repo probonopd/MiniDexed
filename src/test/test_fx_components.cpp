@@ -59,10 +59,10 @@ TEST(FXComponent, SVF)
 {
     float32_t inL, inR;
     float32_t outL, outR;
-    StateVariableFilter svf(SAMPLING_FREQUENCY, StateVariableFilter::Type::LPF, 12000.0f);
+    StateVariableFilter svf(SAMPLING_FREQUENCY, StateVariableFilter::FilterMode::LPF, 12000.0f);
 
     {
-        svf.setFilterType(StateVariableFilter::Type::LPF);
+        svf.setFilterMode(StateVariableFilter::FilterMode::LPF);
         svf.setCutoff(12000.0f);
         svf.setResonance(0.0f);
         unsigned nbSamples = 0;
@@ -83,7 +83,7 @@ TEST(FXComponent, SVF)
     }
 
     {
-        svf.setFilterType(StateVariableFilter::Type::LPF);
+        svf.setFilterMode(StateVariableFilter::FilterMode::LPF);
         svf.setCutoff(60.0f);
         svf.setResonance(0.0f);
         unsigned nbSamples = 0;

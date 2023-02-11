@@ -1,6 +1,5 @@
 #include "test_fx_helper.h"
 
-#include "../fx_dry.h"
 #include "../fx_tube.h"
 #include "../fx_chorus.h"
 #include "../fx_flanger.h"
@@ -8,17 +7,7 @@
 #include "../fx_phaser.h"
 #include "../fx_delay.h"
 #include "../effect_platervbstereo.h"
-#include "../fx_shimmer_reverb.h"
-
-TEST(UnitFXTuning, Dry)
-{
-    Dry fx(SAMPLING_FREQUENCY);
-
-    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
-    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
-    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
-    CLEANUP_AUDIO_TEST(inSamples, outSamples);
-}
+#include "../fx_reverberator.h"
 
 TEST(UnitFXTuning, Tube)
 {
@@ -114,9 +103,9 @@ TEST(UnitFXTuning, PlateReverb)
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
-TEST(UnitFXTuning, ShimmerReverb)
+TEST(UnitFXTuning, Reverberator)
 {
-    ShimmerReverb fx(SAMPLING_FREQUENCY);
+    Reverberator fx(SAMPLING_FREQUENCY);
     fx.setInputGain(0.65f);
     fx.setTime(0.89f);
     fx.setDiffusion(0.75f);
@@ -127,4 +116,3 @@ TEST(UnitFXTuning, ShimmerReverb)
     SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
-

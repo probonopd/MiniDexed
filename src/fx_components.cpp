@@ -5,6 +5,13 @@
 ///////////////////////////////
 // Constants implemlentation //
 ///////////////////////////////
+const float32_t Constants::M_PI_POW_2  = PI * PI;
+const float32_t Constants::M_PI_POW_3  = Constants::M_PI_POW_2 * PI;
+const float32_t Constants::M_PI_POW_5  = Constants::M_PI_POW_2 * Constants::M_PI_POW_3;
+const float32_t Constants::M_PI_POW_7  = Constants::M_PI_POW_2 * Constants::M_PI_POW_5;
+const float32_t Constants::M_PI_POW_9  = Constants::M_PI_POW_2 * Constants::M_PI_POW_7;
+const float32_t Constants::M_PI_POW_11 = Constants::M_PI_POW_2 * Constants::M_PI_POW_9;
+
 const float32_t Constants::M2PI = 2.0f * PI;
 const float32_t Constants::MPI_2 = PI / 2.0f;
 const float32_t Constants::MPI_3 = PI / 3.0f;
@@ -15,12 +22,15 @@ const float32_t Constants::M1_PI = 1.0f / PI;
 /////////////////////////////
 // FastLFO implemlentation //
 /////////////////////////////
-FastLFO::FastLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase) :
+FastLFO::FastLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase, bool centered) :
     FXBase(sampling_rate),
     InitialPhase(initial_phase),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
+    centered_(centered),
     frequency_(0.0f),
+    nb_sub_increment_(1),
+    sub_increment_(0),
     y0_(0.0f),
     y1_(0.0f),
     iir_coefficient_(0.0f),
@@ -46,6 +56,9 @@ void FastLFO::setNormalizedFrequency(float32_t normalized_frequency)
         this->frequency_ = frequency;
         this->unitary_frequency_ = this->frequency_ / this->getSamplingRate();
 
+        this->nb_sub_increment_ = (frequency >= 3.0f ? 1 : 300);
+        this->unitary_frequency_ *= this->nb_sub_increment_;
+
         this->updateCoefficient();
     }
 }
@@ -65,6 +78,9 @@ void FastLFO::setFrequency(float32_t frequency)
         this->frequency_ = frequency;
         this->unitary_frequency_ = this->frequency_ / this->getSamplingRate();
 
+        this->nb_sub_increment_ = (frequency >= 3.0f ? 1 : 300);
+        this->unitary_frequency_ *= this->nb_sub_increment_;
+
         this->updateCoefficient();
     }
 }
@@ -76,7 +92,7 @@ float32_t FastLFO::getFrequency() const
 
 void FastLFO::updateCoefficient()
 {
-    float32_t frequency = this->unitary_frequency_;
+    float32_t frequency = this->unitary_frequency_ * 268.0f / 240.0f;
 
     float32_t sign = 16.0f;
     frequency -= 0.25f;
@@ -104,6 +120,8 @@ void FastLFO::updateCoefficient()
 
 void FastLFO::reset()
 {
+    this->sub_increment_ = 0.0f;
+
     // computing cos(0) = sin(-PI/2)
     this->y1_ = this->initial_amplitude_;
     this->y0_ = 0.5f;
@@ -113,12 +131,12 @@ void FastLFO::reset()
         return;
     }
 
-    float32_t p_i = Constants::M2PI * this->unitary_frequency_;
-    float32_t p = 0.0f;
-    float32_t t_p = this->InitialPhase - Constants::MPI_2;
-    if(t_p < 0.0f)
+    float32_t p_i = Constants::M2PI * this->unitary_frequency_ / static_cast<float32_t>(this->nb_sub_increment_);
+    float32_t p = Constants::MPI_2;
+    float32_t t_p = this->InitialPhase;
+    if(t_p < p)
     {
-        t_p += Constants::M2PI;
+        p -= Constants::M2PI;
     }
     while(p < t_p)
     {
@@ -130,11 +148,23 @@ void FastLFO::reset()
 float32_t FastLFO::process()
 {
     float32_t temp = this->y0_;
-    this->y0_ = this->iir_coefficient_ * this->y0_ - this->y1_;
-    this->y1_ = temp;
-    this->current_ = (temp + 0.5f) * 2.0f - 1.0f;
+    float32_t current = temp + 0.5f;
+    if(this->centered_)
+    {
+        current = current * 2.0f - 1.0f;
+    }
 
-    return this->current_;
+    this->sub_increment_++;
+    if(this->sub_increment_ >= this->nb_sub_increment_)
+    {
+        this->sub_increment_ = 0;
+        this->y0_ = this->iir_coefficient_ * this->y0_ - this->y1_;
+        this->y1_ = temp;
+        this->current_ = current;
+        return current;
+    }
+
+    return mapfloat(this->sub_increment_, 0, this->nb_sub_increment_, this->current_, current);
 }
 
 float32_t FastLFO::current() const
@@ -152,22 +182,25 @@ bool InterpolatedSineOscillator::ClassInitializer()
     float32_t phase = 0.0;
     for(size_t i = 0; i <= InterpolatedSineOscillator::DataPointSize; ++i)
     {
-        InterpolatedSineOscillator::DataPoints[i] = std::sin(phase);
+        InterpolatedSineOscillator::CenteredDataPoints[i] = std::sin(phase);
+        InterpolatedSineOscillator::UpliftDataPoints[i] = InterpolatedSineOscillator::CenteredDataPoints[i] * 0.5f + 0.5f;
         phase += phase_increment;
     }
 
     return true;
 }
 
-float32_t InterpolatedSineOscillator::DataPoints[InterpolatedSineOscillator::DataPointSize + 1];
+float32_t InterpolatedSineOscillator::CenteredDataPoints[InterpolatedSineOscillator::DataPointSize + 1];
+float32_t InterpolatedSineOscillator::UpliftDataPoints[InterpolatedSineOscillator::DataPointSize + 1];
 
 const float32_t InterpolatedSineOscillator::DeltaTime = Constants::M2PI / static_cast<float32_t>(InterpolatedSineOscillator::DataPointSize);
 
-InterpolatedSineOscillator::InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase) :
+InterpolatedSineOscillator::InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase, bool centered) :
     FXBase(sampling_rate),
     InitialPhase(initial_phase),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
+    centered_(centered),
     frequency_(0.0f),
     normalized_frequency_(-1.0f),
     phase_index_(initial_phase / InterpolatedSineOscillator::DeltaTime),
@@ -232,14 +265,16 @@ void InterpolatedSineOscillator::reset()
 
 float32_t InterpolatedSineOscillator::process()
 {
+    float32_t* dataPoints = this->centered_ ? InterpolatedSineOscillator::CenteredDataPoints : InterpolatedSineOscillator::UpliftDataPoints;
+
     float32_t out = 0.0f;
 
     float32_t findex = this->phase_index_;
     size_t index1 = static_cast<size_t>(findex);
     size_t index2 = index1 + 1;
 
-    float32_t f1 = InterpolatedSineOscillator::DataPoints[index1];
-    float32_t f2 = InterpolatedSineOscillator::DataPoints[index2];
+    float32_t f1 = dataPoints[index1];
+    float32_t f2 = dataPoints[index2];
     float32_t r = findex - index1;
 
     out = f1 + (f2 - f1) * r * InterpolatedSineOscillator::DeltaTime;
@@ -262,11 +297,12 @@ float32_t InterpolatedSineOscillator::current() const
 ////////////////////////////////
 // ComplexLFO implemlentation //
 ////////////////////////////////
-ComplexLFO::ComplexLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase) :
+ComplexLFO::ComplexLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase, bool centered) :
     FXBase(sampling_rate),
     InitialPhase(initial_phase),
     min_frequency_(min_frequency),
     max_frequency_(max_frequency),
+    centered_(centered),
     normalized_frequency_(-1.0f),
     frequency_(0.0f),
     phase_(initial_phase),
@@ -364,6 +400,11 @@ float32_t ComplexLFO::process()
     case Waveform::Noise:
         out = this->rnd_distribution_(this->rnd_generator_);
         break;
+    }
+
+    if(!this->centered_)
+    {
+        out = out * 0.5f + 0.5f;
     }
 
     this->current_sample_ = out;

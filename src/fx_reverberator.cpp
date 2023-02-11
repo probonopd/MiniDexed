@@ -1,8 +1,8 @@
-#include "fx_shimmer_reverb.h"
+#include "fx_reverberator.h"
 
 #define TAIL , -1
 
-ShimmerReverb::ShimmerReverb(float32_t sampling_rate) : 
+Reverberator::Reverberator(float32_t sampling_rate) : 
     FXElement(sampling_rate),
     engine_(sampling_rate),
     input_gain_(-1.0f),
@@ -23,18 +23,18 @@ ShimmerReverb::ShimmerReverb(float32_t sampling_rate) :
     this->reset();
 }
 
-ShimmerReverb::~ShimmerReverb()
+Reverberator::~Reverberator()
 {
 }
 
-void ShimmerReverb::reset()
+void Reverberator::reset()
 {
     this->engine_.reset();
     this->lp_decay_1_ = 0.0f;
     this->lp_decay_2_ = 0.0f;
 }
 
-void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
+void Reverberator::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
     // This is the Griesinger topology described in the Dattorro paper
     // (4 AP diffusers on the input, then a loop of 2x 2AP+1Delay).
@@ -119,42 +119,42 @@ void ShimmerReverb::processSample(float32_t inL, float32_t inR, float32_t& outL,
     this->lp_decay_2_ = lp_2;
 }
 
-void ShimmerReverb::setInputGain(float32_t gain)
+void Reverberator::setInputGain(float32_t gain)
 {
     this->input_gain_ = constrain(gain, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getInputGain() const
+float32_t Reverberator::getInputGain() const
 {
     return this->input_gain_;
 }
 
-void ShimmerReverb::setTime(float32_t time)
+void Reverberator::setTime(float32_t time)
 {
     this->reverb_time_ = constrain(time, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getTime() const
+float32_t Reverberator::getTime() const
 {
     return this->reverb_time_;
 }
 
-void ShimmerReverb::setDiffusion(float32_t diffusion)
+void Reverberator::setDiffusion(float32_t diffusion)
 {
     this->diffusion_ = constrain(diffusion, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getDiffusion() const
+float32_t Reverberator::getDiffusion() const
 {
     return this->diffusion_;
 }
 
-void ShimmerReverb::setLP(float32_t lp)
+void Reverberator::setLP(float32_t lp)
 {
     this->lp_ = constrain(lp, 0.0f, 1.0f);
 }
 
-float32_t ShimmerReverb::getLP() const
+float32_t Reverberator::getLP() const
 {
     return this->lp_;
 }

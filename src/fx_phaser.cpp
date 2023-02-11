@@ -33,15 +33,15 @@ void Phaser::AllpassDelay::setDelay(float32_t delayL, float32_t delayR)
 
 
 Phaser::Phaser(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback, unsigned nb_stages) : 
-    FXElement(sampling_rate),
+    FXElement(sampling_rate, 1.3804f),
     depth_(0.0f),
     gain_(1.0f),
     feedback_(0.0f),
     dmin_(0.0f),
     dmax_(0.0f)
 {
-    this->lfo_[StereoChannels::Left ] = new LFO(sampling_rate, 0.0f, 2.5f);
-    this->lfo_[StereoChannels::Right] = new LFO(sampling_rate, 0.0f, 2.5f, Constants::MPI_2);
+    this->lfo_[StereoChannels::Left ] = new LFO(sampling_rate, 0.0f, 2.5f, 0.0f, false);
+    this->lfo_[StereoChannels::Right] = new LFO(sampling_rate, 0.0f, 2.5f, Constants::MPI_2, false);
 
     this->setRate(rate);
     this->setDepth(depth);
