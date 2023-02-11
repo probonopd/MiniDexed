@@ -40,8 +40,8 @@ void setupRack(FXRack* rack, int scenario)
 
     rack->getDelay()->setEnable(Active(scenario, FXSwitch::FX__Delay));
     rack->getDelay()->setWetLevel(0.6f);
-    rack->getDelay()->setLeftDelayTime(0.15f);
-    rack->getDelay()->setLeftDelayTime(0.2f);
+    rack->getDelay()->setLeftDelayTime(0.05f);
+    rack->getDelay()->setLeftDelayTime(0.07f);
     rack->getDelay()->setFeedback(0.35f);
     rack->getDelay()->setFlutterRate(0.0f);
     rack->getDelay()->setFlutterAmount(0.0f);
