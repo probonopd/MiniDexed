@@ -20,9 +20,9 @@
 #include "minidexed.h"
 #include <circle/logger.h>
 #include <circle/memory.h>
-#include <circle/pwmsoundbasedevice.h>
-#include <circle/i2ssoundbasedevice.h>
-#include <circle/hdmisoundbasedevice.h>
+#include <circle/sound/pwmsoundbasedevice.h>
+#include <circle/sound/i2ssoundbasedevice.h>
+#include <circle/sound/hdmisoundbasedevice.h>
 #include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>
@@ -459,6 +459,8 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
+	assert (m_pConfig);
+
 	nProgram=constrain((int)nProgram,0,31);
 
 	assert (nTG < CConfig::ToneGenerators);
@@ -469,7 +471,16 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
-	m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
+
+	if (m_pConfig->GetMIDIAutoVoiceDumpOnPC())
+	{
+		// Only do the voice dump back out over MIDI if we have a specific
+		// MIDI channel configured for this TG
+		if (m_nMIDIChannel[nTG] < CMIDIDevice::Channels)
+		{
+			m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
+		}
+	}
 
 	m_UI.ParameterChanged ();
 }
@@ -600,6 +611,8 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
+	assert (uchChannel < CMIDIDevice::ChannelUnknown);
+
 	m_nMIDIChannel[nTG] = uchChannel;
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
@@ -1370,13 +1383,56 @@ void CMiniDexed::ProcessSound (void)
 
 #ifdef PLATE_REVERB_ENABLE
 
-		// swap stereo channels if needed
-		uint8_t indexL=0, indexR=1;
-		if (m_bChannelsSwapped)
+#ifdef MIXING_CONSOLE_ENABLE
+
+		// // swap stereo channels if needed
+		uint8_t indexL = StereoChannels::Left;
+		uint8_t indexR = StereoChannels::Right;
+		if(this->m_bChannelsSwapped)
 		{
-			indexL=1;
-			indexR=0;
+			indexL = StereoChannels::Left;
+			indexR = StereoChannels::Right;
 		}
+		
+		// BEGIN TG mixing
+		float32_t tmp_float[nFrames * 2];
+		int16_t tmp_int[nFrames * 2];
+
+		float32_t SampleBuffer[2][nFrames];
+
+		if(nMasterVolume > 0.0f)
+		{
+			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+			{
+				this->mixing_console_->setInputSampleBuffer(i, m_OutputLevel[i]);
+			}
+
+			this->m_FXSpinLock.Acquire ();
+			this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR]);
+			this->m_FXSpinLock.Release ();
+
+			// Convert dual float array (left, right) to single int16 array (left/right)
+			this->nMasterVolume = constrain(this->nMasterVolume, 0.0f, 1.0f);
+			if(this->nMasterVolume == 1.0f)
+			{
+				memcpy(tmp_float, 			SampleBuffer[indexL], nFrames * sizeof(float32_t));
+				memcpy(tmp_float + nFrames, SampleBuffer[indexR], nFrames * sizeof(float32_t));
+			}
+			else // 0.0 < this->nMasterVolume < 1.0
+			{
+				arm_scale_f32(SampleBuffer[indexL], this->nMasterVolume, tmp_float, 			nFrames);
+				arm_scale_f32(SampleBuffer[indexR], this->nMasterVolume, tmp_float + nFrames, 	nFrames);
+			}
+			arm_float_to_q15(tmp_float, tmp_int, nFrames * 2);
+		}
+		else
+			arm_fill_q15(0, tmp_int, nFrames * 2);
+
+#endif
+
+#ifdef PLATE_REVERB_ENABLE
+
+		uint8_t indexL=0, indexR=1;
 		
 		// BEGIN TG mixing
 		float32_t tmp_float[nFrames*2];
@@ -1437,6 +1493,14 @@ void CMiniDexed::ProcessSound (void)
 			}
 			#endif
 			// END adding FXRack
+
+	
+			// swap stereo channels if needed prior to writing back out
+			if (m_bChannelsSwapped)
+			{
+				indexL=1;
+				indexR=0;
+			}
 
 			// Convert dual float array (left, right) to single int16 array (left/right)
 			for(uint16_t i=0; i<nFrames;i++)
@@ -1804,7 +1868,7 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 
 	dest[0] = 0xF0; // SysEx start
 	dest[1] = 0x43; // ID=Yamaha
-	dest[2] = GetTGParameter(TGParameterMIDIChannel, nTG); // Sub-status and MIDI channel
+	dest[2] = 0x00 | m_nMIDIChannel[nTG]; // 0x0c Sub-status 0 and MIDI channel
 	dest[3] = 0x00; // Format number (0=1 voice)
 	dest[4] = 0x01; // Byte count MSB
 	dest[5] = 0x1B; // Byte count LSB

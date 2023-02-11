@@ -214,8 +214,10 @@ public:
                         return false;
                 }
 
-                // Initialize newlib stdio with a reference to Circle's file system and console
-                CGlueStdioInit (mFileSystem, mConsole);
+                // Initialize newlib stdio with a reference to Circle's console
+                // (Remove mFileSystem as a parameter to mirror change in circle-stdlib's
+                //  commit "Remove obsolete FATFS-related code", dated Dec 2022)
+                CGlueStdioInit (mConsole);
 
                 mLogger.Write (GetKernelName (), LogNotice, "Compile time: " __DATE__ " " __TIME__);
 
