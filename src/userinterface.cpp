@@ -58,7 +58,9 @@ bool CUserInterface::Initialize (void)
 		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
 		unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
 		if (ssd1306addr != 0) {
-			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (), m_pI2CMaster, ssd1306addr);
+			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (),
+											 m_pI2CMaster, ssd1306addr,
+											 m_pConfig->GetSSD1306LCDRotate (), m_pConfig->GetSSD1306LCDMirror ());
 			LOGDBG ("LCD: SSD1306");
 			if (!m_pSSD1306->Initialize ())
 			{
