@@ -88,8 +88,8 @@ $(OBJDIR)/%.o: ../%.cpp $(OBJDIR)
 $(EXE): $(BINDIR) $(TST_OBJS) $(FX__OBJS)
 	$(LD) $(CXXFLAGS) $(call wildcard,$(TST_OBJS)) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
 
-$(BETA): $(BINDIR) $(BETAOBJS) $(FX__OBJS)
-	$(LD) $(CXXFLAGS) $(BETAOBJS) $(call wildcard,$(FX__OBJS)) -o $@ $(LIBS)
+$(BETA): $(BINDIR) $(BETAOBJS)
+	$(LD) $(CXXFLAGS) $(BETAOBJS) -o $@ $(LIBS)
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(OUTPUT_FOLDER)

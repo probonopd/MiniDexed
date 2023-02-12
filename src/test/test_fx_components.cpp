@@ -133,8 +133,8 @@ TEST(CppOptimization, FastLFOPrecisionTest)
 
     const float32_t epsilon = 1e-3;
 
-    ComplexLFO lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f);
-    FastLFO lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f);
+    ComplexLFO  lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f, 0.0f, true);
+    FastLFO     lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f, 0.0f, true);
     lfo1.setFrequency(freq);
     lfo2.setFrequency(freq);
     float32_t max_delta = 0.0f;
