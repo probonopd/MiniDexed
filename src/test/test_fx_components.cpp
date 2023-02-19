@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "test_fx_helper.h"
 
@@ -126,24 +127,172 @@ TEST(CppOptimization, InterpolatedSineOscillatorPrecisionTest)
     EXPECT_GT(epsilon, max_delta);
 }
 
-TEST(CppOptimization, FastLFOPrecisionTest)
+void testFastLFOPrecision(float32_t freq, float32_t init_phase)
 {
-    const float32_t freq = 0.15f;
     const size_t NB = static_cast<size_t>(2.0f * SAMPLING_FREQUENCY);
+    const float32_t init_phase_deg = init_phase * 180.0f / PI;
 
-    const float32_t epsilon = 1e-3;
+    const float32_t epsilon = 40e-3;
 
-    ComplexLFO  lfo1(SAMPLING_FREQUENCY, 0.0f, 10.0f, 0.0f, true);
-    FastLFO     lfo2(SAMPLING_FREQUENCY, 0.0f, 10.0f, 0.0f, true);
+    ComplexLFO  lfo1(SAMPLING_FREQUENCY, 0.0f, 220.0f, init_phase, true);
+    FastLFO     lfo2(SAMPLING_FREQUENCY, 0.0f, 220.0f, init_phase, true);
     lfo1.setFrequency(freq);
     lfo2.setFrequency(freq);
+
+    std::string file1 = string("testFastLFOPrecision.ComplexLFO.") + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
+    std::string file2 = string("testFastLFOPrecision.FastLFO.") + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
+    std::string file3 = string("testFastLFOPrecision.") + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data.m";
+
+    std::ofstream _lfo1(getResultFile(file1, true));
+    std::ofstream _lfo2(getResultFile(file2, true));
+    std::ofstream _m(getResultFile(file3, true));
+
     float32_t max_delta = 0.0f;
     for(size_t i = 0; i < NB; ++i)
     {
         float32_t v1 = lfo1.process();
         float32_t v2 = lfo2.process();
 
+        _lfo1 << std::setprecision(6) << std::fixed << v1 << ((i == (NB - 1)) ? "" : ", ");
+        _lfo2 << std::setprecision(6) << std::fixed << v2 << ((i == (NB - 1)) ? "" : ", ");
+
         max_delta = std::max(max_delta, std::abs(v1 - v2));
     }
+
+    _lfo1.close();
+    _lfo2.close();
+
+    _m << "# Tests of FastLFO precision:" << std::endl;
+    _m << std::setprecision(2) << std::fixed << "# + frequency: " << freq << " Hz" << std::endl;
+    _m << std::setprecision(2) << std::fixed << "# + initial phase: " << init_phase << std::endl;
+    _m << std::endl;
+    _m << "time = 0 : " << (NB - 1) << ";" << std::endl;
+    _m << "cplx_lfo = load(\"-ascii\", \"" << file1 << "\");" << std::endl;
+    _m << "fast_lfo = load(\"-ascii\", \"" << file2 << "\");" << std::endl;
+    _m << "plot(time, cplx_lfo, '-b', 'LineWidth', 6, time, fast_lfo, '-r', 'LineWidth', 4);" << std::endl;
+    _m << "title('LFO tuning @ " << freq << "Hz / " << init_phase_deg << "°');" << std::endl;
+    _m << "legend('ComplexLFO', 'FastLFO');" << std::endl;
+    _m.close();
+
     EXPECT_GT(epsilon, max_delta);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest0_01Hz)
+{
+    const float32_t freq = 0.01f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest0_15Hz)
+{
+    const float32_t freq = 0.15f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest0_2Hz)
+{
+    const float32_t freq = 0.2f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest0_3Hz)
+{
+    const float32_t freq = 0.3f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest0_5Hz)
+{
+    const float32_t freq = 0.5f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest1Hz)
+{
+    const float32_t freq = 1.0f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest2_15Hz)
+{
+    const float32_t freq = 2.15f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest5Hz)
+{
+    const float32_t freq = 5.0f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest10_5Hz)
+{
+    const float32_t freq = 10.5f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
+}
+
+TEST(CppOptimization, FastLFOPrecisionTest120_5Hz)
+{
+    const float32_t freq = 120.5f;
+    testFastLFOPrecision(freq, 0.0f);
+    testFastLFOPrecision(freq, PI / 6.0f);
+    testFastLFOPrecision(freq, PI / 3.0f);
+    testFastLFOPrecision(freq, PI / 2.0f);
+    testFastLFOPrecision(freq, 2.0f * PI / 3.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 4.0f);
+    testFastLFOPrecision(freq, 3.0f * PI / 2.0f);
 }

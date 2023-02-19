@@ -56,8 +56,8 @@ void FastLFO::setNormalizedFrequency(float32_t normalized_frequency)
         this->frequency_ = frequency;
         this->unitary_frequency_ = this->frequency_ / this->getSamplingRate();
 
-        this->nb_sub_increment_ = (frequency >= 3.0f ? 1 : 300);
-        this->unitary_frequency_ *= this->nb_sub_increment_;
+        this->nb_sub_increment_ = (frequency >= 3.0f ? 10 : 100);
+        this->unitary_frequency_ *= static_cast<float32_t>(this->nb_sub_increment_);
 
         this->updateCoefficient();
     }
@@ -78,8 +78,8 @@ void FastLFO::setFrequency(float32_t frequency)
         this->frequency_ = frequency;
         this->unitary_frequency_ = this->frequency_ / this->getSamplingRate();
 
-        this->nb_sub_increment_ = (frequency >= 3.0f ? 1 : 300);
-        this->unitary_frequency_ *= this->nb_sub_increment_;
+        this->nb_sub_increment_ = (frequency >= 3.0f ? 10 : (frequency < 0.1f ? 1000 : 100));
+        this->unitary_frequency_ *= static_cast<float32_t>(this->nb_sub_increment_);
 
         this->updateCoefficient();
     }
@@ -92,27 +92,6 @@ float32_t FastLFO::getFrequency() const
 
 void FastLFO::updateCoefficient()
 {
-    // float32_t frequency = this->unitary_frequency_ * 1.00669889338314f;
-
-    // float32_t sign = 16.0f;
-    // frequency -= 0.25f;
-    // if(frequency < 0.0f)
-    // {
-    //     frequency = -frequency;
-    // }
-    // else
-    // {
-    //     if(frequency > 0.5f)
-    //     {
-    //         frequency -= 0.5f;
-    //     }
-    //     else
-    //     {
-    //         sign = -16.0f;
-    //     }
-    // }
-
-    // this->iir_coefficient_ = sign * frequency * (1.0f - 2.0f * frequency);
     this->iir_coefficient_ = 2.0f * cos(Constants::M2PI * this->unitary_frequency_);
     this->initial_amplitude_ = this->iir_coefficient_ * 0.25f;
 
@@ -121,6 +100,7 @@ void FastLFO::updateCoefficient()
 
 void FastLFO::reset()
 {
+    static const float32_t epsi = 2e-7;
     static const float32_t epsilon = 1e-3;
 
     this->sub_increment_ = 0.0f;
@@ -134,8 +114,10 @@ void FastLFO::reset()
         return;
     }
 
+
     float32_t p_i = Constants::M2PI * this->unitary_frequency_ / static_cast<float32_t>(this->nb_sub_increment_);
     float32_t p = Constants::MPI_2;
+    float32_t oldP = 1000.0f;
     float32_t t_p = this->InitialPhase;
     const float32_t target = sin(this->InitialPhase);
     if(t_p < p)
@@ -145,8 +127,14 @@ void FastLFO::reset()
     float32_t tuning = -3.0f;
     while(p < t_p || abs(tuning - target) > epsilon)
     {
+        oldP = p;
         tuning = this->process();
         p += p_i;
+        if(oldP == p)
+        {
+            return;
+        }
+        // std::cout << "p = " << p << "; p_i = " << p_i << "; t_p = " << t_p << "; tuning = " << tuning << "; target = " << target << std::endl;
     }
 }
 
