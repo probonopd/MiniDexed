@@ -100,7 +100,6 @@ void FastLFO::updateCoefficient()
 
 void FastLFO::reset()
 {
-    static const float32_t epsi = 2e-7;
     static const float32_t epsilon = 1e-3;
 
     this->sub_increment_ = 0.0f;
