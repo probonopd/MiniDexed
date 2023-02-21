@@ -34,7 +34,8 @@ FastLFO::FastLFO(float32_t sampling_rate, float32_t min_frequency, float32_t max
     y0_(0.0f),
     y1_(0.0f),
     iir_coefficient_(0.0f),
-    initial_amplitude_(0.0f)
+    initial_amplitude_(0.0f),
+    current_(0.0f)
 {
     assert(this->min_frequency_ <= this->max_frequency_);
     assert(this->max_frequency_ < sampling_rate / 2.0f);
@@ -160,6 +161,106 @@ float32_t FastLFO::process()
 }
 
 float32_t FastLFO::current() const
+{
+    return this->current_;
+}
+
+
+/////////////////////////////
+// FastLFO2 implemlentation //
+/////////////////////////////
+FastLFO2::FastLFO2(float32_t sampling_rate, float32_t min_frequency, float32_t max_frequency, float32_t initial_phase, bool centered) :
+    FXBase(sampling_rate),
+    InitialPhase(initial_phase),
+    min_frequency_(min_frequency),
+    max_frequency_(max_frequency),
+    centered_(centered),
+    frequency_(0.0f),
+    phase_(initial_phase),
+    phase_increment_(0.0f),
+    current_(0.0f)
+{
+    assert(this->min_frequency_ <= this->max_frequency_);
+    assert(this->max_frequency_ < sampling_rate / 2.0f);
+
+    this->setFrequency(this->min_frequency_);
+}
+
+FastLFO2::~FastLFO2()
+{
+}
+
+void FastLFO2::setNormalizedFrequency(float32_t normalized_frequency)
+{
+    normalized_frequency = constrain(normalized_frequency, 0.0f, 1.0f);
+    if(this->normalized_frequency_ != normalized_frequency)
+    {
+        float32_t frequency = mapfloat(normalized_frequency, 0.0f, 1.0f, this->min_frequency_, this->max_frequency_);
+        this->normalized_frequency_ = normalized_frequency;
+        this->frequency_ = frequency;
+
+        this->phase_increment_ = Constants::M2PI * frequency / this->getSamplingRate();
+    }
+}
+
+float32_t FastLFO2::getNormalizedFrequency() const
+{
+    return this->normalized_frequency_;
+}
+
+void FastLFO2::setFrequency(float32_t frequency)
+{
+    frequency = constrain(frequency, this->min_frequency_, this->max_frequency_);
+    if(this->frequency_ != frequency)
+    {
+        float32_t normalized_frequency = mapfloat(frequency, this->min_frequency_, this->max_frequency_, 0.0f, 1.0f);
+        this->normalized_frequency_ = normalized_frequency;
+        this->frequency_ = frequency;
+
+        this->phase_increment_ = Constants::M2PI * frequency / this->getSamplingRate();
+    }
+}
+
+float32_t FastLFO2::getFrequency() const
+{
+    return this->frequency_;
+}
+
+void FastLFO2::reset()
+{
+    this->phase_ = this->InitialPhase;
+}
+
+float32_t FastLFO2::process()
+{
+    static const float32_t K = 5.0f * Constants::M_PI_POW_2; 
+
+    float32_t x = this->phase_;
+    float32_t f = 4.0f;
+    if(x > PI)
+    {
+        x -= PI;
+        f = -4.0f;
+    }
+
+    float32_t tmp = 4.0f * x * (PI - x);
+    this->current_ = f * tmp / (K - tmp);
+
+    if(!this->centered_)
+    {
+        this->current_ = this->current_ * 0.5f + 0.5f;
+    }
+
+    this->phase_ += this->phase_increment_;
+    if(this->phase_ > Constants::M2PI)
+    {
+        this->phase_ -= Constants::M2PI;
+    }
+
+    return this->current_;
+}
+
+float32_t FastLFO2::current() const
 {
     return this->current_;
 }

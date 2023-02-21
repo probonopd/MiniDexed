@@ -1,7 +1,7 @@
 #include "fx_flanger.h"
 
 Flanger::Flanger(float32_t sampling_rate, float32_t rate, float32_t depth, float32_t feedback) :
-    FXElement(sampling_rate, 0.9288f),
+    FXElement(sampling_rate, 0.928f),
     MaxDelayLineSize(static_cast<unsigned>(MAX_FLANGER_DELAY * sampling_rate)),
     write_index_(0)
 {
