@@ -22,6 +22,8 @@ OBJS += \
        $(SYNTH_DEXED_DIR)/pitchenv.o \
        $(SYNTH_DEXED_DIR)/porta.o \
        $(SYNTH_DEXED_DIR)/sin.o \
+       $(SYNTH_DEXED_DIR)/EngineMkI.o\
+       $(SYNTH_DEXED_DIR)/EngineOpl.o\
        $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/SupportFunctions.o \
        $(CMSIS_DSP_SOURCE_DIR)/BasicMathFunctions/BasicMathFunctions.o \
        $(CMSIS_DSP_SOURCE_DIR)/FastMathFunctions/FastMathFunctions.o \
