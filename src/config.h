@@ -141,7 +141,7 @@ public:
 	
 	// Load performance mode. 0 for load just rotating encoder, 1 load just when Select is pushed
 	bool GetPerformanceSelectToLoad (void) const;
-	unsigned GetEngineType (void) const;
+	const char *GetEngineType (void) const;
 
 
 private:
@@ -210,7 +210,7 @@ private:
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
-	unsigned m_EngineType;
+	const char *m_EngineType;
 
 };
 
