@@ -122,7 +122,7 @@ void CConfig::Load (void)
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
-	m_EngineType = m_Properties.GetString ("EngineType", "MSFA");
+	m_EngineType = (unsigned char)*m_Properties.GetString ("EngineType", "MSFA");
 }
 
 const char *CConfig::GetSoundDevice (void) const
@@ -390,7 +390,7 @@ bool CConfig::GetPerformanceSelectToLoad (void) const
 	return m_bPerformanceSelectToLoad;
 }
 
-const char *CConfig::GetEngineType (void) const
+uint8_t CConfig::GetEngineType (void) const
 {
 	return m_EngineType;
 }
