@@ -53,6 +53,7 @@ case $? in
             CURL_OPTIONS+=" --insecure"
         else
             echo "Error establishing secure connection"
+            exit 2
         fi
         ;;
     *)
