@@ -127,7 +127,7 @@ void CConfig::Load (void)
 	unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
 	if (newEngineType == 2) {
   		m_EngineType = MKI;
-	} else if (newEngineType = 3) {
+	} else if (newEngineType == 3) {
   		m_EngineType = OPL;
 	} else {
   		m_EngineType = MSFA;
