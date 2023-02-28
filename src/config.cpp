@@ -21,6 +21,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "config.h"
+#include "../Synth_Dexed/src/dexed.h"
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -122,7 +123,15 @@ void CConfig::Load (void)
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
-	m_EngineType = (unsigned char)*m_Properties.GetString ("EngineType", "MSFA");
+	
+	unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
+	if (newEngineType == 2) {
+  		m_EngineType = MKI;
+	} else if (newEngineType = 3) {
+  		m_EngineType = OPL;
+	} else {
+  		m_EngineType = MSFA;
+	}
 }
 
 const char *CConfig::GetSoundDevice (void) const
@@ -390,7 +399,7 @@ bool CConfig::GetPerformanceSelectToLoad (void) const
 	return m_bPerformanceSelectToLoad;
 }
 
-uint8_t CConfig::GetEngineType (void) const
+unsigned CConfig::GetEngineType (void) const
 {
 	return m_EngineType;
 }

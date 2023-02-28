@@ -92,6 +92,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
+		
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 		m_pTG[i]->activate ();
 	}
