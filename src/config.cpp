@@ -47,10 +47,10 @@ void CConfig::Load (void)
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
 
-	unsigned newVelocityScale = m_Properties.GetNumber ("VelocityScale", 1);
-        if (newVelocityScale == 2) {
+	unsigned newVelocityScale = m_Properties.GetNumber ("VelocityScale", 0);
+        if (newVelocityScale == 1) {
                 m_VelocityScale = MIDI_VELOCITY_SCALING_DX7;
-        } else if (newVelocityScale == 3) {
+        } else if (newVelocityScale == 2) {
                 m_VelocityScale = MIDI_VELOCITY_SCALING_DX7II;
         } else {
                 m_VelocityScale = MIDI_VELOCITY_SCALING_OFF;
