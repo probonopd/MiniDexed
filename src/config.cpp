@@ -21,6 +21,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "config.h"
+#include "../Synth_Dexed/src/dexed.h"
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -45,6 +46,15 @@ void CConfig::Load (void)
 #endif
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
+
+	unsigned newVelocityScale = m_Properties.GetNumber ("VelocityScale", 1);
+        if (newVelocityScale == 2) {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_DX7;
+        } else if (newVelocityScale == 3) {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_DX7II;
+        } else {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_OFF;
+        }
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);
 
@@ -122,6 +132,7 @@ void CConfig::Load (void)
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
+
 }
 
 const char *CConfig::GetSoundDevice (void) const
@@ -147,6 +158,11 @@ unsigned CConfig::GetDACI2CAddress (void) const
 bool CConfig::GetChannelsSwapped (void) const
 {
 	return m_bChannelsSwapped;
+}
+
+unsigned CConfig::GetVelocityScale (void) const
+{
+        return m_VelocityScale;
 }
 
 unsigned CConfig::GetMIDIBaudRate (void) const
