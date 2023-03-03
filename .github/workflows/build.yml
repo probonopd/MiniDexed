@@ -32,6 +32,12 @@ jobs:
            cd circle-stdlib/libs/circle-newlib
            git checkout 48bf91d # needed for circle ec09d7e
            cd -
+    - name: Change Synth_Dexed branch to enable selection of Engine Types
+      run: |
+           set -ex
+           cd Synth_Dexed/
+           git checkout 8a4c373
+           cd -
     - name: Install toolchains
       run: |
            set -ex
