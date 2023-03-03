@@ -36,7 +36,7 @@ jobs:
       run: |
            set -ex
            cd Synth_Dexed/
-           git checkout 58a307971e
+           git checkout a980e86
            cd -
     - name: Install toolchains
       run: |
