@@ -69,6 +69,7 @@ public:
 	unsigned GetChunkSize (void) const;
 	unsigned GetDACI2CAddress (void) const;		// 0 for auto probing
 	bool GetChannelsSwapped (void) const;
+	unsigned GetEngineType (void) const;
 
 	// MIDI
 	unsigned GetMIDIBaudRate (void) const;
@@ -141,8 +142,6 @@ public:
 	
 	// Load performance mode. 0 for load just rotating encoder, 1 load just when Select is pushed
 	bool GetPerformanceSelectToLoad (void) const;
-	unsigned GetEngineType (void) const;
-
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -152,6 +151,7 @@ private:
 	unsigned m_nChunkSize;
 	unsigned m_nDACI2CAddress;
 	bool m_bChannelsSwapped;
+	unsigned m_EngineType;
 
 	unsigned m_nMIDIBaudRate;
 	std::string m_MIDIThruIn;
@@ -210,7 +210,7 @@ private:
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
-	unsigned m_EngineType;
+
 
 };
 
