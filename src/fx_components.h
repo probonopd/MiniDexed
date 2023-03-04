@@ -143,6 +143,89 @@ private:
 };
 
 
+class FastLFO2 : public FXBase
+{
+    DISALLOW_COPY_AND_ASSIGN(FastLFO2);
+
+public:
+    FastLFO2(float32_t sampling_rate, float32_t min_frequency = LFO_MIN_FREQUENCY, float32_t max_frequency = LFO_MAX_FREQUENCY, float32_t initial_phase = 0.0f, bool centered = true);
+    virtual ~FastLFO2();
+
+    void setNormalizedFrequency(float32_t normalized_frequency);
+    float32_t getNormalizedFrequency() const;
+
+    void setFrequency(float32_t frequency);
+    float32_t getFrequency() const;
+
+    virtual void reset() override;
+    float32_t process();
+    float32_t current() const;
+
+private:
+    const float32_t InitialPhase;
+    const float32_t min_frequency_;
+    const float32_t max_frequency_;
+    const bool      centered_;
+    float32_t       frequency_;
+    float32_t       normalized_frequency_;
+    float32_t       phase_;
+    float32_t       phase_increment_;
+    float32_t       current_;
+
+    IMPLEMENT_DUMP(
+        const size_t space = 21;
+        const size_t precision = 5;
+
+        std::stringstream ss;
+
+        out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space, std::left, '|', "InitialPhase");
+        SS__TEXT(ss, ' ', space, std::left, '|', "frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "normalized_frequency_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "phase_increment_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "current_");
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        SS_SPACE(ss, '-', space, std::left, '+');
+        out << "\t" << ss.str() << std::endl;
+
+        SS_RESET(ss, precision, std::left);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->InitialPhase);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->normalized_frequency_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->phase_increment_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->current_);
+
+        out << "\t" << ss.str() << std::endl;
+
+        out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
+    )
+
+    IMPLEMENT_INSPECT(
+        size_t nb_errors = 0u;
+
+        nb_errors += inspector(tag + ".InitialPhase", this->InitialPhase, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".frequency_", this->frequency_, this->min_frequency_, this->max_frequency_, deepInspection);
+        nb_errors += inspector(tag + ".normalized_frequency_", this->normalized_frequency_, 0.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".phase_", this->phase_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".phase_", this->phase_increment_, 0.0f, Constants::M2PI, deepInspection);
+        nb_errors += inspector(tag + ".current_", this->current_, -1.0f, 1.0f, deepInspection);
+
+        return nb_errors;
+    )
+};
+
+
 class InterpolatedSineOscillator : public FXBase
 {
     DISALLOW_COPY_AND_ASSIGN(InterpolatedSineOscillator);
@@ -327,7 +410,7 @@ private:
 };
 
 
-typedef InterpolatedSineOscillator LFO;
+typedef FastLFO2 LFO;
 
 
 class JitterGenerator : public FXBase

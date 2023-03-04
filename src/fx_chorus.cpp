@@ -6,7 +6,7 @@
 #define LFO2_MAX_FREQ 0.35f
 
 Chorus::Chorus(float32_t sampling_rate) :
-    FXElement(sampling_rate, 1.1049f),
+    FXElement(sampling_rate, 1.1035f),
     engine_(sampling_rate, 0.0f),
     rate_(0.0f),
     depth_(0.0f),
