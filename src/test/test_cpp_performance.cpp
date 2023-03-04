@@ -112,8 +112,6 @@ TEST(CppPerformance, LFOPerformance_FastLFO_FastLFO2)
     }
     auto d2 = LAP_TIME("lfo2");
 
-    std::cout << "FastLFO: " << d1 << ", FastLFO2: " << d2 << std::endl;
-
     EXPECT_GE(d1, d2);
 }
 

@@ -114,7 +114,6 @@ void FastLFO::reset()
         return;
     }
 
-
     float32_t p_i = Constants::M2PI * this->unitary_frequency_ / static_cast<float32_t>(this->nb_sub_increment_);
     float32_t p = Constants::MPI_2;
     float32_t oldP = 1000.0f;
@@ -134,7 +133,6 @@ void FastLFO::reset()
         {
             return;
         }
-        // std::cout << "p = " << p << "; p_i = " << p_i << "; t_p = " << t_p << "; tuning = " << tuning << "; target = " << target << std::endl;
     }
 }
 
