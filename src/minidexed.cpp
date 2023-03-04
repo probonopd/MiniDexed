@@ -1309,7 +1309,6 @@ void CMiniDexed::ProcessSound (void)
 			#endif
 			// END adding FXRack
 
-	
 			// swap stereo channels if needed prior to writing back out
 			if (m_bChannelsSwapped)
 			{
