@@ -64,7 +64,7 @@ Delay::Delay(const float32_t sampling_rate, float32_t default_delay_time, float3
     this->setRightDelayTime(default_delay_time);
     this->setFeedback(default_feedback_level);
     this->setFlutterRate(0.2f);
-    this->setFlutterAmount(0.05f);
+    this->setFlutterAmount(0.0f);
 
     this->reset();
 }
