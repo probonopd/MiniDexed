@@ -45,7 +45,7 @@
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 #include "mixing_console.hpp"
 
 typedef MixingConsole<CConfig::ToneGenerators> Mixer;
@@ -93,10 +93,10 @@ public:
 	void setBreathController (uint8_t value, unsigned nTG);
 	void setAftertouch (uint8_t value, unsigned nTG);
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	void setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend);
 	void setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nFXReturn);
-#else
+#elif defined(PLATE_REVERB_ENABLE)
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 #endif
 

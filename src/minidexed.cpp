@@ -47,8 +47,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #ifdef ARM_ALLOW_MULTI_CORE
 	m_nActiveTGsLog2 (0),
 #endif
-	m_GetChunkTimer ("GetChunk",
-			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
+	m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
@@ -87,9 +86,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nAftertouchRange[i]=99;	
 		m_nAftertouchTarget[i]=0;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 		memset(this->m_nFXSendLevel[i], 0, MixerOutput::kFXCount * sizeof(unsigned));
-#else		
+#elif defined(PLATE_REVERB_ENABLE)
 		m_nReverbSend[i] = 0;
 #endif
 		m_uchOPMask[i] = 0b111111;	// All operators on
@@ -100,7 +99,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pTG[i]->activate ();
 	}
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	size_t end = MixerOutput::kFXCount - 1;
 	for(size_t ret = 0; ret < end; ++ret)
 	{
@@ -153,8 +152,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	setMasterVolume(1.0);
 
 
-#ifdef MIXING_CONSOLE_ENABLE
-
+#if defined(MIXING_CONSOLE_ENABLE)
 	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), pConfig->GetChunkSize()/2);
 
 	// Tube parameters
@@ -206,9 +204,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	this->SetParameter(ParameterFXReverberatorDiffusion, 80);
 	this->SetParameter(ParameterFXReverberatorLP, 70);
 
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
 
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
@@ -225,7 +221,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
-
 #endif
 
 	SetParameter (ParameterCompressorEnable, 1);
@@ -266,15 +261,15 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setBCController (99, 1, 0);
 		m_pTG[i]->setATController (99, 1, 0);
 		
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 		// setup the mixer so that it remains identical to the initial version of the synth
 		this->mixing_console_->setPan(i, this->m_nPan[i] / 127.0f);
 		float32_t sendRev = this->m_nFXSendLevel[i][MixerOutput::FX_PlateReverb] / 99.0f;
 		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, sendRev);
 		this->mixing_console_->setSendLevel(i, MixerOutput::MainOutput, 1.0f - sendRev);
-#endif
 
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
+
 		tg_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
 		tg_mixer->gain(i,1.0f);
 		reverb_send_mixer->pan(i,mapfloat(m_nPan[i],0,127,0.0f,1.0f));
@@ -505,11 +500,11 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nPan;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	this->mixing_console_->setPan(nTG, mapfloat(nPan, 0, 127, 0.0f, 1.0f));
-#endif
 
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
+
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 #endif
@@ -517,7 +512,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 
 void CMiniDexed::setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend)
 {
@@ -549,9 +544,7 @@ void CMiniDexed::setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, un
 	this->m_UI.ParameterChanged ();
 }
 
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
 
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 {
@@ -761,11 +754,11 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 
 void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	assert(this->mixing_console_);
-#endif
 
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
+
 	assert (reverb);
 #endif
 
@@ -782,7 +775,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		}
 		break;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	// Tube parameters
 	case ParameterFXTubeEnable: 
 		nValue = constrain((int)nValue, 0, 1);
@@ -1003,9 +996,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->m_FXSpinLock.Release();
 		break;
 
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
 
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
@@ -1055,7 +1046,6 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		reverb->level (nValue / 99.0f);
 		m_FXSpinLock.Release ();
 		break;
-
 #endif
 
 	default:
@@ -1115,7 +1105,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 		SetMIDIChannel ((uint8_t) nValue, nTG);
 		break;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	case TGParameterMixingSendFXTube:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Tube, 			nValue); break;
 	case TGParameterMixingSendFXChorus:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Chorus, 		nValue); break;
 	case TGParameterMixingSendFXFlanger:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Flanger, 		nValue); break;
@@ -1125,7 +1115,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterMixingSendFXPlateReverb:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, 	nValue); break;
 	case TGParameterMixingSendFXReverberator:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Reverberator, 	nValue); break;
 	case TGParameterMixingSendFXMainOutput:		this->setMixingConsoleSendLevel(nTG, MixerOutput::MainOutput, 		nValue); break;
-#else
+#elif defined(PLATE_REVERB_ENABLE)
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 #endif // MIXING_CONSOLE_ENABLE
 
@@ -1149,9 +1139,9 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterCutoff:		return m_nCutoff[nTG];
 	case TGParameterResonance:	return m_nResonance[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
-#ifndef MIXING_CONSOLE_ENABLE
+#if defined(PLATE_REVERB_ENABLE)
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
-#endif // undef MIXING_CONSOLE_ENABLE
+#endif
 	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
 	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
@@ -1334,15 +1324,14 @@ void CMiniDexed::ProcessSound (void)
 
 		assert (CConfig::ToneGenerators == 8);
 
-#ifdef MIXING_CONSOLE_ENABLE
-
+#if defined(MIXING_CONSOLE_ENABLE)
 		// // swap stereo channels if needed
 		uint8_t indexL = StereoChannels::Left;
 		uint8_t indexR = StereoChannels::Right;
 		if(this->m_bChannelsSwapped)
 		{
-			indexL = StereoChannels::Left;
-			indexR = StereoChannels::Right;
+			indexL = StereoChannels::Right;
+			indexR = StereoChannels::Left;
 		}
 		
 		// BEGIN TG mixing
@@ -1353,12 +1342,13 @@ void CMiniDexed::ProcessSound (void)
 
 		if(nMasterVolume > 0.0f)
 		{
+			this->m_FXSpinLock.Acquire ();
+
 			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 			{
 				this->mixing_console_->setInputSampleBuffer(i, m_OutputLevel[i]);
 			}
 
-			this->m_FXSpinLock.Acquire ();
 			this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR]);
 			this->m_FXSpinLock.Release ();
 
@@ -1379,58 +1369,7 @@ void CMiniDexed::ProcessSound (void)
 		else
 			arm_fill_q15(0, tmp_int, nFrames * 2);
 
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
-
-#ifdef MIXING_CONSOLE_ENABLE
-
-		// // swap stereo channels if needed
-		uint8_t indexL = StereoChannels::Left;
-		uint8_t indexR = StereoChannels::Right;
-		if(this->m_bChannelsSwapped)
-		{
-			indexL = StereoChannels::Left;
-			indexR = StereoChannels::Right;
-		}
-		
-		// BEGIN TG mixing
-		float32_t tmp_float[nFrames * 2];
-		int16_t tmp_int[nFrames * 2];
-
-		float32_t SampleBuffer[2][nFrames];
-
-		if(nMasterVolume > 0.0f)
-		{
-			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
-			{
-				this->mixing_console_->setInputSampleBuffer(i, m_OutputLevel[i]);
-			}
-
-			this->m_FXSpinLock.Acquire ();
-			this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR]);
-			this->m_FXSpinLock.Release ();
-
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			this->nMasterVolume = constrain(this->nMasterVolume, 0.0f, 1.0f);
-			if(this->nMasterVolume == 1.0f)
-			{
-				memcpy(tmp_float, 			SampleBuffer[indexL], nFrames * sizeof(float32_t));
-				memcpy(tmp_float + nFrames, SampleBuffer[indexR], nFrames * sizeof(float32_t));
-			}
-			else // 0.0 < this->nMasterVolume < 1.0
-			{
-				arm_scale_f32(SampleBuffer[indexL], this->nMasterVolume, tmp_float, 			nFrames);
-				arm_scale_f32(SampleBuffer[indexR], this->nMasterVolume, tmp_float + nFrames, 	nFrames);
-			}
-			arm_float_to_q15(tmp_float, tmp_int, nFrames * 2);
-		}
-		else
-			arm_fill_q15(0, tmp_int, nFrames * 2);
-
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
 
 		uint8_t indexL=0, indexR=1;
 		
@@ -1481,20 +1420,6 @@ void CMiniDexed::ProcessSound (void)
 			}
 			// END adding reverb
 	
-			// BEGIN adding FXRack
-			#ifdef MIXING_CONSOLE_ENABLE
-			if(this->mixing_console_->isEnable() && this->mixing_console_->getWetLevel() > 0.0f) 
-			{
-				this->m_FXSpinLock.Acquire();
-
-				this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
-
-				this->m_FXSpinLock.Release();
-			}
-			#endif
-			// END adding FXRack
-
-	
 			// swap stereo channels if needed prior to writing back out
 			if (m_bChannelsSwapped)
 			{
@@ -1520,7 +1445,6 @@ void CMiniDexed::ProcessSound (void)
 		}
 		else
 			arm_fill_q15(0, tmp_int, nFrames * 2);
-
 #endif
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
