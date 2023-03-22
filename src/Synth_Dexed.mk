@@ -24,6 +24,7 @@ OBJS += \
        $(SYNTH_DEXED_DIR)/sin.o \
        $(SYNTH_DEXED_DIR)/EngineMkI.o\
        $(SYNTH_DEXED_DIR)/EngineOpl.o\
+       $(SYNTH_DEXED_DIR)/EngineMsfa.o\
        $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/SupportFunctions.o \
        $(CMSIS_DSP_SOURCE_DIR)/BasicMathFunctions/BasicMathFunctions.o \
        $(CMSIS_DSP_SOURCE_DIR)/FastMathFunctions/FastMathFunctions.o \
