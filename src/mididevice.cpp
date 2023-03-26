@@ -164,7 +164,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 	if (nLength < 2)
 	{
-		LOGERR("MIDI message is shorter than 2 bytes!");
+		// LOGERR("MIDI message is shorter than 2 bytes!");
 		return;
 	}
 
