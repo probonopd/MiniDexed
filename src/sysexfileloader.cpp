@@ -65,7 +65,7 @@ CSysExFileLoader::CSysExFileLoader (const char *pDirName)
 :	m_DirName (pDirName)
 {
 	m_DirName += "/voice";
-	m_nNumLoadedBanks = 0;
+	m_nNumHighestBank = 0;
 
 	for (unsigned i = 0; i <= MaxVoiceBankID; i++)
 	{
@@ -83,7 +83,7 @@ CSysExFileLoader::~CSysExFileLoader (void)
 
 void CSysExFileLoader::Load (void)
 {
-	m_nNumLoadedBanks = 0;
+	m_nNumHighestBank = 0;
 
     DIR *pDirectory = opendir (m_DirName.c_str ());
 	if (!pDirectory)
@@ -141,7 +141,11 @@ void CSysExFileLoader::Load (void)
 				LOGDBG ("Bank #%u successfully loaded", nBank);
 
 				m_BankFileName[nBank] = pEntry->d_name;
-				m_nNumLoadedBanks++;
+				if (nBank > m_nNumHighestBank)
+				{
+					// This is the bank ID of the highest loaded bank
+					m_nNumHighestBank = nBank;
+				}
 			}
 			else
 			{
@@ -188,9 +192,9 @@ std::string CSysExFileLoader::GetBankName (unsigned nBankID)
 	return "NO NAME";
 }
 
-unsigned CSysExFileLoader::GetNumLoadedBanks (void)
+unsigned CSysExFileLoader::GetNumHighestBank (void)
 {
-	return m_nNumLoadedBanks;
+	return m_nNumHighestBank;
 }
 
 void CSysExFileLoader::GetVoice (unsigned nBankID, unsigned nVoiceID, uint8_t *pVoiceData)
