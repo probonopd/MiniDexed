@@ -231,6 +231,7 @@ private:
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];

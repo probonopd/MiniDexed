@@ -486,7 +486,6 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	int nHighestBank = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumHighestBank();
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
 
@@ -496,19 +495,13 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventStepDown:
-		if (--nValue < 0)
-		{
-			nValue = 0;
-		}
+		nValue = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nValue);
 		pUIMenu->m_pMiniDexed->SetTGParameter (
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;
 
 	case MenuEventStepUp:
-		if (++nValue > (int) nHighestBank)
-		{
-			nValue = nHighestBank;
-		}
+		nValue = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nValue);
 		pUIMenu->m_pMiniDexed->SetTGParameter (
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;

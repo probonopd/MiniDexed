@@ -61,6 +61,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
+		m_nVoiceBankIDMSB[i] = 0;
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
@@ -371,10 +372,9 @@ void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	
-	unsigned nHighestBank = GetSysExFileLoader ()->GetNumHighestBank();
-	
-	if (nBank <= nHighestBank)
+	if (GetSysExFileLoader ()->IsValidBank(nBank))
 	{
+		// Only change if we have the bank loaded
 		m_nVoiceBankID[nTG] = nBank;
 
 		m_UI.ParameterChanged ();
@@ -386,11 +386,14 @@ void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 	nBankMSB=constrain((int)nBankMSB,0,127);
 
 	assert (nTG < CConfig::ToneGenerators);
-	unsigned nBank = m_nVoiceBankID[nTG];
-	unsigned nBankLSB = nBank & 0x7F;
-	nBank = (nBankMSB << 7) + nBankLSB;
-
-	BankSelect(nBank, nTG);
+	// MIDI Spec 1.0 "BANK SELECT" states:
+	//   "The transmitter must transmit the MSB and LSB as a pair,
+	//   and the Program Change must be sent immediately after
+	//   the Bank Select pair."
+	//
+	// So it isn't possible to validate the selected bank ID until
+	// we receive both MSB and LSB so just store the MSB for now.
+	m_nVoiceBankIDMSB[nTG] = nBankMSB;
 }
 
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
@@ -399,9 +402,10 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 	unsigned nBank = m_nVoiceBankID[nTG];
-	unsigned nBankMSB = nBank >> 7;
+	unsigned nBankMSB = m_nVoiceBankIDMSB[nTG];
 	nBank = (nBankMSB << 7) + nBankLSB;
 
+	// Now should have both MSB and LSB so enable the BankSelect
 	BankSelect(nBank, nTG);
 }
 

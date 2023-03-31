@@ -58,6 +58,9 @@ public:
 
 	std::string GetBankName (unsigned nBankID);	// 0 .. MaxVoiceBankID
 	unsigned GetNumHighestBank (); // 0 .. MaxVoiceBankID
+	bool     IsValidBank (unsigned nBankID);
+	unsigned GetNextBankUp (unsigned nBankID);
+	unsigned GetNextBankDown (unsigned nBankID);
 
 	void GetVoice (unsigned nBankID,		// 0 .. MaxVoiceBankID
 		       unsigned nVoiceID,		// 0 .. 31

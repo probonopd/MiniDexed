@@ -192,6 +192,68 @@ std::string CSysExFileLoader::GetBankName (unsigned nBankID)
 	return "NO NAME";
 }
 
+unsigned CSysExFileLoader::GetNextBankUp (unsigned nBankID)
+{
+	// Find the next loaded bank "up" from the provided bank ID
+	for (unsigned id=nBankID+1; id <= m_nNumHighestBank; id++)
+	{
+		if (IsValidBank(id))
+		{
+			return id;
+		}
+	}
+	
+	// Handle wrap-around
+	for (unsigned id=0; id<nBankID; id++)
+	{
+		if (IsValidBank(id))
+		{
+			return id;
+		}
+	}
+	
+	// If we get here there are no other banks!
+	return nBankID;
+}
+
+unsigned CSysExFileLoader::GetNextBankDown (unsigned nBankID)
+{
+	// Find the next loaded bank "down" from the provided bank ID
+	for (int id=((int)nBankID)-1; id >= 0; id--)
+	{
+		if (IsValidBank((unsigned)id))
+		{
+			return id;
+		}
+	}
+
+	// Handle wrap-around
+	for (unsigned id=m_nNumHighestBank; id>nBankID; id--)
+	{
+		if (IsValidBank(id))
+		{
+			return id;
+		}
+	}
+	
+	// If we get here there are no other banks!
+	return nBankID;
+}
+
+bool CSysExFileLoader::IsValidBank (unsigned nBankID)
+{
+	// Use a valid "status start/end" as an indicator of a loaded bank
+	if ((m_pVoiceBank[nBankID]->StatusStart == 0xF0) &&
+		(m_pVoiceBank[nBankID]->StatusEnd == 0xF7))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 unsigned CSysExFileLoader::GetNumHighestBank (void)
 {
 	return m_nNumHighestBank;
