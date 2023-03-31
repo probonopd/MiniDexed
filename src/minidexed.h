@@ -63,6 +63,8 @@ public:
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
+	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
@@ -149,6 +151,8 @@ public:
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,
+		TGParameterVoiceBankMSB,
+		TGParameterVoiceBankLSB,
 		TGParameterProgram,
 		TGParameterVolume,
 		TGParameterPan,

@@ -29,7 +29,7 @@
 class CSysExFileLoader		// Loader for DX7 .syx files
 {
 public:
-	static const unsigned MaxVoiceBankID = 16383;
+	static const unsigned MaxVoiceBankID = 16383; // i.e. 14-bit MSB/LSB value between 0 and 16383
 	static const unsigned VoicesPerBank = 32;
 	static const size_t SizePackedVoice = 128;
 	static const size_t SizeSingleVoice = 156;
@@ -56,10 +56,10 @@ public:
 
 	void Load (void);
 
-	std::string GetBankName (unsigned nBankID);	// 0 .. 127
+	std::string GetBankName (unsigned nBankID);	// 0 .. MaxVoiceBankID
 	unsigned GetNumHighestBank (); // 0 .. MaxVoiceBankID
 
-	void GetVoice (unsigned nBankID,		// 0 .. 127
+	void GetVoice (unsigned nBankID,		// 0 .. MaxVoiceBankID
 		       unsigned nVoiceID,		// 0 .. 31
 		       uint8_t *pVoiceData);		// returns unpacked format (156 bytes)
 
