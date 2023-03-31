@@ -242,16 +242,16 @@ unsigned CSysExFileLoader::GetNextBankDown (unsigned nBankID)
 
 bool CSysExFileLoader::IsValidBank (unsigned nBankID)
 {
-	// Use a valid "status start/end" as an indicator of a loaded bank
-	if ((m_pVoiceBank[nBankID]->StatusStart == 0xF0) &&
-		(m_pVoiceBank[nBankID]->StatusEnd == 0xF7))
+	if (m_pVoiceBank[nBankID])
 	{
-		return true;
+		// Use a valid "status start/end" as an indicator of a valid loaded bank
+		if ((m_pVoiceBank[nBankID]->StatusStart == 0xF0) &&
+			(m_pVoiceBank[nBankID]->StatusEnd == 0xF7))
+		{
+			return true;
+		}
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 unsigned CSysExFileLoader::GetNumHighestBank (void)
@@ -264,7 +264,7 @@ void CSysExFileLoader::GetVoice (unsigned nBankID, unsigned nVoiceID, uint8_t *p
 	if (   nBankID <= MaxVoiceBankID
 	    && nVoiceID <= VoicesPerBank)
 	{
-		if (m_pVoiceBank[nBankID])
+		if (IsValidBank(nBankID))
 		{
 			DecodePackedVoice (m_pVoiceBank[nBankID]->Voice[nVoiceID], pVoiceData);
 
