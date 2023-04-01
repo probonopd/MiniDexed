@@ -33,6 +33,8 @@ public:
 	static const unsigned VoicesPerBank = 32;
 	static const size_t SizePackedVoice = 128;
 	static const size_t SizeSingleVoice = 156;
+	static const unsigned VoiceSysExHdrSize = 8; // Additional (optional) Header/Footer bytes for bank of 32 voices
+	static const unsigned VoiceSysExSize = 4096; // Bank of 32 voices as per DX7 MIDI Spec
 
 	struct TVoiceBank
 	{
@@ -54,7 +56,7 @@ public:
 	CSysExFileLoader (const char *pDirName = "/sysex");
 	~CSysExFileLoader (void);
 
-	void Load (void);
+	void Load (bool bHeaderlessSysExVoices = false);
 
 	std::string GetBankName (unsigned nBankID);	// 0 .. MaxVoiceBankID
 	unsigned GetNumHighestBank (); // 0 .. MaxVoiceBankID
