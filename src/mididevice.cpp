@@ -36,7 +36,7 @@ LOGMODULE ("mididevice");
 #define MIDI_AFTERTOUCH		0b1010			// TODO
 #define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
 #define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
+	#define MIDI_CC_BANK_SELECT_MSB		0
 	#define MIDI_CC_MODULATION			1
 	#define MIDI_CC_BREATH_CONTROLLER	2 
 	#define MIDI_CC_FOOT_PEDAL 		4
@@ -281,6 +281,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		
 						case MIDI_CC_PAN_POSITION:
 							m_pSynthesizer->SetPan (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_BANK_SELECT_MSB:
+							m_pSynthesizer->BankSelectMSB (pMessage[2], nTG);
 							break;
 		
 						case MIDI_CC_BANK_SELECT_LSB:
