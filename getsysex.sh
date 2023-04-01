@@ -64,7 +64,7 @@ esac
 declare -i count
 for i in "${LINKS[@]}"; 
 do
-    printf -v j "%05d" $count
+    printf -v j "%06d" $count
     FILENAME="$j"_`basename "${i}"`
     echo "Downloading ${i} ..."
     curl -o "sysex/voice/${FILENAME}" ${CURL_OPTIONS} "${i}" > /dev/null 2>&1
