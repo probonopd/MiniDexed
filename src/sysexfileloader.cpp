@@ -81,7 +81,7 @@ CSysExFileLoader::~CSysExFileLoader (void)
 	}
 }
 
-void CSysExFileLoader::Load (void)
+void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 {
 	m_nNumHighestBank = 0;
 
@@ -124,6 +124,7 @@ void CSysExFileLoader::Load (void)
 
 		m_pVoiceBank[nBank] = new TVoiceBank;
 		assert (m_pVoiceBank[nBank]);
+		assert (sizeof(TVoiceBank) == VoiceSysExHdrSize + VoiceSysExSize);
 
 		std::string Filename (m_DirName);
 		Filename += "/";
@@ -132,7 +133,8 @@ void CSysExFileLoader::Load (void)
 		FILE *pFile = fopen (Filename.c_str (), "rb");
 		if (pFile)
 		{
-			if (   fread (m_pVoiceBank[nBank], sizeof (TVoiceBank), 1, pFile) == 1
+			bool bBankLoaded = false;
+			if (   fread (m_pVoiceBank[nBank], VoiceSysExHdrSize+VoiceSysExSize, 1, pFile) == 1
 			    && m_pVoiceBank[nBank]->StatusStart == 0xF0
 			    && m_pVoiceBank[nBank]->CompanyID   == 0x43
 			    && m_pVoiceBank[nBank]->Format      == 0x09
@@ -146,8 +148,38 @@ void CSysExFileLoader::Load (void)
 					// This is the bank ID of the highest loaded bank
 					m_nNumHighestBank = nBank;
 				}
+				bBankLoaded = true;
 			}
-			else
+			else if (bHeaderlessSysExVoices)
+			{
+				// Config says to accept headerless SysEx Voice Banks
+				// so reset file pointer and try again.
+				fseek (pFile, 0, SEEK_SET);
+				if (fread (m_pVoiceBank[nBank]->Voice, VoiceSysExSize, 1, pFile) == 1)
+				{
+					LOGDBG ("Bank #%u successfully loaded (headerless)", nBank);
+
+					// Add in the missing header items.
+					// Naturally it isn't possible to validate these!
+					m_pVoiceBank[nBank]->StatusStart = 0xF0;
+					m_pVoiceBank[nBank]->CompanyID   = 0x43;
+					m_pVoiceBank[nBank]->Format      = 0x09;
+					m_pVoiceBank[nBank]->ByteCountMS = 0x20;
+					m_pVoiceBank[nBank]->ByteCountLS = 0x00;
+					m_pVoiceBank[nBank]->Checksum    = 0x00;
+					m_pVoiceBank[nBank]->StatusEnd   = 0xF7;
+
+					m_BankFileName[nBank] = pEntry->d_name;
+					if (nBank > m_nNumHighestBank)
+					{
+						// This is the bank ID of the highest loaded bank
+						m_nNumHighestBank = nBank;
+					}
+					bBankLoaded = true;
+				}
+			}
+
+			if (!bBankLoaded)
 			{
 				LOGWARN ("%s: Invalid size or format", Filename.c_str ());
 
