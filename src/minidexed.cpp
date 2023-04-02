@@ -172,7 +172,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
-	m_SysExFileLoader.Load ();
+	m_SysExFileLoader.Load (m_pConfig->GetHeaderlessSysExVoices ());
 
 	if (m_SerialMIDI.Initialize ())
 	{
