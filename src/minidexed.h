@@ -126,6 +126,7 @@ public:
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	
+	// Must match the order in CUIMenu::TParameter
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -148,6 +149,7 @@ public:
 	bool DeletePerformance(unsigned nID);
 	bool DoDeletePerformance(void);
 
+	// Must match the order in CUIMenu::TGParameter
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,

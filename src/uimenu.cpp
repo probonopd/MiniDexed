@@ -219,6 +219,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
 	{0,	CSysExFileLoader::MaxVoiceBankID,	1},			// TGParameterVoiceBank
+	{0, 0, 0},											// TGParameterVoiceBankMSB (not used in menus)
+	{0, 0, 0},											// TGParameterVoiceBankLSB (not used in menus)
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
@@ -249,7 +251,6 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
 	{0, 1, 1, ToOnOff} //AT EGBias	
-	
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1476,8 +1477,6 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-3]; 
 	unsigned nController = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
 	unsigned nParameter = pUIMenu->m_nCurrentParameter + nController;
-	
-
 	
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) nParameter;
 	const TParameter &rParam = s_TGParameter[Param];
