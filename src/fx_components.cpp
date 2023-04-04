@@ -174,6 +174,7 @@ FastLFO2::FastLFO2(float32_t sampling_rate, float32_t min_frequency, float32_t m
     max_frequency_(max_frequency),
     centered_(centered),
     frequency_(0.0f),
+    normalized_frequency_(0.0f),
     phase_(initial_phase),
     phase_increment_(0.0f),
     current_(0.0f)
@@ -267,18 +268,45 @@ float32_t FastLFO2::current() const
 ////////////////////////////////////////////////
 // InterpolatedSineOscillator implemlentation //
 ////////////////////////////////////////////////
-bool InterpolatedSineOscillator::ClassInitializer()
+float32_t InterpolatedSineOscillator::Sin(float32_t phase)
 {
-    float32_t phase_increment = Constants::M2PI / static_cast<float32_t>(InterpolatedSineOscillator::DataPointSize);
-    float32_t phase = 0.0;
-    for(size_t i = 0; i <= InterpolatedSineOscillator::DataPointSize; ++i)
+    static bool initialized = false;
+    if(!initialized)
     {
-        InterpolatedSineOscillator::CenteredDataPoints[i] = std::sin(phase);
-        InterpolatedSineOscillator::UpliftDataPoints[i] = InterpolatedSineOscillator::CenteredDataPoints[i] * 0.5f + 0.5f;
-        phase += phase_increment;
+        initialized = InterpolatedSineOscillator::ClassInitializer();
     }
 
-    return true;
+    float32_t findex = phase / InterpolatedSineOscillator::DeltaTime;
+
+    size_t index1 = static_cast<size_t>(findex);
+    size_t index2 = index1 + 1;
+
+    float32_t f1 = InterpolatedSineOscillator::CenteredDataPoints[index1];
+    float32_t f2 = InterpolatedSineOscillator::CenteredDataPoints[index2];
+    float32_t r = findex - index1;
+
+    return f1 + (f2 - f1) * r * InterpolatedSineOscillator::DeltaTime;
+}
+
+bool InterpolatedSineOscillator::ClassInitializer()
+{
+    static bool initialized = false;
+
+    if(!initialized)
+    {
+        float32_t phase_increment = Constants::M2PI / static_cast<float32_t>(InterpolatedSineOscillator::DataPointSize);
+        float32_t phase = 0.0;
+        for(size_t i = 0; i <= InterpolatedSineOscillator::DataPointSize; ++i)
+        {
+            InterpolatedSineOscillator::CenteredDataPoints[i] = std::sin(phase);
+            InterpolatedSineOscillator::UpliftDataPoints[i] = InterpolatedSineOscillator::CenteredDataPoints[i] * 0.5f + 0.5f;
+            phase += phase_increment;
+        }
+
+        initialized = true;
+    }
+
+    return initialized;
 }
 
 float32_t InterpolatedSineOscillator::CenteredDataPoints[InterpolatedSineOscillator::DataPointSize + 1];

@@ -756,13 +756,11 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
 #if defined(MIXING_CONSOLE_ENABLE)
 	assert(this->mixing_console_);
-
 #elif defined(PLATE_REVERB_ENABLE)
-
-	assert (reverb);
+	assert(reverb);
 #endif
 
-	assert (Parameter < ParameterUnknown);
+	assert(Parameter < ParameterUnknown);
 	m_nParameter[Parameter] = nValue;
 
 	switch (Parameter)
@@ -770,7 +768,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterCompressorEnable:
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
-			assert (m_pTG[nTG]);
+			assert(m_pTG[nTG]);
 			m_pTG[nTG]->setCompressor (!!nValue);
 		}
 		break;
@@ -917,51 +915,45 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	// AudioEffectPlateReverb parameters
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->set_bypass (!nValue);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbSize:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->size (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbHighDamp:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->hidamp (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbLowDamp:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->lodamp (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbLowPass:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->lowpass (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbDiffusion:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->diffusion (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
-
 	case ParameterReverbLevel:
 		nValue=constrain((int)nValue,0,99);
-		m_FXSpinLock.Acquire ();
+		this->m_FXSpinLock.Acquire ();
 		this->mixing_console_->getPlateReverb()->level (nValue / 99.0f);
-		m_FXSpinLock.Release ();
+		this->m_FXSpinLock.Release ();
 		break;
 
 	// Reverberator parameters
@@ -1066,39 +1058,39 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
-	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
-	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
-	case TGParameterPan:		SetPan (nValue, nTG);		break;
-	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
-	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
-	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
-	case TGParameterPitchBendRange:	setPitchbendRange (nValue, nTG);	break;
-	case TGParameterPitchBendStep:	setPitchbendStep (nValue, nTG);	break;
-	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
+	case TGParameterVoiceBank:				BankSelectLSB (nValue, nTG);	break;
+	case TGParameterProgram:				ProgramChange (nValue, nTG);	break;
+	case TGParameterVolume:					SetVolume (nValue, nTG);	break;
+	case TGParameterPan:					SetPan (nValue, nTG);		break;
+	case TGParameterMasterTune:				SetMasterTune (nValue, nTG);	break;
+	case TGParameterCutoff:					SetCutoff (nValue, nTG);	break;
+	case TGParameterResonance:				SetResonance (nValue, nTG);	break;
+	case TGParameterPitchBendRange:			setPitchbendRange (nValue, nTG);	break;
+	case TGParameterPitchBendStep:			setPitchbendStep (nValue, nTG);	break;
+	case TGParameterPortamentoMode:			setPortamentoMode (nValue, nTG);	break;
 	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
-	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
-	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+	case TGParameterPortamentoTime:			setPortamentoTime (nValue, nTG);	break;
+	case TGParameterMonoMode:				setMonoMode (nValue , nTG);	break; 
 	
-	case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
-	case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
-	case TGParameterMWAmplitude:				setModController(0, 2, nValue, nTG); break;
-	case TGParameterMWEGBias:					setModController(0, 3, nValue, nTG); break;
+	case TGParameterMWRange:				setModController(0, 0, nValue, nTG); break;
+	case TGParameterMWPitch:				setModController(0, 1, nValue, nTG); break;
+	case TGParameterMWAmplitude:			setModController(0, 2, nValue, nTG); break;
+	case TGParameterMWEGBias:				setModController(0, 3, nValue, nTG); break;
 	
-	case TGParameterFCRange:					setModController(1, 0, nValue, nTG); break;
-	case TGParameterFCPitch:					setModController(1, 1, nValue, nTG); break;
-	case TGParameterFCAmplitude:				setModController(1, 2, nValue, nTG); break;
-	case TGParameterFCEGBias:					setModController(1, 3, nValue, nTG); break;
+	case TGParameterFCRange:				setModController(1, 0, nValue, nTG); break;
+	case TGParameterFCPitch:				setModController(1, 1, nValue, nTG); break;
+	case TGParameterFCAmplitude:			setModController(1, 2, nValue, nTG); break;
+	case TGParameterFCEGBias:				setModController(1, 3, nValue, nTG); break;
 	
-	case TGParameterBCRange:					setModController(2, 0, nValue, nTG); break;
-	case TGParameterBCPitch:					setModController(2, 1, nValue, nTG); break;
-	case TGParameterBCAmplitude:				setModController(2, 2, nValue, nTG); break;
-	case TGParameterBCEGBias:					setModController(2, 3, nValue, nTG); break;
+	case TGParameterBCRange:				setModController(2, 0, nValue, nTG); break;
+	case TGParameterBCPitch:				setModController(2, 1, nValue, nTG); break;
+	case TGParameterBCAmplitude:			setModController(2, 2, nValue, nTG); break;
+	case TGParameterBCEGBias:				setModController(2, 3, nValue, nTG); break;
 	
-	case TGParameterATRange:					setModController(3, 0, nValue, nTG); break;
-	case TGParameterATPitch:					setModController(3, 1, nValue, nTG); break;
-	case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
-	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
+	case TGParameterATRange:				setModController(3, 0, nValue, nTG); break;
+	case TGParameterATPitch:				setModController(3, 1, nValue, nTG); break;
+	case TGParameterATAmplitude:			setModController(3, 2, nValue, nTG); break;
+	case TGParameterATEGBias:				setModController(3, 3, nValue, nTG); break;
 	
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
@@ -1111,7 +1103,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterMixingSendFXFlanger:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Flanger, 		nValue); break;
 	case TGParameterMixingSendFXOrbittone:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone, 		nValue); break;
 	case TGParameterMixingSendFXPhaser:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Phaser, 		nValue); break;
-	case TGParameterMixingSendFXDelay:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Delay, 			nValue); break;
+	case TGParameterMixingSendFXDelay:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Delay, 		nValue); break;
 	case TGParameterMixingSendFXPlateReverb:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, 	nValue); break;
 	case TGParameterMixingSendFXReverberator:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Reverberator, 	nValue); break;
 	case TGParameterMixingSendFXMainOutput:		this->setMixingConsoleSendLevel(nTG, MixerOutput::MainOutput, 		nValue); break;
@@ -1131,45 +1123,44 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
-	case TGParameterProgram:	return m_nProgram[nTG];
-	case TGParameterVolume:		return m_nVolume[nTG];
-	case TGParameterPan:		return m_nPan[nTG];
-	case TGParameterMasterTune:	return m_nMasterTune[nTG];
-	case TGParameterCutoff:		return m_nCutoff[nTG];
-	case TGParameterResonance:	return m_nResonance[nTG];
-	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
+	case TGParameterVoiceBank:				return m_nVoiceBankID[nTG];
+	case TGParameterProgram:				return m_nProgram[nTG];
+	case TGParameterVolume:					return m_nVolume[nTG];
+	case TGParameterPan:					return m_nPan[nTG];
+	case TGParameterMasterTune:				return m_nMasterTune[nTG];
+	case TGParameterCutoff:					return m_nCutoff[nTG];
+	case TGParameterResonance:				return m_nResonance[nTG];
+	case TGParameterMIDIChannel:			return m_nMIDIChannel[nTG];
 #if defined(PLATE_REVERB_ENABLE)
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
 #endif
-	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
-	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
-	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
+	case TGParameterPitchBendRange:			return m_nPitchBendRange[nTG];
+	case TGParameterPitchBendStep:			return m_nPitchBendStep[nTG];
+	case TGParameterPortamentoMode:			return m_nPortamentoMode[nTG];
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
-	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
-	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
+	case TGParameterPortamentoTime:			return m_nPortamentoTime[nTG];
+	case TGParameterMonoMode:				return m_bMonoMode[nTG] ? 1 : 0; 
 	
-	case TGParameterMWRange:					return getModController(0, 0, nTG);
-	case TGParameterMWPitch:					return getModController(0, 1, nTG);
-	case TGParameterMWAmplitude:				return getModController(0, 2, nTG); 
-	case TGParameterMWEGBias:					return getModController(0, 3, nTG); 
+	case TGParameterMWRange:				return getModController(0, 0, nTG);
+	case TGParameterMWPitch:				return getModController(0, 1, nTG);
+	case TGParameterMWAmplitude:			return getModController(0, 2, nTG); 
+	case TGParameterMWEGBias:				return getModController(0, 3, nTG); 
 	
-	case TGParameterFCRange:					return getModController(1, 0,  nTG); 
-	case TGParameterFCPitch:					return getModController(1, 1,  nTG); 
-	case TGParameterFCAmplitude:				return getModController(1, 2,  nTG); 
-	case TGParameterFCEGBias:					return getModController(1, 3,  nTG); 
+	case TGParameterFCRange:				return getModController(1, 0,  nTG); 
+	case TGParameterFCPitch:				return getModController(1, 1,  nTG); 
+	case TGParameterFCAmplitude:			return getModController(1, 2,  nTG); 
+	case TGParameterFCEGBias:				return getModController(1, 3,  nTG); 
 	
-	case TGParameterBCRange:					return getModController(2, 0,  nTG); 
-	case TGParameterBCPitch:					return getModController(2, 1,  nTG); 
-	case TGParameterBCAmplitude:				return getModController(2, 2,  nTG); 
-	case TGParameterBCEGBias:					return getModController(2, 3,  nTG); 
+	case TGParameterBCRange:				return getModController(2, 0,  nTG); 
+	case TGParameterBCPitch:				return getModController(2, 1,  nTG); 
+	case TGParameterBCAmplitude:			return getModController(2, 2,  nTG); 
+	case TGParameterBCEGBias:				return getModController(2, 3,  nTG); 
 	
-	case TGParameterATRange:					return getModController(3, 0,  nTG); 
-	case TGParameterATPitch:					return getModController(3, 1,  nTG); 
-	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
-	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
-	
-	
+	case TGParameterATRange:				return getModController(3, 0,  nTG); 
+	case TGParameterATPitch:				return getModController(3, 1,  nTG); 
+	case TGParameterATAmplitude:			return getModController(3, 2,  nTG); 
+	case TGParameterATEGBias:				return getModController(3, 3,  nTG); 
+		
 	default:
 		assert (0);
 		return 0;
@@ -1322,8 +1313,6 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
-		assert (CConfig::ToneGenerators == 8);
-
 #if defined(MIXING_CONSOLE_ENABLE)
 		// // swap stereo channels if needed
 		uint8_t indexL = StereoChannels::Left;
@@ -1338,9 +1327,9 @@ void CMiniDexed::ProcessSound (void)
 		float32_t tmp_float[nFrames * 2];
 		int16_t tmp_int[nFrames * 2];
 
-		float32_t SampleBuffer[2][nFrames];
+		float32_t SampleBuffer[StereoChannels::kNumChannels][nFrames];
 
-		if(nMasterVolume > 0.0f)
+		if(this->nMasterVolume > 0.0f)
 		{
 			this->m_FXSpinLock.Acquire ();
 
@@ -1447,14 +1436,14 @@ void CMiniDexed::ProcessSound (void)
 			arm_fill_q15(0, tmp_int, nFrames * 2);
 #endif
 
-		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+		if(this->m_pSoundDevice->Write(tmp_int, sizeof(tmp_int)) != (int)sizeof(tmp_int))
 		{
 			LOGERR ("Sound data dropped");
 		}
 
-		if (m_bProfileEnabled)
+		if(this->m_bProfileEnabled)
 		{
-			m_GetChunkTimer.Stop ();
+			this->m_GetChunkTimer.Stop ();
 		}
 	}
 }

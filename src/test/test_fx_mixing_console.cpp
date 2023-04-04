@@ -8,6 +8,11 @@
 
 class MixingConsoleScenarioTest : public testing::TestWithParam<MixerOutput> {};
 
+typedef MixingConsole<8> Mixer;
+
+void setupMixingConsoleFX(Mixer* mixer);
+void setupMixingConsoleFX(Mixer* mixer, int scenarioId);
+
 TEST_P(MixingConsoleScenarioTest, MixerOutputTest)
 {
     MixerOutput v = this->GetParam();
@@ -17,8 +22,6 @@ TEST_P(MixingConsoleScenarioTest, MixerOutputTest)
 }
 
 INSTANTIATE_TEST_SUITE_P(MixerOutputTest, MixingConsoleScenarioTest, testing::Range(MixerOutput::OutputStart, MixerOutput::kFXCount));
-
-typedef MixingConsole<8> Mixer;
 
 void setupMixingConsoleFX(Mixer* mixer)
 {

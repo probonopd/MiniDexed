@@ -12,6 +12,8 @@
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
+void testFastLFOPrecision(std::string file, float32_t freq, float32_t init_phase);
+
 TEST(FXComponent, LFO)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();

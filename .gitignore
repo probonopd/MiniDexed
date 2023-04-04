@@ -45,7 +45,6 @@ sdcard
 # Editor related files
 *.swp
 *.swo
-.vscode/
 
 # temporary tests
 src/test/bin/
