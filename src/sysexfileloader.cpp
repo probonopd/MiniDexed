@@ -84,6 +84,7 @@ CSysExFileLoader::~CSysExFileLoader (void)
 void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 {
 	m_nNumHighestBank = 0;
+	m_nBanksLoaded = 0;
 
     DIR *pDirectory = opendir (m_DirName.c_str ());
 	if (!pDirectory)
@@ -96,51 +97,112 @@ void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 	dirent *pEntry;
 	while ((pEntry = readdir (pDirectory)) != nullptr)
 	{
-		unsigned nBank;
-		size_t nLen = strlen (pEntry->d_name);
+		LoadBank(m_DirName.c_str (), pEntry->d_name);
+	}
+	LOGDBG ("%u Banks loaded. Highest Bank loaded: #%u", m_nBanksLoaded, m_nNumHighestBank);
 
-		if (   nLen < 5						// "[NNNN]N[_name].syx"
-		    || strcasecmp (&pEntry->d_name[nLen-4], ".syx") != 0
-		    || sscanf (pEntry->d_name, "%u", &nBank) != 1)
+	closedir (pDirectory);
+}
+
+void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName)
+{
+	unsigned nBank;
+	size_t nLen = strlen (sBankName);
+
+	if (   nLen < 5						// "[NNNN]N[_name].syx"
+		|| strcasecmp (&sBankName[nLen-4], ".syx") != 0
+		|| sscanf (sBankName, "%u", &nBank) != 1)
+	{
+		// See if this is a subdirectory...
+		std::string Dirname (sDirName);
+		Dirname += "/";
+		Dirname += sBankName;
+
+		DIR *pDirectory = opendir (Dirname.c_str ());
+		if (pDirectory)
 		{
-			LOGWARN ("%s: Invalid filename format", pEntry->d_name);
+			LOGDBG ("Processing subdirectory %s", sBankName);
 
-			continue;
-		}
-
-		if (nBank > MaxVoiceBankID)
-		{
-			LOGWARN ("Bank #%u is not supported", nBank);
-
-			continue;
-		}
-
-		if (m_pVoiceBank[nBank])
-		{
-			LOGWARN ("Bank #%u already loaded", nBank);
-
-			continue;
-		}
-
-		m_pVoiceBank[nBank] = new TVoiceBank;
-		assert (m_pVoiceBank[nBank]);
-		assert (sizeof(TVoiceBank) == VoiceSysExHdrSize + VoiceSysExSize);
-
-		std::string Filename (m_DirName);
-		Filename += "/";
-		Filename += pEntry->d_name;
-
-		FILE *pFile = fopen (Filename.c_str (), "rb");
-		if (pFile)
-		{
-			bool bBankLoaded = false;
-			if (   fread (m_pVoiceBank[nBank], VoiceSysExHdrSize+VoiceSysExSize, 1, pFile) == 1
-			    && m_pVoiceBank[nBank]->StatusStart == 0xF0
-			    && m_pVoiceBank[nBank]->CompanyID   == 0x43
-			    && m_pVoiceBank[nBank]->Format      == 0x09
-			    && m_pVoiceBank[nBank]->StatusEnd   == 0xF7)
+			dirent *pEntry;
+			while ((pEntry = readdir (pDirectory)) != nullptr)
 			{
-				LOGDBG ("Bank #%u successfully loaded", nBank);
+				LoadBank(Dirname.c_str (), pEntry->d_name);
+			}
+			closedir (pDirectory);
+		}
+		else
+		{
+			LOGWARN ("%s: Invalid filename format", sBankName);
+		}
+
+		return;
+	}
+
+	if (nBank > MaxVoiceBankID)
+	{
+		LOGWARN ("Bank #%u is not supported", nBank);
+
+		return;
+	}
+
+	if (m_pVoiceBank[nBank])
+	{
+		LOGWARN ("Bank #%u already loaded", nBank);
+
+		return;
+	}
+
+	m_pVoiceBank[nBank] = new TVoiceBank;
+	assert (m_pVoiceBank[nBank]);
+	assert (sizeof(TVoiceBank) == VoiceSysExHdrSize + VoiceSysExSize);
+
+	std::string Filename (sDirName);
+	Filename += "/";
+	Filename += sBankName;
+
+	FILE *pFile = fopen (Filename.c_str (), "rb");
+	if (pFile)
+	{
+		bool bBankLoaded = false;
+		if (   fread (m_pVoiceBank[nBank], VoiceSysExHdrSize+VoiceSysExSize, 1, pFile) == 1
+			&& m_pVoiceBank[nBank]->StatusStart == 0xF0
+			&& m_pVoiceBank[nBank]->CompanyID   == 0x43
+			&& m_pVoiceBank[nBank]->Format      == 0x09
+			&& m_pVoiceBank[nBank]->StatusEnd   == 0xF7)
+		{
+			if (m_nBanksLoaded % 100 == 0)
+			{
+				LOGDBG ("Banks successfully loaded #%u", m_nBanksLoaded);
+			}
+			//LOGDBG ("Bank #%u successfully loaded", nBank);
+
+			m_BankFileName[nBank] = sBankName;
+			if (nBank > m_nNumHighestBank)
+			{
+				// This is the bank ID of the highest loaded bank
+				m_nNumHighestBank = nBank;
+			}
+			m_nBanksLoaded++;
+			bBankLoaded = true;
+		}
+	/*			else if (bHeaderlessSysExVoices)
+		{
+			// Config says to accept headerless SysEx Voice Banks
+			// so reset file pointer and try again.
+			fseek (pFile, 0, SEEK_SET);
+			if (fread (m_pVoiceBank[nBank]->Voice, VoiceSysExSize, 1, pFile) == 1)
+			{
+				LOGDBG ("Bank #%u successfully loaded (headerless)", nBank);
+
+				// Add in the missing header items.
+				// Naturally it isn't possible to validate these!
+				m_pVoiceBank[nBank]->StatusStart = 0xF0;
+				m_pVoiceBank[nBank]->CompanyID   = 0x43;
+				m_pVoiceBank[nBank]->Format      = 0x09;
+				m_pVoiceBank[nBank]->ByteCountMS = 0x20;
+				m_pVoiceBank[nBank]->ByteCountLS = 0x00;
+				m_pVoiceBank[nBank]->Checksum    = 0x00;
+				m_pVoiceBank[nBank]->StatusEnd   = 0xF7;
 
 				m_BankFileName[nBank] = pEntry->d_name;
 				if (nBank > m_nNumHighestBank)
@@ -150,53 +212,23 @@ void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 				}
 				bBankLoaded = true;
 			}
-			else if (bHeaderlessSysExVoices)
-			{
-				// Config says to accept headerless SysEx Voice Banks
-				// so reset file pointer and try again.
-				fseek (pFile, 0, SEEK_SET);
-				if (fread (m_pVoiceBank[nBank]->Voice, VoiceSysExSize, 1, pFile) == 1)
-				{
-					LOGDBG ("Bank #%u successfully loaded (headerless)", nBank);
+		}*/
 
-					// Add in the missing header items.
-					// Naturally it isn't possible to validate these!
-					m_pVoiceBank[nBank]->StatusStart = 0xF0;
-					m_pVoiceBank[nBank]->CompanyID   = 0x43;
-					m_pVoiceBank[nBank]->Format      = 0x09;
-					m_pVoiceBank[nBank]->ByteCountMS = 0x20;
-					m_pVoiceBank[nBank]->ByteCountLS = 0x00;
-					m_pVoiceBank[nBank]->Checksum    = 0x00;
-					m_pVoiceBank[nBank]->StatusEnd   = 0xF7;
-
-					m_BankFileName[nBank] = pEntry->d_name;
-					if (nBank > m_nNumHighestBank)
-					{
-						// This is the bank ID of the highest loaded bank
-						m_nNumHighestBank = nBank;
-					}
-					bBankLoaded = true;
-				}
-			}
-
-			if (!bBankLoaded)
-			{
-				LOGWARN ("%s: Invalid size or format", Filename.c_str ());
-
-				delete m_pVoiceBank[nBank];
-				m_pVoiceBank[nBank] = nullptr;
-			}
-
-			fclose (pFile);
-		}
-		else
+		if (!bBankLoaded)
 		{
+			LOGWARN ("%s: Invalid size or format", Filename.c_str ());
+
 			delete m_pVoiceBank[nBank];
 			m_pVoiceBank[nBank] = nullptr;
 		}
-	}
 
-	closedir (pDirectory);
+		fclose (pFile);
+	}
+	else
+	{
+		delete m_pVoiceBank[nBank];
+		m_pVoiceBank[nBank] = nullptr;
+	}
 }
 
 std::string CSysExFileLoader::GetBankName (unsigned nBankID)
