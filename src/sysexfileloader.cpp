@@ -97,14 +97,14 @@ void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 	dirent *pEntry;
 	while ((pEntry = readdir (pDirectory)) != nullptr)
 	{
-		LoadBank(m_DirName.c_str (), pEntry->d_name);
+		LoadBank(m_DirName.c_str (), pEntry->d_name, bHeaderlessSysExVoices);
 	}
 	LOGDBG ("%u Banks loaded. Highest Bank loaded: #%u", m_nBanksLoaded, m_nNumHighestBank);
 
 	closedir (pDirectory);
 }
 
-void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName)
+void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices)
 {
 	unsigned nBank;
 	size_t nLen = strlen (sBankName);
@@ -126,7 +126,7 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName)
 			dirent *pEntry;
 			while ((pEntry = readdir (pDirectory)) != nullptr)
 			{
-				LoadBank(Dirname.c_str (), pEntry->d_name);
+				LoadBank(Dirname.c_str (), pEntry->d_name, bHeaderlessSysExVoices);
 			}
 			closedir (pDirectory);
 		}
@@ -185,14 +185,18 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName)
 			m_nBanksLoaded++;
 			bBankLoaded = true;
 		}
-	/*			else if (bHeaderlessSysExVoices)
+		else if (bHeaderlessSysExVoices)
 		{
 			// Config says to accept headerless SysEx Voice Banks
 			// so reset file pointer and try again.
 			fseek (pFile, 0, SEEK_SET);
 			if (fread (m_pVoiceBank[nBank]->Voice, VoiceSysExSize, 1, pFile) == 1)
 			{
-				LOGDBG ("Bank #%u successfully loaded (headerless)", nBank);
+				if (m_nBanksLoaded % 100 == 0)
+				{
+					LOGDBG ("Banks successfully loaded #%u", m_nBanksLoaded);
+				}
+				//LOGDBG ("Bank #%u successfully loaded (headerless)", nBank);
 
 				// Add in the missing header items.
 				// Naturally it isn't possible to validate these!
@@ -204,15 +208,16 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName)
 				m_pVoiceBank[nBank]->Checksum    = 0x00;
 				m_pVoiceBank[nBank]->StatusEnd   = 0xF7;
 
-				m_BankFileName[nBank] = pEntry->d_name;
+				m_BankFileName[nBank] = sBankName;
 				if (nBank > m_nNumHighestBank)
 				{
 					// This is the bank ID of the highest loaded bank
 					m_nNumHighestBank = nBank;
 				}
 				bBankLoaded = true;
+				m_nBanksLoaded++;
 			}
-		}*/
+		}
 
 		if (!bBankLoaded)
 		{

@@ -82,7 +82,7 @@ private:
 
 	static uint8_t s_DefaultVoice[SizeSingleVoice];
 	
-	void LoadBank (const char * sDirName, const char * sBankName);
+	void LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices);
 };
 
 #endif
