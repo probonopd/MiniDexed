@@ -519,7 +519,7 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value =   to_string (nValue+1) + "="
+	string Value =   to_string (nValue) + "="
 		       + pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nValue);
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
