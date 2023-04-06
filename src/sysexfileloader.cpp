@@ -97,18 +97,18 @@ void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 	dirent *pEntry;
 	while ((pEntry = readdir (pDirectory)) != nullptr)
 	{
-		LoadBank(m_DirName.c_str (), pEntry->d_name, bHeaderlessSysExVoices);
+		LoadBank(m_DirName.c_str (), pEntry->d_name, bHeaderlessSysExVoices, 0);
 	}
 	LOGDBG ("%u Banks loaded. Highest Bank loaded: #%u", m_nBanksLoaded, m_nNumHighestBank);
 
 	closedir (pDirectory);
 }
 
-void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices)
+void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices, unsigned nSubDirCount)
 {
 	unsigned nBank;
 	size_t nLen = strlen (sBankName);
-
+	
 	if (   nLen < 5						// "[NNNN]N[_name].syx"
 		|| strcasecmp (&sBankName[nLen-4], ".syx") != 0
 		|| sscanf (sBankName, "%u", &nBank) != 1)
@@ -121,12 +121,18 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, 
 		DIR *pDirectory = opendir (Dirname.c_str ());
 		if (pDirectory)
 		{
+			if (nSubDirCount >= MaxSubDirs)
+			{
+				LOGWARN ("Too many nested subdirectories: %s", sBankName);
+				return;
+			}
+	
 			LOGDBG ("Processing subdirectory %s", sBankName);
 
 			dirent *pEntry;
 			while ((pEntry = readdir (pDirectory)) != nullptr)
 			{
-				LoadBank(Dirname.c_str (), pEntry->d_name, bHeaderlessSysExVoices);
+				LoadBank(Dirname.c_str (), pEntry->d_name, bHeaderlessSysExVoices, nSubDirCount+1);
 			}
 			closedir (pDirectory);
 		}
