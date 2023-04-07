@@ -581,15 +581,29 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string TG ("TG");
-	TG += to_string (nTG+1);
+	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG); // Skip empty voices
+	if (voiceName == "EMPTY     "
+	    || voiceName == "          "
+	    || voiceName == "----------"
+	    || voiceName == "~~~~~~~~~~" )
+	{
+		if (Event == MenuEventStepUp) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepUp);
+		}
+		if (Event == MenuEventStepDown) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepDown);
+		}
+	} else {
+		string TG ("TG");
+		TG += to_string (nTG+1);
 
-	string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
+		string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+		pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					      Value.c_str (),
+					      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+	}
 }
 
 void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)

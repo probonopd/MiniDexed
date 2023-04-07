@@ -16,28 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Recursively pull git submodules
+    - name: Get specific commits of git submodules
       run: |
-           set -ex
-           git submodule update --init --recursive
-    - name: Use Circle develop branch for SSD1306 display rotation support until it is merged upstream
-      run: |
-           set -ex
-           cd circle-stdlib/
-           git checkout e318f89 # Needed to support Circle develop?
-           cd -
-           cd circle-stdlib/libs/circle
-           git checkout ec09d7e # develop
-           cd -
-           cd circle-stdlib/libs/circle-newlib
-           git checkout 48bf91d # needed for circle ec09d7e
-           cd -
-    - name: Change Synth_Dexed branch to enable selection of Velocity Scales
-      run: |
-           set -ex
-           cd Synth_Dexed/
-           git checkout deb0905
-           cd -
+           sh -ex ./submod.sh
     - name: Install toolchains
       run: |
            set -ex
