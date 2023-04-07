@@ -582,11 +582,10 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 
 	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG); // Skip empty voices
-	if (voiceName == "INIT VOICE" 
-	    || voiceName == "init voice" 
-	    || voiceName == "          " 
-	    || voiceName == "----------" 
-	    || voiceName == "~~~~~~~~~~" ) 
+	if (voiceName == "EMPTY     "
+	    || voiceName == "          "
+	    || voiceName == "----------"
+	    || voiceName == "~~~~~~~~~~" )
 	{
 		if (Event == MenuEventStepUp) {
 			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepUp);
