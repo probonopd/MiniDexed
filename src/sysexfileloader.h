@@ -35,6 +35,7 @@ public:
 	static const size_t SizeSingleVoice = 156;
 	static const unsigned VoiceSysExHdrSize = 8; // Additional (optional) Header/Footer bytes for bank of 32 voices
 	static const unsigned VoiceSysExSize = 4096; // Bank of 32 voices as per DX7 MIDI Spec
+	static const unsigned MaxSubDirs = 3; // Number of nested subdirectories supported.
 
 	struct TVoiceBank
 	{
@@ -75,11 +76,14 @@ private:
 	std::string m_DirName;
 	
 	unsigned m_nNumHighestBank;
+	unsigned m_nBanksLoaded;
 
 	TVoiceBank *m_pVoiceBank[MaxVoiceBankID+1];
 	std::string m_BankFileName[MaxVoiceBankID+1];
 
 	static uint8_t s_DefaultVoice[SizeSingleVoice];
+	
+	void LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices, unsigned nSubDirCount);
 };
 
 #endif
