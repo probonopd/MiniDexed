@@ -219,6 +219,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
 	{0,	CSysExFileLoader::MaxVoiceBankID,	1},			// TGParameterVoiceBank
+	{0, 0, 0},											// TGParameterVoiceBankMSB (not used in menus)
+	{0, 0, 0},											// TGParameterVoiceBankLSB (not used in menus)
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
@@ -249,7 +251,6 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
 	{0, 1, 1, ToOnOff} //AT EGBias	
-	
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -580,15 +581,29 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string TG ("TG");
-	TG += to_string (nTG+1);
+	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG); // Skip empty voices
+	if (voiceName == "EMPTY     "
+	    || voiceName == "          "
+	    || voiceName == "----------"
+	    || voiceName == "~~~~~~~~~~" )
+	{
+		if (Event == MenuEventStepUp) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepUp);
+		}
+		if (Event == MenuEventStepDown) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepDown);
+		}
+	} else {
+		string TG ("TG");
+		TG += to_string (nTG+1);
 
-	string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
+		string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+		pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					      Value.c_str (),
+					      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+	}
 }
 
 void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
@@ -1466,8 +1481,6 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-3]; 
 	unsigned nController = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
 	unsigned nParameter = pUIMenu->m_nCurrentParameter + nController;
-	
-
 	
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) nParameter;
 	const TParameter &rParam = s_TGParameter[Param];
