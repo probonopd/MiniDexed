@@ -71,6 +71,7 @@ void CConfig::Load (void)
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
 	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
 	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 1) != 0;
+	m_bHeaderlessSysExVoices = m_Properties.GetNumber ("HeaderlessSysExVoices", 0) != 0;
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -177,6 +178,11 @@ bool CConfig::GetIgnoreAllNotesOff (void) const
 bool CConfig::GetMIDIAutoVoiceDumpOnPC (void) const
 {
 	return m_bMIDIAutoVoiceDumpOnPC;
+}
+
+bool CConfig::GetHeaderlessSysExVoices (void) const
+{
+	return m_bHeaderlessSysExVoices;
 }
 
 bool CConfig::GetLCDEnabled (void) const
