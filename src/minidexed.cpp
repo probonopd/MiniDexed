@@ -61,6 +61,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
+		m_nVoiceBankIDMSB[i] = 0;
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
 		m_nPan[i] = 64;
@@ -241,7 +242,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
-	m_SysExFileLoader.Load ();
+	m_SysExFileLoader.Load (m_pConfig->GetHeaderlessSysExVoices ());
 
 	if (m_SerialMIDI.Initialize ())
 	{
@@ -447,14 +448,47 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
+void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
+{
+	nBank=constrain((int)nBank,0,16383);
+
+	assert (nTG < CConfig::ToneGenerators);
+	
+	if (GetSysExFileLoader ()->IsValidBank(nBank))
+	{
+		// Only change if we have the bank loaded
+		m_nVoiceBankID[nTG] = nBank;
+
+		m_UI.ParameterChanged ();
+	}
+}
+
+void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
+{
+	nBankMSB=constrain((int)nBankMSB,0,127);
+
+	assert (nTG < CConfig::ToneGenerators);
+	// MIDI Spec 1.0 "BANK SELECT" states:
+	//   "The transmitter must transmit the MSB and LSB as a pair,
+	//   and the Program Change must be sent immediately after
+	//   the Bank Select pair."
+	//
+	// So it isn't possible to validate the selected bank ID until
+	// we receive both MSB and LSB so just store the MSB for now.
+	m_nVoiceBankIDMSB[nTG] = nBankMSB;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	nBankLSB=constrain((int)nBankLSB,0,127);
 
 	assert (nTG < CConfig::ToneGenerators);
-	m_nVoiceBankID[nTG] = nBankLSB;
+	unsigned nBank = m_nVoiceBankID[nTG];
+	unsigned nBankMSB = m_nVoiceBankIDMSB[nTG];
+	nBank = (nBankMSB << 7) + nBankLSB;
 
-	m_UI.ParameterChanged ();
+	// Now should have both MSB and LSB so enable the BankSelect
+	BankSelect(nBank, nTG);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -1076,7 +1110,9 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	BankSelectLSB (nValue, nTG);	break;
+	case TGParameterVoiceBank:	BankSelect (nValue, nTG);	break;
+	case TGParameterVoiceBankMSB:	BankSelectMSB (nValue, nTG);	break;
+	case TGParameterVoiceBankLSB:	BankSelectLSB (nValue, nTG);	break;
 	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
 	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
 	case TGParameterPan:		SetPan (nValue, nTG);		break;
@@ -1142,6 +1178,8 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	switch (Parameter)
 	{
 	case TGParameterVoiceBank:	return m_nVoiceBankID[nTG];
+	case TGParameterVoiceBankMSB:	return m_nVoiceBankID[nTG] >> 7;
+	case TGParameterVoiceBankLSB:	return m_nVoiceBankID[nTG] & 0x7F;
 	case TGParameterProgram:	return m_nProgram[nTG];
 	case TGParameterVolume:		return m_nVolume[nTG];
 	case TGParameterPan:		return m_nPan[nTG];
