@@ -121,25 +121,33 @@ public:
 #ifdef MIXING_CONSOLE_ENABLE
 	bool GetFXTubeEnable(void) const;
 	unsigned GetFXTubeOverdrive(void) const;
+
 	bool GetFXChorusEnable(void) const;
 	unsigned GetFXChorusRate(void) const;
 	unsigned GetFXChorusDepth(void) const;
+
 	bool GetFXFlangerEnable(void) const;
 	unsigned GetFXFlangerRate(void) const;
 	unsigned GetFXFlangerDepth(void) const;
 	unsigned GetFXFlangerFeedback(void) const;
+
 	bool GetFXOrbitoneEnable(void) const;
 	unsigned GetFXOrbitoneRate(void) const;
 	unsigned GetFXOrbitoneDepth(void) const;
+
 	bool GetFXPhaserEnable(void) const;
 	unsigned GetFXPhaserRate(void) const;
 	unsigned GetFXPhaserDepth(void) const;
 	unsigned GetFXPhaserFeedback(void) const;
 	unsigned GetFXPhaserNbStages(void) const;
+
 	bool GetFXDelayEnable(void) const;
 	unsigned GetFXDelayLeftDelayTime(void) const;
 	unsigned GetFXDelayRightDelayTime(void) const;
 	unsigned GetFXDelayFeedback(void) const;
+	unsigned GetFXDelayFlutterRate(void) const;
+	unsigned GetFXDelayFlutterAmount(void) const;
+
 	bool GetFXReverberatorEnable(void) const;
 	unsigned GetFXReverberatorInputGain(void) const;
 	unsigned GetFXReverberatorTime(void) const;
@@ -150,30 +158,39 @@ public:
 
 	void SetFXTubeEnable(bool bValue);
 	void SetFXTubeOverdrive(unsigned nValue);
+
 	void SetFXChorusEnable(bool bValue);
 	void SetFXChorusRate(unsigned nValue);
 	void SetFXChorusDepth(unsigned nValue);
+
 	void SetFXFlangerEnable(bool bValue);
 	void SetFXFlangerRate(unsigned nValue);
 	void SetFXFlangerDepth(unsigned nValue);
 	void SetFXFlangerFeedback(unsigned nValue);
+
 	void SetFXOrbitoneEnable(bool bValue);
 	void SetFXOrbitoneRate(unsigned nValue);
 	void SetFXOrbitoneDepth(unsigned nValue);
+
 	void SetFXPhaserEnable(bool bValue);
 	void SetFXPhaserRate(unsigned nValue);
 	void SetFXPhaserDepth(unsigned nValue);
 	void SetFXPhaserFeedback(unsigned nValue);
 	void SetFXPhaserNbStages(unsigned nValue);
+
 	void SetFXDelayEnable(unsigned nValue);
 	void SetFXDelayLeftDelayTime(unsigned nValue);
 	void SetFXDelayRightDelayTime(unsigned nValue);
 	void SetFXDelayFeedback(unsigned nValue);
+	void SetFXDelayFlutterRate(unsigned nValue);
+	void SetFXDelayFlutterAmount(unsigned nValue);
+
 	void SetFXReverberatorEnable(unsigned nValue);
 	void SetFXReverberatorInputGain(unsigned nValue);
 	void SetFXReverberatorTime(unsigned nValue);
 	void SetFXReverberatorDiffusion(unsigned nValue);
 	void SetFXReverberatorLP(unsigned nValue);
+
 	void SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
 	void SetFXReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nValue);
 #endif
@@ -249,25 +266,33 @@ private:
 	bool m_bFXTubeEnable;
 	unsigned m_nFXTubeWet;
 	unsigned m_nFXTubeOverdrive;
+
 	bool m_bFXChorusEnable;
 	unsigned m_nFXChorusRate;
 	unsigned m_nFXChorusDepth;
+
 	bool m_bFXFlangerEnable;
 	unsigned m_nFXFlangerRate;
 	unsigned m_nFXFlangerDepth;
 	unsigned m_nFXFlangerFeedback;
+
 	bool m_bFXOrbitoneEnable;
 	unsigned m_nFXOrbitoneRate;
 	unsigned m_nFXOrbitoneDepth;
+
 	bool m_bFXPhaserEnable;
 	unsigned m_nFXPhaserRate;
 	unsigned m_nFXPhaserDepth;
 	unsigned m_nFXPhaserFeedback;
 	unsigned m_nFXPhaserNbStages;
+
 	bool m_bFXDelayEnable;
 	unsigned m_nFXDelayLeftDelayTime;
 	unsigned m_nFXDelayRightDelayTime;
 	unsigned m_nFXDelayFeedback;
+	unsigned m_nFXDelayFlutterRate;
+	unsigned m_nFXDelayFlutterAmount;
+
 	bool m_bFXReverberatorEnable;
 	unsigned m_nFXReverberatorInputGain;
 	unsigned m_nFXReverberatorTime;

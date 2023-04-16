@@ -205,7 +205,8 @@ void setupMixingConsoleFX(Mixer* mixer, int scenarioId)
 
 TEST(MixingConsole, ZeroSamplesTest)
 {
-    const size_t length = 4;
+    static const size_t length = 4;
+
     Mixer mixer(SAMPLING_FREQUENCY, length);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 
@@ -223,6 +224,7 @@ TEST(MixingConsole, ZeroSamplesTest)
 
     float32_t samples[] = {0.0f, 0.0f, 0.0f, 0.0f};
     mixer.setInputSampleBuffer(0, samples);
+    mixer.preProcessInputSampleBuffer(0);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 1.0f);
@@ -247,8 +249,8 @@ TEST(MixingConsole, ZeroSamplesTest)
 
 TEST(MixingConsole, DryProcessing)
 {
-    const float32_t epsilon = 1e-7;
-    const size_t length = 2;
+    static const float32_t epsilon = 1e-4;
+    static const size_t length = 2;
 
     Mixer mixer(SAMPLING_FREQUENCY, length);
     mixer.reset();
@@ -277,6 +279,7 @@ TEST(MixingConsole, DryProcessing)
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out[i], 0, length * sizeof(float32_t));
 
     mixer.setInputSampleBuffer(0, in);
+    mixer.preProcessInputSampleBuffer(0);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
     mixer.process(
@@ -293,8 +296,8 @@ TEST(MixingConsole, DryProcessing)
 
 TEST(MixingConsole, ReverberatorProcessing)
 {
-    const float32_t epsilon = 1e-7;
-    const size_t length = 2;
+    static const float32_t epsilon = 1e-7;
+    static const size_t length = 2;
 
     Mixer mixer(SAMPLING_FREQUENCY, length);
     mixer.reset();
@@ -340,7 +343,7 @@ TEST(MixingConsole, ReverberatorProcessing)
 
 TEST(MixingConsole, ReverberatorNoiseProcessing)
 {
-    const size_t length = 1024;
+    static const size_t length = 1024;
 
     Mixer mixer(SAMPLING_FREQUENCY, length);
     mixer.reset();

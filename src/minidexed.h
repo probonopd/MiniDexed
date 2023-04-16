@@ -57,8 +57,13 @@ class CMiniDexed
 #endif
 {
 public:
-	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem);
+	CMiniDexed(
+		CConfig *pConfig, 
+		CInterruptSystem *pInterrupt,
+		CGPIOManager *pGPIOManager, 
+		CI2CMaster *pI2CMaster, 
+		FATFS *pFileSystem
+	);
 
 	bool Initialize (void);
 
@@ -94,6 +99,7 @@ public:
 	void setAftertouch (uint8_t value, unsigned nTG);
 
 #if defined(MIXING_CONSOLE_ENABLE)
+	unsigned getMixingConsoleSendLevel(unsigned nTG, MixerOutput fx) const;
 	void setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend);
 	void setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nFXReturn);
 #elif defined(PLATE_REVERB_ENABLE)
@@ -151,8 +157,8 @@ public:
 		ParameterReverbLevel,
 	#endif
 
-	#ifdef MIXING_CONSOLE_ENABLE
-		// BEGIN FX global parameters definition
+	// BEGIN FX global parameters definition
+	#if defined(MIXING_CONSOLE_ENABLE)
 
 		// Tube parameters
 		ParameterFXTubeEnable,
@@ -202,7 +208,7 @@ public:
 		ParameterFXTube_OrbitoneReturn,
 		ParameterFXTube_PhaserReturn,
 		ParameterFXTube_DelayReturn,
-		ParameterFXTube_ReverbReturn,
+		ParameterFXTube_PlateReverbReturn,
 		ParameterFXTube_ReverberatorReturn,
 		ParameterFXTube_MainOutput,
 
@@ -212,7 +218,7 @@ public:
 		ParameterFXChorus_OrbitoneReturn,
 		ParameterFXChorus_PhaserReturn,
 		ParameterFXChorus_DelayReturn,
-		ParameterFXChorus_ReverbReturn,
+		ParameterFXChorus_PlateReverbReturn,
 		ParameterFXChorus_ReverberatorReturn,
 		ParameterFXChorus_MainOutput,
 
@@ -222,7 +228,7 @@ public:
 		ParameterFXFlanger_OrbitoneReturn,
 		ParameterFXFlanger_PhaserReturn,
 		ParameterFXFlanger_DelayReturn,
-		ParameterFXFlanger_ReverbReturn,
+		ParameterFXFlanger_PlateReverbReturn,
 		ParameterFXFlanger_ReverberatorReturn,
 		ParameterFXFlanger_MainOutput,
 
@@ -232,7 +238,7 @@ public:
 		ParameterFXOrbitone_FlangerReturn,
 		ParameterFXOrbitone_PhaserReturn,
 		ParameterFXOrbitone_DelayReturn,
-		ParameterFXOrbitone_ReverbReturn,
+		ParameterFXOrbitone_PlateReverbReturn,
 		ParameterFXOrbitone_ReverberatorReturn,
 		ParameterFXOrbitone_MainOutput,
 
@@ -242,7 +248,7 @@ public:
 		ParameterFXPhaser_FlangerReturn,
 		ParameterFXPhaser_OrbitoneReturn,
 		ParameterFXPhaser_DelayReturn,
-		ParameterFXPhaser_ReverbReturn,
+		ParameterFXPhaser_PlateReverbReturn,
 		ParameterFXPhaser_ReverberatorReturn,
 		ParameterFXPhaser_MainOutput,
 
@@ -252,19 +258,19 @@ public:
 		ParameterFXDelay_FlangerReturn,
 		ParameterFXDelay_OrbitoneReturn,
 		ParameterFXDelay_PhaserReturn,
-		ParameterFXDelay_ReverbReturn,
+		ParameterFXDelay_PlateReverbReturn,
 		ParameterFXDelay_ReverberatorReturn,
 		ParameterFXDelay_MainOutput,
 
-		// Reverb Return parameters
-		ParameterFXReverb_TubeReturn,
-		ParameterFXReverb_ChorusReturn,
-		ParameterFXReverb_FlangerReturn,
-		ParameterFXReverb_OrbitoneReturn,
-		ParameterFXReverb_PhaserReturn,
-		ParameterFXReverb_DelayReturn,
-		ParameterFXReverb_ReverberatorReturn,
-		ParameterFXReverb_MainOutput,
+		// Plate Reverb Return parameters
+		ParameterFXPlateReverb_TubeReturn,
+		ParameterFXPlateReverb_ChorusReturn,
+		ParameterFXPlateReverb_FlangerReturn,
+		ParameterFXPlateReverb_OrbitoneReturn,
+		ParameterFXPlateReverb_PhaserReturn,
+		ParameterFXPlateReverb_DelayReturn,
+		ParameterFXPlateReverb_ReverberatorReturn,
+		ParameterFXPlateReverb_MainOutput,
 
 		// Reverberator Return parameters
 		ParameterFXReverberator_TubeReturn,
@@ -273,11 +279,11 @@ public:
 		ParameterFXReverberator_OrbitoneReturn,
 		ParameterFXReverberator_PhaserReturn,
 		ParameterFXReverberator_DelayReturn,
-		ParameterFXReverberator_ReverbReturn,
+		ParameterFXReverberator_PlateReverbReturn,
 		ParameterFXReverberator_MainOutput,
 
-		// END FX global parameters definition
 	#endif
+	// END FX global parameters definition
 
 		ParameterUnknown
 	};
@@ -301,7 +307,7 @@ public:
 		TGParameterCutoff,
 		TGParameterResonance,
 		TGParameterMIDIChannel,
-#ifdef PLATE_REVERB_ENABLE
+#if defined(PLATE_REVERB_ENABLE)
 		TGParameterReverbSend,
 #endif
 		TGParameterPitchBendRange, 
@@ -331,7 +337,7 @@ public:
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
 		
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 		TGParameterMixingSendFXTube,
 		TGParameterMixingSendFXChorus,
 		TGParameterMixingSendFXFlanger,
@@ -415,8 +421,7 @@ private:
 
 #ifdef MIXING_CONSOLE_ENABLE
 	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
-	unsigned m_nFXReturnLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
-#else
+#elif defined(PLATE_REVERB_ENABLE)
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
 #endif
 
@@ -448,11 +453,9 @@ private:
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	Mixer* mixing_console_;
-#endif
-
-#ifdef PLATE_REVERB_ENABLE
+#elif defined(PLATE_REVERB_ENABLE)
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;

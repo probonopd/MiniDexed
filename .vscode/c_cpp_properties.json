@@ -1,56 +1,27 @@
 {
     "configurations": [
         {
-            "name": "Win64",
+            "name": "Win32",
             "includePath": [
-                "d:\\Documents\\dev\\OpenSource\\MiniDexed-fx2/CMSIS_5/CMSIS/Core/Include/",
-                "d:\\Documents\\dev\\OpenSource\\MiniDexed-fx2/CMSIS_5/CMSIS/DSP/Include/",
-                "d:\\Documents\\dev\\OpenSource\\MiniDexed-fx2/circle-stdlib/libs/circle/include",
-                "d:\\Documents\\dev\\OpenSource\\MiniDexed-fx2/circle-stdlib/libs/circle/addon"
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/CMSIS_5/CMSIS/Core/Include/**",
+                "${workspaceFolder}/CMSIS_5/CMSIS/DSP/Include/**",
+                "${workspaceFolder}/circle-stdlib/include/**",
+                "${workspaceFolder}/circle-stdlib/libs/circle-newlib/include/**",
+                "${workspaceFolder}/circle-stdlib/libs/circle/include/**"
             ],
             "defines": [
-                "ARM_ALLOW_MULTI_CORE",
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
                 "RPI=4",
-                "RASPPI=4",
-                "DEBUG"
+                "ARM_ALLOW_MULTI_CORE"
             ],
-            "intelliSenseMode": "msvc-x64",
+            "windowsSdkVersion": "10.0.19041.0",
             "compilerPath": "cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "configurationProvider": "ms-vscode.makefile-tools",
-            "rawCompilerPath": "cl.exe",
-            "mergeConfigurations": false,
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/CMSIS_5/CMSIS/Core/Include/",
-                    "${workspaceFolder}/CMSIS_5/CMSIS/DSP/Include/",
-                    "${workspaceFolder}/circle-stdlib/libs/circle/include",
-                    "${workspaceFolder}/circle-stdlib/libs/circle/addon",
-                    "${workspaceFolder}/src",
-                    "${workspaceFolder}"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            }
-        },
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/CMSIS_5/CMSIS/Core/Include/",
-                "${workspaceFolder}/CMSIS_5/CMSIS/DSP/Include/",
-                "${workspaceFolder}/circle-stdlib/libs/circle/include",
-                "${workspaceFolder}/circle-stdlib/libs/circle/addon"
-            ],
-            "defines": [
-                "ARM_ALLOW_MULTI_CORE",
-                "RPI=4",
-                "RASPPI=4",
-                "DEBUG"
-            ],
-            "intelliSenseMode": "windows-gcc-arm64",
-            "compilerPath": "/usr/bin/g++",
-            "cStandard": "c17",
-            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-msvc-x64",
             "configurationProvider": "ms-vscode.makefile-tools"
         }
     ],

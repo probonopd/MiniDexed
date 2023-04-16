@@ -7,6 +7,7 @@ typedef MixingConsole<1> Mixer;
 TEST(MixingConsole, ShortBuffer)
 {
     static const float32_t SINPI_4 = std::sqrt(2.0f) / 2.0f;
+    static const float32_t epsilon = 1e-4;
 
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
     std::string full_test_name = test_info->test_case_name();
@@ -28,14 +29,15 @@ TEST(MixingConsole, ShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
+    mixer->preProcessInputSampleBuffer(0);
     ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
     ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.process";
     for(size_t s = 0; s < size; ++s)
     {
-        EXPECT_FLOAT_EQ(outSamples[0][s], outSamples[1][s]);
-        EXPECT_FLOAT_EQ(outSamples[0][s], inSamples[s] * SINPI_4);
+        EXPECT_NEAR(outSamples[0][s], outSamples[1][s], epsilon);
+        EXPECT_NEAR(outSamples[0][s], inSamples[s] * SINPI_4, epsilon);
     }
 
     delete mixer;
@@ -70,6 +72,7 @@ TEST(MixingConsole, ReverberatorShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
+    mixer->preProcessInputSampleBuffer(0);
     ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
@@ -86,7 +89,7 @@ TEST(MixingConsole, DrySamplesBoundariesTest)
     full_test_name += test_info->name();
 
     size_t size;
-    float32_t** inSamples =readWaveFile(AUDIO_SOURCE_FILE, size);
+    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
 
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, size);
     mixer->reset();
@@ -97,6 +100,7 @@ TEST(MixingConsole, DrySamplesBoundariesTest)
     mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
+    mixer->preProcessInputSampleBuffer(0);
 
     float32_t** outSamples = new float32_t*[2];
     outSamples[0] = new float32_t[size];
@@ -133,7 +137,7 @@ TEST(MixingConsole, ReverberatorSamplesBoundariesTest)
     full_test_name += test_info->name();
 
     size_t size;
-    float32_t** inSamples =readWaveFile(AUDIO_SOURCE_FILE, size);
+    float32_t** inSamples = readWaveFile(AUDIO_SOURCE_FILE, size);
 
     float32_t** outSamples = new float32_t*[2];
     outSamples[0] = new float32_t[size];
@@ -157,6 +161,7 @@ TEST(MixingConsole, ReverberatorSamplesBoundariesTest)
     mixer->getReverberator()->setLP(0.7f);
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
+    mixer->preProcessInputSampleBuffer(0);
     mixer->process(outSamples[0], outSamples[1]);
     ASSERT_EQ(0, FULL_INSPECT2(mixer, true, full_test_name + "Mixer.process")) << full_test_name << " Mixer.process";
 

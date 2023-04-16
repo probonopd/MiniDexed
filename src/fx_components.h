@@ -232,6 +232,7 @@ class InterpolatedSineOscillator : public FXBase
 
 public:
     static float32_t Sin(float32_t phase);
+    static float32_t Cos(float32_t phase);
 
     InterpolatedSineOscillator(float32_t sampling_rate, float32_t min_frequency = LFO_MIN_FREQUENCY, float32_t max_frequency = LFO_MAX_FREQUENCY, float32_t initial_phase = 0.0f, bool centered = true);
     virtual ~InterpolatedSineOscillator();

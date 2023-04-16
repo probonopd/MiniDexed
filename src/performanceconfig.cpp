@@ -152,36 +152,46 @@ bool CPerformanceConfig::Load (void)
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
-	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
-	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
-	m_nReverbHighDamp = m_Properties.GetNumber ("ReverbHighDamp", 50);
-	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
-	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
-	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
+	this->m_bReverbEnable = this->m_Properties.GetNumber ("ReverbEnable", 1) != 0;
+	this->m_nReverbSize = this->m_Properties.GetNumber ("ReverbSize", 70);
+	this->m_nReverbHighDamp = this->m_Properties.GetNumber ("ReverbHighDamp", 50);
+	this->m_nReverbLowDamp = this->m_Properties.GetNumber ("ReverbLowDamp", 50);
+	this->m_nReverbLowPass = this->m_Properties.GetNumber ("ReverbLowPass", 30);
+	this->m_nReverbDiffusion = this->m_Properties.GetNumber ("ReverbDiffusion", 65);
+	this->m_nReverbLevel = this->m_Properties.GetNumber ("ReverbLevel", 99);
+#endif
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	this->m_bFXTubeEnable = this->m_Properties.GetNumber("FXTubeEnable", 1);
 	this->m_nFXTubeOverdrive = this->m_Properties.GetNumber("FXTubeOverdrive", 10);
+
 	this->m_bFXChorusEnable = this->m_Properties.GetNumber("FXChorusEnable", 1);
 	this->m_nFXChorusRate = this->m_Properties.GetNumber("FXChorusRate", 50);
 	this->m_nFXChorusDepth = this->m_Properties.GetNumber("FXChorusDepth", 50);
+
 	this->m_bFXFlangerEnable = this->m_Properties.GetNumber("FXFlangerEnable", 1);
 	this->m_nFXFlangerRate = this->m_Properties.GetNumber("FXFlangerRate", 15);
 	this->m_nFXFlangerDepth = this->m_Properties.GetNumber("FXFlangerDepth", 10);
 	this->m_nFXFlangerFeedback = this->m_Properties.GetNumber("FXFlangerFeedback", 20);
+
 	this->m_bFXOrbitoneEnable = this->m_Properties.GetNumber("FXOrbitoneEnable", 1);
 	this->m_nFXOrbitoneRate = this->m_Properties.GetNumber("FXOrbitoneRate", 40);
 	this->m_nFXOrbitoneDepth = this->m_Properties.GetNumber("FXOrbitoneDepth", 50);
+
 	this->m_bFXPhaserEnable = this->m_Properties.GetNumber("FXPhaserEnable", 1);
 	this->m_nFXPhaserRate = this->m_Properties.GetNumber("FXPhaserRate", 5);
 	this->m_nFXPhaserDepth = this->m_Properties.GetNumber("FXPhaserDepth", 99);
 	this->m_nFXPhaserFeedback = this->m_Properties.GetNumber("FXPhaserFeedback", 50);
 	this->m_nFXPhaserNbStages = this->m_Properties.GetNumber("FXPhaserNbStages", 12);
+
 	this->m_bFXDelayEnable = this->m_Properties.GetNumber("FXDelayEnable", 1);
 	this->m_nFXDelayLeftDelayTime = this->m_Properties.GetNumber("FXDelayLeftDelayTime", 15);
 	this->m_nFXDelayRightDelayTime = this->m_Properties.GetNumber("FXDelayRightDelayTime", 22);
 	this->m_nFXDelayFeedback = this->m_Properties.GetNumber("FXDelayFeedback", 35);
+	this->m_nFXDelayFlutterRate = this->m_Properties.GetNumber("FXDelayFlutterRate", 0);
+	this->m_nFXDelayFlutterAmount = this->m_Properties.GetNumber("FXDelayFlutterAmount", 0);
+
 	this->m_bFXReverberatorEnable = this->m_Properties.GetNumber("FXReverberatorEnable", 1);
 	this->m_nFXReverberatorInputGain = this->m_Properties.GetNumber("FXReverberatorInputGain", 30);
 	this->m_nFXReverberatorTime = this->m_Properties.GetNumber("FXReverberatorTime", 30);
@@ -193,7 +203,7 @@ bool CPerformanceConfig::Load (void)
 		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			std::ostringstream oss("FXSendLevel_");
-			oss << in << "_x_" << fx;
+			oss << in << "_x_" << toString(static_cast<MixerOutput>(fx));
 			unsigned defaultLevel = 0;
 			if(fx == MixerOutput::MainOutput) defaultLevel = 50;
 			else if(fx == MixerOutput::FX_PlateReverb) defaultLevel = 50;
@@ -207,7 +217,7 @@ bool CPerformanceConfig::Load (void)
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			std::ostringstream oss("FXReturnLevel_");
-			oss << ret << "_x_" << fx;
+			oss << toString(static_cast<MixerOutput>(ret)) << "_x_" << toString(static_cast<MixerOutput>(fx));
 			unsigned defaultLevel = 0;
 			if(ret == MixerOutput::FX_PlateReverb && fx == MixerOutput::MainOutput) defaultLevel = 50;
 			this->m_nFXReturnLevel[ret][fx] = this->m_Properties.GetNumber(oss.str().c_str(), defaultLevel);
@@ -334,50 +344,58 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
 
 #ifdef MIXING_CONSOLE_ENABLE
-	this->m_Properties.SetNumber("FXTubeEnable", m_bFXTubeEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXTubeOverdrive", m_nFXTubeOverdrive);
-	this->m_Properties.SetNumber("FXChorusEnable", m_bFXChorusEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChorusRate", m_nFXChorusRate);
-	this->m_Properties.SetNumber("FXChorusDepth", m_nFXChorusDepth);
-	this->m_Properties.SetNumber("FXFlangerEnable", m_bFXFlangerEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXFlangerRate", m_nFXFlangerRate);
-	this->m_Properties.SetNumber("FXFlangerDepth", m_nFXFlangerDepth);
-	this->m_Properties.SetNumber("FXFlangerFeedback", m_nFXFlangerFeedback);
-	this->m_Properties.SetNumber("FXOrbitoneEnable", m_bFXOrbitoneEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXOrbitoneRate", m_nFXOrbitoneRate);
-	this->m_Properties.SetNumber("FXOrbitoneDepth", m_nFXOrbitoneDepth);
-	this->m_Properties.SetNumber("FXPhaserEnable", m_bFXPhaserEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXPhaserRate", m_nFXPhaserRate);
-	this->m_Properties.SetNumber("FXPhaserDepth", m_nFXPhaserDepth);
-	this->m_Properties.SetNumber("FXPhaserFeedback", m_nFXPhaserFeedback);
-	this->m_Properties.SetNumber("FXPhaserNbStages", m_nFXPhaserNbStages);
-	this->m_Properties.SetNumber("FXDelayEnable", m_bFXDelayEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXDelayLeftDelayTime", m_nFXDelayLeftDelayTime);
-	this->m_Properties.SetNumber("FXDelayRightDelayTime", m_nFXDelayRightDelayTime);
-	this->m_Properties.SetNumber("FXDelayFeedback", m_nFXDelayFeedback);
-	this->m_Properties.SetNumber("FXReverberatorEnable", m_bFXReverberatorEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXReverberatorInputGain", m_nFXReverberatorInputGain);
-	this->m_Properties.SetNumber("FXReverberatorTime", m_nFXReverberatorTime);
-	this->m_Properties.SetNumber("FXReverberatorDiffusion", m_nFXReverberatorDiffusion);
-	this->m_Properties.SetNumber("FXReverberatorLP", m_nFXReverberatorLP);
+	this->m_Properties.SetNumber("FXTubeEnable", this->m_bFXTubeEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXTubeOverdrive", this->m_nFXTubeOverdrive);
+
+	this->m_Properties.SetNumber("FXChorusEnable", this->m_bFXChorusEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXChorusRate", this->m_nFXChorusRate);
+	this->m_Properties.SetNumber("FXChorusDepth", this->m_nFXChorusDepth);
+
+	this->m_Properties.SetNumber("FXFlangerEnable", this->m_bFXFlangerEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXFlangerRate", this->m_nFXFlangerRate);
+	this->m_Properties.SetNumber("FXFlangerDepth", this->m_nFXFlangerDepth);
+	this->m_Properties.SetNumber("FXFlangerFeedback", this->m_nFXFlangerFeedback);
+
+	this->m_Properties.SetNumber("FXOrbitoneEnable", this->m_bFXOrbitoneEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXOrbitoneRate", this->m_nFXOrbitoneRate);
+	this->m_Properties.SetNumber("FXOrbitoneDepth", this->m_nFXOrbitoneDepth);
+
+	this->m_Properties.SetNumber("FXPhaserEnable", this->m_bFXPhaserEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXPhaserRate", this->m_nFXPhaserRate);
+	this->m_Properties.SetNumber("FXPhaserDepth", this->m_nFXPhaserDepth);
+	this->m_Properties.SetNumber("FXPhaserFeedback", this->m_nFXPhaserFeedback);
+	this->m_Properties.SetNumber("FXPhaserNbStages", this->m_nFXPhaserNbStages);
+
+	this->m_Properties.SetNumber("FXDelayEnable", this->m_bFXDelayEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXDelayLeftDelayTime", this->m_nFXDelayLeftDelayTime);
+	this->m_Properties.SetNumber("FXDelayRightDelayTime", this->m_nFXDelayRightDelayTime);
+	this->m_Properties.SetNumber("FXDelayFeedback", this->m_nFXDelayFeedback);
+	this->m_Properties.SetNumber("FXDelayFlutterRate", this->m_nFXDelayFlutterRate);
+	this->m_Properties.SetNumber("FXDelayFlutterAmount", this->m_nFXDelayFlutterAmount);
+
+	this->m_Properties.SetNumber("FXReverberatorEnable", this->m_bFXReverberatorEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXReverberatorInputGain", this->m_nFXReverberatorInputGain);
+	this->m_Properties.SetNumber("FXReverberatorTime", this->m_nFXReverberatorTime);
+	this->m_Properties.SetNumber("FXReverberatorDiffusion", this->m_nFXReverberatorDiffusion);
+	this->m_Properties.SetNumber("FXReverberatorLP", this->m_nFXReverberatorLP);
 
 	for(unsigned in = 0; in < CConfig::ToneGenerators; ++in)
 	{
-		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			std::ostringstream oss("FXSendLevel_");
-			oss << in << "_x_" << fx;
+			oss << in << "_x_" << toString(static_cast<MixerOutput>(fx));
 			this->m_Properties.SetNumber(oss.str().c_str(), this->m_nFXSendLevel[in][fx]);
 		}
 	}
 
 	size_t end = MixerOutput::kFXCount - 1;
-	for(unsigned ret = 0; ret < end; ++ret)
+	for(size_t ret = 0; ret < end; ++ret)
 	{
-		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			std::ostringstream oss("FXReturnLevel_");
-			oss << ret << "_x_" << fx;
+			oss << toString(static_cast<MixerOutput>(ret)) << "_x_" << toString(static_cast<MixerOutput>(fx));
 			this->m_Properties.SetNumber(oss.str().c_str(), this->m_nFXReturnLevel[ret][fx]);
 		}
 	}
@@ -1137,6 +1155,16 @@ unsigned CPerformanceConfig::GetFXDelayFeedback(void) const
 	return this->m_nFXDelayFeedback;
 }
 
+unsigned CPerformanceConfig::GetFXDelayFlutterRate(void) const
+{
+	return this->m_nFXDelayFlutterRate;
+}
+
+unsigned CPerformanceConfig::GetFXDelayFlutterAmount(void) const
+{
+	return this->m_nFXDelayFlutterAmount;
+}
+
 bool CPerformanceConfig::GetFXReverberatorEnable(void) const
 {
 	return this->m_bFXReverberatorEnable;
@@ -1279,6 +1307,16 @@ void CPerformanceConfig::SetFXDelayRightDelayTime(unsigned nValue)
 void CPerformanceConfig::SetFXDelayFeedback(unsigned nValue)
 {
 	this->m_nFXDelayFeedback = nValue;
+}
+
+void CPerformanceConfig::SetFXDelayFlutterRate(unsigned nValue)
+{
+	this->m_nFXDelayFlutterRate = nValue;
+}
+
+void CPerformanceConfig::SetFXDelayFlutterAmount(unsigned nValue)
+{
+	this->m_nFXDelayFlutterAmount = nValue;
 }
 
 void CPerformanceConfig::SetFXReverberatorEnable(unsigned bValue)

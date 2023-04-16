@@ -139,7 +139,8 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_TGFXMenu[];
 	static const TMenuItem s_FXTube[];
 	static const TMenuItem s_FXTubeReturn[];
 	static const TMenuItem s_FXChorus[];
@@ -156,7 +157,7 @@ private:
 #if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
 	static const TMenuItem s_FXPlateReverb[];
 #endif
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	static const TMenuItem s_FXPlateReverbReturn[];
 	static const TMenuItem s_FXReverberator[];
 	static const TMenuItem s_FXReverberatorReturn[];

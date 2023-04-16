@@ -276,6 +276,9 @@ float32_t InterpolatedSineOscillator::Sin(float32_t phase)
         initialized = InterpolatedSineOscillator::ClassInitializer();
     }
 
+    if(phase < 0.0f) while(phase < 0.0f) phase += Constants::M2PI;
+    else while(phase > Constants::M2PI) phase -= Constants::M2PI;
+
     float32_t findex = phase / InterpolatedSineOscillator::DeltaTime;
 
     size_t index1 = static_cast<size_t>(findex);
@@ -286,6 +289,11 @@ float32_t InterpolatedSineOscillator::Sin(float32_t phase)
     float32_t r = findex - index1;
 
     return f1 + (f2 - f1) * r * InterpolatedSineOscillator::DeltaTime;
+}
+
+float32_t InterpolatedSineOscillator::Cos(float32_t phase)
+{
+    return InterpolatedSineOscillator::Sin(Constants::MPI_2 - phase);
 }
 
 bool InterpolatedSineOscillator::ClassInitializer()

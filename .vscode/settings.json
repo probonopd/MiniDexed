@@ -76,7 +76,13 @@
         "thread": "cpp",
         "cfenv": "cpp",
         "variant": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "forward_list": "cpp",
+        "slist": "cpp",
+        "span": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp",
+        "shared_mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "C_Cpp.intelliSenseEngine": "Tag Parser",

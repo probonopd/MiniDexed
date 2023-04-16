@@ -49,6 +49,7 @@ public:
     inline void setInputSample(size_t in, float32_t sampleL, float32_t sampleR);
     inline void setInputSampleBuffer(size_t in, float32_t* samples);
     inline void setInputSampleBuffer(size_t in, float32_t* samplesL, float32_t* samplesR);
+    inline void preProcessInputSampleBuffer(size_t in);
 
     // Return section
     inline void setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
@@ -82,6 +83,7 @@ private:
 
     float32_t channel_level_[nb_inputs];
     float32_t pan_[StereoChannels::kNumChannels + 1][nb_inputs];
+    float32_t* tg_input_sample_buffer_[nb_inputs];
     float32_t* input_sample_buffer_[StereoChannels::kNumChannels][nb_inputs];
     float32_t input_samples_[StereoChannels::kNumChannels][nb_inputs + MixerOutput::kFXCount - 1];
     float32_t levels_[MixerOutput::kFXCount][nb_inputs + MixerOutput::kFXCount - 1];
@@ -319,6 +321,7 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
 {
     for(size_t i = 0; i < nb_inputs; ++i)
     {
+        this->tg_input_sample_buffer_[i] = nullptr;
         this->input_sample_buffer_[StereoChannels::Left ][i] = new float32_t[this->BufferSize];
         this->input_sample_buffer_[StereoChannels::Right][i] = new float32_t[this->BufferSize];
         memset(this->input_sample_buffer_[StereoChannels::Left ][i], 0, sizeof(float32_t) * this->BufferSize);
@@ -350,6 +353,7 @@ MixingConsole<nb_inputs>::~MixingConsole()
     {
         delete[] this->input_sample_buffer_[StereoChannels::Left ][i];
         delete[] this->input_sample_buffer_[StereoChannels::Right][i];
+        this->tg_input_sample_buffer_[i] = nullptr;
     }
 }
 
@@ -401,21 +405,13 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
 {
     assert(in < nb_inputs);
 
-    if(samples != nullptr)
-    {
-        arm_scale_f32(samples, this->pan_[StereoChannels::Left ][in], this->input_sample_buffer_[StereoChannels::Left ][in], this->BufferSize);
-        arm_scale_f32(samples, this->pan_[StereoChannels::Right][in], this->input_sample_buffer_[StereoChannels::Right][in], this->BufferSize);
-    }
-    else
-    {
-        memset(this->input_sample_buffer_[StereoChannels::Left ][in], 0, this->BufferSize * sizeof(float32_t));
-        memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, this->BufferSize * sizeof(float32_t));
-    }
+    this->tg_input_sample_buffer_[in] = samples;
 }
 
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* samplesL, float32_t* samplesR)
 {
+    // Only used to input stereo samples
     assert(in < nb_inputs);
     if(samplesL != nullptr)
     {
@@ -432,6 +428,39 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
     }
     else
     {
+        memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, this->BufferSize * sizeof(float32_t));
+    }
+}
+
+template<size_t nb_inputs>
+void MixingConsole<nb_inputs>::preProcessInputSampleBuffer(size_t in)
+{
+    assert(in < nb_inputs);
+
+    float32_t* samples = this->tg_input_sample_buffer_[in];
+    if(samples != nullptr)
+    {
+        if(this->pan_[StereoChannels::Left ][in] != 0.0f)
+        {
+            arm_scale_f32(samples, this->pan_[StereoChannels::Left ][in], this->input_sample_buffer_[StereoChannels::Left ][in], this->BufferSize);
+        }
+        else
+        {
+            memset(this->input_sample_buffer_[StereoChannels::Left ][in], 0, this->BufferSize * sizeof(float32_t));
+        }
+        
+        if(this->pan_[StereoChannels::Right][in] != 0.0f)
+        {
+            arm_scale_f32(samples, this->pan_[StereoChannels::Right][in], this->input_sample_buffer_[StereoChannels::Right][in], this->BufferSize);
+        }
+        else
+        {
+            memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, this->BufferSize * sizeof(float32_t));
+        }
+    }
+    else
+    {
+        memset(this->input_sample_buffer_[StereoChannels::Left ][in], 0, this->BufferSize * sizeof(float32_t));
         memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, this->BufferSize * sizeof(float32_t));
     }
 }
@@ -618,9 +647,19 @@ void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::updatePan(size_t in)
 {
-    float32_t pan = mapfloat(this->pan_[StereoChannels::kNumChannels][in], 0.0f, 1.0f, 0.0, Constants::MPI_2);
-    this->pan_[StereoChannels::Left ][in] = arm_cos_f32(pan) * this->channel_level_[in];
-    this->pan_[StereoChannels::Right][in] = arm_sin_f32(pan) * this->channel_level_[in];
+    float32_t pan = this->pan_[StereoChannels::kNumChannels][in] * Constants::MPI_2;
+    if(this->channel_level_[in] != 0.0f)
+    {
+        // this->pan_[StereoChannels::Left ][in] = arm_cos_f32(pan) * this->channel_level_[in];
+        // this->pan_[StereoChannels::Right][in] = arm_sin_f32(pan) * this->channel_level_[in];
+        this->pan_[StereoChannels::Left ][in] = InterpolatedSineOscillator::Cos(pan) * this->channel_level_[in];
+        this->pan_[StereoChannels::Right][in] = InterpolatedSineOscillator::Sin(pan) * this->channel_level_[in];
+    }
+    else
+    {
+        this->pan_[StereoChannels::Left ][in] = 
+        this->pan_[StereoChannels::Right][in] = 0.0f;
+    }
 }
 
 template<size_t nb_inputs>
