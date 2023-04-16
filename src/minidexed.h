@@ -75,6 +75,8 @@ public:
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
+	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
@@ -142,6 +144,7 @@ public:
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	
+	// Must match the order in CUIMenu::TParameter
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -297,9 +300,12 @@ public:
 	bool DeletePerformance(unsigned nID);
 	bool DoDeletePerformance(void);
 
+	// Must match the order in CUIMenu::TGParameter
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,
+		TGParameterVoiceBankMSB,
+		TGParameterVoiceBankLSB,
 		TGParameterProgram,
 		TGParameterVolume,
 		TGParameterPan,
@@ -392,6 +398,7 @@ private:
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
