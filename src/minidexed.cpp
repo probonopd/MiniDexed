@@ -415,13 +415,34 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
 
-	nProgram=constrain((int)nProgram,0,31);
+	unsigned nBankOffset;
+	bool bPCAcrossBanks = m_pConfig->GetExpandPCAcrossBanks();
+	if (bPCAcrossBanks)
+	{
+		// Note: This doesn't actually change the bank in use
+		//       but will allow PC messages of 0..127
+		//       to select across four consecutive banks of voices.
+		//
+		//   So if the current bank = 5 then:
+		//       PC  0-31  = Bank 5, Program 0-31
+		//       PC 32-63  = Bank 6, Program 0-31
+		//       PC 64-95  = Bank 7, Program 0-31
+		//       PC 96-127 = Bank 8, Program 0-31
+		nProgram=constrain((int)nProgram,0,127);
+		nBankOffset = nProgram >> 5;
+		nProgram = nProgram % 32;
+	}
+	else
+	{
+		nBankOffset = 0;
+		nProgram=constrain((int)nProgram,0,31);
+	}
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nProgram[nTG] = nProgram;
 
 	uint8_t Buffer[156];
-	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG], nProgram, Buffer);
+	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG]+nBankOffset, nProgram, Buffer);
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
