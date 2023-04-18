@@ -219,6 +219,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
 	{0,	CSysExFileLoader::MaxVoiceBankID,	1},			// TGParameterVoiceBank
+	{0, 0, 0},											// TGParameterVoiceBankMSB (not used in menus)
+	{0, 0, 0},											// TGParameterVoiceBankLSB (not used in menus)
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
@@ -249,7 +251,6 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
 	{0, 1, 1, ToOnOff} //AT EGBias	
-	
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -486,7 +487,6 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	int nLoadedBanks = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumLoadedBanks();
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
 
@@ -496,19 +496,13 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventStepDown:
-		if (--nValue < 0)
-		{
-			nValue = 0;
-		}
+		nValue = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nValue);
 		pUIMenu->m_pMiniDexed->SetTGParameter (
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;
 
 	case MenuEventStepUp:
-		if (++nValue > (int) nLoadedBanks-1)
-		{
-			nValue = nLoadedBanks-1;
-		}
+		nValue = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nValue);
 		pUIMenu->m_pMiniDexed->SetTGParameter (
 			CMiniDexed::TGParameterVoiceBank, nValue, nTG);
 		break;
@@ -537,7 +531,7 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	int nLoadedBanks = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumLoadedBanks();
+	int nHighestBank = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumHighestBank();
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
 
@@ -555,7 +549,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			if (--nVB < 0)
 			{
 				// Wrap around to last loaded bank
-				nVB = nLoadedBanks-1;
+				nVB = nHighestBank;
 			}
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
 		}
@@ -568,7 +562,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			// Switch up a voice bank and reset to voice 0
 			nValue = 0;
 			int nVB = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-			if (++nVB > (int) nLoadedBanks-1)
+			if (++nVB > (int) nHighestBank)
 			{
 				// Wrap around to first bank
 				nVB = 0;
@@ -587,15 +581,29 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string TG ("TG");
-	TG += to_string (nTG+1);
+	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG); // Skip empty voices
+	if (voiceName == "EMPTY     "
+	    || voiceName == "          "
+	    || voiceName == "----------"
+	    || voiceName == "~~~~~~~~~~" )
+	{
+		if (Event == MenuEventStepUp) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepUp);
+		}
+		if (Event == MenuEventStepDown) {
+			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepDown);
+		}
+	} else {
+		string TG ("TG");
+		TG += to_string (nTG+1);
 
-	string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
+		string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+		pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					      Value.c_str (),
+					      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+	}
 }
 
 void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
@@ -1473,8 +1481,6 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-3]; 
 	unsigned nController = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
 	unsigned nParameter = pUIMenu->m_nCurrentParameter + nController;
-	
-
 	
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) nParameter;
 	const TParameter &rParam = s_TGParameter[Param];
