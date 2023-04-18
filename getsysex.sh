@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Get voices from
 # https://yamahablackboxes.com/collection/yamaha-dx7-synthesizer/patches/
@@ -82,5 +82,10 @@ do
 done
 
 # Download the user bank
+echo "Downloading https://github.com/donluca/MiniDexed/raw/getsysex.sh/userBank.syx ..."
 printf -v j "%05d" $count
 curl -o "${TARGET_DIR}${j}_userBank.syx" ${CURL_OPTIONS} https://github.com/donluca/MiniDexed/raw/getsysex.sh/userBank.syx > /dev/null 2>&1
+if (( $? > 0 ))
+then
+    echo "Download failed"
+fi
