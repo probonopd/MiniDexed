@@ -22,6 +22,8 @@
 #include <circle/synchronize.h>
 #include <assert.h>
 
+#include "CFileDevice.hpp"
+
 LOGMODULE ("kernel");
 
 CKernel *CKernel::s_pThis = 0;
@@ -50,6 +52,7 @@ bool CKernel::Initialize (void)
 		return FALSE;
 	}
 
+	CFileDevice::UseMeForLogger();
 	mLogger.RegisterPanicHandler (PanicHandler);
 
 	if (!m_GPIOManager.Initialize ())

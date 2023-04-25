@@ -149,8 +149,7 @@ CMiniDexed::CMiniDexed (
 	this->setMasterVolume(1.0);
 
 #if defined(MIXING_CONSOLE_ENABLE)
-	this->m_UI.log("Init Mixing Console...");
-	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), pConfig->GetChunkSize() / 2);
+	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), CConfig::MaxChunkSize);
 	for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		this->mixing_console_->setInputSampleBuffer(i, m_OutputLevel[i]);
@@ -315,10 +314,10 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
-#ifndef ARM_ALLOW_MULTI_CORE
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
-#else
+#if defined(ARM_ALLOW_MULTI_CORE)
 	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
+#else
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
 #endif
 
 	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
@@ -332,7 +331,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	
+
 	return true;
 }
 
@@ -447,7 +446,7 @@ void CMiniDexed::Run (unsigned nCore)
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
 
 #if defined(MIXING_CONSOLE_ENABLE)
-				this->mixing_console_->preProcessInputSampleBuffer(nTG);
+				this->mixing_console_->preProcessInputSampleBuffer(nTG, this->m_nFramesToProcess);
 #endif
 			}
 		}
@@ -1765,7 +1764,7 @@ void CMiniDexed::ProcessSound (void)
 			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
 
 #if defined(MIXING_CONSOLE_ENABLE)
-			this->mixing_console_->preProcessInputSampleBuffer(i);
+			this->mixing_console_->preProcessInputSampleBuffer(i, nFrames);
 #endif
 		}
 

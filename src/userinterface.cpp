@@ -236,7 +236,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	LCDWrite (Msg);
 }
 
-// #if defined(DEBUG)
+#if defined(DEBUG)
 #include <sstream>
 #include <iomanip>
 #include <sstream>
@@ -319,7 +319,7 @@ void CUserInterface::log(int v, bool clear)
 	}
 }
 
-// #endif
+#endif // DEBUG
 
 void CUserInterface::LCDWrite (const char *pString)
 {

@@ -60,16 +60,16 @@ public:
 	// To be called from the MIDI device on reception of a MIDI CC message
 	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
-// #ifdef DEBUG
+#if defined(DEBUG)
 public:
 	void clear();
 	void log(const char* txt, bool clear = true);
 	void log(float32_t v, bool clear = true);
 	void log(unsigned v, bool clear = true);
 	void log(int v, bool clear = true);
-// #else
+#endif
+
 private:
-// #endif
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
 private:

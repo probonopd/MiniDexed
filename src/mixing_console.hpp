@@ -49,7 +49,7 @@ public:
     inline void setInputSample(size_t in, float32_t sampleL, float32_t sampleR);
     inline void setInputSampleBuffer(size_t in, float32_t* samples);
     inline void setInputSampleBuffer(size_t in, float32_t* samplesL, float32_t* samplesR);
-    inline void preProcessInputSampleBuffer(size_t in);
+    inline void preProcessInputSampleBuffer(size_t in, size_t nSamples);
 
     // Return section
     inline void setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
@@ -87,6 +87,7 @@ private:
     float32_t* input_sample_buffer_[StereoChannels::kNumChannels][nb_inputs];
     float32_t input_samples_[StereoChannels::kNumChannels][nb_inputs + MixerOutput::kFXCount - 1];
     float32_t levels_[MixerOutput::kFXCount][nb_inputs + MixerOutput::kFXCount - 1];
+    volatile size_t m_nSamples;
 
     FXElement* fx_[MixerOutput::kFXCount];
     FXUnit2<Tube>* tube_;
@@ -317,7 +318,8 @@ private:
 template<size_t nb_inputs>
 MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_size) :
     FXBase(sampling_rate),
-    BufferSize(buffer_size)
+    BufferSize(buffer_size),
+    m_nSamples(0)
 {
     for(size_t i = 0; i < nb_inputs; ++i)
     {
@@ -433,29 +435,33 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
 }
 
 template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::preProcessInputSampleBuffer(size_t in)
+void MixingConsole<nb_inputs>::preProcessInputSampleBuffer(size_t in, size_t nSamples)
 {
     assert(in < nb_inputs);
+    assert(nSamples <= this->BufferSize);
 
     float32_t* samples = this->tg_input_sample_buffer_[in];
-    if(samples != nullptr)
+    if(samples == nullptr) return;
+
+    this->m_nSamples = nSamples;
+    if(nSamples > 0)
     {
         if(this->pan_[StereoChannels::Left ][in] != 0.0f)
         {
-            arm_scale_f32(samples, this->pan_[StereoChannels::Left ][in], this->input_sample_buffer_[StereoChannels::Left ][in], this->BufferSize);
+            arm_scale_f32(samples, this->pan_[StereoChannels::Left ][in], this->input_sample_buffer_[StereoChannels::Left ][in], nSamples);
         }
         else
         {
-            memset(this->input_sample_buffer_[StereoChannels::Left ][in], 0, this->BufferSize * sizeof(float32_t));
+            memset(this->input_sample_buffer_[StereoChannels::Left ][in], 0, nSamples * sizeof(float32_t));
         }
         
         if(this->pan_[StereoChannels::Right][in] != 0.0f)
         {
-            arm_scale_f32(samples, this->pan_[StereoChannels::Right][in], this->input_sample_buffer_[StereoChannels::Right][in], this->BufferSize);
+            arm_scale_f32(samples, this->pan_[StereoChannels::Right][in], this->input_sample_buffer_[StereoChannels::Right][in], nSamples);
         }
         else
         {
-            memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, this->BufferSize * sizeof(float32_t));
+            memset(this->input_sample_buffer_[StereoChannels::Right][in], 0, nSamples * sizeof(float32_t));
         }
     }
     else
@@ -590,15 +596,15 @@ void MixingConsole<nb_inputs>::reset()
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::processSample(float32_t& outL, float32_t& outR)
 {
-    const size_t bufferSize = nb_inputs + MixerOutput::kFXCount - 1;
+    const size_t nBuffers = nb_inputs + MixerOutput::kFXCount - 1;
 
     float32_t fx_inputs_[MixerOutput::kFXCount][StereoChannels::kNumChannels];
     float32_t fx_outputs_[MixerOutput::kFXCount][StereoChannels::kNumChannels];
     for(size_t i = 0; i < MixerOutput::kFXCount; ++i)
     {
         // Compute the samples that will feed the MixerOutput and process MixerOutput
-        fx_inputs_[i][StereoChannels::Left ] = arm_weighted_sum_f32(this->input_samples_[StereoChannels::Left ], this->levels_[i], bufferSize);
-        fx_inputs_[i][StereoChannels::Right] = arm_weighted_sum_f32(this->input_samples_[StereoChannels::Right], this->levels_[i], bufferSize);
+        fx_inputs_[i][StereoChannels::Left ] = arm_weighted_sum_f32(this->input_samples_[StereoChannels::Left ], this->levels_[i], nBuffers);
+        fx_inputs_[i][StereoChannels::Right] = arm_weighted_sum_f32(this->input_samples_[StereoChannels::Right], this->levels_[i], nBuffers);
 
         // Process the FX
         this->fx_[i]->processSample(
@@ -627,7 +633,8 @@ void MixingConsole<nb_inputs>::processSample(float32_t& outL, float32_t& outR)
 template<size_t nb_inputs>
 void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
 {
-    for(size_t s = 0; s < this->BufferSize; ++s)
+    size_t nSamples = this->m_nSamples;
+    for(size_t s = 0; s < nSamples; ++s)
     {
         for(size_t in = 0; in < nb_inputs; ++in)
         {
@@ -642,6 +649,8 @@ void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
         ++outL;
         ++outR;
     }
+
+    this->m_nSamples = 0;
 }
 
 template<size_t nb_inputs>
