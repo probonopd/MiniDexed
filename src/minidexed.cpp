@@ -552,7 +552,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	m_nPan[nTG] = nPan;
 
 #if defined(MIXING_CONSOLE_ENABLE)
-	this->mixing_console_->setPan(nTG, mapfloat(nPan, 0, 127, 0.0f, 1.0f));
+	this->mixing_console_->setPan(nTG, nPan / 127.0f);
 
 #elif defined(PLATE_REVERB_ENABLE)
 
@@ -1506,41 +1506,41 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	switch (Parameter)
 	{
-	case TGParameterVoiceBank:	BankSelect (nValue, nTG);	break;
-	case TGParameterVoiceBankMSB:	BankSelectMSB (nValue, nTG);	break;
-	case TGParameterVoiceBankLSB:	BankSelectLSB (nValue, nTG);	break;
-	case TGParameterProgram:	ProgramChange (nValue, nTG);	break;
-	case TGParameterVolume:		SetVolume (nValue, nTG);	break;
-	case TGParameterPan:		SetPan (nValue, nTG);		break;
-	case TGParameterMasterTune:	SetMasterTune (nValue, nTG);	break;
-	case TGParameterCutoff:		SetCutoff (nValue, nTG);	break;
-	case TGParameterResonance:	SetResonance (nValue, nTG);	break;
-	case TGParameterPitchBendRange:	setPitchbendRange (nValue, nTG);	break;
-	case TGParameterPitchBendStep:	setPitchbendStep (nValue, nTG);	break;
-	case TGParameterPortamentoMode:		setPortamentoMode (nValue, nTG);	break;
-	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
-	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
-	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+	case TTGParameter::TGParameterVoiceBank:			this->BankSelect (nValue, nTG);	break;
+	case TTGParameter::TGParameterVoiceBankMSB:			this->BankSelectMSB (nValue, nTG); break;
+	case TTGParameter::TGParameterVoiceBankLSB:			this->BankSelectLSB (nValue, nTG); break;
+	case TTGParameter::TGParameterProgram:				this->ProgramChange (nValue, nTG); break;
+	case TTGParameter::TGParameterVolume:				this->SetVolume (nValue, nTG); break;
+	case TTGParameter::TGParameterPan:					this->SetPan (nValue, nTG); break;
+	case TTGParameter::TGParameterMasterTune:			this->SetMasterTune (nValue, nTG); break;
+	case TTGParameter::TGParameterCutoff:				this->SetCutoff (nValue, nTG); break;
+	case TTGParameter::TGParameterResonance:			this->SetResonance (nValue, nTG); break;
+	case TTGParameter::TGParameterPitchBendRange:		this->setPitchbendRange (nValue, nTG); break;
+	case TTGParameter::TGParameterPitchBendStep:		this->setPitchbendStep (nValue, nTG); break;
+	case TTGParameter::TGParameterPortamentoMode:		this->setPortamentoMode (nValue, nTG); break;
+	case TTGParameter::TGParameterPortamentoGlissando:	this->setPortamentoGlissando (nValue, nTG); break;
+	case TTGParameter::TGParameterPortamentoTime:		this->setPortamentoTime (nValue, nTG); break;
+	case TTGParameter::TGParameterMonoMode:				this->setMonoMode (nValue , nTG); break; 
 	
-	case TTGParameter::TGParameterMWRange:				setModController(0, 0, nValue, nTG); break;
-	case TTGParameter::TGParameterMWPitch:				setModController(0, 1, nValue, nTG); break;
-	case TTGParameter::TGParameterMWAmplitude:			setModController(0, 2, nValue, nTG); break;
-	case TTGParameter::TGParameterMWEGBias:				setModController(0, 3, nValue, nTG); break;
+	case TTGParameter::TGParameterMWRange:				this->setModController(0, 0, nValue, nTG); break;
+	case TTGParameter::TGParameterMWPitch:				this->setModController(0, 1, nValue, nTG); break;
+	case TTGParameter::TGParameterMWAmplitude:			this->setModController(0, 2, nValue, nTG); break;
+	case TTGParameter::TGParameterMWEGBias:				this->setModController(0, 3, nValue, nTG); break;
 	
-	case TTGParameter::TGParameterFCRange:				setModController(1, 0, nValue, nTG); break;
-	case TTGParameter::TGParameterFCPitch:				setModController(1, 1, nValue, nTG); break;
-	case TTGParameter::TGParameterFCAmplitude:			setModController(1, 2, nValue, nTG); break;
-	case TTGParameter::TGParameterFCEGBias:				setModController(1, 3, nValue, nTG); break;
+	case TTGParameter::TGParameterFCRange:				this->setModController(1, 0, nValue, nTG); break;
+	case TTGParameter::TGParameterFCPitch:				this->setModController(1, 1, nValue, nTG); break;
+	case TTGParameter::TGParameterFCAmplitude:			this->setModController(1, 2, nValue, nTG); break;
+	case TTGParameter::TGParameterFCEGBias:				this->setModController(1, 3, nValue, nTG); break;
 	
-	case TTGParameter::TGParameterBCRange:				setModController(2, 0, nValue, nTG); break;
-	case TTGParameter::TGParameterBCPitch:				setModController(2, 1, nValue, nTG); break;
-	case TTGParameter::TGParameterBCAmplitude:			setModController(2, 2, nValue, nTG); break;
-	case TTGParameter::TGParameterBCEGBias:				setModController(2, 3, nValue, nTG); break;
+	case TTGParameter::TGParameterBCRange:				this->setModController(2, 0, nValue, nTG); break;
+	case TTGParameter::TGParameterBCPitch:				this->setModController(2, 1, nValue, nTG); break;
+	case TTGParameter::TGParameterBCAmplitude:			this->setModController(2, 2, nValue, nTG); break;
+	case TTGParameter::TGParameterBCEGBias:				this->setModController(2, 3, nValue, nTG); break;
 	
-	case TTGParameter::TGParameterATRange:				setModController(3, 0, nValue, nTG); break;
-	case TTGParameter::TGParameterATPitch:				setModController(3, 1, nValue, nTG); break;
-	case TTGParameter::TGParameterATAmplitude:			setModController(3, 2, nValue, nTG); break;
-	case TTGParameter::TGParameterATEGBias:				setModController(3, 3, nValue, nTG); break;
+	case TTGParameter::TGParameterATRange:				this->setModController(3, 0, nValue, nTG); break;
+	case TTGParameter::TGParameterATPitch:				this->setModController(3, 1, nValue, nTG); break;
+	case TTGParameter::TGParameterATAmplitude:			this->setModController(3, 2, nValue, nTG); break;
+	case TTGParameter::TGParameterATEGBias:				this->setModController(3, 3, nValue, nTG); break;
 	
 	case TTGParameter::TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
@@ -1558,7 +1558,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TTGParameter::TGParameterMixingSendFXReverberator:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Reverberator, 	nValue); break;
 	case TTGParameter::TGParameterMixingSendFXMainOutput:	this->setMixingConsoleSendLevel(nTG, MixerOutput::MainOutput, 		nValue); break;
 #elif defined(PLATE_REVERB_ENABLE)
-	case TTGParameter::TGParameterReverbSend:				this->SetReverbSend (nValue, nTG);	break;
+	case TTGParameter::TGParameterReverbSend:				this->SetReverbSend (nValue, nTG); break;
 #endif // MIXING_CONSOLE_ENABLE
 
 	default:

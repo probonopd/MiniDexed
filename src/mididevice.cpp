@@ -31,35 +31,35 @@
 
 LOGMODULE ("mididevice");
 
-#define MIDI_NOTE_OFF		0b1000
-#define MIDI_NOTE_ON		0b1001
-#define MIDI_AFTERTOUCH		0b1010			// TODO
-#define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
-#define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0
-	#define MIDI_CC_MODULATION			1
-	#define MIDI_CC_BREATH_CONTROLLER	2 
-	#define MIDI_CC_FOOT_PEDAL 		4
-	#define MIDI_CC_VOLUME				7
-	#define MIDI_CC_PAN_POSITION		10
-	#define MIDI_CC_BANK_SELECT_LSB		32
-	#define MIDI_CC_BANK_SUSTAIN		64
-	#define MIDI_CC_RESONANCE			71
-	#define MIDI_CC_FREQUENCY_CUTOFF	74
-	#define MIDI_CC_REVERB_LEVEL		91
-	#define MIDI_CC_ORBITONE_LEVEL		92	// added with mixing console
-	#define MIDI_CC_CHORUS_LEVEL		93	// added with mixing console
-	#define MIDI_CC_DETUNE_LEVEL		94
-	#define MIDI_CC_PHASER_LEVEL		95	// added with mixing console
+#define MIDI_NOTE_OFF				 0b1000
+#define MIDI_NOTE_ON				 0b1001
+#define MIDI_AFTERTOUCH				 0b1010			// TODO
+#define MIDI_CHANNEL_AFTERTOUCH 	 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
+#define MIDI_CONTROL_CHANGE			 0b1011
+	#define MIDI_CC_BANK_SELECT_MSB		  0
+	#define MIDI_CC_MODULATION			  1
+	#define MIDI_CC_BREATH_CONTROLLER	  2 
+	#define MIDI_CC_FOOT_PEDAL 			  4
+	#define MIDI_CC_VOLUME				  7
+	#define MIDI_CC_PAN_POSITION		 10
+	#define MIDI_CC_BANK_SELECT_LSB		 32
+	#define MIDI_CC_BANK_SUSTAIN		 64
+	#define MIDI_CC_RESONANCE			 71
+	#define MIDI_CC_FREQUENCY_CUTOFF	 74
+	#define MIDI_CC_REVERB_LEVEL		 91
+	#define MIDI_CC_ORBITONE_LEVEL		 92	// added with mixing console
+	#define MIDI_CC_CHORUS_LEVEL		 93	// added with mixing console
+	#define MIDI_CC_DETUNE_LEVEL		 94
+	#define MIDI_CC_PHASER_LEVEL		 95	// added with mixing console
 	#define MIDI_CC_ALL_SOUND_OFF		120
 	#define MIDI_CC_ALL_NOTES_OFF		123
-#define MIDI_PROGRAM_CHANGE	0b1100
-#define MIDI_PITCH_BEND		0b1110
+#define MIDI_PROGRAM_CHANGE			 0b1100
+#define MIDI_PITCH_BEND				 0b1110
 
-#define MIDI_SYSTEM_EXCLUSIVE_BEGIN	0xF0
-#define MIDI_SYSTEM_EXCLUSIVE_END	0xF7
-#define MIDI_TIMING_CLOCK	0xF8
-#define MIDI_ACTIVE_SENSING	0xFE
+#define MIDI_SYSTEM_EXCLUSIVE_BEGIN	   0xF0
+#define MIDI_SYSTEM_EXCLUSIVE_END	   0xF7
+#define MIDI_TIMING_CLOCK			   0xF8
+#define MIDI_ACTIVE_SENSING			   0xFE
 
 CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 

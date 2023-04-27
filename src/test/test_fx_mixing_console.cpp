@@ -25,6 +25,8 @@ INSTANTIATE_TEST_SUITE_P(MixerOutputTest, MixingConsoleScenarioTest, testing::Ra
 
 void setupMixingConsoleFX(Mixer* mixer)
 {
+    mixer->setPan(0, 0.5f);
+
     mixer->getTube()->setMute(false);
     mixer->getTube()->setOverdrive(0.25f);
 
@@ -83,7 +85,6 @@ void setupMixingConsoleFX(Mixer* mixer, int scenarioId)
     ACTIVE_FX(scenarioId, FX_PlateReverb);
     ACTIVE_FX(scenarioId, FX_Reverberator);
 
-    mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
 
     size_t nbActiveFX = 0;
@@ -216,9 +217,6 @@ TEST(MixingConsole, ZeroSamplesTest)
     setupMixingConsoleFX(&mixer);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 
-    mixer.setChannelLevel(0, 1.0f);
-    ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
-
     mixer.setPan(0, 0.5f);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 
@@ -269,7 +267,6 @@ TEST(MixingConsole, DryProcessing)
         mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.0f);
     }
 
-    mixer.setChannelLevel(0, 1.0f);
     mixer.setPan(0, 0.5f);
     mixer.setSendLevel(0, MixerOutput::MainOutput, 1.0f);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
@@ -305,7 +302,6 @@ TEST(MixingConsole, ReverberatorProcessing)
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
     mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
-    mixer.setChannelLevel(0, 1.0f);
     mixer.setPan(0, 0.5f);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
@@ -351,7 +347,6 @@ TEST(MixingConsole, ReverberatorNoiseProcessing)
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
     mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
-    mixer.setChannelLevel(0, 1.0f);
     mixer.setPan(0, 0.5f);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
@@ -395,7 +390,7 @@ TEST(MixingConsole, StandardUsageProcessing)
     mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
     mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
 
-    mixer.setInputSampleBuffer(0, inSamples[0], inSamples[1]);
+    mixer.setInputSampleBuffer(0, inSamples[0]);
     mixer.preProcessInputSampleBuffer(0, size);
     mixer.process(outSamples[0], outSamples[1]);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
