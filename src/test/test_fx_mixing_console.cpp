@@ -224,7 +224,7 @@ TEST(MixingConsole, ZeroSamplesTest)
 
     float32_t samples[] = {0.0f, 0.0f, 0.0f, 0.0f};
     mixer.setInputSampleBuffer(0, samples);
-    mixer.preProcessInputSampleBuffer(0);
+    mixer.preProcessInputSampleBuffer(0, 4);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 1.0f);
@@ -279,7 +279,7 @@ TEST(MixingConsole, DryProcessing)
     for(size_t i = 0; i < StereoChannels::kNumChannels; ++i) memset(out[i], 0, length * sizeof(float32_t));
 
     mixer.setInputSampleBuffer(0, in);
-    mixer.preProcessInputSampleBuffer(0);
+    mixer.preProcessInputSampleBuffer(0, 2);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
     mixer.process(
@@ -396,6 +396,7 @@ TEST(MixingConsole, StandardUsageProcessing)
     mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
 
     mixer.setInputSampleBuffer(0, inSamples[0], inSamples[1]);
+    mixer.preProcessInputSampleBuffer(0, size);
     mixer.process(outSamples[0], outSamples[1]);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
     saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);

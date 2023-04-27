@@ -29,7 +29,7 @@ TEST(MixingConsole, ShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
-    mixer->preProcessInputSampleBuffer(0);
+    mixer->preProcessInputSampleBuffer(0, size);
     ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
@@ -72,7 +72,7 @@ TEST(MixingConsole, ReverberatorShortBuffer)
     memset(outSamples[1], 0, size * sizeof(float32_t));
 
     mixer->setInputSampleBuffer(0, inSamples);
-    mixer->preProcessInputSampleBuffer(0);
+    mixer->preProcessInputSampleBuffer(0, size);
     ASSERT_EQ(0, FULL_INSPECT(mixer, true)) << full_test_name << " Mixer.setInputSampleBuffer";
 
     mixer->process(outSamples[0], outSamples[1]);
@@ -100,7 +100,7 @@ TEST(MixingConsole, DrySamplesBoundariesTest)
     mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
-    mixer->preProcessInputSampleBuffer(0);
+    mixer->preProcessInputSampleBuffer(0, size);
 
     float32_t** outSamples = new float32_t*[2];
     outSamples[0] = new float32_t[size];
@@ -161,7 +161,7 @@ TEST(MixingConsole, ReverberatorSamplesBoundariesTest)
     mixer->getReverberator()->setLP(0.7f);
 
     mixer->setInputSampleBuffer(0, inSamples[0]);
-    mixer->preProcessInputSampleBuffer(0);
+    mixer->preProcessInputSampleBuffer(0, size);
     mixer->process(outSamples[0], outSamples[1]);
     ASSERT_EQ(0, FULL_INSPECT2(mixer, true, full_test_name + "Mixer.process")) << full_test_name << " Mixer.process";
 
