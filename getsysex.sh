@@ -64,8 +64,6 @@ case $? in
         ;;
 esac
 
-declare -i count
-count=1
 # Download all the files in the list
 for i in "${LINKS[@]}"; 
 do
@@ -76,15 +74,13 @@ do
     if (( $? > 0 ))
     then
         echo "Download failed"
-    else
-        count+=1
     fi
 done
 
-# Download the user bank
-echo "Downloading https://github.com/donluca/MiniDexed/raw/getsysex.sh/userBank.syx ..."
+# Copy over the user bank
+echo "Downloading https://github.com/probonopd/MiniDexed/raw/main/userBank.syx ..."
 printf -v j "%05d" $count
-curl -o "${TARGET_DIR}${j}_userBank.syx" ${CURL_OPTIONS} https://github.com/donluca/MiniDexed/raw/getsysex.sh/userBank.syx > /dev/null 2>&1
+curl -o "${TARGET_DIR}16384_userBank.syx" ${CURL_OPTIONS} https://github.com/probonopd/MiniDexed/raw/main/userBank.syx > /dev/null 2>&1
 if (( $? > 0 ))
 then
     echo "Download failed"
