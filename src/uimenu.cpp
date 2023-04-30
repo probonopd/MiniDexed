@@ -338,6 +338,23 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 	m_nCurrentParameter (0),
 	m_nCurrentMenuDepth (0)
 {
+#ifndef ARM_ALLOW_MULTI_CORE
+	// If there is just one core, then there is only a single
+	// tone generator so start on the TG1 menu...
+	m_pParentMenu = s_MainMenu;
+	m_pCurrentMenu = s_TGMenu;
+	m_nCurrentMenuItem = 0;
+	m_nCurrentSelection = 0;
+	m_nCurrentParameter = 0;
+	m_nCurrentMenuDepth = 1;
+
+	// Place the "root" menu at the top of the stack
+	m_MenuStackParent[0] = s_MenuRoot;
+	m_MenuStackMenu[0] = s_MainMenu;
+	m_nMenuStackItem[0]	= 0;
+	m_nMenuStackSelection[0] = 0;
+	m_nMenuStackParameter[0] = 0;
+#endif
 }
 
 void CUIMenu::EventHandler (TMenuEvent Event)
@@ -360,13 +377,28 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		break;
 
 	case MenuEventHome:
+#ifdef ARM_ALLOW_MULTI_CORE
 		m_pParentMenu = s_MenuRoot;
 		m_pCurrentMenu = s_MainMenu;
 		m_nCurrentMenuItem = 0;
 		m_nCurrentSelection = 0;
 		m_nCurrentParameter = 0;
 		m_nCurrentMenuDepth = 0;
-
+#else
+		// "Home" is the TG0 menu if only one TG active
+		m_pParentMenu = s_MainMenu;
+		m_pCurrentMenu = s_TGMenu;
+		m_nCurrentMenuItem = 0;
+		m_nCurrentSelection = 0;
+		m_nCurrentParameter = 0;
+		m_nCurrentMenuDepth = 1;
+		// Place the "root" menu at the top of the stack
+		m_MenuStackParent[0] = s_MenuRoot;
+		m_MenuStackMenu[0] = s_MainMenu;
+		m_nMenuStackItem[0] = 0;
+		m_nMenuStackSelection[0] = 0;
+		m_nMenuStackParameter[0] = 0;
+#endif
 		EventHandler (MenuEventUpdate);
 		break;
 
