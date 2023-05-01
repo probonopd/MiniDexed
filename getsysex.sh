@@ -80,7 +80,7 @@ done
 # Copy over the user bank
 echo "Downloading https://github.com/probonopd/MiniDexed/raw/main/userBank.syx ..."
 printf -v j "%05d" $count
-curl -o "${TARGET_DIR}16384_userBank.syx" ${CURL_OPTIONS} https://github.com/probonopd/MiniDexed/raw/main/userBank.syx > /dev/null 2>&1
+curl -o "${TARGET_DIR}16384_userBank.syx" ${CURL_OPTIONS} https://github.com/probonopd/MiniDexed/raw/main/sysex/voice/userBank.syx > /dev/null 2>&1
 if (( $? > 0 ))
 then
     echo "Download failed"
