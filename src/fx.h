@@ -15,6 +15,7 @@
 // fx.h
 //
 // Base classes for Stereo audio effects proposed in the context of the MiniDexed project
+// Author: Vincent Gauché
 //
 #pragma once
 

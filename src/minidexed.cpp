@@ -152,7 +152,8 @@ CMiniDexed::CMiniDexed (
 	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), CConfig::MaxChunkSize);
 	for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 	{
-		this->mixing_console_->setInputSampleBuffer(i, m_OutputLevel[i]);
+		memset(this->m_OutputLevel[i], 0, CConfig::MaxChunkSize * sizeof(float32_t));
+		this->mixing_console_->setInputSampleBuffer(i, this->m_OutputLevel[i]);
 	}
 
 	// Tube parameters
@@ -277,10 +278,12 @@ bool CMiniDexed::Initialize (void)
 		
 #if defined(MIXING_CONSOLE_ENABLE)
 		// setup the mixer so that it remains identical to the initial version of the synth
+		this->mixing_console_->reset();
 		this->mixing_console_->setPan(i, this->m_nPan[i] / 127.0f);
 		float32_t sendRev = this->m_nFXSendLevel[i][MixerOutput::FX_PlateReverb] / 99.0f;
-		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, sendRev);
+		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, 1.0f);
 		this->mixing_console_->setSendLevel(i, MixerOutput::MainOutput, 1.0f - sendRev);
+		this->mixing_console_->setReturnLevel(MixerOutput::FX_PlateReverb, MixerOutput::MainOutput, sendRev);
 
 #elif defined(PLATE_REVERB_ENABLE)
 
@@ -540,6 +543,10 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setGain (nVolume / 127.0f);
+
+#if defined(MIXING_CONSOLE_ENABLE)
+	this->mixing_console_->setChannelLevel(nTG, nVolume == 0 ? 0.0f : 1.0f);
+#endif
 
 	m_UI.ParameterChanged ();
 }
@@ -1780,6 +1787,8 @@ void CMiniDexed::ProcessSound (void)
 		//
 		// Audio signal path after tone generators starts here
 		//
+		float32_t tmp_float[nFrames * 2];
+		int16_t tmp_int[nFrames * 2];
 
 #if defined(MIXING_CONSOLE_ENABLE)
 		// // swap stereo channels if needed
@@ -1792,17 +1801,12 @@ void CMiniDexed::ProcessSound (void)
 		}
 		
 		// BEGIN TG mixing
-		float32_t tmp_float[nFrames * 2];
-		int16_t tmp_int[nFrames * 2];
-
-		float32_t SampleBuffer[StereoChannels::kNumChannels][nFrames];
-
 		if(this->nMasterVolume > 0.0f)
 		{
-			this->m_FXSpinLock.Acquire ();
-
+			float32_t SampleBuffer[StereoChannels::kNumChannels][nFrames];
+			this->m_FXSpinLock.Acquire();
 			this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR]);
-			this->m_FXSpinLock.Release ();
+			this->m_FXSpinLock.Release();
 
 			// Convert dual float array (left, right) to single int16 array (left/right)
 			this->nMasterVolume = constrain(this->nMasterVolume, 0.0f, 1.0f);
@@ -1818,17 +1822,16 @@ void CMiniDexed::ProcessSound (void)
 			}
 			arm_float_to_q15(tmp_float, tmp_int, nFrames * 2);
 		}
-		else
+		else // this->nMasterVolume == 0.0f
+		{
 			arm_fill_q15(0, tmp_int, nFrames * 2);
+		}
 
 #elif defined(PLATE_REVERB_ENABLE)
 
 		uint8_t indexL=0, indexR=1;
 		
 		// BEGIN TG mixing
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
-
 		if(nMasterVolume > 0.0f)
 		{
 			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)

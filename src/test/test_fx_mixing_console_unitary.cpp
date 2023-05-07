@@ -16,7 +16,8 @@ TEST(MixingConsole, ShortBuffer)
 
     const size_t size = 10;
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, size);
-
+    mixer->reset();
+    mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
@@ -51,7 +52,8 @@ TEST(MixingConsole, ReverberatorShortBuffer)
 
     const size_t size = 10;
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, size);
-
+    mixer->reset();
+    mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
 
     mixer->getReverberator()->setInputGain(0.35f);
@@ -93,6 +95,7 @@ TEST(MixingConsole, DrySamplesBoundariesTest)
     mixer->reset();
     FULL_INSPECT2(mixer, true, "Mixer.reset");
 
+    mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
     mixer->setSendLevel(0, MixerOutput::MainOutput, 1.0f);
 
@@ -144,6 +147,7 @@ TEST(MixingConsole, ReverberatorSamplesBoundariesTest)
 
     Mixer* mixer = new Mixer(SAMPLING_FREQUENCY, size);
     mixer->reset();
+    mixer->setChannelLevel(0, 1.0f);
     mixer->setPan(0, 0.5f);
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 0.4f);

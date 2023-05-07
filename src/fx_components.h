@@ -15,6 +15,7 @@
 // fx_components.h
 //
 // Several tools and components used in the implemlentation of FX
+// Quthor: Vincent Gauché
 //
 #pragma once
 

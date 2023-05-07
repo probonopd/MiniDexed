@@ -35,9 +35,16 @@ void arm_fill_f32(float32_t value, float32_t *pDst, uint32_t blockSize)
 
 float32_t arm_weighted_sum_f32(const float32_t *in, const float32_t *weights, uint32_t blockSize)
 {
-    float32_t m = 0.0f;
-    for(size_t i = 0; i < blockSize; ++i) m += in[i] * weights[i];
-    return m;
+    float32_t s = 0.0f;
+    float32_t w = 0.0f;
+
+    for(size_t i = 0; i < blockSize; ++i)
+    {
+        s += in[i] * weights[i];
+        w += weights[i];
+    }
+
+    return s / w;
 }
 
 void arm_clip_f32(const float32_t *pSrc, float32_t *pDst, float32_t low, float32_t high, uint32_t numSamples)

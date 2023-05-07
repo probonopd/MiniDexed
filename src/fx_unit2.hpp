@@ -15,6 +15,7 @@
 // fx_unit2.h
 //
 // Unit of FX that handle the mute parameter
+// Author: Vincent Gauché
 //
 #pragma once
 

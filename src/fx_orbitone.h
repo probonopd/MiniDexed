@@ -16,6 +16,7 @@
 //
 // Stereo Orbitone audio effects proposed in the context of the MiniDexed project
 // This audio effect is based on the Ensemble audio effect of the Rings Eurorack module by Mutable Instruments
+// Ported by: Vincent Gauché
 //
 #pragma once
 

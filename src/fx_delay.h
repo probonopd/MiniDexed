@@ -16,6 +16,7 @@
 // fx_tape_delay.h
 //
 // Stereo Delay proposed in the context of the MiniDexed project
+// Author: Vincent Gauché
 //
 #pragma once
 

@@ -15,6 +15,7 @@
 // extra_features.h
 //
 // Header file that centralizes MACROS to enable / disable extra features
+// Author: Vincent Gauché
 //
 #pragma once
 

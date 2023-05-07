@@ -17,6 +17,7 @@
 //
 // Stereo Reverberator proposed in the context of the MiniDexed project 
 // It is adapted from the Reverb that could be found on Cloud EuroRack module from Mutable Instrruments
+// Ported by: Vincent Gauché
 //
 #pragma once
 

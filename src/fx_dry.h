@@ -12,9 +12,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //
-// fx_tube.h
+// fx_dry.h
 //
-// Stereo Tube overdrive audio effects proposed in the context of the MiniDexed project
+// An FX that does nothing but used to generalize the processing.
+// Author: Vincent Gauché
 //
 #pragma once
 
