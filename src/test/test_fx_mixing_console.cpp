@@ -6,9 +6,11 @@
 
 #include "../mixing_console.hpp"
 
+#define NB_MIXER_CHANNELS 8
+
 class MixingConsoleScenarioTest : public testing::TestWithParam<MixerOutput> {};
 
-typedef MixingConsole<8> Mixer;
+typedef MixingConsole<NB_MIXER_CHANNELS> Mixer;
 
 void setupMixingConsoleFX(Mixer* mixer);
 void setupMixingConsoleFX(Mixer* mixer, int scenarioId);
@@ -453,6 +455,70 @@ TEST(MixingConsole, StandardUsageProcessing)
         mixer.preProcessInputSampleBuffer(0, nb);
         mixer.process(outS[StereoChannels::Left ], outS[StereoChannels::Right]);
         // ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
+
+        inS += nb;
+        outS[StereoChannels::Left ] += nb;
+        outS[StereoChannels::Right] += nb;
+        s -= nb;
+    }
+    
+    saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST(MixingConsole, StandardUsageProcessingAllMixerChannels)
+{
+    static const size_t MAX_BUFFER_SIZE = 4096;
+    static const size_t BUFFER_SIZE = 256;
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+
+    Mixer mixer(SAMPLING_FREQUENCY, MAX_BUFFER_SIZE);
+
+    float32_t channelBuffer[NB_MIXER_CHANNELS][MAX_BUFFER_SIZE];
+    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
+    {
+        memset(channelBuffer[i], 0, MAX_BUFFER_SIZE * sizeof(float32_t));
+        mixer.setInputSampleBuffer(i, channelBuffer[i]);
+    }
+
+    setupMixingConsoleFX(&mixer);
+
+    mixer.getTube()->setOverdrive(0.15f);
+
+    mixer.setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
+    mixer.setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
+    // mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
+    // mixer.setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
+    // mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
+    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
+    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
+    mixer.setReturnLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
+
+    mixer.setSendLevel(0, MixerOutput::MainOutput, 0.25f);
+    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
+    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
+    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
+    mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
+
+    float32_t* inS = inSamples[StereoChannels::Left];
+    float32_t* outS[StereoChannels::kNumChannels];
+    outS[StereoChannels::Left ] = outSamples[StereoChannels::Left ];
+    outS[StereoChannels::Right] = outSamples[StereoChannels::Right];
+    size_t s = size;
+
+    while(s > 0)
+    {
+        size_t nb = (s > BUFFER_SIZE) ? BUFFER_SIZE : s;
+
+        memcpy(channelBuffer[0], inS, nb * sizeof(float32_t));
+
+        for(size_t i = 0; i < mixer.getChannelNumber(); ++i)
+        {
+            mixer.preProcessInputSampleBuffer(i, nb);
+        }
+        mixer.process(outS[StereoChannels::Left ], outS[StereoChannels::Right]);
 
         inS += nb;
         outS[StereoChannels::Left ] += nb;

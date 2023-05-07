@@ -43,6 +43,8 @@ public:
     MixingConsole(float32_t sampling_rate, size_t buffer_size);
     ~MixingConsole();
 
+    inline size_t getChannelNumber() const;
+
     // Send section
     inline void setChannelLevel(size_t in, float32_t lvl);
     inline void setPan(size_t in, float32_t pan);
@@ -370,6 +372,12 @@ MixingConsole<nb_inputs>::~MixingConsole()
         // They must be freed by the creator of the buffers
         this->tg_input_sample_buffer_[i] = nullptr;
     }
+}
+
+template<size_t nb_inputs>
+size_t MixingConsole<nb_inputs>::getChannelNumber() const
+{
+    return nb_inputs;
 }
 
 // Send section
