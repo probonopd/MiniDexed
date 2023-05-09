@@ -13,7 +13,7 @@ class MixingConsoleScenarioTest : public testing::TestWithParam<MixerOutput> {};
 typedef MixingConsole<NB_MIXER_CHANNELS> Mixer;
 
 void setupMixingConsoleFX(Mixer* mixer);
-void setupMixingConsoleFX(Mixer* mixer, int scenarioId);
+void setupMixingConsoleFX(Mixer* mixer, int scenarioId, size_t channel = 0);
 
 TEST_P(MixingConsoleScenarioTest, MixerOutputTest)
 {
@@ -31,33 +31,33 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->setPan(0, 0.5f);
 
     mixer->getTube()->setMute(false);
-    mixer->getTube()->setOverdrive(0.25f);
+    mixer->getTube()->setOverdrive(0.45f);
 
     mixer->getChorus()->setMute(false);
     mixer->getChorus()->setRate(0.4f);
-    mixer->getChorus()->setDepth(0.5f);
+    mixer->getChorus()->setDepth(0.7f);
     
     mixer->getFlanger()->setMute(false);
     mixer->getFlanger()->setRate(0.03f);
     mixer->getFlanger()->setDepth(0.75f);
-    mixer->getFlanger()->setFeedback(0.5f);
+    mixer->getFlanger()->setFeedback(0.7f);
 
     mixer->getOrbitone()->setMute(false);
     mixer->getOrbitone()->setRate(0.4f);
-    mixer->getOrbitone()->setDepth(0.5f);
+    mixer->getOrbitone()->setDepth(0.8f);
 
     mixer->getPhaser()->setMute(false);
     mixer->getPhaser()->setRate(0.1f);
     mixer->getPhaser()->setDepth(1.0f);
-    mixer->getPhaser()->setFeedback(0.5f);
+    mixer->getPhaser()->setFeedback(0.7f);
     mixer->getPhaser()->setNbStages(12);
 
     mixer->getDelay()->setMute(false);
-    mixer->getDelay()->setLeftDelayTime(0.5f);
-    mixer->getDelay()->setLeftDelayTime(0.7f);
+    mixer->getDelay()->setLeftDelayTime(0.25f);
+    mixer->getDelay()->setLeftDelayTime(0.30f);
     mixer->getDelay()->setFeedback(0.7f);
-    mixer->getDelay()->setFlutterRate(0.7f);
-    mixer->getDelay()->setFlutterAmount(0.7f);
+    mixer->getDelay()->setFlutterRate(0.2f);
+    mixer->getDelay()->setFlutterAmount(0.5f);
 
     mixer->getPlateReverb()->setMute(false);
     mixer->getPlateReverb()->set_bypass(false);
@@ -75,137 +75,52 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->getReverberator()->setLP(0.8f);
 }
 
-#define ACTIVE_FX(scenarioId, fx) const bool b ## fx = ((scenarioId & MixerOutput::fx) == MixerOutput::fx)
+#define ACTIVE_FX(activity, scenarioId, fx) activity[MixerOutput::fx] = ((scenarioId & (1 << MixerOutput::fx)) == (1 << MixerOutput::fx))
 
-void setupMixingConsoleFX(Mixer* mixer, int scenarioId)
+void setupMixingConsoleFX(Mixer* mixer, int scenarioId, size_t channel)
 {
-    ACTIVE_FX(scenarioId, FX_Tube);
-    ACTIVE_FX(scenarioId, FX_Chorus);
-    ACTIVE_FX(scenarioId, FX_Flanger);
-    ACTIVE_FX(scenarioId, FX_Orbitone);
-    ACTIVE_FX(scenarioId, FX_Phaser);
-    ACTIVE_FX(scenarioId, FX_Delay);
-    ACTIVE_FX(scenarioId, FX_PlateReverb);
-    ACTIVE_FX(scenarioId, FX_Reverberator);
+    mixer->setChannelLevel(channel, 1.0f);
+    mixer->setPan(channel, 0.5f);
 
-    mixer->setChannelLevel(0, 1.0f);
-    mixer->setPan(0, 0.5f);
+    bool fxActivity[MixerOutput::kFXCount - 1];
+    ACTIVE_FX(fxActivity, scenarioId, FX_Tube);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Chorus);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Flanger);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Orbitone);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Phaser);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Delay);
+    ACTIVE_FX(fxActivity, scenarioId, FX_PlateReverb);
+    ACTIVE_FX(fxActivity, scenarioId, FX_Reverberator);
 
     size_t nbActiveFX = 0;
     MixerOutput previousActivatedFX = MixerOutput::MainOutput;
-
-    if(bFX_Tube)
+    
+    for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
     {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
+        if(fxActivity[i])
         {
-            mixer->setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Tube;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Tube, 1.0f);
+            nbActiveFX++; 
+            if(nbActiveFX == 1)
+            {
+                mixer->setSendLevel(channel, static_cast<MixerOutput>(i), 1.0f);
+            }
+            else
+            {
+                mixer->setReturnLevel(previousActivatedFX, static_cast<MixerOutput>(i), 1.0f);
+            }
+            previousActivatedFX = static_cast<MixerOutput>(i);
         }
     }
 
-    if(bFX_Chorus)
+    if(previousActivatedFX == MixerOutput::MainOutput)
     {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Chorus;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Chorus, 1.0f);
-        }
+        mixer->setSendLevel(channel, MixerOutput::MainOutput, 1.0f);
     }
-
-    if(bFX_Flanger)
+    else
     {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Flanger, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Flanger;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Flanger, 1.0f);
-        }
+        mixer->setSendLevel(channel, MixerOutput::MainOutput, 0.3f);
+        mixer->setReturnLevel(previousActivatedFX, MixerOutput::MainOutput, 0.8f);
     }
-
-    if(bFX_Orbitone)
-    {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Orbitone, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Orbitone;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Orbitone, 1.0f);
-        }
-    }
-
-    if(bFX_Phaser)
-    {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Phaser;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Phaser, 1.0f);
-        }
-    }
-
-    if(bFX_Delay)
-    {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Delay, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Delay;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Delay, 1.0f);
-        }
-    }
-
-    if(bFX_PlateReverb)
-    {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_PlateReverb, 1.0f);
-            previousActivatedFX = MixerOutput::FX_PlateReverb;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_PlateReverb, 1.0f);
-        }
-    }
-
-    if(bFX_Reverberator)
-    {
-        nbActiveFX++;
-        if(nbActiveFX == 1)
-        {
-            mixer->setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-            previousActivatedFX = MixerOutput::FX_Reverberator;
-        }
-        else
-        {
-            mixer->setReturnLevel(previousActivatedFX, MixerOutput::FX_Reverberator, 1.0f);
-        }
-    }
-
 }
 
 TEST(MixingConsole, ZeroSamplesTest)
@@ -531,41 +446,129 @@ TEST(MixingConsole, StandardUsageProcessingAllMixerChannels)
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
-// TEST_P(FXScenarioTest, FXProcessingScenario)
-// {
-//     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
-//     std::string full_test_name = test_info->test_case_name();
-//     full_test_name += ".";
-//     full_test_name += test_info->name();
+TEST(MixingConsole, StandardUsageProcessingAllMixerChannels2)
+{
+    static const size_t MAX_BUFFER_SIZE = 4096;
+    static const size_t BUFFER_SIZE = 256;
 
-//     const unsigned nbRepeats = 2;
-//     size_t size;
-//     float32_t** samples = readWaveFile(AUDIO_SOURCE_FILE, size);
-//     float32_t* sampleOutL = new float32_t[size * nbRepeats];
-//     float32_t* sampleOutR = new float32_t[size * nbRepeats];
-//     memset(sampleOutL, 0, size * nbRepeats * sizeof(float32_t));
-//     memset(sampleOutR, 0, size * nbRepeats * sizeof(float32_t));
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
 
-//     Mixer mixer(SAMPLING_FREQUENCY, size);
+    Mixer mixer(SAMPLING_FREQUENCY, MAX_BUFFER_SIZE);
 
-//     setupMixingConsoleFX(&mixer);
+    float32_t channelBuffer[NB_MIXER_CHANNELS][MAX_BUFFER_SIZE];
+    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
+    {
+        memset(channelBuffer[i], 0, MAX_BUFFER_SIZE * sizeof(float32_t));
+        mixer.setInputSampleBuffer(i, channelBuffer[i]);
+    }
 
-//     int scenarioId = this->GetParam();
-//     setupMixingConsoleFXForScenario((&mixer), scenarioId);
+    setupMixingConsoleFX(&mixer);
 
-//     for(size_t j = 0; j < nbRepeats; ++j)
-//     {
-//         mixer.setInputSampleBuffer(0, samples[0], samples[1]);
-//         mixer.process(sampleOutL + j * size, sampleOutR + j * size);
-//         EXPECT_EQ(0, INSPECT((&mixer), fullInspector));
-//     }
-//     saveWaveFile(getResultFile(full_test_name + ".wav"), sampleOutL, sampleOutR, nbRepeats * size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
+    {
+        mixer.setSendLevel(i, static_cast<MixerOutput>(i), 1.0f);
+        mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.5f);
+        mixer.setSendLevel(i, MixerOutput::MainOutput, 0.5f);
+    }
 
-//     delete[] samples[0];
-//     delete[] samples[1];
-//     delete[] samples;
-//     delete[] sampleOutL;
-//     delete[] sampleOutR;
-// }
+    float32_t* inS = inSamples[StereoChannels::Left];
+    float32_t* outS[StereoChannels::kNumChannels];
+    outS[StereoChannels::Left ] = outSamples[StereoChannels::Left ];
+    outS[StereoChannels::Right] = outSamples[StereoChannels::Right];
+    size_t s = size;
 
-// INSTANTIATE_TEST_SUITE_P(MixingConsole, FXScenarioTest, testing::Range(0, 1 << (MixerOutput::kFXCount - 1)));
+    while(s > 0)
+    {
+        size_t nb = (s > BUFFER_SIZE) ? BUFFER_SIZE : s;
+
+        for(size_t i = 0; i < mixer.getChannelNumber(); ++i)
+        {
+            memcpy(channelBuffer[i], inS, nb * sizeof(float32_t));
+            mixer.preProcessInputSampleBuffer(i, nb);
+        }
+        mixer.process(outS[StereoChannels::Left ], outS[StereoChannels::Right]);
+
+        inS += nb;
+        outS[StereoChannels::Left ] += nb;
+        outS[StereoChannels::Right] += nb;
+        s -= nb;
+    }
+    
+    saveWaveFile(getResultFile(full_test_name + ".wav", true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST_P(FXScenarioTest, FXProcessingScenario)
+{
+    static const size_t MAX_BUFFER_SIZE = 4096;
+    static const size_t BUFFER_SIZE = 256;
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+
+    Mixer mixer(SAMPLING_FREQUENCY, MAX_BUFFER_SIZE);
+
+    float32_t channelBuffer[NB_MIXER_CHANNELS][MAX_BUFFER_SIZE];
+    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
+    {
+        memset(channelBuffer[i], 0, MAX_BUFFER_SIZE * sizeof(float32_t));
+        mixer.setInputSampleBuffer(i, channelBuffer[i]);
+    }
+
+    setupMixingConsoleFX(&mixer);
+
+    int scenarioId = this->GetParam();
+    setupMixingConsoleFX((&mixer), scenarioId);
+
+    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
+    {
+        mixer.setSendLevel(i, static_cast<MixerOutput>(i), 1.0f);
+        mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.5f);
+        mixer.setSendLevel(i, MixerOutput::MainOutput, 0.5f);
+    }
+
+    float32_t* inS = inSamples[StereoChannels::Left];
+    float32_t* outS[StereoChannels::kNumChannels];
+    outS[StereoChannels::Left ] = outSamples[StereoChannels::Left ];
+    outS[StereoChannels::Right] = outSamples[StereoChannels::Right];
+    size_t s = size;
+
+    while(s > 0)
+    {
+        size_t nb = (s > BUFFER_SIZE) ? BUFFER_SIZE : s;
+
+        for(size_t i = 0; i < mixer.getChannelNumber(); ++i)
+        {
+            memcpy(channelBuffer[i], inS, nb * sizeof(float32_t));
+            mixer.preProcessInputSampleBuffer(i, nb);
+        }
+        mixer.process(outS[StereoChannels::Left ], outS[StereoChannels::Right]);
+
+        inS += nb;
+        outS[StereoChannels::Left ] += nb;
+        outS[StereoChannels::Right] += nb;
+        s -= nb;
+    }
+    
+    std::string filename = "";
+    for(size_t i = 0; i < (MixerOutput::kFXCount - 1); ++i)
+    {
+        int k = 1 << i;
+        if((scenarioId & k) == 0)
+        {
+            continue;
+        }
+
+        if(filename.size() > 0)
+        {
+            filename += ", ";
+        }
+        filename += toString(static_cast<MixerOutput>(i));
+    }
+
+    saveWaveFile(getResultFile(full_test_name + " mixing-console[ " + filename  + " ].wav", true), outSamples[0], outSamples[1], size, static_cast<unsigned>(SAMPLING_FREQUENCY), 16);
+
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+INSTANTIATE_TEST_SUITE_P(MixingConsole, FXScenarioTest, testing::Range(0, 1 << (MixerOutput::kFXCount - 1)));
