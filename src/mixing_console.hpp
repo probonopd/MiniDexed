@@ -40,7 +40,7 @@ class MixingConsole : public FXBase
     DISALLOW_COPY_AND_ASSIGN(MixingConsole);
 
 public:
-    MixingConsole(float32_t sampling_rate, size_t buffer_size);
+    MixingConsole(float32_t sampling_rate, size_t buffer_size, bool swapStereoImage = false);
     ~MixingConsole();
 
     inline size_t getChannelNumber() const;
@@ -48,6 +48,7 @@ public:
     // Send section
     inline void setChannelLevel(size_t in, float32_t lvl);
     inline void setPan(size_t in, float32_t pan);
+    inline void swapStereoImage(bool swap);
     inline void setSendLevel(size_t in, MixerOutput fx, float32_t lvl);
     inline void setInputSample(size_t in, float32_t sampleL, float32_t sampleR);
     inline void setInputSampleBuffer(size_t in, float32_t* samples);
@@ -75,6 +76,7 @@ public:
     inline void injectInputSamples(size_t in, float32_t* samplesL, float32_t* samplesR, size_t nSamples);
     inline void processSample(float32_t& outL, float32_t& outR);
     void process(float32_t* outL, float32_t* outR);
+    void process(float32_t* outLR);
 
 protected:
     inline void updatePan(size_t in);
@@ -88,6 +90,7 @@ private:
 
     float32_t channel_level_[nb_inputs];
     float32_t pan_[StereoChannels::kNumChannels + 1][nb_inputs];
+    bool swap_stereo_image_;
     float32_t* tg_input_sample_buffer_[nb_inputs];
     float32_t* input_sample_buffer_[StereoChannels::kNumChannels][nb_inputs];
     float32_t input_samples_[StereoChannels::kNumChannels][nb_inputs + MixerOutput::kFXCount - 1];
@@ -106,7 +109,7 @@ private:
     FXUnit2<Dry>* dry_;
 
     IMPLEMENT_DUMP(
-        const size_t space = 10;
+        const size_t space = 9;
         const size_t precision = 5;
 
         std::stringstream ss;
@@ -328,9 +331,10 @@ float32_t MixingConsole<nb_inputs>::weighted_sum(const float32_t* data, const fl
 }
 
 template<size_t nb_inputs>
-MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_size) :
+MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_size, bool swapStereoImage) :
     FXBase(sampling_rate),
     BufferSize(buffer_size),
+    swap_stereo_image_(swapStereoImage),
     m_nSamples(0)
 {
     for(size_t i = 0; i < nb_inputs; ++i)
@@ -404,6 +408,12 @@ void MixingConsole<nb_inputs>::setPan(size_t in, float32_t pan)
 
     this->pan_[StereoChannels::kNumChannels][in] = pan;
     this->updatePan(in);
+}
+
+template<size_t nb_inputs>
+void MixingConsole<nb_inputs>::swapStereoImage(bool swap)
+{
+    this->swap_stereo_image_ = swap;
 }
 
 template<size_t nb_inputs>
@@ -669,9 +679,47 @@ void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
             );
         }
 
-        this->processSample(*outL, *outR);
+        if(this->swap_stereo_image_)
+        {
+            this->processSample(*outR, *outL);
+        }
+        else
+        {
+            this->processSample(*outL, *outR);
+        }
         ++outL;
         ++outR;
+    }
+
+    this->m_nSamples = 0;
+}
+
+template<size_t nb_inputs>
+void MixingConsole<nb_inputs>::process(float32_t* outLR)
+{
+    size_t nSamples = this->m_nSamples;
+    for(size_t s = 0; s < nSamples; ++s)
+    {
+        for(size_t in = 0; in < nb_inputs; ++in)
+        {
+            this->setSample(
+                in, 
+                this->input_sample_buffer_[StereoChannels::Left ][in][s], 
+                this->input_sample_buffer_[StereoChannels::Right][in][s]
+            );
+        }
+
+        if(this->swap_stereo_image_)
+        {
+            this->processSample(*(outLR + 1), *outLR);
+        }
+        else
+        {
+            this->processSample(*outLR, *(outLR + 1));
+
+        }
+        
+        outLR += 2;
     }
 
     this->m_nSamples = 0;

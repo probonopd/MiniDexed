@@ -31,7 +31,7 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->setPan(0, 0.5f);
 
     mixer->getTube()->setMute(false);
-    mixer->getTube()->setOverdrive(0.45f);
+    mixer->getTube()->setOverdrive(0.85f);
 
     mixer->getChorus()->setMute(false);
     mixer->getChorus()->setRate(0.4f);
@@ -53,8 +53,8 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->getPhaser()->setNbStages(12);
 
     mixer->getDelay()->setMute(false);
-    mixer->getDelay()->setLeftDelayTime(0.25f);
-    mixer->getDelay()->setLeftDelayTime(0.30f);
+    mixer->getDelay()->setLeftDelayTime(0.15f);
+    mixer->getDelay()->setLeftDelayTime(0.20f);
     mixer->getDelay()->setFeedback(0.7f);
     mixer->getDelay()->setFlutterRate(0.2f);
     mixer->getDelay()->setFlutterAmount(0.5f);
@@ -118,8 +118,8 @@ void setupMixingConsoleFX(Mixer* mixer, int scenarioId, size_t channel)
     }
     else
     {
-        mixer->setSendLevel(channel, MixerOutput::MainOutput, 0.3f);
-        mixer->setReturnLevel(previousActivatedFX, MixerOutput::MainOutput, 0.8f);
+        mixer->setSendLevel(channel, MixerOutput::MainOutput, 0.25f);
+        mixer->setReturnLevel(previousActivatedFX, MixerOutput::MainOutput, 0.75f);
     }
 }
 
@@ -519,13 +519,6 @@ TEST_P(FXScenarioTest, FXProcessingScenario)
 
     int scenarioId = this->GetParam();
     setupMixingConsoleFX((&mixer), scenarioId);
-
-    for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
-    {
-        mixer.setSendLevel(i, static_cast<MixerOutput>(i), 1.0f);
-        mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.5f);
-        mixer.setSendLevel(i, MixerOutput::MainOutput, 0.5f);
-    }
 
     float32_t* inS = inSamples[StereoChannels::Left];
     float32_t* outS[StereoChannels::kNumChannels];

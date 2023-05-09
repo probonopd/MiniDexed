@@ -149,7 +149,7 @@ CMiniDexed::CMiniDexed (
 	this->setMasterVolume(1.0);
 
 #if defined(MIXING_CONSOLE_ENABLE)
-	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), CConfig::MaxChunkSize);
+	this->mixing_console_ = new Mixer(static_cast<float32_t>(pConfig->GetSampleRate()), CConfig::MaxChunkSize, this->m_bChannelsSwapped);
 	for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		memset(this->m_OutputLevel[i], 0, CConfig::MaxChunkSize * sizeof(float32_t));
@@ -327,7 +327,7 @@ bool CMiniDexed::Initialize (void)
 
 	m_pSoundDevice->Start ();
 
-#ifdef ARM_ALLOW_MULTI_CORE
+#if defined(ARM_ALLOW_MULTI_CORE)
 	// start secondary cores
 	if (!CMultiCoreSupport::Initialize ())
 	{
@@ -1786,45 +1786,30 @@ void CMiniDexed::ProcessSound (void)
 
 		//
 		// Audio signal path after tone generators starts here
-		//
-		float32_t tmp_float[nFrames * 2];
 		int16_t tmp_int[nFrames * 2];
 
 #if defined(MIXING_CONSOLE_ENABLE)
-		// // swap stereo channels if needed
-		uint8_t indexL = StereoChannels::Left;
-		uint8_t indexR = StereoChannels::Right;
-		if(this->m_bChannelsSwapped)
-		{
-			indexL = StereoChannels::Right;
-			indexR = StereoChannels::Left;
-		}
-		
-		// BEGIN TG mixing
+		// BEGIN mixing
 		if(this->nMasterVolume > 0.0f)
 		{
-			float32_t SampleBuffer[StereoChannels::kNumChannels][nFrames];
+			// temp buffering and channel indexing
+			float32_t interlacedSampleBuffer[nFrames << 1];
+
 			this->m_FXSpinLock.Acquire();
-			this->mixing_console_->process(SampleBuffer[indexL], SampleBuffer[indexR]);
+			this->mixing_console_->process(interlacedSampleBuffer);
 			this->m_FXSpinLock.Release();
 
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			this->nMasterVolume = constrain(this->nMasterVolume, 0.0f, 1.0f);
-			if(this->nMasterVolume == 1.0f)
+			if(this->nMasterVolume < 1.0f)
 			{
-				memcpy(tmp_float, 			SampleBuffer[indexL], nFrames * sizeof(float32_t));
-				memcpy(tmp_float + nFrames, SampleBuffer[indexR], nFrames * sizeof(float32_t));
+				arm_scale_f32(interlacedSampleBuffer, this->nMasterVolume, interlacedSampleBuffer, nFrames << 1);
 			}
-			else // 0.0 < this->nMasterVolume < 1.0
-			{
-				arm_scale_f32(SampleBuffer[indexL], this->nMasterVolume, tmp_float, 			nFrames);
-				arm_scale_f32(SampleBuffer[indexR], this->nMasterVolume, tmp_float + nFrames, 	nFrames);
-			}
-			arm_float_to_q15(tmp_float, tmp_int, nFrames * 2);
+			
+			// Convert float array (left, right) to single int16 array (left/right)
+			arm_float_to_q15(interlacedSampleBuffer, tmp_int, nFrames << 1);
 		}
 		else // this->nMasterVolume == 0.0f
 		{
-			arm_fill_q15(0, tmp_int, nFrames * 2);
+			arm_fill_q15(0, tmp_int, nFrames << 1);
 		}
 
 #elif defined(PLATE_REVERB_ENABLE)
@@ -2332,12 +2317,7 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 
 void CMiniDexed::setMasterVolume (float32_t vol)
 {
-	if(vol < 0.0)
-		vol = 0.0;
-	else if(vol > 1.0)
-		vol = 1.0;
-
-	nMasterVolume=vol;
+	this->nMasterVolume = constrain(vol, 0.0f, 1.0f);
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
