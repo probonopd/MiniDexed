@@ -82,14 +82,14 @@ CMiniDexed::CMiniDexed (
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
 		
-		m_nModulationWheelRange[i]=99;
-		m_nModulationWheelTarget[i]=7;
-		m_nFootControlRange[i]=99;
-		m_nFootControlTarget[i]=0;	
-		m_nBreathControlRange[i]=99;	
-		m_nBreathControlTarget[i]=0;	
-		m_nAftertouchRange[i]=99;	
-		m_nAftertouchTarget[i]=0;
+		m_nModulationWheelRange[i] = 99;
+		m_nModulationWheelTarget[i] = 7;
+		m_nFootControlRange[i] = 99;
+		m_nFootControlTarget[i] = 0;	
+		m_nBreathControlRange[i] = 99;	
+		m_nBreathControlTarget[i] = 0;	
+		m_nAftertouchRange[i] = 99;	
+		m_nAftertouchTarget[i] = 0;
 
 #if defined(MIXING_CONSOLE_ENABLE)
 		memset(this->m_nFXSendLevel[i], 0, MixerOutput::kFXCount * sizeof(unsigned));
@@ -595,18 +595,12 @@ void CMiniDexed::setMixingConsoleReturnLevel(MixerOutput ret, MixerOutput fx, un
 	assert (fx < MixerOutput::kFXCount);
 	if(ret == fx)
 	{
-		nFXReturn = 0;
+		this->mixing_console_->setReturnLevel(ret, fx, 0.0f);
 	}
-#if defined(DEBUG)
 	else
 	{
-		nFXReturn = constrain((int)nFXReturn, 0, 99);
+		this->mixing_console_->setReturnLevel(ret, fx, nFXReturn / 99.0f);
 	}
-#endif
-
-	this->mixing_console_->setReturnLevel(ret, fx, nFXReturn / 99.0f);
-
-	this->m_UI.ParameterChanged();
 }
 
 #elif defined(PLATE_REVERB_ENABLE)
@@ -816,13 +810,8 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 
 void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
-#if defined(MIXING_CONSOLE_ENABLE)
-	assert(this->mixing_console_);
-#elif defined(PLATE_REVERB_ENABLE)
-	assert(this->reverb);
-#endif
-
 	assert(Parameter < TParameter::ParameterUnknown);
+	
 	m_nParameter[Parameter] = nValue;
 
 	switch (Parameter)
@@ -1493,6 +1482,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		reverb->level (nValue / 99.0f);
 		m_FXSpinLock.Release ();
 		break;
+
 #endif
 
 	default:
@@ -1503,7 +1493,8 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 int CMiniDexed::GetParameter (TParameter Parameter)
 {
-	assert (Parameter < ParameterUnknown);
+	assert(Parameter < TParameter::ParameterUnknown);
+
 	return m_nParameter[Parameter];
 }
 
@@ -1558,7 +1549,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TTGParameter::TGParameterMixingSendFXTube:			this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Tube, 			nValue); break;
 	case TTGParameter::TGParameterMixingSendFXChorus:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Chorus, 		nValue); break;
 	case TTGParameter::TGParameterMixingSendFXFlanger:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Flanger, 		nValue); break;
-	case TTGParameter::TGParameterMixingSendFXOrbittone:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone, 		nValue); break;
+	case TTGParameter::TGParameterMixingSendFXOrbitone:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone, 		nValue); break;
 	case TTGParameter::TGParameterMixingSendFXPhaser:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Phaser, 		nValue); break;
 	case TTGParameter::TGParameterMixingSendFXDelay:		this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Delay, 		nValue); break;
 	case TTGParameter::TGParameterMixingSendFXPlateReverb:	this->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, 	nValue); break;
@@ -1596,7 +1587,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TTGParameter::TGParameterMixingSendFXTube:			return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Tube);
 	case TTGParameter::TGParameterMixingSendFXChorus:		return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Chorus);
 	case TTGParameter::TGParameterMixingSendFXFlanger:		return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Flanger);
-	case TTGParameter::TGParameterMixingSendFXOrbittone:	return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone);
+	case TTGParameter::TGParameterMixingSendFXOrbitone:		return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone);
 	case TTGParameter::TGParameterMixingSendFXPhaser:		return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Phaser);
 	case TTGParameter::TGParameterMixingSendFXDelay:		return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_Delay);
 	case TTGParameter::TGParameterMixingSendFXPlateReverb:	return this->getMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb);

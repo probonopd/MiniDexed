@@ -63,6 +63,9 @@ private:
 		TMenuHandler *Handler;
 		const TMenuItem *MenuItem;
 		unsigned Parameter;
+#if defined(MIXING_CONSOLE_ENABLE)
+		unsigned Parameter2 = 0;
+#endif
 	};
 
 	typedef std::string TToString (int nValue);
@@ -85,6 +88,7 @@ private:
 	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameter3 (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -142,24 +146,32 @@ private:
 #if defined(MIXING_CONSOLE_ENABLE)
 	static const TMenuItem s_TGFXMenu[];
 	static const TMenuItem s_FXTube[];
+	static const TMenuItem s_FXTubeLevels[];
 	static const TMenuItem s_FXTubeReturn[];
 	static const TMenuItem s_FXChorus[];
+	static const TMenuItem s_FXChorusLevels[];
 	static const TMenuItem s_FXChorusReturn[];
 	static const TMenuItem s_FXFlanger[];
+	static const TMenuItem s_FXFlangerLevels[];
 	static const TMenuItem s_FXFlangerReturn[];
 	static const TMenuItem s_FXOrbitone[];
+	static const TMenuItem s_FXOrbitoneLevels[];
 	static const TMenuItem s_FXOrbitoneReturn[];
 	static const TMenuItem s_FXPhaser[];
+	static const TMenuItem s_FXPhaserLevels[];
 	static const TMenuItem s_FXPhaserReturn[];
 	static const TMenuItem s_FXDelay[];
+	static const TMenuItem s_FXDelayLevels[];
 	static const TMenuItem s_FXDelayReturn[];
 #endif
 #if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
 	static const TMenuItem s_FXPlateReverb[];
 #endif
 #if defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_FXPlateReverbLevels[];
 	static const TMenuItem s_FXPlateReverbReturn[];
 	static const TMenuItem s_FXReverberator[];
+	static const TMenuItem s_FXReverberatorLevels[];
 	static const TMenuItem s_FXReverberatorReturn[];
 #endif
 	static const TMenuItem s_EditVoiceMenu[];

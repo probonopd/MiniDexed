@@ -108,7 +108,10 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "netfwd": "cpp",
-        "*.def": "cpp"
+        "*.def": "cpp",
+        "support_functions.h": "c",
+        "nemath.h": "c",
+        "arm_helium_utils.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "C_Cpp.intelliSenseEngine": "Tag Parser",

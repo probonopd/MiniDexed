@@ -59,15 +59,15 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #if defined(MIXING_CONSOLE_ENABLE)
 const CUIMenu::TMenuItem CUIMenu::s_TGFXMenu[] = 
 {
-	{"Tube-Send", 	CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube},
-	{"Chorus-Send", CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus},
-	{"FlangR-Send", CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger},
-	{"Orb-Send", 	CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbittone},
-	{"Phaser-Send", CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser},
-	{"Delay-Send", 	CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay},
-	{"Plate-Send",  CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb},
-	{"Rev-Send",  	CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator},
-	{"Main Out", 	CUIMenu::EditTGParameter, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXMainOutput},
+	{"Tube-Send", 	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube},
+	{"Chorus-Send", CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus},
+	{"FlangR-Send", CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger},
+	{"Orb-Send", 	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone},
+	{"Phaser-Send", CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser},
+	{"Delay-Send", 	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay},
+	{"Plate-Send",  CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb},
+	{"Rev-Send",  	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator},
+	{"Main Out", 	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXMainOutput},
 	{0}
 };
 #endif
@@ -162,6 +162,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPlateReverb[] =
 	{"Diffusion",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterReverbDiffusion},
 	{"Level",		CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterReverbLevel},
 #if defined(MIXING_CONSOLE_ENABLE)
+	{"Levels",		CUIMenu::MenuHandler, CUIMenu::s_FXPlateReverbLevels},
 	{"Return", 		CUIMenu::MenuHandler, CUIMenu::s_FXPlateReverbReturn},
 #endif
 	{0}
@@ -175,6 +176,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXTube[] =
 {
 	{"Enable", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTubeEnable},
 	{"Overdrv",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTubeOverdrive},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXTubeLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXTubeReturn},
 	{0}
 };
@@ -184,6 +186,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 	{"Enable", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorusEnable},
 	{"Rate",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorusRate},
 	{"Depth", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorusDepth},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXChorusLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXChorusReturn},
 	{0}
 };
@@ -194,6 +197,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXFlanger[] =
 	{"Rate",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlangerRate},
 	{"Depth",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlangerDepth},
 	{"Feedbck", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlangerFeedback},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXFlangerLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXFlangerReturn},
 	{0}
 };
@@ -203,6 +207,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXOrbitone[] =
 	{"Enable", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitoneEnable},
 	{"Rate", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitoneRate},
 	{"Depth", 	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitoneDepth},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXOrbitoneLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXOrbitoneReturn},
 	{0}
 };
@@ -214,6 +219,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPhaser[] =
 	{"Depth",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaserDepth},
 	{"Feedbck",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaserFeedback},
 	{"Stages",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaserNbStages},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXPhaserLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXPhaserReturn},
 	{0}
 };
@@ -226,6 +232,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 	{"Feedbck", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFeedback},
 	{"Flt Rte", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFlutterRate},
 	{"Flt Amt", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFlutterAmount},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXDelayLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXDelayReturn},
 	{0}
 };
@@ -237,20 +244,65 @@ const CUIMenu::TMenuItem CUIMenu::s_FXReverberator[] =
 	{"Time",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberatorTime},
 	{"Diffus",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberatorDiffusion},
 	{"LowPass",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberatorLP},
+	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXReverberatorLevels},
 	{"Return", 	CUIMenu::MenuHandler, CUIMenu::s_FXReverberatorReturn},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXTubeLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXTube, 7},
+#endif
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_TubeReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_TubeReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_TubeReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_TubeReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_TubeReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_TubeReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_TubeReturn},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXTubeReturn[] =
 {
-	{"ChR Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_ChorusReturn},
-	{"Flg Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_FlangerReturn},
-	{"Orb Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_OrbitoneReturn},
-	{"PhR Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_PhaserReturn},
-	{"Dly Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_DelayReturn},
-	{"Plt Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_PlateReverbReturn},
-	{"Rev Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_ReverberatorReturn},
+	{"ChR Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_ChorusReturn},
+	{"Flg Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_FlangerReturn},
+	{"Orb Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_OrbitoneReturn},
+	{"PhR Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_PhaserReturn},
+	{"Dly Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_DelayReturn},
+	{"Plt Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_PlateReverbReturn},
+	{"Rev Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_ReverberatorReturn},
 	{"MainOut", CUIMenu::EditGlobalParameter, 0, CMiniDexed::ParameterFXTube_MainOutput},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChorusLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXChorus, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_ChorusReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_ChorusReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_ChorusReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_ChorusReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_ChorusReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_ChorusReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_ChorusReturn},
 	{0}
 };
 
@@ -267,6 +319,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChorusReturn[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXFlangerLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXFlanger, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_FlangerReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_FlangerReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_FlangerReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_FlangerReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_FlangerReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_FlangerReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_FlangerReturn},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_FXFlangerReturn[] =
 {
 	{"Tub Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_TubeReturn},
@@ -277,6 +351,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXFlangerReturn[] =
 	{"Plt Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_PlateReverbReturn},
 	{"Rev Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_ReverberatorReturn},
 	{"MainOut", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_MainOutput},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXOrbitoneLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXOrbitone, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_OrbitoneReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_OrbitoneReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_OrbitoneReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_OrbitoneReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_OrbitoneReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_OrbitoneReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_OrbitoneReturn},
 	{0}
 };
 
@@ -293,6 +389,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXOrbitoneReturn[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXPhaserLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPhaser, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_PhaserReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_PhaserReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_PhaserReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_PhaserReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_PhaserReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_PhaserReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_PhaserReturn},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_FXPhaserReturn[] =
 {
 	{"Tub Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_TubeReturn},
@@ -303,6 +421,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPhaserReturn[] =
 	{"Plt Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_PlateReverbReturn},
 	{"Rev Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_ReverberatorReturn},
 	{"MainOut", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_MainOutput},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXDelayLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXDelay, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_DelayReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_DelayReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_DelayReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_DelayReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_DelayReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_DelayReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_DelayReturn},
 	{0}
 };
 
@@ -319,6 +459,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelayReturn[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXPlateReverbLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXPlateReverb, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_PlateReverbReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_PlateReverbReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_PlateReverbReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_PlateReverbReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_PlateReverbReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_PlateReverbReturn},
+	{"Rev >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXReverberator_PlateReverbReturn},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_FXPlateReverbReturn[] =
 {
 	{"Tub Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_TubeReturn},
@@ -329,6 +491,28 @@ const CUIMenu::TMenuItem CUIMenu::s_FXPlateReverbReturn[] =
 	{"Dly Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_DelayReturn},
 	{"Rev Rtn", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_ReverberatorReturn},
 	{"MainOut", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_MainOutput},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXReverberatorLevels[] =
+{
+	{"TG1 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 0},
+#if defined(ARM_ALLOW_MULTI_CORE)
+	{"TG2 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 1},
+	{"TG3 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 2},
+	{"TG4 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 3},
+	{"TG5 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 4},
+	{"TG6 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 5},
+	{"TG7 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 6},
+	{"TG8 >", CUIMenu::EditTGParameter3, 0, CMiniDexed::TTGParameter::TGParameterMixingSendFXReverberator, 7},
+#endif
+	{"Tub >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXTube_ReverberatorReturn},
+	{"ChR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXChorus_ReverberatorReturn},
+	{"Flg >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXFlanger_ReverberatorReturn},
+	{"Orb >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXOrbitone_ReverberatorReturn},
+	{"PhR >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPhaser_ReverberatorReturn},
+	{"Dly >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelay_ReverberatorReturn},
+	{"Plt >", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXPlateReverb_ReverberatorReturn},
 	{0}
 };
 
@@ -553,7 +737,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::TParameter::Par
 	{0, 99, 1},				// ParameterFXReverberator_PhaserReturn,
 	{0, 99, 1},				// ParameterFXReverberator_DelayReturn,
 	{0, 99, 1},				// ParameterFXReverberator_PlateReverbReturn,
-	{0, 99, 1}				// ParameterFXReverberator_MainOutput,
+	{0, 99, 1},				// ParameterFXReverberator_MainOutput,
 
 #endif
 // END FX global parameters mapping definition
@@ -597,6 +781,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TTGParameter::TGPar
 	{0, 1, 1, ToOnOff}, 						//AT Pitch
 	{0, 1, 1, ToOnOff}, 						//AT Amp
 	{0, 1, 1, ToOnOff} 							//AT EGBias	
+
 #if defined(MIXING_CONSOLE_ENABLE)
 	,
 	{0, 99, 1}, 								// TGParameterMixingSendFXTube,
@@ -743,23 +928,18 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
-		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
-		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
-		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentMenuItem;
-		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentSelection;
-		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] 		= pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] 			= pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth] 		= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth] 	= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth] 	= pUIMenu->m_nCurrentParameter;
 		pUIMenu->m_nCurrentMenuDepth++;
 
-		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
-		pUIMenu->m_nCurrentParameter =
-			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
-		pUIMenu->m_pCurrentMenu =
-			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
-		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
-		pUIMenu->m_nCurrentSelection = 0;
+		pUIMenu->m_pParentMenu 			= pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter 	= pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu 		= pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem 	= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection 	= 0;
 		break;
 
 	case MenuEventStepDown:
@@ -1022,6 +1202,60 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
 
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
+	const TParameter &rParam = s_TGParameter[Param];
+
+	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGParameter (Param, nValue, nTG);
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				   
+}
+
+void CUIMenu::EditTGParameter3(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	unsigned nTG = pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth - 1]->Parameter2;
+
+	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
+
 	const TParameter &rParam = s_TGParameter[Param];
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);

@@ -687,6 +687,7 @@ void MixingConsole<nb_inputs>::process(float32_t* outL, float32_t* outR)
         {
             this->processSample(*outL, *outR);
         }
+        
         ++outL;
         ++outR;
     }

@@ -347,7 +347,7 @@ public:
 		TGParameterMixingSendFXTube,
 		TGParameterMixingSendFXChorus,
 		TGParameterMixingSendFXFlanger,
-		TGParameterMixingSendFXOrbittone,
+		TGParameterMixingSendFXOrbitone,
 		TGParameterMixingSendFXPhaser,
 		TGParameterMixingSendFXDelay,
 		TGParameterMixingSendFXPlateReverb,
