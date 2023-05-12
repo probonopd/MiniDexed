@@ -28,6 +28,7 @@
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
 #define PERFORMANCE_DIR "performance" 
+#define NUM_PERFORMANCES 1024
 
 class CPerformanceConfig	// Performance configuration
 {
@@ -168,7 +169,7 @@ private:
 	unsigned nLastFileIndex;
 	unsigned nActualPerformance = 0;  
 	//unsigned nMenuSelectedPerformance = 0; 
-	std::string m_nPerformanceFileName[1024];
+	std::string m_nPerformanceFileName[NUM_PERFORMANCES];
 	FATFS *m_pFileSystem; 
 
 	bool nInternalFolderOk=false;

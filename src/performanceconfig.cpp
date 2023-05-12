@@ -20,10 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include <circle/logger.h>
 #include "performanceconfig.h"
 #include "mididevice.h"
 #include <cstring> 
-#include <algorithm> 
+#include <algorithm>
+
+LOGMODULE ("Performance");
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties ("performance.ini", pFileSystem)
@@ -749,6 +752,10 @@ bool CPerformanceConfig::GetInternalFolderOk()
 
 bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
+	if (nLastPerformance >= NUM_PERFORMANCES) {
+		// No space left for new performances
+		return false;
+	}
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
 	nActualPerformance=nLastPerformance;
@@ -829,19 +836,23 @@ bool CPerformanceConfig::ListPerformances()
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
-			{
-				std::string FileName = FileInfo.fname;
-				size_t nLen = FileName.length();
-				if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
-				{			
-					nPIndex=stoi(FileName.substr(0,6));
-					if(nPIndex > nLastFileIndex)
-					{
-						nLastFileIndex=nPIndex;
-					}
-		
-					m_nPerformanceFileName[nLastPerformance++]= FileName;
+			if (nLastPerformance >=NUM_PERFORMANCES) {
+				LOGNOTE ("Skipping performance %s", FileInfo.fname);
+			} else {
+				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+				{
+					std::string FileName = FileInfo.fname;
+					size_t nLen = FileName.length();
+					if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
+					{			
+						nPIndex=stoi(FileName.substr(0,6));
+						if(nPIndex > nLastFileIndex)
+						{
+							nLastFileIndex=nPIndex;
+						}
+
+						m_nPerformanceFileName[nLastPerformance++]= FileName;
+					}	
 				}
 			}
 
@@ -853,6 +864,8 @@ bool CPerformanceConfig::ListPerformances()
 		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
 		}
 	}
+	
+	LOGNOTE ("Number of Performances: %d", nLastPerformance);
 	
 	return nInternalFolderOk;
 }   
