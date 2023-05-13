@@ -54,7 +54,7 @@ public:
     inline void setInputSampleBuffer(size_t in, float32_t* samples);
 
     // Return section
-    inline void setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
+    inline void setFXSendLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
     inline void setReturnSample(MixerOutput ret, float32_t sampleL, float32_t sampleR);
 
     // Get FX
@@ -443,7 +443,7 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
 
 // Return section
 template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::setReturnLevel(MixerOutput ret, MixerOutput dest, float32_t lvl)
+void MixingConsole<nb_inputs>::setFXSendLevel(MixerOutput ret, MixerOutput dest, float32_t lvl)
 {
     assert(ret < (MixerOutput::kFXCount - 1));
     assert(dest < MixerOutput::kFXCount);
