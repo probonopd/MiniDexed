@@ -28,7 +28,7 @@
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
 #define PERFORMANCE_DIR "performance" 
-#define NUM_PERFORMANCES 1024
+#define NUM_PERFORMANCES 256
 
 class CPerformanceConfig	// Performance configuration
 {
@@ -132,6 +132,7 @@ public:
 	std::string GetNewPerformanceDefaultName(void);
 	void SetNewPerformanceName(std::string nName);
 	bool DeletePerformance(unsigned nID);
+	bool CheckFreePerformanceSlot(void);
 
 private:
 	CPropertiesFatFsFile m_Properties;

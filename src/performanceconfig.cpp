@@ -750,12 +750,27 @@ bool CPerformanceConfig::GetInternalFolderOk()
 	return nInternalFolderOk;
 }
 
+bool CPerformanceConfig::CheckFreePerformanceSlot(void)
+{
+	if (nLastPerformance < NUM_PERFORMANCES)
+	{
+		// There is a free slot...
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
 	if (nLastPerformance >= NUM_PERFORMANCES) {
 		// No space left for new performances
+		LOGWARN ("No space left for new performance");
 		return false;
 	}
+
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
 	nActualPerformance=nLastPerformance;
@@ -836,7 +851,7 @@ bool CPerformanceConfig::ListPerformances()
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (nLastPerformance >=NUM_PERFORMANCES) {
+			if (nLastPerformance >= NUM_PERFORMANCES) {
 				LOGNOTE ("Skipping performance %s", FileInfo.fname);
 			} else {
 				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
