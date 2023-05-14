@@ -100,9 +100,11 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 
+#if defined(PLATE_REVERB_ENABLE)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
-		
+#endif
+
 		PropertyName.Format ("PitchBendRange%u", nTG+1);
 		m_nPitchBendRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
 
@@ -148,7 +150,7 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
 		
-		}
+	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
@@ -198,31 +200,42 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXReverberatorDiffusion = this->m_Properties.GetNumber("FXReverberatorDiffusion", 30);
 	this->m_nFXReverberatorLP = this->m_Properties.GetNumber("FXReverberatorLP", 99);
 
-	for(unsigned in = 0; in < CConfig::ToneGenerators; ++in)
+	bool revUsed = false;
+	for(unsigned nTG = 0; nTG < CConfig::ToneGenerators; ++nTG)
 	{
-		for(unsigned fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		CString reverbSendProp;
+		reverbSendProp.Format ("ReverbSend%u", nTG + 1);
+		unsigned reverbSend = m_Properties.GetNumber(reverbSendProp, 50);
+		revUsed |= (reverbSend > 0);
+
+		for(unsigned toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
 		{
-			std::ostringstream oss("FXSendLevel_");
-			oss << in << "_x_" << toString(static_cast<MixerOutput>(fx));
+			CString propertyName;
+			propertyName.Format("FXSend_TG%u_to_%s", nTG + 1, toString(static_cast<MixerOutput>(toFX)).c_str());
 			unsigned defaultLevel = 0;
-			if(fx == MixerOutput::MainOutput) defaultLevel = 50;
-			else if(fx == MixerOutput::FX_PlateReverb) defaultLevel = 50;
-			this->m_nFXSendLevel[in][fx] = this->m_Properties.GetNumber(oss.str().c_str(), defaultLevel);
+			if(nTG == 0)
+			{
+				if(toFX == MixerOutput::FX_PlateReverb) defaultLevel = reverbSend;
+				else if(toFX == MixerOutput::MainOutput) defaultLevel = 99 - reverbSend;
+			}
+			this->m_nTGSendLevel[nTG][toFX] = this->m_Properties.GetNumber(propertyName, defaultLevel);
 		}
 	}
 
 	size_t end = MixerOutput::kFXCount - 1;
-	for(size_t ret = 0; ret < end; ++ret)
+	for(size_t fromFX = 0; fromFX < end; ++fromFX)
 	{
-		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
 		{
-			std::ostringstream oss("FXReturnLevel_");
-			oss << toString(static_cast<MixerOutput>(ret)) << "_x_" << toString(static_cast<MixerOutput>(fx));
+			CString propertyName;
+			propertyName.Format("FXSend_%s_to_%s", toString(static_cast<MixerOutput>(fromFX)).c_str(), toString(static_cast<MixerOutput>(toFX)).c_str());
 			unsigned defaultLevel = 0;
-			if(ret == MixerOutput::FX_PlateReverb && fx == MixerOutput::MainOutput) defaultLevel = 50;
-			this->m_nFXReturnLevel[ret][fx] = this->m_Properties.GetNumber(oss.str().c_str(), defaultLevel);
+			if(fromFX == MixerOutput::FX_PlateReverb && toFX == MixerOutput::MainOutput) defaultLevel = revUsed ? 99 : 0;
+			this->m_nFXSendLevel[fromFX][toFX] = this->m_Properties.GetNumber(propertyName, defaultLevel);
 		}
 	}
+
+	this->m_bFXBypass = this->m_Properties.GetNumber("FXBypass", 0);
 #endif
 
 	return bResult;
@@ -282,9 +295,11 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nNoteShift[nTG]);
 
+#if defined(PLATE_REVERB_ENABLE)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
-		
+#endif
+
 		PropertyName.Format ("PitchBendRange%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nPitchBendRange[nTG]);
 
@@ -335,6 +350,7 @@ bool CPerformanceConfig::Save (void)
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
 	m_Properties.SetNumber ("ReverbEnable", m_bReverbEnable ? 1 : 0);
 	m_Properties.SetNumber ("ReverbSize", m_nReverbSize);
 	m_Properties.SetNumber ("ReverbHighDamp", m_nReverbHighDamp);
@@ -342,8 +358,9 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
+#endif
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	this->m_Properties.SetNumber("FXTubeEnable", this->m_bFXTubeEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXTubeOverdrive", this->m_nFXTubeOverdrive);
 
@@ -379,26 +396,28 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXReverberatorDiffusion", this->m_nFXReverberatorDiffusion);
 	this->m_Properties.SetNumber("FXReverberatorLP", this->m_nFXReverberatorLP);
 
-	for(unsigned in = 0; in < CConfig::ToneGenerators; ++in)
+	for(unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
 		{
-			std::ostringstream oss("FXSendLevel_");
-			oss << in << "_x_" << toString(static_cast<MixerOutput>(fx));
-			this->m_Properties.SetNumber(oss.str().c_str(), this->m_nFXSendLevel[in][fx]);
+			CString propertyName;
+			propertyName.Format("FXSend_TG%u_to_%s", nTG + 1, toString(static_cast<MixerOutput>(toFX)).c_str());
+			this->m_Properties.SetNumber(propertyName, this->m_nTGSendLevel[nTG][toFX]);
 		}
 	}
 
 	size_t end = MixerOutput::kFXCount - 1;
-	for(size_t ret = 0; ret < end; ++ret)
+	for(size_t fromFX = 0; fromFX < end; ++fromFX)
 	{
-		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
 		{
-			std::ostringstream oss("FXReturnLevel_");
-			oss << toString(static_cast<MixerOutput>(ret)) << "_x_" << toString(static_cast<MixerOutput>(fx));
-			this->m_Properties.SetNumber(oss.str().c_str(), this->m_nFXReturnLevel[ret][fx]);
+			CString propertyName;
+			propertyName.Format("FXSend_%s_to_%s", toString(static_cast<MixerOutput>(fromFX)).c_str(), toString(static_cast<MixerOutput>(toFX)).c_str());
+			this->m_Properties.SetNumber(propertyName, this->m_nFXSendLevel[fromFX][toFX]);
 		}
 	}
+
+	this->m_Properties.SetNumber("FXBypass", this->m_bFXBypass ? 1 : 0);
 #endif
 
 	return m_Properties.Save ();
@@ -470,11 +489,13 @@ int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 	return m_nNoteShift[nTG];
 }
 
+#if defined(PLATE_REVERB_ENABLE)
 unsigned CPerformanceConfig::GetReverbSend (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nReverbSend[nTG];
 }
+#endif
 
 void CPerformanceConfig::SetBankNumber (unsigned nValue, unsigned nTG)
 {
@@ -542,11 +563,13 @@ void CPerformanceConfig::SetNoteShift (int nValue, unsigned nTG)
 	m_nNoteShift[nTG] = nValue;
 }
 
+#if defined(PLATE_REVERB_ENABLE)
 void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nReverbSend[nTG] = nValue;
 }
+#endif
 
 bool CPerformanceConfig::GetCompressorEnable (void) const
 {
@@ -1190,18 +1213,18 @@ unsigned CPerformanceConfig::GetFXReverberatorLP(void) const
 	return this->m_nFXReverberatorLP;
 }
 
-unsigned CPerformanceConfig::GetFXSendLevel(unsigned in, MixerOutput fx) const
+unsigned CPerformanceConfig::GetTGSendLevel(unsigned in, MixerOutput fx) const
 {
 	assert(in < CConfig::ToneGenerators);
 	assert(fx < MixerOutput::kFXCount);
-	return this->m_nFXSendLevel[in][fx];
+	return this->m_nTGSendLevel[in][fx];
 }
 
-unsigned CPerformanceConfig::GetFXReturnLevel(MixerOutput ret, MixerOutput fx) const
+unsigned CPerformanceConfig::GetFXSendLevel(MixerOutput fromFX, MixerOutput toFX) const
 {
-	assert(ret < (MixerOutput::kFXCount - 1));
-	assert(fx < MixerOutput::kFXCount);
-	return (ret == fx) ? 0 : this->m_nFXReturnLevel[ret][fx];
+	assert(fromFX < (MixerOutput::kFXCount - 1));
+	assert(toFX < MixerOutput::kFXCount);
+	return (fromFX == toFX) ? 0 : this->m_nFXSendLevel[fromFX][toFX];
 }
 
 void CPerformanceConfig::SetFXTubeEnable(bool bValue)
@@ -1344,18 +1367,28 @@ void CPerformanceConfig::SetFXReverberatorLP(unsigned nValue)
 	this->m_nFXReverberatorLP = nValue;
 }
 
-void CPerformanceConfig::SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue)
+void CPerformanceConfig::SetTGSendLevel(unsigned in, MixerOutput fx, unsigned nValue)
 {
 	assert(in < CConfig::ToneGenerators);
 	assert(fx < MixerOutput::kFXCount);
-	this->m_nFXSendLevel[in][fx] = nValue;
+	this->m_nTGSendLevel[in][fx] = nValue;
 }
 
-void CPerformanceConfig::SetFXReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nValue)
+void CPerformanceConfig::SetFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nValue)
 {
-	assert(ret < (MixerOutput::kFXCount - 1));
-	assert(fx < MixerOutput::kFXCount);
-	this->m_nFXReturnLevel[ret][fx] = (ret == fx) ? 0 : nValue;
+	assert(fromFX < (MixerOutput::kFXCount - 1));
+	assert(toFX < MixerOutput::kFXCount);
+	this->m_nFXSendLevel[fromFX][toFX] = (fromFX == toFX) ? 0 : nValue;
+}
+
+void CPerformanceConfig::SetFXBypass(bool bypass)
+{
+	this->m_bFXBypass = bypass;
+}
+
+bool CPerformanceConfig::IsFXBypass() const
+{
+	return this->m_bFXBypass;
 }
 
 #endif

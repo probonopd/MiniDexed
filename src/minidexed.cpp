@@ -92,7 +92,7 @@ CMiniDexed::CMiniDexed (
 		m_nAftertouchTarget[i] = 0;
 
 #if defined(MIXING_CONSOLE_ENABLE)
-		memset(this->m_nFXSendLevel[i], 0, MixerOutput::kFXCount * sizeof(unsigned));
+		memset(this->m_nTGSendLevel[i], 0, MixerOutput::kFXCount * sizeof(unsigned));
 #elif defined(PLATE_REVERB_ENABLE)
 		m_nReverbSend[i] = 0;
 #endif
@@ -103,6 +103,17 @@ CMiniDexed::CMiniDexed (
 
 		m_pTG[i]->activate ();
 	}
+
+#if defined(MIXING_CONSOLE_ENABLE)
+	for(size_t i = MixerOutput::FX_Tube; i < (MixerOutput::kFXCount - 1); ++i)
+	{
+		memset(this->m_nFXSendLevel[i], 0, MixerOutput::kFXCount * sizeof(unsigned));
+	}
+
+	this->m_nTGSendLevel[0][MixerOutput::MainOutput] = 99;
+	this->m_nTGSendLevel[0][MixerOutput::FX_PlateReverb] = 99;
+	this->m_nFXSendLevel[MixerOutput::FX_PlateReverb][MixerOutput::MainOutput] = 99;
+#endif
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
@@ -158,7 +169,7 @@ CMiniDexed::CMiniDexed (
 
 	// Tube parameters
 	this->SetParameter(TParameter::ParameterFXTubeEnable, 1);
-	this->SetParameter(TParameter::ParameterFXTubeOverdrive, 10);
+	this->SetParameter(TParameter::ParameterFXTubeOverdrive, 25);
 
 	// Chorus parameters
 	this->SetParameter(TParameter::ParameterFXChorusEnable, 1);
@@ -205,18 +216,8 @@ CMiniDexed::CMiniDexed (
 	this->SetParameter(TParameter::ParameterFXReverberatorDiffusion, 80);
 	this->SetParameter(TParameter::ParameterFXReverberatorLP, 70);
 
-	// Initializes Send parameters to 0
-	size_t end = MixerOutput::kFXCount - 1;
-	for(size_t from = 0; from < end; ++from)
-	{
-		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
-		{
-			this->setMixingConsoleFXSendLevel(static_cast<MixerOutput>(from), static_cast<MixerOutput>(toFX), 0);
-		}
-	}
-
-	// Send all Reverb signal to MainOutput
-	this->SetParameter(TParameter::ParameterFXPlateReverb_MainOutput, 99);
+	// Bypass
+	this->SetParameter(TParameter::ParameterFXBypass, 0);
 
 #elif defined(PLATE_REVERB_ENABLE)
 
@@ -277,13 +278,12 @@ bool CMiniDexed::Initialize (void)
 		m_pTG[i]->setATController (99, 1, 0);
 		
 #if defined(MIXING_CONSOLE_ENABLE)
-		// setup the mixer so that it remains identical to the initial version of the synth
 		this->mixing_console_->reset();
 		this->mixing_console_->setPan(i, this->m_nPan[i] / 127.0f);
-		float32_t sendRev = this->m_nFXSendLevel[i][MixerOutput::FX_PlateReverb] / 99.0f;
-		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, 1.0f);
-		this->mixing_console_->setSendLevel(i, MixerOutput::MainOutput, 1.0f - sendRev);
-		this->mixing_console_->setSendLevel(MixerOutput::FX_PlateReverb, MixerOutput::MainOutput, sendRev);
+
+		this->mixing_console_->setSendLevel(i, MixerOutput::FX_PlateReverb, this->m_nTGSendLevel[i][MixerOutput::FX_PlateReverb] / 99.0f);
+		this->mixing_console_->setSendLevel(i, MixerOutput::MainOutput, this->m_nTGSendLevel[i][MixerOutput::MainOutput] / 99.0f);
+		this->mixing_console_->setFXSendLevel(MixerOutput::FX_PlateReverb, MixerOutput::MainOutput, this->m_nFXSendLevel[MixerOutput::FX_PlateReverb][MixerOutput::FX_PlateReverb] / 99.0f);
 
 #elif defined(PLATE_REVERB_ENABLE)
 
@@ -575,7 +575,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 unsigned CMiniDexed::getMixingConsoleSendLevel(unsigned nTG, MixerOutput fx) const
 {
 	assert (nTG < CConfig::ToneGenerators);
-	return this->m_nFXSendLevel[nTG][fx];
+	return this->m_nTGSendLevel[nTG][fx];
 }
 
 void CMiniDexed::setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend)
@@ -583,23 +583,21 @@ void CMiniDexed::setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigne
 	assert (nTG < CConfig::ToneGenerators);
 	nFXSend = constrain((int)nFXSend, 0, 99);
 
-	this->m_nFXSendLevel[nTG][fx] = nFXSend;
+	this->m_nTGSendLevel[nTG][fx] = nFXSend;
 	this->mixing_console_->setSendLevel(nTG, fx, nFXSend / 99.0f);
 
 	this->m_UI.ParameterChanged();
 }
 
-void CMiniDexed::setMixingConsoleFXSendLevel(MixerOutput ret, MixerOutput fx, unsigned nFXSend)
+void CMiniDexed::setMixingConsoleFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nFXSend)
 {
-	assert (ret < (MixerOutput::kFXCount - 1));
-	assert (fx < MixerOutput::kFXCount);
-	if(ret == fx)
+	assert(fromFX < (MixerOutput::kFXCount - 1));
+	assert(toFX < MixerOutput::kFXCount);
+	if(fromFX != toFX)
 	{
-		this->mixing_console_->setFXSendLevel(ret, fx, 0.0f);
-	}
-	else
-	{
-		this->mixing_console_->setFXSendLevel(ret, fx, nFXSend / 99.0f);
+		nFXSend = constrain((int)nFXSend, 0, 99);
+		this->m_nFXSendLevel[fromFX][toFX] = nFXSend;
+		this->mixing_console_->setFXSendLevel(fromFX, toFX, nFXSend / 99.0f);
 	}
 }
 
@@ -1432,6 +1430,12 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->m_FXSpinLock.Release();
 		break;
 
+	case TParameter::ParameterFXBypass:
+		this->m_FXSpinLock.Acquire();
+		this->mixing_console_->bypass(!!nValue);
+		this->m_FXSpinLock.Release();
+		break;
+
 #elif defined(PLATE_REVERB_ENABLE)
 
 	case TParameter::ParameterReverbEnable:
@@ -1937,7 +1941,7 @@ bool CMiniDexed::DoSavePerformance (void)
 #ifdef MIXING_CONSOLE_ENABLE
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
-			this->m_PerformanceConfig.SetFXSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_nFXSendLevel[nTG][fx]);
+			this->m_PerformanceConfig.SetTGSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_nTGSendLevel[nTG][fx]);
 		}
 #endif
 
@@ -2060,6 +2064,8 @@ bool CMiniDexed::DoSavePerformance (void)
 	this->m_PerformanceConfig.SetFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::FX_Delay, this->m_nParameter[TParameter::ParameterFXReverberator_DelaySend]);
 	this->m_PerformanceConfig.SetFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::FX_PlateReverb, this->m_nParameter[TParameter::ParameterFXReverberator_PlateReverbSend]);
 	this->m_PerformanceConfig.SetFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, this->m_nParameter[TParameter::ParameterFXReverberator_MainOutput]);
+
+	this->m_PerformanceConfig.SetFXBypass(this->mixing_console_->bypass());
 
 #endif
 
@@ -2398,7 +2404,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-		
 		BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
 		ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
 		SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
@@ -2427,7 +2432,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 #ifdef MIXING_CONSOLE_ENABLE
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
-			this->setMixingConsoleSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_PerformanceConfig.GetFXSendLevel(nTG, static_cast<MixerOutput>(fx)));
+			this->setMixingConsoleSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_PerformanceConfig.GetTGSendLevel(nTG, static_cast<MixerOutput>(fx)));
 		}
 #else
 		SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
@@ -2549,6 +2554,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 	this->SetParameter(TParameter::ParameterFXReverberator_PlateReverbSend, this->m_PerformanceConfig.GetFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::FX_PlateReverb));
 	this->SetParameter(TParameter::ParameterFXReverberator_MainOutput, this->m_PerformanceConfig.GetFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput));
 
+	this->mixing_console_->bypass(this->m_PerformanceConfig.IsFXBypass());
 #endif
 }
 

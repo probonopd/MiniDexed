@@ -63,9 +63,6 @@ private:
 		TMenuHandler *Handler;
 		const TMenuItem *MenuItem;
 		unsigned Parameter;
-#if defined(MIXING_CONSOLE_ENABLE)
-		unsigned Parameter2 = 0;
-#endif
 	};
 
 	typedef std::string TToString (int nValue);
@@ -173,6 +170,7 @@ private:
 	static const TMenuItem s_FXReverberator[];
 	static const TMenuItem s_FXReverberatorLevels[];
 	static const TMenuItem s_FXReverberatorSend[];
+	static const TMenuItem s_FXMainOutputLevels[];
 #endif
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];

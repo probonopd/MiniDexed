@@ -1,6 +1,6 @@
 # Mixing Console & Audio Effect
 
-![Mixing Console Synopsys](mixing-console-overview.png)
+<img src="mixing-console-overview.png" alt="Mixing Console - TG Channel Strip" width="100%" style="background-color: #fff">
 
 On multi-core devices, MiniDexed can now be equiped with a complex and versatile mixing console that is composed of a multi-FX processor.
 
@@ -442,6 +442,23 @@ This implementation pushes the reverberation to reach almost the shimmer effect.
         * **> Dly**  *[0 - 99]*: The amount of signal processed by the Reverberator FX unit that will be sent to the Delay FX unit.
         * **> Plt**  *[0 - 99]*: The amount of signal processed by the Reverberator FX unit that will be sent to the Plate Reverb FX unit.
         * **> Main** *[0 - 99]*: The amount of signal processed by the Reverberator FX unit that will be sent to the Main output.
+    * **MainOut**
+      * **TG1 >** *[0 - 99]* - shortcut to [TG1] >> [FX-Send] >> [> Main]
+      * **TG2 >** *[0 - 99]* - shortcut to [TG2] >> [FX-Send] >> [> Main]
+      * **TG3 >** *[0 - 99]* - shortcut to [TG3] >> [FX-Send] >> [> Main]
+      * **TG4 >** *[0 - 99]* - shortcut to [TG4] >> [FX-Send] >> [> Main]
+      * **TG5 >** *[0 - 99]* - shortcut to [TG5] >> [FX-Send] >> [> Main]
+      * **TG6 >** *[0 - 99]* - shortcut to [TG6] >> [FX-Send] >> [> Main]
+      * **TG7 >** *[0 - 99]* - shortcut to [TG7] >> [FX-Send] >> [> Main]
+      * **TG8 >** *[0 - 99]* - shortcut to [TG8] >> [FX-Send] >> [> Main]
+      * **Tub >** *[0 - 99]* - shortcut to [Effects] >> [Tube] >> [> Main]
+      * **ChR >** *[0 - 99]* - shortcut to [Effects] >> [Chorus] >> [> Main]
+      * **Flg >** *[0 - 99]* - shortcut to [Effects] >> [FlangR] >> [> Main]
+      * **Orb >** *[0 - 99]* - shortcut to [Effects] >> [Orb] >> [> Main]
+      * **PhR >** *[0 - 99]* - shortcut to [Effects] >> [PhasR] >> [> Main]
+      * **Dly >** *[0 - 99]* - shortcut to [Effects] >> [Delay] >> [> Main]
+      * **Plt >** *[0 - 99]* - shortcut to [Effects] >> [Plt Rvb] >> [> Main]
+      * **Rev >** *[0 - 99]* - shortcut to [Effects] >> [Rvbrtor] >> [> Main]
   * *Performance*
     * *Load*
       * ...

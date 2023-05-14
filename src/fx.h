@@ -60,7 +60,13 @@ protected:
 public:
     virtual ~FXElement();
 
+    virtual void bypassFXProcess(bool bypass);
+    virtual bool bypassFXProcess() const;
+
     virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) = 0;
+
+private:
+    bool bypass_fx_process_;
 };
 
 class FX : public FXBase

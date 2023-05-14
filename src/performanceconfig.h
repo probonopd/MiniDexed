@@ -52,7 +52,9 @@ public:
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+#if defined(PLATE_REVERB_ENABLE)
 	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
+#endif
 	unsigned GetPitchBendRange (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPitchBendStep (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
@@ -80,7 +82,9 @@ public:
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
+#if defined(PLATE_REVERB_ENABLE)
 	void SetReverbSend (unsigned nValue, unsigned nTG);
+#endif
 	void SetPitchBendRange (unsigned nValue, unsigned nTG);
 	void SetPitchBendStep (unsigned nValue, unsigned nTG);
 	void SetPortamentoMode (unsigned nValue, unsigned nTG);
@@ -153,8 +157,8 @@ public:
 	unsigned GetFXReverberatorTime(void) const;
 	unsigned GetFXReverberatorDiffusion(void) const;
 	unsigned GetFXReverberatorLP(void) const;
-	unsigned GetFXSendLevel(unsigned in, MixerOutput fx) const;
-	unsigned GetFXReturnLevel(MixerOutput ret, MixerOutput fx) const;
+	unsigned GetTGSendLevel(unsigned in, MixerOutput fx) const;
+	unsigned GetFXSendLevel(MixerOutput ret, MixerOutput fx) const;
 
 	void SetFXTubeEnable(bool bValue);
 	void SetFXTubeOverdrive(unsigned nValue);
@@ -191,8 +195,11 @@ public:
 	void SetFXReverberatorDiffusion(unsigned nValue);
 	void SetFXReverberatorLP(unsigned nValue);
 
-	void SetFXSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
-	void SetFXReturnLevel(MixerOutput ret, MixerOutput fx, unsigned nValue);
+	void SetTGSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
+	void SetFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nValue);
+
+	void SetFXBypass(bool bypass);
+	bool IsFXBypass() const;
 #endif
 
 	bool VoiceDataFilled(unsigned nTG);
@@ -224,7 +231,9 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+#if defined(PLATE_REVERB_ENABLE)
 	int m_nReverbSend[CConfig::ToneGenerators];
+#endif
 	unsigned m_nPitchBendRange[CConfig::ToneGenerators];
 	unsigned m_nPitchBendStep[CConfig::ToneGenerators];
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];
@@ -262,7 +271,7 @@ private:
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 	bool m_bFXTubeEnable;
 	unsigned m_nFXTubeWet;
 	unsigned m_nFXTubeOverdrive;
@@ -299,8 +308,10 @@ private:
 	unsigned m_nFXReverberatorDiffusion;
 	unsigned m_nFXReverberatorLP;
 
-	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
-	unsigned m_nFXReturnLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+	unsigned m_nTGSendLevel[CConfig::ToneGenerators + MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+	unsigned m_nFXSendLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+
+	bool m_bFXBypass;
 
 #endif
 };

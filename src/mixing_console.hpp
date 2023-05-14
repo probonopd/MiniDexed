@@ -45,6 +45,9 @@ public:
 
     inline size_t getChannelNumber() const;
 
+    inline void bypass(bool bypass);
+    inline bool bypass() const;
+
     // Send section
     inline void setChannelLevel(size_t in, float32_t lvl);
     inline void setPan(size_t in, float32_t pan);
@@ -54,7 +57,7 @@ public:
     inline void setInputSampleBuffer(size_t in, float32_t* samples);
 
     // Return section
-    inline void setFXSendLevel(MixerOutput ret, MixerOutput dest, float32_t lvl);
+    inline void setFXSendLevel(MixerOutput fromFX, MixerOutput toFX, float32_t lvl);
     inline void setReturnSample(MixerOutput ret, float32_t sampleL, float32_t sampleR);
 
     // Get FX
@@ -87,6 +90,8 @@ private:
     static inline float32_t weighted_sum(const float32_t* data, const float32_t* weights, size_t size);
 
     const size_t BufferSize;
+
+    bool bypass_;
 
     float32_t channel_level_[nb_inputs];
     float32_t pan_[StereoChannels::kNumChannels + 1][nb_inputs];
@@ -334,6 +339,7 @@ template<size_t nb_inputs>
 MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_size, bool swapStereoImage) :
     FXBase(sampling_rate),
     BufferSize(buffer_size),
+    bypass_(true),
     swap_stereo_image_(swapStereoImage),
     m_nSamples(0)
 {
@@ -356,6 +362,8 @@ MixingConsole<nb_inputs>::MixingConsole(float32_t sampling_rate, size_t buffer_s
     this->fx_[MixerOutput::FX_Reverberator] = this->reverberator_ = new FXUnit2<Reverberator>(sampling_rate);
     this->fx_[MixerOutput::MainOutput] = this->dry_ = new FXUnit2<Dry>(sampling_rate);
 
+    this->bypass(false);
+
     this->init();
 }
 
@@ -376,6 +384,31 @@ MixingConsole<nb_inputs>::~MixingConsole()
         // They must be freed by the creator of the buffers
         this->tg_input_sample_buffer_[i] = nullptr;
     }
+}
+
+template<size_t nb_inputs>
+void MixingConsole<nb_inputs>::bypass(bool bypass)
+{
+    if(this->bypass_ != bypass)
+    {
+        this->bypass_ = bypass;
+
+        for(size_t fx = MixerOutput::FX_Tube; fx < MixerOutput::kFXCount; ++fx)
+        {
+            this->getFX(fx)->bypassFXProcess(bypass);
+        }
+
+        if(!bypass)
+        {
+            this->reset();
+        }
+    }
+}
+
+template<size_t nb_inputs>
+bool MixingConsole<nb_inputs>::bypass() const
+{
+    return this->bypass_;
 }
 
 template<size_t nb_inputs>
@@ -443,18 +476,18 @@ void MixingConsole<nb_inputs>::setInputSampleBuffer(size_t in, float32_t* sample
 
 // Return section
 template<size_t nb_inputs>
-void MixingConsole<nb_inputs>::setFXSendLevel(MixerOutput ret, MixerOutput dest, float32_t lvl)
+void MixingConsole<nb_inputs>::setFXSendLevel(MixerOutput fromFX, MixerOutput toFX, float32_t lvl)
 {
-    assert(ret < (MixerOutput::kFXCount - 1));
-    assert(dest < MixerOutput::kFXCount);
+    assert(fromFX < (MixerOutput::kFXCount - 1));
+    assert(toFX < MixerOutput::kFXCount);
 
-    if(ret == dest)
+    if(fromFX == toFX)
     {
         // An FX cannot feedback on itself
         return;
     }
 
-    this->setLevel(nb_inputs + ret, dest, lvl);
+    this->setLevel(nb_inputs + fromFX, toFX, lvl);
 }
 
 template<size_t nb_inputs>

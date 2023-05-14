@@ -103,7 +103,7 @@ public:
 #if defined(MIXING_CONSOLE_ENABLE)
 	unsigned getMixingConsoleSendLevel(unsigned nTG, MixerOutput fx) const;
 	void setMixingConsoleSendLevel(unsigned nTG, MixerOutput fx, unsigned nFXSend);
-	void setMixingConsoleFXSendLevel(MixerOutput ret, MixerOutput fx, unsigned nFXReturn);
+	void setMixingConsoleFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nFXReturn);
 #elif defined(PLATE_REVERB_ENABLE)
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 #endif
@@ -285,6 +285,9 @@ public:
 		ParameterFXReverberator_PlateReverbSend,
 		ParameterFXReverberator_MainOutput,
 
+		// Bypass FX
+		ParameterFXBypass,
+
 	#endif
 	// END FX global parameters definition
 
@@ -427,7 +430,8 @@ private:
 	int m_nNoteShift[CConfig::ToneGenerators];
 
 #ifdef MIXING_CONSOLE_ENABLE
-	unsigned m_nFXSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
+	unsigned m_nTGSendLevel[CConfig::ToneGenerators][MixerOutput::kFXCount];
+	unsigned m_nFXSendLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
 #elif defined(PLATE_REVERB_ENABLE)
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
 #endif

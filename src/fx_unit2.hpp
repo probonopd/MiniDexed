@@ -87,6 +87,11 @@ public:
             outL = 0.0f;
             outR = 0.0f;
         }
+        else if(this->bypassFXProcess())
+        {
+            outL = inL;
+            outR = inR;
+        }
         else
         {
             this->is_reset_ = false;
