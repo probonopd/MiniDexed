@@ -51,6 +51,7 @@ CMiniDexed::CMiniDexed (
 #ifdef ARM_ALLOW_MULTI_CORE
 	m_nActiveTGsLog2 (0),
 #endif
+							 
 	m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
@@ -82,6 +83,15 @@ CMiniDexed::CMiniDexed (
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
 		
+								
+								
+							
+							 
+							   
+							   
+							
+						   
+  
 		m_nModulationWheelRange[i] = 99;
 		m_nModulationWheelTarget[i] = 7;
 		m_nFootControlRange[i] = 99;
@@ -318,6 +328,8 @@ bool CMiniDexed::Initialize (void)
 	}
 
 #if defined(ARM_ALLOW_MULTI_CORE)
+																		
+	 
 	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
 #else
 	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
@@ -510,13 +522,34 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
 
-	nProgram=constrain((int)nProgram,0,31);
+	unsigned nBankOffset;
+	bool bPCAcrossBanks = m_pConfig->GetExpandPCAcrossBanks();
+	if (bPCAcrossBanks)
+	{
+		// Note: This doesn't actually change the bank in use
+		//       but will allow PC messages of 0..127
+		//       to select across four consecutive banks of voices.
+		//
+		//   So if the current bank = 5 then:
+		//       PC  0-31  = Bank 5, Program 0-31
+		//       PC 32-63  = Bank 6, Program 0-31
+		//       PC 64-95  = Bank 7, Program 0-31
+		//       PC 96-127 = Bank 8, Program 0-31
+		nProgram=constrain((int)nProgram,0,127);
+		nBankOffset = nProgram >> 5;
+		nProgram = nProgram % 32;
+	}
+	else
+	{
+		nBankOffset = 0;
+		nProgram=constrain((int)nProgram,0,31);
+	}
 
 	assert (nTG < CConfig::ToneGenerators);
 	m_nProgram[nTG] = nProgram;
 
 	uint8_t Buffer[156];
-	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG], nProgram, Buffer);
+	m_SysExFileLoader.GetVoice (m_nVoiceBankID[nTG]+nBankOffset, nProgram, Buffer);
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
@@ -656,6 +689,8 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+
+
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -771,6 +806,7 @@ void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 	m_pTG[nTG]->setModWheel (value);
 }
 
+
 void CMiniDexed::setFootController (uint8_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -808,6 +844,8 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 
 void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
+				 
+
 	assert(Parameter < TParameter::ParameterUnknown);
 	
 	m_nParameter[Parameter] = nValue;
@@ -1812,6 +1850,9 @@ void CMiniDexed::ProcessSound (void)
 		uint8_t indexL=0, indexR=1;
 		
 		// BEGIN TG mixing
+								 
+							 
+
 		if(nMasterVolume > 0.0f)
 		{
 			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
@@ -2315,6 +2356,11 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 void CMiniDexed::setMasterVolume (float32_t vol)
 {
 	this->nMasterVolume = constrain(vol, 0.0f, 1.0f);
+			
+				   
+			
+
+				   
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
@@ -2375,7 +2421,7 @@ bool CMiniDexed::DoSetNewPerformance (void)
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
-	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk();
+	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk() && m_PerformanceConfig.CheckFreePerformanceSlot();
 	return m_bSavePerformanceNewFile;
 }
 
@@ -2404,7 +2450,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
-		BankSelectLSB (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+   
+		BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
 		ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
 		SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
 		SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
@@ -2421,6 +2468,24 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 		m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 		m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+   
+												
+	
+																	  
+												
+	
+																   
+																
+	 
+																			  
+																				
+																				
+																				  
+																					
+																					  
+																		   
+																			 
+   
 		
 		if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
 		{
@@ -2429,6 +2494,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		}
 		setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 
+			
 		this->SetParameter(TParameter::ParameterCompressorEnable, this->m_PerformanceConfig.GetCompressorEnable());
 #if defined(MIXING_CONSOLE_ENABLE)
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
@@ -2738,5 +2804,4 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 			return 0;
 		break;
 	}
-	
 }
