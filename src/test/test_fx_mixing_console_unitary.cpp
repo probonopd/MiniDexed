@@ -63,7 +63,7 @@ TEST(MixingConsole, ReverberatorShortBuffer)
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 0.4f);
     mixer->setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer->setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
+    mixer->setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
 
     float32_t inSamples[size];
     for(size_t s = 0; s < size; ++s) inSamples[s] = getRandomValue();
@@ -152,7 +152,7 @@ TEST(MixingConsole, ReverberatorSamplesBoundariesTest)
 
     mixer->setSendLevel(0, MixerOutput::MainOutput, 0.4f);
     mixer->setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer->setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
+    mixer->setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.6f);
 
     mixer->getReverberator()->setMute(false);
     mixer->getReverberator()->setInputGain(0.35);

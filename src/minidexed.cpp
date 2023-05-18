@@ -815,7 +815,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	switch (Parameter)
 	{
 	case TParameter::ParameterCompressorEnable:
-		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; ++nTG)
 		{
 			assert(m_pTG[nTG]);
 			m_pTG[nTG]->setCompressor (!!nValue);
@@ -953,6 +953,18 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
 		this->mixing_console_->getDelay()->setFeedback(nValue / 99.0f);
+		this->m_FXSpinLock.Release();
+		break;
+	case TParameter::ParameterFXDelayFlutterRate: 
+		nValue = constrain((int)nValue, 0, 99);
+		this->m_FXSpinLock.Acquire();
+		this->mixing_console_->getDelay()->setFlutterRate(nValue / 99.0f);
+		this->m_FXSpinLock.Release();
+		break;
+	case TParameter::ParameterFXDelayFlutterAmount: 
+		nValue = constrain((int)nValue, 0, 99);
+		this->m_FXSpinLock.Acquire();
+		this->mixing_console_->getDelay()->setFlutterAmount(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 
@@ -1950,48 +1962,48 @@ bool CMiniDexed::DoSavePerformance (void)
 #endif
 	}
 
-	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
-	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
-	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
-	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
-	m_PerformanceConfig.SetReverbLowDamp (m_nParameter[ParameterReverbLowDamp]);
-	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
-	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
-	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
+	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[TParameter::ParameterCompressorEnable]);
+	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[TParameter::ParameterReverbEnable]);
+	m_PerformanceConfig.SetReverbSize (m_nParameter[TParameter::ParameterReverbSize]);
+	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[TParameter::ParameterReverbHighDamp]);
+	m_PerformanceConfig.SetReverbLowDamp (m_nParameter[TParameter::ParameterReverbLowDamp]);
+	m_PerformanceConfig.SetReverbLowPass (m_nParameter[TParameter::ParameterReverbLowPass]);
+	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[TParameter::ParameterReverbDiffusion]);
+	m_PerformanceConfig.SetReverbLevel (m_nParameter[TParameter::ParameterReverbLevel]);
 
 #ifdef MIXING_CONSOLE_ENABLE
-	this->m_PerformanceConfig.SetFXTubeEnable(!!this->m_nParameter[ParameterFXTubeEnable]);
-	this->m_PerformanceConfig.SetFXTubeOverdrive(this->m_nParameter[ParameterFXTubeOverdrive]);
+	this->m_PerformanceConfig.SetFXTubeEnable(!!this->m_nParameter[TParameter::ParameterFXTubeEnable]);
+	this->m_PerformanceConfig.SetFXTubeOverdrive(this->m_nParameter[TParameter::ParameterFXTubeOverdrive]);
 
-	this->m_PerformanceConfig.SetFXChorusEnable(!!this->m_nParameter[ParameterFXChorusEnable]);
-	this->m_PerformanceConfig.SetFXChorusRate(this->m_nParameter[ParameterFXChorusRate]);
-	this->m_PerformanceConfig.SetFXChorusDepth(this->m_nParameter[ParameterFXChorusDepth]);
+	this->m_PerformanceConfig.SetFXChorusEnable(!!this->m_nParameter[TParameter::ParameterFXChorusEnable]);
+	this->m_PerformanceConfig.SetFXChorusRate(this->m_nParameter[TParameter::ParameterFXChorusRate]);
+	this->m_PerformanceConfig.SetFXChorusDepth(this->m_nParameter[TParameter::ParameterFXChorusDepth]);
 
-	this->m_PerformanceConfig.SetFXFlangerEnable(!!this->m_nParameter[ParameterFXFlangerEnable]);
-	this->m_PerformanceConfig.SetFXFlangerRate(this->m_nParameter[ParameterFXFlangerRate]);
-	this->m_PerformanceConfig.SetFXFlangerDepth(this->m_nParameter[ParameterFXFlangerDepth]);
-	this->m_PerformanceConfig.SetFXFlangerFeedback(this->m_nParameter[ParameterFXFlangerFeedback]);
+	this->m_PerformanceConfig.SetFXFlangerEnable(!!this->m_nParameter[TParameter::ParameterFXFlangerEnable]);
+	this->m_PerformanceConfig.SetFXFlangerRate(this->m_nParameter[TParameter::ParameterFXFlangerRate]);
+	this->m_PerformanceConfig.SetFXFlangerDepth(this->m_nParameter[TParameter::ParameterFXFlangerDepth]);
+	this->m_PerformanceConfig.SetFXFlangerFeedback(this->m_nParameter[TParameter::ParameterFXFlangerFeedback]);
 
-	this->m_PerformanceConfig.SetFXOrbitoneEnable(!!this->m_nParameter[ParameterFXOrbitoneEnable]);
-	this->m_PerformanceConfig.SetFXOrbitoneRate(this->m_nParameter[ParameterFXOrbitoneRate]);
-	this->m_PerformanceConfig.SetFXOrbitoneDepth(this->m_nParameter[ParameterFXOrbitoneDepth]);
+	this->m_PerformanceConfig.SetFXOrbitoneEnable(!!this->m_nParameter[TParameter::ParameterFXOrbitoneEnable]);
+	this->m_PerformanceConfig.SetFXOrbitoneRate(this->m_nParameter[TParameter::ParameterFXOrbitoneRate]);
+	this->m_PerformanceConfig.SetFXOrbitoneDepth(this->m_nParameter[TParameter::ParameterFXOrbitoneDepth]);
 
-	this->m_PerformanceConfig.SetFXPhaserEnable(!!this->m_nParameter[ParameterFXPhaserEnable]);
-	this->m_PerformanceConfig.SetFXPhaserRate(this->m_nParameter[ParameterFXPhaserRate]);
-	this->m_PerformanceConfig.SetFXPhaserDepth(this->m_nParameter[ParameterFXPhaserDepth]);
-	this->m_PerformanceConfig.SetFXPhaserFeedback(this->m_nParameter[ParameterFXPhaserFeedback]);
-	this->m_PerformanceConfig.SetFXPhaserNbStages(this->m_nParameter[ParameterFXPhaserNbStages]);
+	this->m_PerformanceConfig.SetFXPhaserEnable(!!this->m_nParameter[TParameter::ParameterFXPhaserEnable]);
+	this->m_PerformanceConfig.SetFXPhaserRate(this->m_nParameter[TParameter::ParameterFXPhaserRate]);
+	this->m_PerformanceConfig.SetFXPhaserDepth(this->m_nParameter[TParameter::ParameterFXPhaserDepth]);
+	this->m_PerformanceConfig.SetFXPhaserFeedback(this->m_nParameter[TParameter::ParameterFXPhaserFeedback]);
+	this->m_PerformanceConfig.SetFXPhaserNbStages(this->m_nParameter[TParameter::ParameterFXPhaserNbStages]);
 
-	this->m_PerformanceConfig.SetFXDelayEnable(!!this->m_nParameter[ParameterFXDelayEnable]);
-	this->m_PerformanceConfig.SetFXDelayLeftDelayTime(this->m_nParameter[ParameterFXDelayLeftDelayTime]);
-	this->m_PerformanceConfig.SetFXDelayRightDelayTime(this->m_nParameter[ParameterFXDelayRightDelayTime]);
-	this->m_PerformanceConfig.SetFXDelayFeedback(this->m_nParameter[ParameterFXDelayFeedback]);
+	this->m_PerformanceConfig.SetFXDelayEnable(!!this->m_nParameter[TParameter::ParameterFXDelayEnable]);
+	this->m_PerformanceConfig.SetFXDelayLeftDelayTime(this->m_nParameter[TParameter::ParameterFXDelayLeftDelayTime]);
+	this->m_PerformanceConfig.SetFXDelayRightDelayTime(this->m_nParameter[TParameter::ParameterFXDelayRightDelayTime]);
+	this->m_PerformanceConfig.SetFXDelayFeedback(this->m_nParameter[TParameter::ParameterFXDelayFeedback]);
 
-	this->m_PerformanceConfig.SetFXReverberatorEnable(!!this->m_nParameter[ParameterFXReverberatorEnable]);
-	this->m_PerformanceConfig.SetFXReverberatorInputGain(this->m_nParameter[ParameterFXReverberatorInputGain]);
-	this->m_PerformanceConfig.SetFXReverberatorTime(this->m_nParameter[ParameterFXReverberatorTime]);
-	this->m_PerformanceConfig.SetFXReverberatorDiffusion(this->m_nParameter[ParameterFXReverberatorDiffusion]);
-	this->m_PerformanceConfig.SetFXReverberatorLP(this->m_nParameter[ParameterFXReverberatorLP]);
+	this->m_PerformanceConfig.SetFXReverberatorEnable(!!this->m_nParameter[TParameter::ParameterFXReverberatorEnable]);
+	this->m_PerformanceConfig.SetFXReverberatorInputGain(this->m_nParameter[TParameter::ParameterFXReverberatorInputGain]);
+	this->m_PerformanceConfig.SetFXReverberatorTime(this->m_nParameter[TParameter::ParameterFXReverberatorTime]);
+	this->m_PerformanceConfig.SetFXReverberatorDiffusion(this->m_nParameter[TParameter::ParameterFXReverberatorDiffusion]);
+	this->m_PerformanceConfig.SetFXReverberatorLP(this->m_nParameter[TParameter::ParameterFXReverberatorLP]);
 
 	this->m_PerformanceConfig.SetFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, this->m_nParameter[TParameter::ParameterFXTube_ChorusSend]);
 	this->m_PerformanceConfig.SetFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Flanger, this->m_nParameter[TParameter::ParameterFXTube_FlangerSend]);
@@ -2429,12 +2441,13 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		}
 		setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 
-#ifdef MIXING_CONSOLE_ENABLE
+		this->SetParameter(TParameter::ParameterCompressorEnable, this->m_PerformanceConfig.GetCompressorEnable());
+#if defined(MIXING_CONSOLE_ENABLE)
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			this->setMixingConsoleSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_PerformanceConfig.GetTGSendLevel(nTG, static_cast<MixerOutput>(fx)));
 		}
-#else
+#elif defined(PLATE_REVERB_ENABLE)
 		SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 #endif
 

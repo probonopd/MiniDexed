@@ -56,8 +56,8 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->getDelay()->setLeftDelayTime(0.15f);
     mixer->getDelay()->setLeftDelayTime(0.20f);
     mixer->getDelay()->setFeedback(0.7f);
-    mixer->getDelay()->setFlutterRate(0.2f);
-    mixer->getDelay()->setFlutterAmount(0.5f);
+    mixer->getDelay()->setFlutterRate(0.35f);
+    mixer->getDelay()->setFlutterAmount(0.75f);
 
     mixer->getPlateReverb()->setMute(false);
     mixer->getPlateReverb()->set_bypass(false);
@@ -106,7 +106,7 @@ void setupMixingConsoleFX(Mixer* mixer, int scenarioId, size_t channel)
             }
             else
             {
-                mixer->setReturnLevel(previousActivatedFX, static_cast<MixerOutput>(i), 1.0f);
+                mixer->setFXSendLevel(previousActivatedFX, static_cast<MixerOutput>(i), 1.0f);
             }
             previousActivatedFX = static_cast<MixerOutput>(i);
         }
@@ -119,7 +119,7 @@ void setupMixingConsoleFX(Mixer* mixer, int scenarioId, size_t channel)
     else
     {
         mixer->setSendLevel(channel, MixerOutput::MainOutput, 0.25f);
-        mixer->setReturnLevel(previousActivatedFX, MixerOutput::MainOutput, 0.75f);
+        mixer->setFXSendLevel(previousActivatedFX, MixerOutput::MainOutput, 0.75f);
     }
 }
 
@@ -159,11 +159,11 @@ TEST(MixingConsole, ZeroSamplesTest)
     mixer.setSendLevel(0, MixerOutput::FX_Delay, 1.0f);
     mixer.setSendLevel(0, MixerOutput::FX_PlateReverb, 1.0f);
 
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Orbitone, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Orbitone, MixerOutput::MainOutput, 0.5f);
-    mixer.setReturnLevel(MixerOutput::FX_Orbitone, MixerOutput::FX_PlateReverb, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.5f);
-    mixer.setReturnLevel(MixerOutput::FX_PlateReverb, MixerOutput::MainOutput, 0.5f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Orbitone, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Orbitone, MixerOutput::MainOutput, 0.5f);
+    mixer.setFXSendLevel(MixerOutput::FX_Orbitone, MixerOutput::FX_PlateReverb, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.5f);
+    mixer.setFXSendLevel(MixerOutput::FX_PlateReverb, MixerOutput::MainOutput, 0.5f);
     ASSERT_EQ(0, FULL_INSPECT((&mixer), true));
 }
 
@@ -188,7 +188,7 @@ TEST(MixingConsole, DryProcessing)
 
     for(size_t i = MixerOutput::OutputStart; i < (MixerOutput::kFXCount - 1); ++i)
     {
-        mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.0f);
+        mixer.setFXSendLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.0f);
     }
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 1.0f);
@@ -226,7 +226,7 @@ TEST(MixingConsole, ReverberatorProcessing)
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
     float32_t in[length] = {0.1, 0.2};
@@ -272,7 +272,7 @@ TEST(MixingConsole, ReverberatorNoiseProcessing)
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 1.0f);
     ASSERT_EQ(0, INSPECT((&mixer), fullInspector));
 
     float32_t in[length];
@@ -302,18 +302,18 @@ TEST(MixingConsole, StandardUsageProcessingByInjection)
 
     mixer.setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
-    // mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
+    // mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.25f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
-    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
-    mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
+    mixer.setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
 
     mixer.injectInputSamples(0, inSamples[StereoChannels::Left], inSamples[StereoChannels::Right], size);
     mixer.process(outSamples[0], outSamples[1]);
@@ -342,18 +342,18 @@ TEST(MixingConsole, StandardUsageProcessing)
 
     mixer.setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
-    // mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
+    // mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.25f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
-    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
-    mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
+    mixer.setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
 
     float32_t* inS = inSamples[StereoChannels::Left];
     float32_t* outS[StereoChannels::kNumChannels];
@@ -404,18 +404,18 @@ TEST(MixingConsole, StandardUsageProcessingAllMixerChannels)
 
     mixer.setSendLevel(0, MixerOutput::FX_Tube, 1.0f);
     mixer.setSendLevel(0, MixerOutput::FX_Phaser, 1.0f);
-    // mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
+    // mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Chorus, 1.0f);
     // mixer.setSendLevel(0, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
-    mixer.setReturnLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::FX_Chorus, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::FX_Reverberator, 1.0f);
+    mixer.setFXSendLevel(MixerOutput::FX_Phaser, MixerOutput::FX_Delay, 1.0f);
 
     mixer.setSendLevel(0, MixerOutput::MainOutput, 0.25f);
-    mixer.setReturnLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
-    mixer.setReturnLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
-    mixer.setReturnLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
-    mixer.setReturnLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Tube, MixerOutput::MainOutput, 0.1f);
+    mixer.setFXSendLevel(MixerOutput::FX_Chorus, MixerOutput::MainOutput, 0.15f);
+    mixer.setFXSendLevel(MixerOutput::FX_Reverberator, MixerOutput::MainOutput, 0.3f);
+    mixer.setFXSendLevel(MixerOutput::FX_Delay, MixerOutput::MainOutput, 0.3f);
 
     float32_t* inS = inSamples[StereoChannels::Left];
     float32_t* outS[StereoChannels::kNumChannels];
@@ -467,7 +467,7 @@ TEST(MixingConsole, StandardUsageProcessingAllMixerChannels2)
     for(size_t i = 0; i < NB_MIXER_CHANNELS; ++i)
     {
         mixer.setSendLevel(i, static_cast<MixerOutput>(i), 1.0f);
-        mixer.setReturnLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.5f);
+        mixer.setFXSendLevel(static_cast<MixerOutput>(i), MixerOutput::MainOutput, 0.5f);
         mixer.setSendLevel(i, MixerOutput::MainOutput, 0.5f);
     }
 

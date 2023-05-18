@@ -140,7 +140,6 @@ private:
         SS__TEXT(ss, ' ', space, std::left, '|', "delay_time_R_");
         SS__TEXT(ss, ' ', space, std::left, '|', "feedback_");
         SS__TEXT(ss, ' ', space, std::left, '|', "jitter_amount_");
-        SS__TEXT(ss, ' ', space, std::left, '|', "filter_");
         out << "\t" << ss.str() << std::endl;
 
         SS_RESET(ss, precision, std::left);
