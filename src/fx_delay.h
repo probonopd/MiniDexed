@@ -105,25 +105,17 @@ public:
     void setFeedback(float32_t feedback);
     float32_t getFeedback() const;
 
-    void setFlutterRate(float32_t rate);
-    float32_t getFlutterRate() const;
-
-    void setFlutterAmount(float32_t amount);
-    float32_t getFlutterAmount() const;
-
 private:
     const size_t MaxSampleDelayTime;
-    unsigned read_pos_L_;
-    unsigned read_pos_R_;
+    unsigned write_pos_L_;
+    unsigned write_pos_R_;
     float32_t* buffer_L_;
     float32_t* buffer_R_;
     float32_t delay_time_L_;        // Left delay time in seconds (0.0 - 2.0)
     float32_t delay_time_R_;        // Right delay time in seconds (0.0 - 2.0)
     float32_t feedback_;            // Feedback (0.0 - 1.0)
-    float32_t jitter_amount_;
 
     LowHighPassFilter filter_;
-    PerlinNoiseGenerator jitter_generator_;
 
     IMPLEMENT_DUMP(
         const size_t space = 18;
@@ -134,12 +126,11 @@ private:
         out << "START " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
 
         SS_RESET(ss, precision, std::left);
-        SS__TEXT(ss, ' ', space, std::left, '|', "read_pos_L_");
-        SS__TEXT(ss, ' ', space, std::left, '|', "read_pos_R_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "write_pos_L_");
+        SS__TEXT(ss, ' ', space, std::left, '|', "write_pos_R_");
         SS__TEXT(ss, ' ', space, std::left, '|', "delay_time_L_");
         SS__TEXT(ss, ' ', space, std::left, '|', "delay_time_R_");
         SS__TEXT(ss, ' ', space, std::left, '|', "feedback_");
-        SS__TEXT(ss, ' ', space, std::left, '|', "jitter_amount_");
         out << "\t" << ss.str() << std::endl;
 
         SS_RESET(ss, precision, std::left);
@@ -148,16 +139,14 @@ private:
         SS_SPACE(ss, '-', space, std::left, '+');
         SS_SPACE(ss, '-', space, std::left, '+');
         SS_SPACE(ss, '-', space, std::left, '+');
-        SS_SPACE(ss, '-', space, std::left, '+');
         out << "\t" << ss.str() << std::endl;
 
         SS_RESET(ss, precision, std::left);
-        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->read_pos_L_);
-        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->read_pos_R_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->write_pos_L_);
+        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->write_pos_R_);
         SS__TEXT(ss, ' ', space - 1, std::right, " |", this->delay_time_L_);
         SS__TEXT(ss, ' ', space - 1, std::right, " |", this->delay_time_R_);
         SS__TEXT(ss, ' ', space - 1, std::right, " |", this->feedback_);
-        SS__TEXT(ss, ' ', space - 1, std::right, " |", this->jitter_amount_);
         out << "\t" << ss.str() << std::endl;
 
         if(deepInspection)
@@ -186,7 +175,6 @@ private:
             }
 
             this->filter_.dump(out, deepInspection, tag + ".filter_");
-            this->jitter_generator_.dump(out, deepInspection, tag + ".jitter_generator_");
         }
 
         out << "END " << tag << "(" << typeid(*this).name() << ") dump" << std::endl << std::endl;
@@ -194,12 +182,11 @@ private:
 
     IMPLEMENT_INSPECT(
         size_t nb_errors = 0;
-        nb_errors += inspector(tag + ".read_pos_L_", static_cast<float32_t>(this->read_pos_L_), 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
-        nb_errors += inspector(tag + ".read_pos_R_", static_cast<float32_t>(this->read_pos_R_), 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
-        nb_errors += inspector(tag + ".delay_time_L_", this->delay_time_L_, 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
-        nb_errors += inspector(tag + ".delay_time_R_", this->delay_time_R_, 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
+        nb_errors += inspector(tag + ".write_pos_L_", static_cast<float32_t>(this->write_pos_L_), 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
+        nb_errors += inspector(tag + ".write_pos_R_", static_cast<float32_t>(this->write_pos_R_), 0.0f, static_cast<float32_t>(this->MaxSampleDelayTime), deepInspection);
+        nb_errors += inspector(tag + ".delay_time_L_", this->delay_time_L_, -1.0f, 1.0f, deepInspection);
+        nb_errors += inspector(tag + ".delay_time_R_", this->delay_time_R_, -1.0f, 1.0f, deepInspection);
         nb_errors += inspector(tag + ".feedback_", this->feedback_, 0.0f, 1.0f, deepInspection);
-        nb_errors += inspector(tag + ".jitter_amount_", this->jitter_amount_, 0.0f, 1.0f, deepInspection);
 
         if(deepInspection)
         {
@@ -210,7 +197,6 @@ private:
             }
 
             nb_errors += this->filter_.inspect(inspector, deepInspection, tag + ".filter_");
-            nb_errors += this->jitter_generator_.inspect(inspector, deepInspection, tag + ".jitter_generator_");
         }
 
         return nb_errors;

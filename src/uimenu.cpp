@@ -232,8 +232,6 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 	{"L Delay",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayLeftDelayTime},
 	{"R Delay",	CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayRightDelayTime},
 	{"Feedbck", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFeedback},
-	{"Flt Rte", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFlutterRate},
-	{"Flt Amt", CUIMenu::EditGlobalParameter, 0, CMiniDexed::TParameter::ParameterFXDelayFlutterAmount},
 	{"Levels",	CUIMenu::MenuHandler, CUIMenu::s_FXDelayLevels},
 	{"FX-Send", CUIMenu::MenuHandler, CUIMenu::s_FXDelaySend},
 	{0}
@@ -671,11 +669,9 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::TParameter::Par
 
 	// FX > Delay parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXDelayEnable
-	{0,	99,	1},				// ParameterFXDelayLeftDelayTime
-	{0,	99,	1},				// ParameterFXDelayRightDelayTime
+	{-99,	99,	1},			// ParameterFXDelayLeftDelayTime
+	{-99,	99,	1},			// ParameterFXDelayRightDelayTime
 	{0,	99,	1},				// ParameterFXDelayFeedback
-	{0,	99,	1},				// ParameterFXDelayFlutterRate
-	{0,	99,	1},				// ParameterFXDelayFlutterAmount
 
 	// FX > Reverberator parameters
 	{0,	1,	1,	ToOnOff},	// ParameterFXReverberatorEnable

@@ -149,8 +149,6 @@ public:
 	unsigned GetFXDelayLeftDelayTime(void) const;
 	unsigned GetFXDelayRightDelayTime(void) const;
 	unsigned GetFXDelayFeedback(void) const;
-	unsigned GetFXDelayFlutterRate(void) const;
-	unsigned GetFXDelayFlutterAmount(void) const;
 
 	bool GetFXReverberatorEnable(void) const;
 	unsigned GetFXReverberatorInputGain(void) const;
@@ -186,8 +184,6 @@ public:
 	void SetFXDelayLeftDelayTime(unsigned nValue);
 	void SetFXDelayRightDelayTime(unsigned nValue);
 	void SetFXDelayFeedback(unsigned nValue);
-	void SetFXDelayFlutterRate(unsigned nValue);
-	void SetFXDelayFlutterAmount(unsigned nValue);
 
 	void SetFXReverberatorEnable(unsigned nValue);
 	void SetFXReverberatorInputGain(unsigned nValue);
@@ -299,8 +295,6 @@ private:
 	unsigned m_nFXDelayLeftDelayTime;
 	unsigned m_nFXDelayRightDelayTime;
 	unsigned m_nFXDelayFeedback;
-	unsigned m_nFXDelayFlutterRate;
-	unsigned m_nFXDelayFlutterAmount;
 
 	bool m_bFXReverberatorEnable;
 	unsigned m_nFXReverberatorInputGain;

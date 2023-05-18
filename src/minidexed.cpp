@@ -938,13 +938,13 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		this->m_FXSpinLock.Release();
 		break;
 	case TParameter::ParameterFXDelayLeftDelayTime: 
-		nValue = constrain((int)nValue, 0, 99);
+		nValue = constrain((int)nValue, -99, 99);
 		this->m_FXSpinLock.Acquire();
 		this->mixing_console_->getDelay()->setLeftDelayTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 	case TParameter::ParameterFXDelayRightDelayTime: 
-		nValue = constrain((int)nValue, 0, 99);
+		nValue = constrain((int)nValue, -99, 99);
 		this->m_FXSpinLock.Acquire();
 		this->mixing_console_->getDelay()->setRightDelayTime(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
@@ -953,18 +953,6 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		nValue = constrain((int)nValue, 0, 99);
 		this->m_FXSpinLock.Acquire();
 		this->mixing_console_->getDelay()->setFeedback(nValue / 99.0f);
-		this->m_FXSpinLock.Release();
-		break;
-	case TParameter::ParameterFXDelayFlutterRate: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getDelay()->setFlutterRate(nValue / 99.0f);
-		this->m_FXSpinLock.Release();
-		break;
-	case TParameter::ParameterFXDelayFlutterAmount: 
-		nValue = constrain((int)nValue, 0, 99);
-		this->m_FXSpinLock.Acquire();
-		this->mixing_console_->getDelay()->setFlutterAmount(nValue / 99.0f);
 		this->m_FXSpinLock.Release();
 		break;
 

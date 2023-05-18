@@ -191,8 +191,6 @@ bool CPerformanceConfig::Load (void)
 	this->m_nFXDelayLeftDelayTime = this->m_Properties.GetNumber("FXDelayLeftDelayTime", 15);
 	this->m_nFXDelayRightDelayTime = this->m_Properties.GetNumber("FXDelayRightDelayTime", 22);
 	this->m_nFXDelayFeedback = this->m_Properties.GetNumber("FXDelayFeedback", 35);
-	this->m_nFXDelayFlutterRate = this->m_Properties.GetNumber("FXDelayFlutterRate", 0);
-	this->m_nFXDelayFlutterAmount = this->m_Properties.GetNumber("FXDelayFlutterAmount", 0);
 
 	this->m_bFXReverberatorEnable = this->m_Properties.GetNumber("FXReverberatorEnable", 1);
 	this->m_nFXReverberatorInputGain = this->m_Properties.GetNumber("FXReverberatorInputGain", 30);
@@ -387,8 +385,6 @@ bool CPerformanceConfig::Save (void)
 	this->m_Properties.SetNumber("FXDelayLeftDelayTime", this->m_nFXDelayLeftDelayTime);
 	this->m_Properties.SetNumber("FXDelayRightDelayTime", this->m_nFXDelayRightDelayTime);
 	this->m_Properties.SetNumber("FXDelayFeedback", this->m_nFXDelayFeedback);
-	this->m_Properties.SetNumber("FXDelayFlutterRate", this->m_nFXDelayFlutterRate);
-	this->m_Properties.SetNumber("FXDelayFlutterAmount", this->m_nFXDelayFlutterAmount);
 
 	this->m_Properties.SetNumber("FXReverberatorEnable", this->m_bFXReverberatorEnable ? 1 : 0);
 	this->m_Properties.SetNumber("FXReverberatorInputGain", this->m_nFXReverberatorInputGain);
@@ -1178,16 +1174,6 @@ unsigned CPerformanceConfig::GetFXDelayFeedback(void) const
 	return this->m_nFXDelayFeedback;
 }
 
-unsigned CPerformanceConfig::GetFXDelayFlutterRate(void) const
-{
-	return this->m_nFXDelayFlutterRate;
-}
-
-unsigned CPerformanceConfig::GetFXDelayFlutterAmount(void) const
-{
-	return this->m_nFXDelayFlutterAmount;
-}
-
 bool CPerformanceConfig::GetFXReverberatorEnable(void) const
 {
 	return this->m_bFXReverberatorEnable;
@@ -1330,16 +1316,6 @@ void CPerformanceConfig::SetFXDelayRightDelayTime(unsigned nValue)
 void CPerformanceConfig::SetFXDelayFeedback(unsigned nValue)
 {
 	this->m_nFXDelayFeedback = nValue;
-}
-
-void CPerformanceConfig::SetFXDelayFlutterRate(unsigned nValue)
-{
-	this->m_nFXDelayFlutterRate = nValue;
-}
-
-void CPerformanceConfig::SetFXDelayFlutterAmount(unsigned nValue)
-{
-	this->m_nFXDelayFlutterAmount = nValue;
 }
 
 void CPerformanceConfig::SetFXReverberatorEnable(unsigned bValue)

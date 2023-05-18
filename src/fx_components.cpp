@@ -610,7 +610,7 @@ void JitterGenerator::reset()
 
 float32_t JitterGenerator::process()
 {
-    float32_t out = arm_sin_f32(this->phase_);
+    float32_t out = InterpolatedSineOscillator::Sin(this->phase_);
 
     this->phase_ += this->phase_increment_ * (1.0f + this->magnitude_ * this->rnd_distribution_(this->rnd_generator_));
     if(this->phase_ > Constants::M2PI)

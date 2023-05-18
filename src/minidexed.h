@@ -195,8 +195,6 @@ public:
 		ParameterFXDelayLeftDelayTime,
 		ParameterFXDelayRightDelayTime,
 		ParameterFXDelayFeedback,
-		ParameterFXDelayFlutterRate,
-		ParameterFXDelayFlutterAmount,
 
 		// Reverberator parameters
 		ParameterFXReverberatorEnable,

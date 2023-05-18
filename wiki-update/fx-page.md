@@ -1,7 +1,5 @@
 # Mixing Console & Audio Effect
 
-<img src="mixing-console-overview.png" alt="Mixing Console - TG Channel Strip" width="100%" style="background-color: #fff">
-
 On multi-core devices, MiniDexed can now be equiped with a complex and versatile mixing console that is composed of a multi-FX processor.
 
 After the volume and pan controls, it is possible to set the send level of each Tone Generator to the individual Audio Effect and Main output. Below is the TG channel strip:
@@ -12,6 +10,8 @@ Each FX has the possibility to return to any other Audio FX unit as well as Main
 
 The diagram below shows the synopsis of this Mixing Console.
 
+<img src="mixing-console-overview.png" alt="Mixing Console - TG Channel Strip" width="100%" style="background-color: #fff">
+
 ## The Audio FX
 
 The following audio FX are available:
@@ -20,6 +20,7 @@ The following audio FX are available:
 
   <img src="Tube--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
   
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Overdrive [0 - 99]:*** the overdrive amount the more the overdrive the less linear is the amplification. Below is the amplifier response based on different value of the overdrive: ![Tube - Overdrive response](Tube--overdrive-response.png)
 
 <br>
@@ -37,6 +38,7 @@ This implementation is a standard Chorus FX that is based on 4 LFO:
 
   <img src="Chorus--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Rate [0 - 99]:*** modulate the LFO rate between thei minimum frequency (Rate = 0) and their maximum frequency (Rate = 99).
   * ***Depth [0 - 99]:*** the level of modulation of the FX. The higher the value the more prononced the audio processing is.
 
@@ -54,6 +56,7 @@ This implementation is based on 2 LFO:
 
   <img src="Flanger--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Rate [0 - 99]:*** modulate the LFO rate between thei minimum frequency (Rate = 0) and their maximum frequency (Rate = 99).
   * ***Depth [0 - 99]:*** the level of modulation of the FX. The higher the value the more prononced the audio processing is.
   * ***Feedback [0 - 99]:*** the amount of of processed signal that is re-injected at the audio effect input.
@@ -76,6 +79,7 @@ This implementation is based on 4 LFO:
 
   <img src="Orbitone--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Rate [0 - 99]:*** modulate the LFO rate between thei minimum frequency (Rate = 0) and their maximum frequency (Rate = 99).
   * ***Depth [0 - 99]:*** the level of modulation of the FX. The higher the value the more prononced the audio processing is.
   * ***Feedback [0 - 99]:*** the amount of of processed signal that is re-injected at the audio effect input.
@@ -93,6 +97,7 @@ This implementation is based on 2 LFO:
 
   <img src="Phaser--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Rate [0 - 99]:*** modulate the LFO rate between thei minimum frequency (Rate = 0) and their maximum frequency (Rate = 99).
   * ***Depth [0 - 99]:*** the level of modulation of the FX. The higher the value the more prononced the audio processing is.
   * ***Feedback [0 - 99]:*** the amount of of processed signal that is re-injected at the audio effect input.
@@ -102,19 +107,16 @@ This implementation is based on 2 LFO:
 <br>
 
 * **Delay:** the is an audio signal processing technique that creates a repeated, delayed version of an original sound. It does this by temporarily storing a copy of the original audio signal in a buffer, and then playing it back at a later time.
-The delay time can be set to vary from a few milliseconds to 2 seconds, and the repeated sound can be manipulated in various ways to create a range of different effects.
-Delay effects are used in a wide variety of musical genres to add texture, depth, and interest to a mix. They can be used on almost any sound source, including vocals, guitars, keyboards, and drums. In addition to their creative uses, delay effects can also be used as a practical tool for correcting timing issues in a recording or performance.
-This implementation is inpired of a tape delay and integrates a kind of flutter effect. The flutter effect of a tape delay refers to the subtle, random variations in the pitch and timing of the delayed signal that result from imperfections in the tape transport mechanism of an analog tape delay unit.
-As the tape passes through the transport mechanism, it can be subject to various irregularities, such as fluctuations in tension, speed, and alignment. These imperfections can cause slight variations in the pitch and timing of the delayed signal, which can add a subtle, organic character to the sound.
-The flutter effect is often sought after by musicians and producers who want to add warmth and character to their recordings. It can be particularly effective on guitars, vocals, and other melodic instruments, and is often used in genres such as rock, pop, and reggae.
+The delay time can be set to vary from a few milliseconds to 1 second, and the repeated sound can be manipulated in various ways to create a range of different effects.
+Delay effects are used in a wide variety of musical genres to add texture, depth, and interest to a mix. They can be used on almost any sound source, including vocals, guitars, keyboards, drums and other melodic instruments.
+The implemention of this delay accept negative values for both left and right delay. Negative values will echo sound reversed.
 
   <img src="Delay--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
-  * **Left Delay [0 - 99]:** the left delay from 0 to 2 seconds.
-  * **Right Delay [0 - 99]:** the left delay from 0 to 2 seconds.
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
+  * **Left Delay [-99 - 99]:** the left delay from 0 to 2 seconds.
+  * **Right Delay [-99 - 99]:** the left delay from 0 to 2 seconds.
   * ***Feedback [0 - 99]:*** the amount of of processed signal that is re-injected at the audio effect input.
-  * ***Flutter Rate [0 - 99]:*** the speed at which the flutter effect will impact the signal processing.
-  * ***Flutter Amount [0 - 99]:*** the depth of the flutter effect that will impact the signal processing.
 
 <br>
 <br>
@@ -125,6 +127,7 @@ Plate reverb effects are often used in music production to add space, depth, and
 
   <img src="PlateReverb--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * ***Size [0 - 99]:*** the size of the simulated metallic plate hence of the room.
   * ***High Damping [0 - 99]:*** the amount of high-frequency attenuation or absorption applied to the plate's vibrations. It is a key parameter that can have a significant impact on the overall sound of the plate reverb effect.
   * ***Low Damping [0 - 99]:*** the amount of low-frequency attenuation or absorption applied to the plate's vibrations. It is a key parameter that can have a significant impact on the overall sound of the plate reverb effect.
@@ -147,6 +150,7 @@ This implementation pushes the reverberation to reach almost the shimmer effect.
 
   <img src="Reverberator--Channel.png" alt="FX Tube Channel Strip" width="10%" style="background-color: #fff">
 
+  * ***Enable [Off - On]:*** Enable / disable the FX unit.
   * **Gain [0 - 99]:** the gain parameter of the reverberator refers to the overall level or amplitude of the reverberator effect. It determines how loud the reverberator signal is in relation to the dry or unprocessed signal.
   * **Time [0 - 99]:** the time determines the size of the simulated reverberating space.
   * **Diffusion [0 - 99]:** the diffusion parameter of a reverberator refers to the degree to which the reflections in the reverb decay are dispersed or spread out in time and space. It determines how "dense" or "sparse" the reverberator effect sounds and how the individual reflections blend together.
@@ -348,11 +352,9 @@ This implementation pushes the reverberation to reach almost the shimmer effect.
         * **> Main** *[0 - 99]*: The amount of signal processed by the Phaser FX unit that will be sent to the Main output.
     * **Delay**
       * **Enable** *[on - off]*: Enable / disable the FX unit.
-      * **L Delay** *[0 - 99]*: The delay time for the Left channel.
-      * **R Delay** *[0 - 99]*: The delay time for the Right channel.
+      * **L Delay** *[-99 - 99]*: The delay time for the Left channel. Negtive values play the echoed part of the processed sound reversed.
+      * **R Delay** *[-99 - 99]*: The delay time for the Right channel. Negtive values play the echoed part of the processed sound reversed.
       * **Feedbck** *[0 - 99]*: The amount of processed signal that will be reinjected at the input.
-      * **Flt Rte** *[0 - 99]*: The flutter rate.
-      * **Flt Amt** *[0 - 99]*: The flutter depth.
       * **Levels**
         * **TG1 >** *[0 - 99]* - shortcut to [TG1] >> [FX-Send] >> [> Dly]
         * **TG2 >** *[0 - 99]* - shortcut to [TG2] >> [FX-Send] >> [> Dly]
