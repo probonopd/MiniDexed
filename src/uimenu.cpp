@@ -893,6 +893,7 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 	{0}
 };
 
+
 CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed) : 
 	m_pUI (pUI),
 	m_pMiniDexed (pMiniDexed),
@@ -904,6 +905,23 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed) :
 	m_nCurrentMenuDepth (0)
 {
 	assert(pMiniDexed);
+#ifndef ARM_ALLOW_MULTI_CORE
+	// If there is just one core, then there is only a single
+	// tone generator so start on the TG1 menu...
+	m_pParentMenu = s_MainMenu;
+	m_pCurrentMenu = s_TGMenu;
+	m_nCurrentMenuItem = 0;
+	m_nCurrentSelection = 0;
+	m_nCurrentParameter = 0;
+	m_nCurrentMenuDepth = 1;
+
+	// Place the "root" menu at the top of the stack
+	m_MenuStackParent[0] = s_MenuRoot;
+	m_MenuStackMenu[0] = s_MainMenu;
+	m_nMenuStackItem[0]	= 0;
+	m_nMenuStackSelection[0] = 0;
+	m_nMenuStackParameter[0] = 0;
+#endif
 }
 
 void CUIMenu::EventHandler (TMenuEvent Event)
@@ -926,13 +944,28 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		break;
 
 	case MenuEventHome:
+#ifdef ARM_ALLOW_MULTI_CORE
 		m_pParentMenu = s_MenuRoot;
 		m_pCurrentMenu = s_MainMenu;
 		m_nCurrentMenuItem = 0;
 		m_nCurrentSelection = 0;
 		m_nCurrentParameter = 0;
 		m_nCurrentMenuDepth = 0;
-
+#else
+		// "Home" is the TG0 menu if only one TG active
+		m_pParentMenu = s_MainMenu;
+		m_pCurrentMenu = s_TGMenu;
+		m_nCurrentMenuItem = 0;
+		m_nCurrentSelection = 0;
+		m_nCurrentParameter = 0;
+		m_nCurrentMenuDepth = 1;
+		// Place the "root" menu at the top of the stack
+		m_MenuStackParent[0] = s_MenuRoot;
+		m_MenuStackMenu[0] = s_MainMenu;
+		m_nMenuStackItem[0] = 0;
+		m_nMenuStackSelection[0] = 0;
+		m_nMenuStackParameter[0] = 0;
+#endif
 		EventHandler (MenuEventUpdate);
 		break;
 
@@ -954,12 +987,17 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] 		= pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] 			= pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth] 		= pUIMenu->m_nCurrentMenuItem;
+								 
 		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth] 	= pUIMenu->m_nCurrentSelection;
+								  
 		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth] 	= pUIMenu->m_nCurrentParameter;
+								  
 		pUIMenu->m_nCurrentMenuDepth++;
 
 		pUIMenu->m_pParentMenu 			= pUIMenu->m_pCurrentMenu;
+								
 		pUIMenu->m_nCurrentParameter 	= pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+						   
 		pUIMenu->m_pCurrentMenu 		= pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
 		pUIMenu->m_nCurrentMenuItem 	= pUIMenu->m_nCurrentSelection;
 		pUIMenu->m_nCurrentSelection 	= 0;
@@ -1092,7 +1130,6 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	int nHighestBank = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumHighestBank();
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TTGParameter::TGParameterProgram, nTG);
 
@@ -1107,11 +1144,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			// Switch down a voice bank and set to the last voice
 			nValue = CSysExFileLoader::VoicesPerBank-1;
 			int nVB = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TTGParameter::TGParameterVoiceBank, nTG);
-			if (--nVB < 0)
-			{
-				// Wrap around to last loaded bank
-				nVB = nHighestBank;
-			}
+			nVB = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TTGParameter::TGParameterVoiceBank, nVB, nTG);
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TTGParameter::TGParameterProgram, nValue, nTG);
@@ -1123,11 +1156,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			// Switch up a voice bank and reset to voice 0
 			nValue = 0;
 			int nVB = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TTGParameter::TGParameterVoiceBank, nTG);
-			if (++nVB > (int) nHighestBank)
-			{
-				// Wrap around to first bank
-				nVB = 0;
-			}
+			nVB = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TTGParameter::TGParameterVoiceBank, nVB, nTG);
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TTGParameter::TGParameterProgram, nValue, nTG);
@@ -2145,5 +2174,3 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 				   
 }
-
-
