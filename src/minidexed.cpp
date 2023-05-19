@@ -1979,19 +1979,20 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetAftertouchRange (m_nAftertouchRange[nTG], nTG);
 		m_PerformanceConfig.SetAftertouchTarget (m_nAftertouchTarget[nTG], nTG);
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 		for(size_t fx = 0; fx < MixerOutput::kFXCount; ++fx)
 		{
 			this->m_PerformanceConfig.SetTGSendLevel(nTG, static_cast<MixerOutput>(fx), this->m_nTGSendLevel[nTG][fx]);
 		}
 #endif
 
-#ifdef PLATE_REVERB_ENABLE
+#if defined(PLATE_REVERB_ENABLE)
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
 #endif
 	}
 
 	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[TParameter::ParameterCompressorEnable]);
+#if defined(MIXING_CONSOLE_ENABLE) || defined(PLATE_REVERB_ENABLE) 
 	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[TParameter::ParameterReverbEnable]);
 	m_PerformanceConfig.SetReverbSize (m_nParameter[TParameter::ParameterReverbSize]);
 	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[TParameter::ParameterReverbHighDamp]);
@@ -1999,6 +2000,7 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbLowPass (m_nParameter[TParameter::ParameterReverbLowPass]);
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[TParameter::ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[TParameter::ParameterReverbLevel]);
+#endif
 
 #ifdef MIXING_CONSOLE_ENABLE
 	this->m_PerformanceConfig.SetFXTubeEnable(!!this->m_nParameter[TParameter::ParameterFXTubeEnable]);
