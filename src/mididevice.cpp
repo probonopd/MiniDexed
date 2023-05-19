@@ -305,14 +305,14 @@ void CMIDIDevice::MIDIMessageHandler(const u8 *pMessage, size_t nLength, unsigne
 							break;
 
 						case MIDI_CC_REVERB_LEVEL:
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_PlateReverb, maplong(pMessage[2], 0, 127, 0, 99));
-#else
+#elif defined(PLATE_REVERB_ENABLE)
 							m_pSynthesizer->SetReverbSend(maplong(pMessage[2], 0, 127, 0, 99), nTG);
 #endif
 							break;
 
-#ifdef MIXING_CONSOLE_ENABLE
+#if defined(MIXING_CONSOLE_ENABLE)
 						case MIDI_CC_ORBITONE_LEVEL:
 							this->m_pSynthesizer->setMixingConsoleSendLevel(nTG, MixerOutput::FX_Orbitone, maplong(pMessage[2], 0, 127, 0, 99));
 							break;
