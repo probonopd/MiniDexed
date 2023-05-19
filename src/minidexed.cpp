@@ -52,6 +52,7 @@ CMiniDexed::CMiniDexed (
 	m_nActiveTGsLog2 (0),
 #endif
 							 
+							 
 	m_GetChunkTimer ("GetChunk", 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_bSavePerformance (false),
@@ -2492,7 +2493,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 		}
 		setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
-
 			
 		this->SetParameter(TParameter::ParameterCompressorEnable, this->m_PerformanceConfig.GetCompressorEnable());
 #if defined(MIXING_CONSOLE_ENABLE)
