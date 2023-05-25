@@ -1,6 +1,6 @@
 # MiniDexed ![](https://github.com/probonopd/MiniDexed/actions/workflows/build.yml/badge.svg)
 
-```C++
+```
 
 #include <iostream>
 
