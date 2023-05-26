@@ -23,7 +23,6 @@
 #include "config.h"
 #include "uimenu.h"
 #include "uibuttons.h"
-#include <arm_math_types.h>
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <display/ssd1306device.h>
@@ -36,11 +35,7 @@ class CMiniDexed;
 class CUserInterface
 {
 public:
-	CUserInterface (
-		CMiniDexed *pMiniDexed, 
-		CGPIOManager *pGPIOManager, 
-		CI2CMaster *pI2CMaster, 
-		CConfig *pConfig);
+	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig);
 	~CUserInterface (void);
 
 	bool Initialize (void);
@@ -60,19 +55,9 @@ public:
 	// To be called from the MIDI device on reception of a MIDI CC message
 	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
-#if defined(DEBUG)
-public:
-	void clear();
-	void log(const char* txt, bool clear = true);
-	void log(float32_t v, bool clear = true);
-	void log(unsigned v, bool clear = true);
-	void log(int v, bool clear = true);
-#endif
-
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
-private:
 	void EncoderEventHandler (CKY040::TEvent Event);
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
 	void UIButtonsEventHandler (CUIButton::BtnEvent Event);
