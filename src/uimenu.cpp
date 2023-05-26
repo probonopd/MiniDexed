@@ -34,25 +34,25 @@ using namespace std;
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
-	{"MiniDexed", CUIMenu::MenuHandler, CUIMenu::s_MainMenu},
+	{"MiniDexed", MenuHandler, s_MainMenu},
 	{0}
 };
 
 // inserting menu items before "TG1" affect TGShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
-	{"TG1",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 0},
+	{"TG1",		MenuHandler,	s_TGMenu, 0},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"TG2",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 1},
-	{"TG3",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 2},
-	{"TG4",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 3},
-	{"TG5",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 4},
-	{"TG6",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 5},
-	{"TG7",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 6},
-	{"TG8",			CUIMenu::MenuHandler, CUIMenu::s_TGMenu, 7},
+	{"TG2",		MenuHandler,	s_TGMenu, 1},
+	{"TG3",		MenuHandler,	s_TGMenu, 2},
+	{"TG4",		MenuHandler,	s_TGMenu, 3},
+	{"TG5",		MenuHandler,	s_TGMenu, 4},
+	{"TG6",		MenuHandler,	s_TGMenu, 5},
+	{"TG7",		MenuHandler,	s_TGMenu, 6},
+	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
-	{"Effects",		CUIMenu::MenuHandler, CUIMenu::s_EffectsMenu},
-	{"Performance",	CUIMenu::MenuHandler, CUIMenu::s_PerformanceMenu}, 
+	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
 
@@ -74,26 +74,21 @@ const CUIMenu::TMenuItem CUIMenu::s_TGFXMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 {
-	{"Voice",		CUIMenu::EditProgramNumber},
-	{"Bank",		CUIMenu::EditVoiceBankNumber},
-	{"Volume",		CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterVolume},
+	{"Voice",	EditProgramNumber},
+	{"Bank",	EditVoiceBankNumber},
+	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Pan",			CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterPan},
+	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
 #endif
-#if defined(MIXING_CONSOLE_ENABLE)
-	{"FX-Send", 	CUIMenu::MenuHandler, 		CUIMenu::s_TGFXMenu},
-#elif defined(PLATE_REVERB_ENABLE)
-	{"Reverb-Send",	CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterReverbSend},
-#endif
-	{"Detune",		CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterMasterTune},
-	{"Cutoff",		CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterCutoff},
-	{"Resonance",	CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterResonance},
-	{"Pitch Bend",	CUIMenu::MenuHandler,		CUIMenu::s_EditPitchBendMenu},
-	{"Portamento",	CUIMenu::MenuHandler,		CUIMenu::s_EditPortamentoMenu},
-	{"Poly/Mono",	CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterMonoMode}, 
-	{"Modulation",	CUIMenu::MenuHandler,		CUIMenu::s_ModulationMenu},
-	{"Channel",		CUIMenu::EditTGParameter,	0, CMiniDexed::TTGParameter::TGParameterMIDIChannel},
-	{"Edit Voice",	CUIMenu::MenuHandler,		CUIMenu::s_EditVoiceMenu},
+	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
+	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
+	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
+	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
+	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
+	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
+	{"Modulation",		MenuHandler,		s_ModulationMenu},
+	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
+	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
 };
 
@@ -121,34 +116,34 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_EditPitchBendMenu[] =
 {
-	{"Bend Range",	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterPitchBendRange},
-	{"Bend Step",	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterPitchBendStep},
+	{"Bend Range",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendRange},
+	{"Bend Step",		EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 {
-	{"Mode",		CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterPortamentoMode},
-	{"Glissando",	CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterPortamentoGlissando},
-	{"Time",		CUIMenu::EditTGParameter2, 0, CMiniDexed::TTGParameter::TGParameterPortamentoTime},
+	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
+	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
+	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_ModulationMenu[] =
 {
-	{"Mod. Wheel",		CUIMenu::MenuHandler, CUIMenu::s_ModulationMenuParameters, CMiniDexed::TTGParameter::TGParameterMWRange},
-	{"Foot Control",	CUIMenu::MenuHandler, CUIMenu::s_ModulationMenuParameters, CMiniDexed::TTGParameter::TGParameterFCRange},
-	{"Breath Control",	CUIMenu::MenuHandler, CUIMenu::s_ModulationMenuParameters, CMiniDexed::TTGParameter::TGParameterBCRange},
-	{"Aftertouch",		CUIMenu::MenuHandler, CUIMenu::s_ModulationMenuParameters, CMiniDexed::TTGParameter::TGParameterATRange},
+	{"Mod. Wheel",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
+	{"Foot Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
+	{"Breath Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
+	{"Aftertouch",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_ModulationMenuParameters[] =
 {
-	{"Range",		CUIMenu::EditTGParameterModulation, 0, 0},
-	{"Pitch",		CUIMenu::EditTGParameterModulation, 0, 1},
-	{"Amplitude",	CUIMenu::EditTGParameterModulation, 0, 2},
-	{"EG Bias",		CUIMenu::EditTGParameterModulation, 0, 3},
+	{"Range",		EditTGParameterModulation,	0, 0},
+	{"Pitch",		EditTGParameterModulation,	0, 1},
+	{"Amplitude",	EditTGParameterModulation,	0, 2},
+	{"EG Bias",		EditTGParameterModulation,	0, 3},
 	{0}
 };
 
@@ -557,67 +552,67 @@ const CUIMenu::TMenuItem CUIMenu::s_FXMainOutputLevels[] =
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
-	{"OP1",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 0},
-	{"OP2",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 1},
-	{"OP3",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 2},
-	{"OP4",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 3},
-	{"OP5",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 4},
-	{"OP6",			CUIMenu::MenuHandler,		CUIMenu::s_OperatorMenu, 5},
-	{"Algorithm",	CUIMenu::EditVoiceParameter,	0, 	DEXED_ALGORITHM},
-	{"Feedback",	CUIMenu::EditVoiceParameter,	0, 	DEXED_FEEDBACK},
-	{"P EG Rate 1",	CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_R1},
-	{"P EG Rate 2",	CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_R2},
-	{"P EG Rate 3",	CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_R3},
-	{"P EG Rate 4",	CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_R4},
-	{"P EG Level 1",CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_L1},
-	{"P EG Level 2",CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_L2},
-	{"P EG Level 3",CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_L3},
-	{"P EG Level 4",CUIMenu::EditVoiceParameter,	0, 	DEXED_PITCH_EG_L4},
-	{"Osc Key Sync",CUIMenu::EditVoiceParameter,	0, 	DEXED_OSC_KEY_SYNC},
-	{"LFO Speed",	CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_SPEED},
-	{"LFO Delay",	CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_DELAY},
-	{"LFO PMD",		CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_PITCH_MOD_DEP},
-	{"LFO AMD",		CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_AMP_MOD_DEP},
-	{"LFO Sync",	CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_SYNC},
-	{"LFO Wave",	CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_WAVE},
-	{"P Mod Sens.",	CUIMenu::EditVoiceParameter,	0, 	DEXED_LFO_PITCH_MOD_SENS},
-	{"Transpose",	CUIMenu::EditVoiceParameter,	0, 	DEXED_TRANSPOSE},
-	{"Name",		CUIMenu::InputTxt,				0, 	3}, 
+	{"OP1",		MenuHandler,		s_OperatorMenu, 0},
+	{"OP2",		MenuHandler,		s_OperatorMenu, 1},
+	{"OP3",		MenuHandler,		s_OperatorMenu, 2},
+	{"OP4",		MenuHandler,		s_OperatorMenu, 3},
+	{"OP5",		MenuHandler,		s_OperatorMenu, 4},
+	{"OP6",		MenuHandler,		s_OperatorMenu, 5},
+	{"Algorithm",	EditVoiceParameter,	0,		DEXED_ALGORITHM},
+	{"Feedback",	EditVoiceParameter,	0,		DEXED_FEEDBACK},
+	{"P EG Rate 1",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R1},
+	{"P EG Rate 2",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R2},
+	{"P EG Rate 3",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R3},
+	{"P EG Rate 4",	EditVoiceParameter,	0,		DEXED_PITCH_EG_R4},
+	{"P EG Level 1",EditVoiceParameter,	0,		DEXED_PITCH_EG_L1},
+	{"P EG Level 2",EditVoiceParameter,	0,		DEXED_PITCH_EG_L2},
+	{"P EG Level 3",EditVoiceParameter,	0,		DEXED_PITCH_EG_L3},
+	{"P EG Level 4",EditVoiceParameter,	0,		DEXED_PITCH_EG_L4},
+	{"Osc Key Sync",EditVoiceParameter,	0,		DEXED_OSC_KEY_SYNC},
+	{"LFO Speed",	EditVoiceParameter,	0,		DEXED_LFO_SPEED},
+	{"LFO Delay",	EditVoiceParameter,	0,		DEXED_LFO_DELAY},
+	{"LFO PMD",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_DEP},
+	{"LFO AMD",	EditVoiceParameter,	0,		DEXED_LFO_AMP_MOD_DEP},
+	{"LFO Sync",	EditVoiceParameter,	0,		DEXED_LFO_SYNC},
+	{"LFO Wave",	EditVoiceParameter,	0,		DEXED_LFO_WAVE},
+	{"P Mod Sens.",	EditVoiceParameter,	0,		DEXED_LFO_PITCH_MOD_SENS},
+	{"Transpose",	EditVoiceParameter,	0,		DEXED_TRANSPOSE},
+	{"Name",	InputTxt,0 , 3}, 
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
 {
-	{"Output Level",CUIMenu::EditOPParameter, 0, DEXED_OP_OUTPUT_LEV},
-	{"Freq Coarse",	CUIMenu::EditOPParameter, 0, DEXED_OP_FREQ_COARSE},
-	{"Freq Fine",	CUIMenu::EditOPParameter, 0, DEXED_OP_FREQ_FINE},
-	{"Osc Detune",	CUIMenu::EditOPParameter, 0, DEXED_OP_OSC_DETUNE},
-	{"Osc Mode",	CUIMenu::EditOPParameter, 0, DEXED_OP_OSC_MODE},
-	{"EG Rate 1",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_R1},
-	{"EG Rate 2",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_R2},
-	{"EG Rate 3",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_R3},
-	{"EG Rate 4",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_R4},
-	{"EG Level 1",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_L1},
-	{"EG Level 2",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_L2},
-	{"EG Level 3",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_L3},
-	{"EG Level 4",	CUIMenu::EditOPParameter, 0, DEXED_OP_EG_L4},
-	{"Break Point",	CUIMenu::EditOPParameter, 0, DEXED_OP_LEV_SCL_BRK_PT},
-	{"L Key Depth",	CUIMenu::EditOPParameter, 0, DEXED_OP_SCL_LEFT_DEPTH},
-	{"R Key Depth",	CUIMenu::EditOPParameter, 0, DEXED_OP_SCL_RGHT_DEPTH},
-	{"L Key Scale",	CUIMenu::EditOPParameter, 0, DEXED_OP_SCL_LEFT_CURVE},
-	{"R Key Scale",	CUIMenu::EditOPParameter, 0, DEXED_OP_SCL_RGHT_CURVE},
-	{"Rate Scaling",CUIMenu::EditOPParameter, 0, DEXED_OP_OSC_RATE_SCALE},
-	{"A Mod Sens.",	CUIMenu::EditOPParameter, 0, DEXED_OP_AMP_MOD_SENS},
-	{"K Vel. Sens.",CUIMenu::EditOPParameter, 0, DEXED_OP_KEY_VEL_SENS},
-	{"Enable", 		CUIMenu::EditOPParameter, 0, DEXED_OP_ENABLE},
+	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
+	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
+	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
+	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
+	{"Osc Mode",	EditOPParameter,	0,	DEXED_OP_OSC_MODE},
+	{"EG Rate 1",	EditOPParameter,	0,	DEXED_OP_EG_R1},
+	{"EG Rate 2",	EditOPParameter,	0,	DEXED_OP_EG_R2},
+	{"EG Rate 3",	EditOPParameter,	0,	DEXED_OP_EG_R3},
+	{"EG Rate 4",	EditOPParameter,	0,	DEXED_OP_EG_R4},
+	{"EG Level 1",	EditOPParameter,	0,	DEXED_OP_EG_L1},
+	{"EG Level 2",	EditOPParameter,	0,	DEXED_OP_EG_L2},
+	{"EG Level 3",	EditOPParameter,	0,	DEXED_OP_EG_L3},
+	{"EG Level 4",	EditOPParameter,	0,	DEXED_OP_EG_L4},
+	{"Break Point",	EditOPParameter,	0,	DEXED_OP_LEV_SCL_BRK_PT},
+	{"L Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_DEPTH},
+	{"R Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_DEPTH},
+	{"L Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_CURVE},
+	{"R Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_CURVE},
+	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
+	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
+	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
+	{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
-	{"Overwrite", CUIMenu::SavePerformance, 0, 0}, 
-	{"New", CUIMenu::InputTxt, 0, 1}, 
-	{"Save as default",	CUIMenu::SavePerformance, 0, 1}, 
+	{"Overwrite",	SavePerformance, 0, 0}, 
+	{"New",	InputTxt,0 , 1}, 
+	{"Save as default",	SavePerformance, 0, 1}, 
 	{0}
 };
 
@@ -887,9 +882,9 @@ static const unsigned NoteC3 = 27;
 
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
-	{"Load",	CUIMenu::PerformanceMenu, 0, 0}, 
-	{"Save",	CUIMenu::MenuHandler, s_SaveMenu},
-	{"Delete",	CUIMenu::PerformanceMenu, 0, 1}, 
+	{"Load",	PerformanceMenu, 0, 0}, 
+	{"Save",	MenuHandler,	s_SaveMenu},
+	{"Delete",	PerformanceMenu, 0, 1}, 
 	{0}
 };
 
