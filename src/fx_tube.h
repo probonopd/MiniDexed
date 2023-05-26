@@ -15,6 +15,7 @@
 // fx_tube.h
 //
 // Stereo Tube overdrive audio effects proposed in the context of the MiniDexed project
+// Author: Vincent Gauché
 //
 #pragma once
 

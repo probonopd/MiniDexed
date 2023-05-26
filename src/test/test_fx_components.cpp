@@ -12,6 +12,8 @@
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
+void testFastLFOPrecision(std::string file, float32_t freq, float32_t init_phase);
+
 TEST(FXComponent, LFO)
 {
     const testing::TestInfo* test_info = testing::UnitTest::GetInstance()->current_test_info();
@@ -141,10 +143,10 @@ void testFastLFOPrecision(std::string file, float32_t freq, float32_t init_phase
     lfo1.setFrequency(freq);
     lfo2.setFrequency(freq);
 
-    std::string file0 = std::string("data/") + file + ".ComplexLFO." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
-    std::string file1 = std::string("data/") + file + ".FastLFO." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
-    std::string file2 = std::string("data/") + file + ".FastLFO2." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
-    std::string file3 = std::string(file + ".") + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data.m";
+    std::string file0 = string("data/") + file + ".ComplexLFO." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
+    std::string file1 = string("data/") + file + ".FastLFO." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
+    std::string file2 = string("data/") + file + ".FastLFO2." + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data";
+    std::string file3 = string(file + ".") + std::to_string(freq) + "Hz-" + std::to_string(init_phase_deg) + ".data.m";
 
     std::ofstream _lfo0(getResultFile(file0, true));
     std::ofstream _lfo1(getResultFile(file1, true));
@@ -180,7 +182,7 @@ void testFastLFOPrecision(std::string file, float32_t freq, float32_t init_phase
     _m << "fast_lfo  = load(\"-ascii\", \"" << file1 << "\");" << std::endl;
     _m << "fast_lfo2 = load(\"-ascii\", \"" << file2 << "\");" << std::endl;
     _m << "plot(time, cplx_lfo, '-b', 'LineWidth', 6, time, fast_lfo, '-r', 'LineWidth', 4, time, fast_lfo2, '-o', 'LineWidth', 4);" << std::endl;
-    _m << "title('LFO tuning @ " << freq << "Hz / " << init_phase_deg << "�');" << std::endl;
+    _m << "title('LFO tuning @ " << freq << "Hz / " << init_phase_deg << "°');" << std::endl;
     _m << "legend('ComplexLFO', 'FastLFO');" << std::endl;
     _m.close();
 

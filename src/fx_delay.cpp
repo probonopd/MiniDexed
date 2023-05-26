@@ -2,8 +2,9 @@
 
 #include <cmath>
 
-#define MAX_DELAY_TIME 2.0f
-#define MAX_FLUTTER_DELAY_TIME 0.001f
+#define MAX_DELAY_TIME 1.0f
+#define MAX_FLUTTER_DELAY_TIME 0.2f
+#define MAX_FLUTTER_DELAY_AMOUNT 0.01f
 
 #define LPF_CUTOFF_REF 12000.0f
 #define HPF_CUTOFF_REF 80.0f
@@ -51,11 +52,10 @@ void Delay::LowHighPassFilter::processSample(float32_t inL, float32_t inR, float
 
 Delay::Delay(const float32_t sampling_rate, float32_t default_delay_time, float32_t default_flutter_level, float32_t default_feedback_level) :
     FXElement(sampling_rate, 2.2587f),
-    MaxSampleDelayTime((MAX_DELAY_TIME + MAX_FLUTTER_DELAY_TIME) * sampling_rate * MAX_DELAY_TIME),
-    read_pos_L_(0),
-    read_pos_R_(0),
-    filter_(sampling_rate),
-    jitter_generator_(sampling_rate)
+    MaxSampleDelayTime((MAX_DELAY_TIME + MAX_FLUTTER_DELAY_TIME) * sampling_rate),
+    write_pos_L_(0),
+    write_pos_R_(0),
+    filter_(sampling_rate)
 {
     this->buffer_L_ = new float32_t[this->MaxSampleDelayTime];
     this->buffer_R_ = new float32_t[this->MaxSampleDelayTime];
@@ -63,8 +63,6 @@ Delay::Delay(const float32_t sampling_rate, float32_t default_delay_time, float3
     this->setLeftDelayTime(default_delay_time);
     this->setRightDelayTime(default_delay_time);
     this->setFeedback(default_feedback_level);
-    this->setFlutterRate(0.2f);
-    this->setFlutterAmount(0.0f);
 
     this->reset();
 }
@@ -79,59 +77,49 @@ void Delay::reset()
 {
     memset(this->buffer_L_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
     memset(this->buffer_R_, 0, this->MaxSampleDelayTime * sizeof(float32_t));
-    this->read_pos_L_ = 0;
-    this->read_pos_R_ = 0;
+    this->write_pos_L_ = 0;
+    this->write_pos_R_ = 0;
     this->filter_.reset();
-    this->jitter_generator_.reset();
 }
 
 void Delay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    static const float32_t max_delay_time = MAX_DELAY_TIME * this->getSamplingRate();
-    float32_t jitter_delay_time = 0.0f;
-    if(this->jitter_amount_ != 0.0f)
-    {
-        float32_t jitter_ratio = this->jitter_generator_.process();
-        if(jitter_ratio != 0.0f)
-        {
-            jitter_ratio *= this->jitter_amount_;
-            jitter_delay_time = MAX_FLUTTER_DELAY_TIME * jitter_ratio * this->getSamplingRate();
-        }
-    }
-
-    // this->filter_.setCutoffChangeRatio(jitter_ratio);
-    float32_t delay_time_L = jitter_delay_time + max_delay_time * this->getLeftDelayTime();
-    float32_t delay_time_R = jitter_delay_time + max_delay_time * this->getRightDelayTime();
-
-    // Calculate write positions
-    unsigned write_pos_L = static_cast<unsigned>(this->MaxSampleDelayTime + this->read_pos_L_ + delay_time_L) % this->MaxSampleDelayTime;
-    unsigned write_pos_R = static_cast<unsigned>(this->MaxSampleDelayTime + this->read_pos_R_ + delay_time_R) % this->MaxSampleDelayTime;
-
     // Write input to delay buffers
-    this->buffer_L_[write_pos_L] = inL;
-    this->buffer_R_[write_pos_R] = inR;
+    this->buffer_L_[this->write_pos_L_] *= this->getFeedback();;
+    this->buffer_L_[this->write_pos_L_] += inL;
+    this->buffer_R_[this->write_pos_R_] *= this->getFeedback();;
+    this->buffer_R_[this->write_pos_R_] += inR;
+
+    // Calculate read positions
+    float32_t delay_time_L = std::abs(MAX_DELAY_TIME * this->getLeftDelayTime() ) * this->getSamplingRate();
+    float32_t delay_time_R = std::abs(MAX_DELAY_TIME * this->getRightDelayTime()) * this->getSamplingRate();
+    float32_t signL = this->getLeftDelayTime()  >= 0 ? 1.0f : -1.0f;
+    float32_t signR = this->getRightDelayTime() >= 0 ? 1.0f : -1.0f;
+    unsigned read_pos_L = static_cast<unsigned>(this->MaxSampleDelayTime + signL * this->write_pos_L_ - delay_time_L) % this->MaxSampleDelayTime;
+    unsigned read_pos_R = static_cast<unsigned>(this->MaxSampleDelayTime + signR * this->write_pos_R_ - delay_time_R) % this->MaxSampleDelayTime;
+
 
     // Read from delay buffers and apply feedback
     this->filter_.processSample(
-        this->buffer_L_[this->read_pos_L_],
-        this->buffer_R_[this->read_pos_R_],
+        this->buffer_L_[read_pos_L],
+        this->buffer_R_[read_pos_R],
         outL,
         outR
     );
 
-    this->buffer_L_[write_pos_L] += outL * this->getFeedback();
-    this->buffer_R_[write_pos_R] += outR * this->getFeedback();
+    this->buffer_L_[this->write_pos_L_] += outL * this->getFeedback();
+    this->buffer_R_[this->write_pos_R_] += outR * this->getFeedback();
 
     // Increment read positions
-    ++this->read_pos_L_;
-    if(this->read_pos_L_ >= this->MaxSampleDelayTime)
+    ++ this->write_pos_L_;
+    if(this->write_pos_L_ >= this->MaxSampleDelayTime)
     {
-        this->read_pos_L_ -= this->MaxSampleDelayTime;
+        this->write_pos_L_ -= this->MaxSampleDelayTime;
     }
-    ++this->read_pos_R_;
-    if(this->read_pos_R_ >= this->MaxSampleDelayTime)
+    ++ this->write_pos_R_;
+    if(this->write_pos_R_ >= this->MaxSampleDelayTime)
     {
-        this->read_pos_R_ -= this->MaxSampleDelayTime;
+        this->write_pos_R_ -= this->MaxSampleDelayTime;
     }
 
     outL *= this->OutputLevelCorrector;
@@ -140,7 +128,7 @@ void Delay::processSample(float32_t inL, float32_t inR, float32_t& outL, float32
 
 void Delay::setLeftDelayTime(float32_t delay_time)
 {
-    this->delay_time_L_ = constrain(delay_time, 0.0f, 1.0f);
+    this->delay_time_L_ = constrain(delay_time, -1.0f, 1.0f);
 }
 
 float32_t Delay::getLeftDelayTime() const
@@ -150,7 +138,7 @@ float32_t Delay::getLeftDelayTime() const
 
 void Delay::setRightDelayTime(float32_t delay_time)
 {
-    this->delay_time_R_ = constrain(delay_time, 0.0f, 1.0f);
+    this->delay_time_R_ = constrain(delay_time, -1.0f, 1.0f);
 }
 
 float32_t Delay::getRightDelayTime() const
@@ -166,24 +154,4 @@ void Delay::setFeedback(float32_t feedback)
 float32_t Delay::getFeedback() const
 {
     return this->feedback_;
-}
-
-void Delay::setFlutterRate(float32_t rate)
-{
-    this->jitter_generator_.setRate(rate);
-}
-
-float32_t Delay::getFlutterRate() const
-{
-    return this->jitter_generator_.getRate();
-}
-
-void Delay::setFlutterAmount(float32_t amount)
-{
-    this->jitter_amount_ = constrain(amount, 0.0f, 1.0f);
-}
-
-float32_t Delay::getFlutterAmount() const
-{
-    return this->jitter_amount_;
 }

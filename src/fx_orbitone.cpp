@@ -69,14 +69,13 @@ void Orbitone::processSample(float32_t inL, float32_t inR, float32_t& outL, floa
     float32_t wet = 0.0f;
 
     c.directWrite(inL, line_l);
-    c.directWrite(inR, line_r);
-
     c.interpolate(line_l, mod_1 + 1024, 0.33f);
     c.interpolate(line_l, mod_2 + 1024, 0.33f);
     c.interpolate(line_r, mod_3 + 1024, 0.33f);
     c.writeAndLoad(wet, 0.0f);
     outL = wet * this->OutputLevelCorrector;
     
+    c.directWrite(inR, line_r);
     c.interpolate(line_r, mod_1 + 1024, 0.33f);
     c.interpolate(line_r, mod_2 + 1024, 0.33f);
     c.interpolate(line_l, mod_3 + 1024, 0.33f);

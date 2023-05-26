@@ -45,10 +45,8 @@ sdcard
 # Editor related files
 *.swp
 *.swo
-.vscode/
 
-# temporary tests
-src/test/*.bin
-src/test/bin
-src/test/results
-src/test/objects
+.vscode/
+src/test/bin/
+src/test/objects/
+src/test/results/

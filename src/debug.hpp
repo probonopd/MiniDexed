@@ -76,7 +76,7 @@ public:
 #define INSPECTABLE(clazz) clazz : public ValueInpectorDebugger
 #define IMPLEMENT_DUMP(code) \
 public:\
-    virtual void dump(std::ostream& out, bool deepInspection = true, const std::string& tag = "") const override\
+    __attribute__((noinline)) virtual void dump(std::ostream& out, bool deepInspection = true, const std::string& tag = "") const override\
     {\
         code\
     }
@@ -88,7 +88,7 @@ public:\
 
 #define IMPLEMENT_INSPECT(code) \
 public:\
-    virtual size_t inspect(ValueInpector inspector, bool deepInspection = true, const std::string& tag = "") const override\
+    __attribute__((noinline)) virtual size_t inspect(ValueInpector inspector, bool deepInspection = true, const std::string& tag = "") const override\
     {\
         code\
     }
@@ -102,7 +102,7 @@ public:\
 
 #define INSPECTABLE(clazz) clazz
 #define IMPLEMENT_DUMP(code)
-#define IMPLEMENT_INSPECT(code) 
+#define IMPLEMENT_INSPECT(code)
 
 #define DUMP(clazz, out)
 #define DUMP2(clazz, out, tag)

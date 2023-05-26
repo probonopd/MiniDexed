@@ -15,6 +15,7 @@
 // fx_unit.h
 //
 // Unit of FX that handle enable and wet parameters
+// Author: Vincent Gauché
 //
 #pragma once
 

@@ -72,8 +72,8 @@ void Phaser::reset()
 
 void Phaser::processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR)
 {
-    float32_t dL = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_[StereoChannels::Left ]->process()) / 2.0f);
-    float32_t dR = this->dmin_ + (this->dmax_ - this->dmin_) * ((1.0f + this->lfo_[StereoChannels::Right]->process()) / 2.0f);
+    float32_t dL = this->dmin_ + (this->dmax_ - this->dmin_) * this->lfo_[StereoChannels::Left ]->process();
+    float32_t dR = this->dmin_ + (this->dmax_ - this->dmin_) * this->lfo_[StereoChannels::Right]->process();
 
     float32_t sampleL = inL + this->feedback_ * this->z_[StereoChannels::Left ];
     float32_t sampleR = inR + this->feedback_ * this->z_[StereoChannels::Right];

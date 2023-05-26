@@ -15,6 +15,7 @@
 // fx_flanger.h
 //
 // Stereo Flanger audio effects proposed in the context of the MiniDexed project
+// Author: Vincent Gauché
 //
 #pragma once
 

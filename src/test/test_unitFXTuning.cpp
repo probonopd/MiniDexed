@@ -1,5 +1,6 @@
 #include "test_fx_helper.h"
 
+#include "../fx_dry.h"
 #include "../fx_tube.h"
 #include "../fx_chorus.h"
 #include "../fx_flanger.h"
@@ -7,7 +8,20 @@
 #include "../fx_phaser.h"
 #include "../fx_delay.h"
 #include "../effect_platervbstereo.h"
+#include "../fx_diffuser.h"
+#include "../fx_pitch_shifter.h"
 #include "../fx_reverberator.h"
+#include "../fx_shimmer_reverb.h"
+
+TEST(UnitFXTuning, Dry)
+{
+    Dry fx(SAMPLING_FREQUENCY);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
 
 TEST(UnitFXTuning, Tube)
 {
@@ -77,8 +91,6 @@ TEST(UnitFXTuning, Delay)
     fx.setLeftDelayTime(0.25f);
     fx.setLeftDelayTime(0.40f);
     fx.setFeedback(0.55f);
-    fx.setFlutterRate(0.01f);
-    fx.setFlutterAmount(0.05f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
@@ -103,6 +115,28 @@ TEST(UnitFXTuning, PlateReverb)
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
 
+TEST(UnitFXTuning, Diffuser)
+{
+    Diffuser fx(SAMPLING_FREQUENCY);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
+TEST(UnitFXTuning, PitchShifter)
+{
+    PitchShifter fx(SAMPLING_FREQUENCY);
+    fx.setSize(0.5f);
+    fx.setTranspose(12.0f);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+
 TEST(UnitFXTuning, Reverberator)
 {
     Reverberator fx(SAMPLING_FREQUENCY);
@@ -116,3 +150,20 @@ TEST(UnitFXTuning, Reverberator)
     SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
     CLEANUP_AUDIO_TEST(inSamples, outSamples);
 }
+
+TEST(UnitFXTuning, ShimmerReverb)
+{
+    const float32_t amount = 0.6f;
+
+    ShimmerReverb fx(SAMPLING_FREQUENCY);
+    fx.setInputGain(0.2f);
+    fx.setReverbAmount(amount);
+    fx.setDiffusion(0.7f);
+    fx.setFeedback(0.8f);
+
+    PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
+    SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);
+    SAVE_AUDIO_RESULTS(full_test_name, outSamples, size);
+    CLEANUP_AUDIO_TEST(inSamples, outSamples);
+}
+

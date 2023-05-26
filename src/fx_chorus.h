@@ -16,6 +16,7 @@
 //
 // Stereo Chorus audio effects proposed in the context of the MiniDexed project
 // This implemelntation is based on the Chorus FX from the Rings Eurorack module from Mutable Instruments
+// Ported by: Vincent Gauché
 //
 #pragma once
 

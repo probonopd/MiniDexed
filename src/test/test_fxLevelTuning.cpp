@@ -177,8 +177,6 @@ TEST(LevelTuning, Delay)
     fx.setLeftDelayTime(0.15f);
     fx.setLeftDelayTime(0.2f);
     fx.setFeedback(0.35f);
-    fx.setFlutterRate(0.0f);
-    fx.setFlutterAmount(0.0f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     float32_t sumIn = 0.0f;

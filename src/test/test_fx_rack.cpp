@@ -7,13 +7,15 @@ using namespace std;
 #define MAX_SVF_SAMPLES 10000000
 #define MAX_NB_ERRORS 100
 
+void setupRack(FXRack* rack, int scenario);
+
 void setupRack(FXRack* rack, int scenario)
 {
     rack->setWetLevel(1.0f);
 
     rack->getTube()->setEnable(Active(scenario, FXSwitch::FX__Tube));
     rack->getTube()->setWetLevel(0.25f);
-    rack->getTube()->setOverdrive(0.25f);
+    rack->getTube()->setOverdrive(0.5f);
 
     rack->getChorus()->setEnable(Active(scenario, FXSwitch::FX__Chorus));
     rack->getChorus()->setWetLevel(0.5f);
@@ -43,8 +45,6 @@ void setupRack(FXRack* rack, int scenario)
     rack->getDelay()->setLeftDelayTime(0.05f);
     rack->getDelay()->setLeftDelayTime(0.07f);
     rack->getDelay()->setFeedback(0.35f);
-    rack->getDelay()->setFlutterRate(0.0f);
-    rack->getDelay()->setFlutterAmount(0.0f);
 
     rack->getReverberator()->setEnable(Active(scenario, FXSwitch::FX__Reverberator));
     rack->getReverberator()->setWetLevel(0.5f);

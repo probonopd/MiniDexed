@@ -30,8 +30,12 @@ OBJS += fx_flanger.o
 OBJS += fx_orbitone.o
 OBJS += fx_phaser.o
 OBJS += fx_delay.o
+OBJS += fx_shimmer_helper.o
+OBJS += fx_diffuser.o
+OBJS += fx_pitch_shifter.o
 OBJS += fx_reverberator.o
-OBJS += fx_rack.o
+OBJS += fx_shimmer_reverb.o
+OBJS += fx_dry.o
 OBJS += uibuttons.o
 OBJS += midipin.o
 

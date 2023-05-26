@@ -16,6 +16,7 @@
 // fx_svf.h
 //
 // State Variable Filter used in Tape Delay
+// Author: Vincent Gauché
 //
 #pragma once
 

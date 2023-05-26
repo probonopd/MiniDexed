@@ -6,8 +6,23 @@ EXE := $(BINDIR)/all_tests.bin
 BETA := $(BINDIR)/beta.bin
 
 CXX		 =	g++
-CXXFLAGS = 	-g -Wall -std=c++20 -MMD -MP
-DEFINES  = 	-DCPU=x86 -DDEBUG -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
+CXXFLAGS = 	-g -std=c++20 -MMD -MP -Wall -Wextra -Wformat-nonliteral -Wcast-align -Wpointer-arith -Wmissing-declarations -Winline -Wundef -Wno-unused-parameter
+DEFINES  = 	-DCPU=x86 -DOUTPUT_FOLDER="\"$(OUTPUT_FOLDER)\""
+
+ifeq ($(shell echo $(MODE) | tr '[:upper:]' '[:lower:]'), release)
+
+# RELEASE
+CXXFLAGS += 	-O3
+DEFINES  += 	-DNDEBUG
+
+else 
+
+# DEBUG
+CXXFLAGS += 	-g3
+DEFINES  += 	-DDEBUG
+
+endif
+
 INCLUDES = 	-I../../CMSIS_5/CMSIS/DSP/Include/ \
 			-I../../CMSIS_5/CMSIS/Core/Include/ \
 			-I../../Synth_Dexed/src/
@@ -34,7 +49,12 @@ FX__SRCS += ../fx_orbitone.cpp
 FX__SRCS += ../fx_flanger.cpp
 FX__SRCS += ../fx_delay.cpp
 FX__SRCS += ../effect_platervbstereo.cpp
+FX__SRCS += ../fx_shimmer_helper.cpp
+FX__SRCS += ../fx_diffuser.cpp
+FX__SRCS += ../fx_pitch_shifter.cpp
 FX__SRCS += ../fx_reverberator.cpp
+FX__SRCS += ../fx_shimmer_reverb.cpp
+FX__SRCS += ../fx_dry.cpp
 FX__SRCS += ../fx_rack.cpp
 
 TST_SRCS := $(filter-out waveplay.cpp $(wildcard beta*.cpp), $(wildcard *.cpp))

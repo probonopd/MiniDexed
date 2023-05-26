@@ -15,6 +15,7 @@
 // extra_features.h
 //
 // Header file that centralizes MACROS to enable / disable extra features
+// Author: Vincent Gauché
 //
 #pragma once
 
@@ -23,7 +24,13 @@
   void operator=(const TypeName&) = delete
 
 #if defined(ARM_ALLOW_MULTI_CORE)
-#define FXRACK_ENABLE //Add support for the FXRack
+
+    #if RASPPI < 3
+        #define PLATE_REVERB_ENABLE   // Add support for the PlateReverb
+    #else
+        #define MIXING_CONSOLE_ENABLE // Add support for the MixingConsole
+    #endif
+
 #endif
 
 #ifdef DEBUG
@@ -33,6 +40,8 @@
 #include <chrono>
 #include <unordered_map>
 #include <string>
+
+using namespace std;
 
 inline long long int getElapseTime(std::string marker = "")
 {
