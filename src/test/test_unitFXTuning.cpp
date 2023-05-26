@@ -91,8 +91,6 @@ TEST(UnitFXTuning, Delay)
     fx.setLeftDelayTime(0.25f);
     fx.setLeftDelayTime(0.40f);
     fx.setFeedback(0.55f);
-    fx.setFlutterRate(0.01f);
-    fx.setFlutterAmount(0.05f);
 
     PREPARE_AUDIO_TEST(size, inSamples, outSamples, full_test_name);
     SIMPLE_AUDIO_LOOP(inSamples, outSamples, size, inL, inR, outL, outR, fx);

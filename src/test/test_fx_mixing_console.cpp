@@ -56,8 +56,6 @@ void setupMixingConsoleFX(Mixer* mixer)
     mixer->getDelay()->setLeftDelayTime(0.15f);
     mixer->getDelay()->setLeftDelayTime(0.20f);
     mixer->getDelay()->setFeedback(0.7f);
-    mixer->getDelay()->setFlutterRate(0.35f);
-    mixer->getDelay()->setFlutterAmount(0.75f);
 
     mixer->getPlateReverb()->setMute(false);
     mixer->getPlateReverb()->set_bypass(false);
