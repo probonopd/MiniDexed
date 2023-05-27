@@ -20,7 +20,6 @@
 #ifndef _minidexed_h
 #define _minidexed_h
 
-#include "extra_features.h"
 #include "dexedadapter.h"
 #include "config.h"
 #include "userinterface.h"
@@ -44,10 +43,6 @@
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
-
-#ifdef ARM_ALLOW_MULTI_CORE
-#include "fx_rack.h"
-#endif
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -142,62 +137,6 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
-
-		// BEGIN FXRack global parameters definition
-		#ifdef FXRACK_ENABLE
-		// FXChain parameters
-		ParameterFXChainEnable,
-		ParameterFXChainWet,
-
-		// FXChain > Tube parameters
-		ParameterFXChainTubeEnable,
-		ParameterFXChainTubeWet,
-		ParameterFXChainTubeOverdrive,
-
-		// FXChain > Chorus parameters
-		ParameterFXChainChorusEnable,
-		ParameterFXChainChorusWet,
-		ParameterFXChainChorusRate,
-		ParameterFXChainChorusDepth,
-		
-		// FXChain > Flanger parameters
-		ParameterFXChainFlangerEnable,
-		ParameterFXChainFlangerWet,
-		ParameterFXChainFlangerRate,
-		ParameterFXChainFlangerDepth,
-		ParameterFXChainFlangerFeedback,
-
-		// FXChain > Orbitone parameters
-		ParameterFXChainOrbitoneEnable,
-		ParameterFXChainOrbitoneWet,
-		ParameterFXChainOrbitoneRate,
-		ParameterFXChainOrbitoneDepth,
-
-		// FXChain > Phaser parameters
-		ParameterFXChainPhaserEnable,
-		ParameterFXChainPhaserWet,
-		ParameterFXChainPhaserRate,
-		ParameterFXChainPhaserDepth,
-		ParameterFXChainPhaserFeedback,
-		ParameterFXChainPhaserNbStages,
-
-		// FXChain > Delay parameters
-		ParameterFXChainDelayEnable,
-		ParameterFXChainDelayWet,
-		ParameterFXChainDelayLeftDelayTime,
-		ParameterFXChainDelayRightDelayTime,
-		ParameterFXChainDelayFeedback,
-
-		// FXChain > ShimmerReverb parameters
-		ParameterFXChainShimmerReverbEnable,
-		ParameterFXChainShimmerReverbWet,
-		ParameterFXChainShimmerReverbInputGain,
-		ParameterFXChainShimmerReverbTime,
-		ParameterFXChainShimmerReverbDiffusion,
-		ParameterFXChainShimmerReverbLP,
-		#endif
-		// END FXRack global parameters definition
-
 		ParameterUnknown
 	};
 
@@ -356,11 +295,7 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
-	CSpinLock m_FXSpinLock;
-
-#ifdef FXRACK_ENABLE
-	FXRack* fx_rack;
-#endif
+	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;

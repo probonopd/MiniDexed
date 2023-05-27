@@ -44,7 +44,9 @@
 #ifndef _EFFECT_PLATERVBSTEREO_H
 #define _EFFECT_PLATERVBSTEREO_H
 
-#include "fx_components.h"
+#include <stdint.h>
+#include <arm_math.h>
+#include "common.h"
 
 /***
  * Loop delay modulation: comment/uncomment to switch sin/cos 
@@ -54,18 +56,11 @@
 //#define TAP1_MODULATED
 #define TAP2_MODULATED
 
-class AudioEffectPlateReverb : public FXElement
+class AudioEffectPlateReverb
 {
-    DISALLOW_COPY_AND_ASSIGN(AudioEffectPlateReverb);
-
 public:
     AudioEffectPlateReverb(float32_t samplerate);
-    virtual ~AudioEffectPlateReverb();
-
-    virtual void reset() override;
-    virtual void processSample(float32_t inL, float32_t inR, float32_t& outL, float32_t& outR) override;
-
-    void doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR, uint16_t len);
+    void doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR,uint16_t len);
 
     void size(float n)
     {
@@ -196,9 +191,6 @@ private:
 
     uint32_t lfo2_phase_acc;    // LFO 2
     uint32_t lfo2_adder;
-
-    IMPLEMENT_DUMP()
-    IMPLEMENT_INSPECT(return 0u;)
 };
 
 #endif // _EFFECT_PLATEREV_H

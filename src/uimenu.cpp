@@ -83,23 +83,20 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
-#ifdef FXRACK_ENABLE
-	{"FXChain", MenuHandler,		s_FXChainMenu},
-#endif
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EditPitchBendMenu[] =
 {
 	{"Bend Range",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendRange},
-	{"Bend Step",	EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
+	{"Bend Step",		EditTGParameter2,	0,	CMiniDexed::TGParameterPitchBendStep},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 {
 	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
-	{"Glissando",	EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
+	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
 	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
 	{0}
 };
@@ -109,7 +106,7 @@ const CUIMenu::TMenuItem CUIMenu::s_ModulationMenu[] =
 	{"Mod. Wheel",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterMWRange},
 	{"Foot Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterFCRange},
 	{"Breath Control",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterBCRange},
-	{"Aftertouch",		MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
+	{"Aftertouch",	MenuHandler,	s_ModulationMenuParameters,	CMiniDexed::TGParameterATRange},
 	{0}
 };
 
@@ -126,101 +123,13 @@ const CUIMenu::TMenuItem CUIMenu::s_ModulationMenuParameters[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 {
-	{"Enable",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
-	{"Size",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
+	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
 	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
 	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
-	{"Level",		EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
-	{0}
-};
-
-#endif
-
-#ifdef FXRACK_ENABLE
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainMenu[] = 
-{
-	// FXChain
-	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainEnable},
-	{"Wet Lvl",	EditGlobalParameter,	0,	CMiniDexed::ParameterFXChainWet},
-
-	{"Tube", 	MenuHandler, s_FXChainTube},
-	{"Chorus", 	MenuHandler, s_FXChainChorus},
-	{"FlangR", 	MenuHandler, s_FXChainFlanger},
-	{"Orb", 	MenuHandler, s_FXChainOrbitone},
-	{"PhasR", 	MenuHandler, s_FXChainPhaser},
-	{"Delay", 	MenuHandler, s_FXChainDelay},
-	{"Shimmer", MenuHandler, s_FXChainShimmerReverb},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainTube[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainTubeEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeWet},
-	{"Overdrv",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainTubeOverdrive},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainChorus[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainChorusEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusRate},
-	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainChorusDepth},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainFlanger[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainFlangerEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerRate},
-	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerDepth},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainFlangerFeedback},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainOrbitone[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainOrbitoneEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneWet},
-	{"Rate", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneRate},
-	{"Depth", 	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainOrbitoneDepth},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainPhaser[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainPhaserEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserWet},
-	{"Rate",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserRate},
-	{"Depth",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserDepth},
-	{"Feedbck",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserFeedback},
-	{"Stages",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainPhaserNbStages},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainDelay[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainDelayEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayWet},
-	{"L Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayLeftDelayTime},
-	{"R Delay",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayRightDelayTime},
-	{"Feedbck", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainDelayFeedback},
-	{0}
-};
-
-const CUIMenu::TMenuItem CUIMenu::s_FXChainShimmerReverb[] =
-{
-	{"Enable", 	EditGlobalParameter, 	0, CMiniDexed::ParameterFXChainShimmerReverbEnable},
-	{"Wet Lvl", EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbWet},
-	{"Gain",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbInputGain},
-	{"Time",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbTime},
-	{"Diffus",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbDiffusion},
-	{"LowPass",	EditGlobalParameter,	0, CMiniDexed::ParameterFXChainShimmerReverbLP},
+	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
 	{0}
 };
 
@@ -296,72 +205,14 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 // must match CMiniDexed::TParameter
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	1,	1,	ToOnOff},	// ParameterCompessorEnable
-	{0,	1,	1,	ToOnOff},	// ParameterReverbEnable
+	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
 	{0,	99,	1},				// ParameterReverbLowDamp
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1}				// ParameterReverbLevel
-
-	// BEGIN FXRack global parameters mapping definition
-	#ifdef FXRACK_ENABLE
-	,
-	// FXChain parameters
-	{0,	1,	1, ToOnOff},	// ParameterFXChainEnable
-	{0,	99,	1},				// ParameterFXChainWet
-
-	// FXChain > Tube parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainTubeEnable
-	{0,	99,	1},				// ParameterFXChainTubeWet
-	{0,	99,	1},				// ParameterFXChainTubeOverdrive
-
-	// FXChain > Chorus parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainChorusEnable
-	{0,	99,	1},				// ParameterFXChainChorusWet
-	{0,	99,	1},				// ParameterFXChainChorusRate
-	{0,	99,	1},				// ParameterFXChainChorusDepth
-
-	// FXChain > Flanger parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainFlangerEnable
-	{0,	99,	1},				// ParameterFXChainFlangerWet
-	{0,	99,	1},				// ParameterFXChainFlangerRate
-	{0,	99,	1},				// ParameterFXChainFlangerDepth
-	{0,	99,	1},				// ParameterFXChainFlangerFeedback
-
-	// FXChain > Orbitone parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainOrbitoneEnable
-	{0,	99,	1},				// ParameterFXChainOrbitoneWet
-	{0,	99,	1},				// ParameterFXChainOrbitoneRate
-	{0,	99,	1},				// ParameterFXChainOrbitoneDepth
-
-	// FXChain > Phaser parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainPhaserEnable
-	{0,	99,	1},				// ParameterFXChainPhaserWet
-	{0,	99,	1},				// ParameterFXChainPhaserRate
-	{0,	99,	1},				// ParameterFXChainPhaserDepth
-	{0,	99,	1},				// ParameterFXChainPhaserFeedback
-	{2,	MAX_NB_PHASES,	1},	// ParameterFXChainPhaserNbStages
-
-	// FXChain > Delay parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainDelayEnable
-	{0,	99,	1},				// ParameterFXChainDelayWet
-	{0,	99,	1},				// ParameterFXChainDelayLeftDelayTime
-	{0,	99,	1},				// ParameterFXChainDelayRightDelayTime
-	{0,	99,	1},				// ParameterFXChainDelayFeedback
-
-	// FXChain > ShimmerReverb parameters
-	{0,	1,	1,	ToOnOff},	// ParameterFXChainShimmerReverbEnable
-	{0,	99,	1},				// ParameterFXChainShimmerReverbWet
-	{0,	99,	1},				// ParameterFXChainShimmerReverbInputGain
-	{0,	99,	1},				// ParameterFXChainShimmerReverbTime
-	{0,	99,	1},				// ParameterFXChainShimmerReverbDiffusion
-	{0,	99,	1},				// ParameterFXChainShimmerReverbLP
-
-	#endif
-	// END FXRack global parameters mapping definition
-
 };
 
 // must match CMiniDexed::TTGParameter
@@ -487,6 +338,23 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 	m_nCurrentParameter (0),
 	m_nCurrentMenuDepth (0)
 {
+#ifndef ARM_ALLOW_MULTI_CORE
+	// If there is just one core, then there is only a single
+	// tone generator so start on the TG1 menu...
+	m_pParentMenu = s_MainMenu;
+	m_pCurrentMenu = s_TGMenu;
+	m_nCurrentMenuItem = 0;
+	m_nCurrentSelection = 0;
+	m_nCurrentParameter = 0;
+	m_nCurrentMenuDepth = 1;
+
+	// Place the "root" menu at the top of the stack
+	m_MenuStackParent[0] = s_MenuRoot;
+	m_MenuStackMenu[0] = s_MainMenu;
+	m_nMenuStackItem[0]	= 0;
+	m_nMenuStackSelection[0] = 0;
+	m_nMenuStackParameter[0] = 0;
+#endif
 }
 
 void CUIMenu::EventHandler (TMenuEvent Event)
@@ -509,13 +377,28 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		break;
 
 	case MenuEventHome:
+#ifdef ARM_ALLOW_MULTI_CORE
 		m_pParentMenu = s_MenuRoot;
 		m_pCurrentMenu = s_MainMenu;
 		m_nCurrentMenuItem = 0;
 		m_nCurrentSelection = 0;
 		m_nCurrentParameter = 0;
 		m_nCurrentMenuDepth = 0;
-
+#else
+		// "Home" is the TG0 menu if only one TG active
+		m_pParentMenu = s_MainMenu;
+		m_pCurrentMenu = s_TGMenu;
+		m_nCurrentMenuItem = 0;
+		m_nCurrentSelection = 0;
+		m_nCurrentParameter = 0;
+		m_nCurrentMenuDepth = 1;
+		// Place the "root" menu at the top of the stack
+		m_MenuStackParent[0] = s_MenuRoot;
+		m_MenuStackMenu[0] = s_MainMenu;
+		m_nMenuStackItem[0] = 0;
+		m_nMenuStackSelection[0] = 0;
+		m_nMenuStackParameter[0] = 0;
+#endif
 		EventHandler (MenuEventUpdate);
 		break;
 
@@ -680,7 +563,6 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	int nHighestBank = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNumHighestBank();
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
 
@@ -695,11 +577,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			// Switch down a voice bank and set to the last voice
 			nValue = CSysExFileLoader::VoicesPerBank-1;
 			int nVB = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-			if (--nVB < 0)
-			{
-				// Wrap around to last loaded bank
-				nVB = nHighestBank;
-			}
+			nVB = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
@@ -711,11 +589,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			// Switch up a voice bank and reset to voice 0
 			nValue = 0;
 			int nVB = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-			if (++nVB > (int) nHighestBank)
-			{
-				// Wrap around to first bank
-				nVB = 0;
-			}
+			nVB = pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
 		}
 		pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nValue, nTG);
