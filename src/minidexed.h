@@ -140,7 +140,6 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
-		ParameterPerformanceProgramChange,
 		ParameterUnknown
 	};
 

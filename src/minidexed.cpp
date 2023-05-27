@@ -415,8 +415,6 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
 	
-	// Program Change messages change voice on specified TG
-
 	unsigned nBankOffset;
 	bool bPCAcrossBanks = m_pConfig->GetExpandPCAcrossBanks();
 	if (bPCAcrossBanks)
@@ -489,6 +487,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram, unsigned nTG)
 	}
 	else
 	{
+		// Program Change messages change voice on specified TG
 		ProgramChange(nProgram, nTG);
 	}
 

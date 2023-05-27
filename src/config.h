@@ -110,7 +110,7 @@ public:
 	unsigned GetButtonPinSelect (void) const;
 	unsigned GetButtonPinHome (void) const;
 	unsigned GetButtonPinShortcut (void) const;
-	
+
 	// Action type for buttons: "click", "doubleclick", "longpress", ""
 	const char *GetButtonActionPrev (void) const;
 	const char *GetButtonActionNext (void) const;
