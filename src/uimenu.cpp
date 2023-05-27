@@ -324,7 +324,8 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
-	{"Delete",	PerformanceMenu, 0, 1}, 
+	{"Delete",	PerformanceMenu, 0, 1},
+	{"Program Change", EditPerformanceProgramChange, 0, 0},
 	{0}
 };
 
@@ -1208,21 +1209,23 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 		// Program Up/Down acts on performances
 		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
 		unsigned nPerformance = m_pMiniDexed->GetActualPerformanceID();
-		LOGNOTE("Performance actual=%d, last=%d", nPerformance, nLastPerformance);
+		//LOGNOTE("Performance actual=%d, last=%d", nPerformance, nLastPerformance);
 		if (Event == MenuEventPgmDown)
 		{
 			if (nPerformance > 0)
 			{
-				m_pMiniDexed->SetNewPerformance(nPerformance-1);
-				LOGNOTE("Performance new=%d, last=%d", nPerformance-1, nLastPerformance);
+				m_nSelectedPerformanceID = nPerformance-1;
+				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 			}
 		}
 		else
 		{
 			if (nPerformance < nLastPerformance-1)
 			{
-				m_pMiniDexed->SetNewPerformance(nPerformance+1);
-				LOGNOTE("Performance new=%d, last=%d", nPerformance+1, nLastPerformance);
+				m_nSelectedPerformanceID = nPerformance+1;
+				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 			}
 		}
 	}
@@ -1230,10 +1233,10 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 	{
 		// Program Up/Down acts on voices within a TG.
 	
-		// If we're on anything apart from the root menu,
+		// If we're not in the root menu, then see if we are already in a TG menu,
 		// then find the current TG number. Otherwise assume TG1 (nTG=0).
 		unsigned nTG = 0;
-		if (m_MenuStackMenu[0] == s_MainMenu) {
+		if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
 			nTG = m_nMenuStackSelection[0];
 		}
 		assert (nTG < CConfig::ToneGenerators);
@@ -1486,6 +1489,39 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
 }
+
+void CUIMenu::EditPerformanceProgramChange (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	bool bPerfPC = pUIMenu->m_pMiniDexed->GetPerformanceProgramChange();
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+	case MenuEventStepUp:
+		bPerfPC = !bPerfPC;
+		pUIMenu->m_pMiniDexed->SetPerformanceProgramChange(bPerfPC);
+		break;
+
+	default:
+		return;
+	}
+
+	string PPC (" =");
+	string Value;
+	if (bPerfPC) {
+		Value = "Performance";
+	} else {
+		Value = "Voices";
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (PPC.c_str (),
+					  pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					  Value.c_str (),
+					  true, true);
+}
+
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 {

@@ -57,6 +57,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bLoadPerformanceBusy(false)
 {
 	assert (m_pConfig);
+		
+	m_bPerformanceProgramChange = m_pConfig->GetPerformanceProgramChange();
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
@@ -464,7 +466,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
 	
-	if (m_pConfig-GetPerformanceProgramChange())
+	if (m_bPerformanceProgramChange)
 	{
 		// Program Change messages change Performances.
 		//
@@ -1468,8 +1470,12 @@ unsigned CMiniDexed::GetLastPerformance()
 
 bool CMiniDexed::GetPerformanceProgramChange (void)
 {
-	assert (m_pConfig);
-	return m_pConfig->GetPerformanceProgramChange();
+	return m_bPerformanceProgramChange;
+}
+
+void CMiniDexed::SetPerformanceProgramChange (bool bPerfPC)
+{
+	m_bPerformanceProgramChange = bPerfPC;
 }
 
 unsigned CMiniDexed::GetActualPerformanceID()

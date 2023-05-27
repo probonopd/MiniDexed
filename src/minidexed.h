@@ -127,6 +127,7 @@ public:
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	bool GetPerformanceProgramChange (void);
+	void SetPerformanceProgramChange (bool bPerfPC);
 	
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
@@ -139,6 +140,7 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
+		ParameterPerformanceProgramChange,
 		ParameterUnknown
 	};
 
@@ -307,6 +309,7 @@ private:
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
+	bool m_bPerformanceProgramChange;
 };
 
 #endif
