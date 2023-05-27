@@ -78,7 +78,6 @@ public:
 	bool GetIgnoreAllNotesOff (void) const;
 	bool GetMIDIAutoVoiceDumpOnPC (void) const; // true if not specified
 	bool GetHeaderlessSysExVoices (void) const; // false if not specified
-	bool GetExpandPCAcrossBanks (void) const; // true if not specified
 
 	// HD44780 LCD
 	// GPIO pin numbers are chip numbers, not header positions
@@ -160,7 +159,6 @@ private:
 	bool m_bIgnoreAllNotesOff;
 	bool m_bMIDIAutoVoiceDumpOnPC;
 	bool m_bHeaderlessSysExVoices;
-	bool m_bExpandPCAcrossBanks;
 
 	bool m_bLCDEnabled;
 	unsigned m_nLCDPinEnable;

@@ -99,7 +99,7 @@ void CSysExFileLoader::Load (bool bHeaderlessSysExVoices)
 	{
 		LoadBank(m_DirName.c_str (), pEntry->d_name, bHeaderlessSysExVoices, 0);
 	}
-	LOGDBG ("%u Banks loaded. Highest Bank loaded: #%u", m_nBanksLoaded, m_nNumHighestBank+1);
+	LOGDBG ("%u Banks loaded. Highest Bank loaded: #%u", m_nBanksLoaded, m_nNumHighestBank);
 
 	closedir (pDirectory);
 }
@@ -189,10 +189,10 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, 
 			//LOGDBG ("Bank #%u successfully loaded", nBank);
 
 			m_BankFileName[nBankIdx] = sBankName;
-			if (nBankIdx > m_nNumHighestBank)
+			if (nBank > m_nNumHighestBank)
 			{
 				// This is the bank ID of the highest loaded bank
-				m_nNumHighestBank = nBankIdx;
+				m_nNumHighestBank = nBank;
 			}
 			m_nBanksLoaded++;
 			bBankLoaded = true;
@@ -221,10 +221,10 @@ void CSysExFileLoader::LoadBank (const char * sDirName, const char * sBankName, 
 				m_pVoiceBank[nBankIdx]->StatusEnd   = 0xF7;
 
 				m_BankFileName[nBankIdx] = sBankName;
-				if (nBankIdx > m_nNumHighestBank)
+				if (nBank > m_nNumHighestBank)
 				{
 					// This is the bank ID of the highest loaded bank
-					m_nNumHighestBank = nBankIdx;
+					m_nNumHighestBank = nBank;
 				}
 				bBankLoaded = true;
 				m_nBanksLoaded++;
