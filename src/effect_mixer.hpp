@@ -33,16 +33,15 @@ public:
 		delete [] sumbufL;
 	}
 
-    void doAddMix(uint8_t channel, float32_t* in)
+        void doAddMix(uint8_t channel, float32_t* in)
 	{
+		float32_t tmp[buffer_length];
+
 		assert(in);
 
-		float32_t tmp[buffer_length];
-		bool isScaled = (multiplier[channel]!=UNITY_GAIN);
-
-		if(isScaled)
+		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(in,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufL, (isScaled ? tmp : in), sumbufL, buffer_length);
+		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 	}
 
 	void gain(uint8_t channel, float32_t gain)
@@ -120,36 +119,37 @@ public:
 
 	void doAddMix(uint8_t channel, float32_t* in)
 	{
-		assert(in);
-
 		float32_t tmp[buffer_length];
 
-		// left
-		arm_scale_f32(in, panorama[channel][0] * multiplier[channel], tmp, buffer_length);
-		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
+		assert(in);
 
+		// left
+		arm_scale_f32(in, panorama[channel][0], tmp, buffer_length);
+		if(multiplier[channel]!=UNITY_GAIN)
+			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
+		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
-		arm_scale_f32(in, panorama[channel][1] * multiplier[channel], tmp, buffer_length);
+		arm_scale_f32(in, panorama[channel][1], tmp, buffer_length);
+		if(multiplier[channel]!=UNITY_GAIN)
+			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 	}
 
 	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR)
 	{
+		float32_t tmp[buffer_length];
+
 		assert(inL);
 		assert(inR);
 
-		float32_t tmp[buffer_length];
-		bool isScaled = (multiplier[channel]!=UNITY_GAIN);
-
 		// left
-		if(isScaled)
+		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(inL,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufL, (isScaled ? tmp : inL), sumbufL, buffer_length);
-
+		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
-		if(isScaled)
+		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufR, (isScaled ? tmp : inR), sumbufR, buffer_length);
+		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 	}
 
 	void getMix(float32_t* bufferL, float32_t* bufferR)

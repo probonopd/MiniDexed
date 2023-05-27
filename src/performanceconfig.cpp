@@ -20,10 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include <circle/logger.h>
 #include "performanceconfig.h"
 #include "mididevice.h"
 #include <cstring> 
-#include <algorithm> 
+#include <algorithm>
+
+LOGMODULE ("Performance");
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties ("performance.ini", pFileSystem)
@@ -159,44 +162,6 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
-#ifdef ARM_ALLOW_MULTI_CORE
-	this->m_bFXChainEnable = this->m_Properties.GetNumber("FXChainEnable", 1);
-	this->m_nFXChainWet = this->m_Properties.GetNumber("FXChainWet", 99);
-	this->m_bFXChainTubeEnable = this->m_Properties.GetNumber("FXChainTubeEnable", 1);
-	this->m_nFXChainTubeWet = this->m_Properties.GetNumber("FXChainTubeWet", 50);
-	this->m_nFXChainTubeOverdrive = this->m_Properties.GetNumber("FXChainTubeOverdrive", 10);
-	this->m_bFXChainChorusEnable = this->m_Properties.GetNumber("FXChainChorusEnable", 1);
-	this->m_nFXChainChorusWet = this->m_Properties.GetNumber("FXChainChorusWet", 50);
-	this->m_nFXChainChorusRate = this->m_Properties.GetNumber("FXChainChorusRate", 50);
-	this->m_nFXChainChorusDepth = this->m_Properties.GetNumber("FXChainChorusDepth", 50);
-	this->m_bFXChainFlangerEnable = this->m_Properties.GetNumber("FXChainFlangerEnable", 1);
-	this->m_nFXChainFlangerWet = this->m_Properties.GetNumber("FXChainFlangerWet", 		50);
-	this->m_nFXChainFlangerRate = this->m_Properties.GetNumber("FXChainFlangerRate", 15);
-	this->m_nFXChainFlangerDepth = this->m_Properties.GetNumber("FXChainFlangerDepth", 10);
-	this->m_nFXChainFlangerFeedback = this->m_Properties.GetNumber("FXChainFlangerFeedback", 20);
-	this->m_bFXChainOrbitoneEnable = this->m_Properties.GetNumber("FXChainOrbitoneEnable", 1);
-	this->m_nFXChainOrbitoneWet = this->m_Properties.GetNumber("FXChainOrbitoneWet", 80);
-	this->m_nFXChainOrbitoneRate = this->m_Properties.GetNumber("FXChainOrbitoneRate", 40);
-	this->m_nFXChainOrbitoneDepth = this->m_Properties.GetNumber("FXChainOrbitoneDepth", 50);
-	this->m_bFXChainPhaserEnable = this->m_Properties.GetNumber("FXChainPhaserEnable", 1);
-	this->m_nFXChainPhaserWet = this->m_Properties.GetNumber("FXChainPhaserWet", 50);
-	this->m_nFXChainPhaserRate = this->m_Properties.GetNumber("FXChainPhaserRate", 5);
-	this->m_nFXChainPhaserDepth = this->m_Properties.GetNumber("FXChainPhaserDepth", 99);
-	this->m_nFXChainPhaserFeedback = this->m_Properties.GetNumber("FXChainPhaserFeedback", 50);
-	this->m_nFXChainPhaserNbStages = this->m_Properties.GetNumber("FXChainPhaserNbStages", 12);
-	this->m_bFXChainDelayEnable = this->m_Properties.GetNumber("FXChainDelayEnable", 1);
-	this->m_nFXChainDelayWet = this->m_Properties.GetNumber("FXChainDelayWet", 50);
-	this->m_nFXChainDelayLeftDelayTime = this->m_Properties.GetNumber("FXChainDelayLeftDelayTime", 15);
-	this->m_nFXChainDelayRightDelayTime = this->m_Properties.GetNumber("FXChainDelayRightDelayTime", 22);
-	this->m_nFXChainDelayFeedback = this->m_Properties.GetNumber("FXChainDelayFeedback", 35);
-	this->m_bFXChainShimmerReverbEnable = this->m_Properties.GetNumber("FXChainShimmerReverbEnable", 1);
-	this->m_nFXChainShimmerReverbWet = this->m_Properties.GetNumber("FXChainShimmerReverbWet", 70);
-	this->m_nFXChainShimmerReverbInputGain = this->m_Properties.GetNumber("FXChainShimmerReverbInputGain", 30);
-	this->m_nFXChainShimmerReverbTime = this->m_Properties.GetNumber("FXChainShimmerReverbTime", 30);
-	this->m_nFXChainShimmerReverbDiffusion = this->m_Properties.GetNumber("FXChainShimmerReverbDiffusion", 30);
-	this->m_nFXChainShimmerReverbLP = this->m_Properties.GetNumber("FXChainShimmerReverbLP", 99);
-#endif
-
 	return bResult;
 }
 
@@ -314,44 +279,6 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
-
-#ifdef ARM_ALLOW_MULTI_CORE
-	this->m_Properties.SetNumber("FXChainEnable", m_bFXChainEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainWet", m_nFXChainWet);
-	this->m_Properties.SetNumber("FXChainTubeEnable", m_bFXChainTubeEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainTubeWet", m_nFXChainTubeWet);
-	this->m_Properties.SetNumber("FXChainTubeOverdrive", m_nFXChainTubeOverdrive);
-	this->m_Properties.SetNumber("FXChainChorusEnable", m_bFXChainChorusEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainChorusWet", m_nFXChainChorusWet);
-	this->m_Properties.SetNumber("FXChainChorusRate", m_nFXChainChorusRate);
-	this->m_Properties.SetNumber("FXChainChorusDepth", m_nFXChainChorusDepth);
-	this->m_Properties.SetNumber("FXChainFlangerEnable", m_bFXChainFlangerEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainFlangerWet", m_nFXChainFlangerWet);
-	this->m_Properties.SetNumber("FXChainFlangerRate", m_nFXChainFlangerRate);
-	this->m_Properties.SetNumber("FXChainFlangerDepth", m_nFXChainFlangerDepth);
-	this->m_Properties.SetNumber("FXChainFlangerFeedback", m_nFXChainFlangerFeedback);
-	this->m_Properties.SetNumber("FXChainOrbitoneEnable", m_bFXChainOrbitoneEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainOrbitoneWet", m_nFXChainOrbitoneWet);
-	this->m_Properties.SetNumber("FXChainOrbitoneRate", m_nFXChainOrbitoneRate);
-	this->m_Properties.SetNumber("FXChainOrbitoneDepth", m_nFXChainOrbitoneDepth);
-	this->m_Properties.SetNumber("FXChainPhaserEnable", m_bFXChainPhaserEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainPhaserWet", m_nFXChainPhaserWet);
-	this->m_Properties.SetNumber("FXChainPhaserRate", m_nFXChainPhaserRate);
-	this->m_Properties.SetNumber("FXChainPhaserDepth", m_nFXChainPhaserDepth);
-	this->m_Properties.SetNumber("FXChainPhaserFeedback", m_nFXChainPhaserFeedback);
-	this->m_Properties.SetNumber("FXChainPhaserNbStages", m_nFXChainPhaserNbStages);
-	this->m_Properties.SetNumber("FXChainDelayEnable", m_bFXChainDelayEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainDelayWet", m_nFXChainDelayWet);
-	this->m_Properties.SetNumber("FXChainDelayLeftDelayTime", m_nFXChainDelayLeftDelayTime);
-	this->m_Properties.SetNumber("FXChainDelayRightDelayTime", m_nFXChainDelayRightDelayTime);
-	this->m_Properties.SetNumber("FXChainDelayFeedback", m_nFXChainDelayFeedback);
-	this->m_Properties.SetNumber("FXChainShimmerReverbEnable", m_bFXChainShimmerReverbEnable ? 1 : 0);
-	this->m_Properties.SetNumber("FXChainShimmerReverbWet", m_nFXChainShimmerReverbWet);
-	this->m_Properties.SetNumber("FXChainShimmerReverbInputGain", m_nFXChainShimmerReverbInputGain);
-	this->m_Properties.SetNumber("FXChainShimmerReverbTime", m_nFXChainShimmerReverbTime);
-	this->m_Properties.SetNumber("FXChainShimmerReverbDiffusion", m_nFXChainShimmerReverbDiffusion);
-	this->m_Properties.SetNumber("FXChainShimmerReverbLP", m_nFXChainShimmerReverbLP);
-#endif
 
 	return m_Properties.Save ();
 }
@@ -823,8 +750,27 @@ bool CPerformanceConfig::GetInternalFolderOk()
 	return nInternalFolderOk;
 }
 
+bool CPerformanceConfig::CheckFreePerformanceSlot(void)
+{
+	if (nLastPerformance < NUM_PERFORMANCES)
+	{
+		// There is a free slot...
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
+	if (nLastPerformance >= NUM_PERFORMANCES) {
+		// No space left for new performances
+		LOGWARN ("No space left for new performance");
+		return false;
+	}
+
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
 	nActualPerformance=nLastPerformance;
@@ -905,19 +851,23 @@ bool CPerformanceConfig::ListPerformances()
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
-			{
-				std::string FileName = FileInfo.fname;
-				size_t nLen = FileName.length();
-				if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
-				{			
-					nPIndex=stoi(FileName.substr(0,6));
-					if(nPIndex > nLastFileIndex)
-					{
-						nLastFileIndex=nPIndex;
-					}
-		
-					m_nPerformanceFileName[nLastPerformance++]= FileName;
+			if (nLastPerformance >= NUM_PERFORMANCES) {
+				LOGNOTE ("Skipping performance %s", FileInfo.fname);
+			} else {
+				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+				{
+					std::string FileName = FileInfo.fname;
+					size_t nLen = FileName.length();
+					if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
+					{			
+						nPIndex=stoi(FileName.substr(0,6));
+						if(nPIndex > nLastFileIndex)
+						{
+							nLastFileIndex=nPIndex;
+						}
+
+						m_nPerformanceFileName[nLastPerformance++]= FileName;
+					}	
 				}
 			}
 
@@ -929,6 +879,8 @@ bool CPerformanceConfig::ListPerformances()
 		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
 		}
 	}
+	
+	LOGNOTE ("Number of Performances: %d", nLastPerformance);
 	
 	return nInternalFolderOk;
 }   
@@ -999,356 +951,3 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 	}
 	return bOK;
 }
-
-#ifdef ARM_ALLOW_MULTI_CORE
-bool CPerformanceConfig::GetFXChainEnable(void) const
-{
-	return this->m_bFXChainEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainWet(void) const
-{
-	return this->m_nFXChainWet;
-}
-
-bool CPerformanceConfig::GetFXChainTubeEnable(void) const
-{
-	return this->m_bFXChainTubeEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainTubeWet(void) const
-{
-	return this->m_nFXChainTubeWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainTubeOverdrive(void) const
-{
-	return this->m_nFXChainTubeOverdrive;
-}
-
-bool CPerformanceConfig::GetFXChainChorusEnable(void) const
-{
-	return this->m_bFXChainChorusEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainChorusWet(void) const
-{
-	return this->m_nFXChainChorusWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainChorusRate(void) const
-{
-	return this->m_nFXChainChorusRate;
-}
-
-unsigned CPerformanceConfig::GetFXChainChorusDepth(void) const
-{
-	return this->m_nFXChainChorusDepth;
-}
-
-bool CPerformanceConfig::GetFXChainFlangerEnable(void) const
-{
-	return this->m_bFXChainFlangerEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainFlangerWet(void) const
-{
-	return this->m_nFXChainFlangerWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainFlangerRate(void) const
-{
-	return this->m_nFXChainFlangerRate;
-}
-
-unsigned CPerformanceConfig::GetFXChainFlangerDepth(void) const
-{
-	return this->m_nFXChainFlangerDepth;
-}
-
-unsigned CPerformanceConfig::GetFXChainFlangerFeedback(void) const
-{
-	return this->m_nFXChainFlangerFeedback;
-}
-
-bool CPerformanceConfig::GetFXChainOrbitoneEnable(void) const
-{
-	return this->m_bFXChainOrbitoneEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainOrbitoneWet(void) const
-{
-	return this->m_nFXChainOrbitoneWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainOrbitoneRate(void) const
-{
-	return this->m_nFXChainOrbitoneRate;
-}
-
-unsigned CPerformanceConfig::GetFXChainOrbitoneDepth(void) const
-{
-	return this->m_nFXChainOrbitoneDepth;
-}
-
-bool CPerformanceConfig::GetFXChainPhaserEnable(void) const
-{
-	return this->m_bFXChainPhaserEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainPhaserWet(void) const
-{
-	return this->m_nFXChainPhaserWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainPhaserRate(void) const
-{
-	return this->m_nFXChainPhaserRate;
-}
-
-unsigned CPerformanceConfig::GetFXChainPhaserDepth(void) const
-{
-	return this->m_nFXChainPhaserDepth;
-}
-
-unsigned CPerformanceConfig::GetFXChainPhaserFeedback(void) const
-{
-	return this->m_nFXChainPhaserFeedback;
-}
-
-unsigned CPerformanceConfig::GetFXChainPhaserNbStages(void) const
-{
-	return this->m_nFXChainPhaserNbStages;
-}
-
-bool CPerformanceConfig::GetFXChainDelayEnable(void) const
-{
-	return this->m_bFXChainDelayEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainDelayWet(void) const
-{
-	return this->m_nFXChainDelayWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainDelayLeftDelayTime(void) const
-{
-	return this->m_nFXChainDelayLeftDelayTime;
-}
-
-unsigned CPerformanceConfig::GetFXChainDelayRightDelayTime(void) const
-{
-	return this->m_nFXChainDelayRightDelayTime;
-}
-
-unsigned CPerformanceConfig::GetFXChainDelayFeedback(void) const
-{
-	return this->m_nFXChainDelayFeedback;
-}
-
-bool CPerformanceConfig::GetFXChainShimmerReverbEnable(void) const
-{
-	return this->m_bFXChainShimmerReverbEnable;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbWet(void) const
-{
-	return this->m_nFXChainShimmerReverbWet;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbInputGain(void) const
-{
-	return this->m_nFXChainShimmerReverbInputGain;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbTime(void) const
-{
-	return this->m_nFXChainShimmerReverbTime;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbDiffusion(void) const
-{
-	return this->m_nFXChainShimmerReverbDiffusion;
-}
-
-unsigned CPerformanceConfig::GetFXChainShimmerReverbLP(void) const
-{
-	return this->m_nFXChainShimmerReverbLP;
-}
-
-void CPerformanceConfig::SetFXChainEnable(bool bValue)
-{
-	this->m_bFXChainEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainWet(unsigned nValue)
-{
-	this->m_nFXChainWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainTubeEnable(bool bValue)
-{
-	this->m_bFXChainTubeEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainTubeWet(unsigned nValue)
-{
-	this->m_nFXChainTubeWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainTubeOverdrive(unsigned nValue)
-{
-	this->m_nFXChainTubeOverdrive = nValue;
-}
-
-void CPerformanceConfig::SetFXChainChorusEnable(bool bValue)
-{
-	this->m_bFXChainChorusEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainChorusWet(unsigned nValue)
-{
-	this->m_nFXChainChorusWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainChorusRate(unsigned nValue)
-{
-	this->m_nFXChainChorusRate = nValue;
-}
-
-void CPerformanceConfig::SetFXChainChorusDepth(unsigned nValue)
-{
-	this->m_nFXChainChorusDepth = nValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerEnable(bool bValue)
-{
-	this->m_bFXChainFlangerEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerWet(unsigned nValue)
-{
-	this->m_nFXChainFlangerWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerRate(unsigned nValue)
-{
-	this->m_nFXChainFlangerRate = nValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerDepth(unsigned nValue)
-{
-	this->m_nFXChainFlangerDepth = nValue;
-}
-
-void CPerformanceConfig::SetFXChainFlangerFeedback(unsigned nValue)
-{
-	this->m_nFXChainFlangerFeedback = nValue;
-}
-
-void CPerformanceConfig::SetFXChainOrbitoneEnable(bool bValue)
-{
-	this->m_bFXChainOrbitoneEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainOrbitoneWet(unsigned nValue)
-{
-	this->m_nFXChainOrbitoneWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainOrbitoneRate(unsigned nValue)
-{
-	this->m_nFXChainOrbitoneRate = nValue;
-}
-
-void CPerformanceConfig::SetFXChainOrbitoneDepth(unsigned nValue)
-{
-	this->m_nFXChainOrbitoneDepth = nValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserEnable(bool bValue)
-{
-	this->m_bFXChainPhaserEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserWet(unsigned nValue)
-{
-	this->m_nFXChainPhaserWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserRate(unsigned nValue)
-{
-	this->m_nFXChainPhaserRate = nValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserDepth(unsigned nValue)
-{
-	this->m_nFXChainPhaserDepth = nValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserFeedback(unsigned nValue)
-{
-	this->m_nFXChainPhaserFeedback = nValue;
-}
-
-void CPerformanceConfig::SetFXChainPhaserNbStages(unsigned nValue)
-{
-	this->m_nFXChainPhaserNbStages = nValue;
-}
-
-void CPerformanceConfig::SetFXChainDelayEnable(unsigned bValue)
-{
-	this->m_bFXChainDelayEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainDelayWet(unsigned nValue)
-{
-	this->m_nFXChainDelayWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainDelayLeftDelayTime(unsigned nValue)
-{
-	this->m_nFXChainDelayLeftDelayTime = nValue;
-}
-
-void CPerformanceConfig::SetFXChainDelayRightDelayTime(unsigned nValue)
-{
-	this->m_nFXChainDelayRightDelayTime = nValue;
-}
-
-void CPerformanceConfig::SetFXChainDelayFeedback(unsigned nValue)
-{
-	this->m_nFXChainDelayFeedback = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbEnable(unsigned bValue)
-{
-	this->m_bFXChainShimmerReverbEnable = bValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbWet(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbWet = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbInputGain(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbInputGain = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbTime(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbTime = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbDiffusion(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbDiffusion = nValue;
-}
-
-void CPerformanceConfig::SetFXChainShimmerReverbLP(unsigned nValue)
-{
-	this->m_nFXChainShimmerReverbLP = nValue;
-}
-
-#endif
