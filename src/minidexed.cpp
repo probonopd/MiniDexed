@@ -414,7 +414,7 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
-	
+
 	unsigned nBankOffset;
 	bool bPCAcrossBanks = m_pConfig->GetExpandPCAcrossBanks();
 	if (bPCAcrossBanks)
