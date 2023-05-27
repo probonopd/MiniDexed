@@ -24,6 +24,7 @@
 #include <circle/types.h>
 
 // MIDI CC numbers go 0 to 127.
+// NB: 0 is treated as "unused" so CC=0 won't work
 // Normal GPIO pins are below 100.
 // So use a "pin number" of 128 + MIDI CC message for a "MIDI Pin"
 #define MIDI_PINS 128

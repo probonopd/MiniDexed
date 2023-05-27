@@ -76,7 +76,7 @@ boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, 
 	{
 		if (isMidiPin(m_pinNumber))
 		{
-			LOGDBG("MIDI Button on pin: %d (%x)", m_pinNumber, m_pinNumber);
+			LOGDBG("MIDI Button on msg: %d (%x)", MidiPinToCC(m_pinNumber), MidiPinToCC(m_pinNumber));
 			m_midipin = new CMIDIPin (m_pinNumber);
 		} else {
 			LOGDBG("GPIO Button on pin: %d (%x)", m_pinNumber, m_pinNumber);

@@ -1203,57 +1203,85 @@ void CUIMenu::OPShortcutHandler (TMenuEvent Event)
 
 void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 {
-	// If we're on anything apart from the root menu,
-	// then find the current TG number. Otherwise assume TG1 (nTG=0).
-	unsigned nTG = 0;
-	if (m_MenuStackMenu[0] == s_MainMenu) {
-		nTG = m_nMenuStackSelection[0];
-	}
-	assert (nTG < CConfig::ToneGenerators);
-	
-	int nPgm = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
-
-	assert (Event == MenuEventPgmDown || Event == MenuEventPgmUp);
-	if (Event == MenuEventPgmDown)
+	if (m_pMiniDexed->GetPerformanceProgramChange())
 	{
-		//LOGNOTE("PgmDown");
-		if (--nPgm < 0)
+		// Program Up/Down acts on performances
+		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
+		unsigned nPerformance = m_pMiniDexed->GetActualPerformanceID();
+		LOGNOTE("Performance actual=%d, last=%d", nPerformance, nLastPerformance);
+		if (Event == MenuEventPgmDown)
 		{
-			// Switch down a voice bank and set to the last voice
-			nPgm = CSysExFileLoader::VoicesPerBank-1;
-			int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-			nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
-			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+			if (nPerformance > 0)
+			{
+				m_pMiniDexed->SetNewPerformance(nPerformance-1);
+				LOGNOTE("Performance new=%d, last=%d", nPerformance-1, nLastPerformance);
+			}
 		}
-		m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
+		else
+		{
+			if (nPerformance < nLastPerformance-1)
+			{
+				m_pMiniDexed->SetNewPerformance(nPerformance+1);
+				LOGNOTE("Performance new=%d, last=%d", nPerformance+1, nLastPerformance);
+			}
+		}
 	}
 	else
 	{
-		//LOGNOTE("PgmUp");
-		if (++nPgm > (int) CSysExFileLoader::VoicesPerBank-1)
-		{
-			// Switch up a voice bank and reset to voice 0
-			nPgm = 0;
-			int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-			nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
-			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+		// Program Up/Down acts on voices within a TG.
+	
+		// If we're on anything apart from the root menu,
+		// then find the current TG number. Otherwise assume TG1 (nTG=0).
+		unsigned nTG = 0;
+		if (m_MenuStackMenu[0] == s_MainMenu) {
+			nTG = m_nMenuStackSelection[0];
 		}
-		m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
-	}
+		assert (nTG < CConfig::ToneGenerators);
 
-	// Skip empty voices.
-	// Use same criteria in EditProgramNumber () too.
-	string voiceName = m_pMiniDexed->GetVoiceName (nTG);
-	if (voiceName == "EMPTY     "
-	    || voiceName == "          "
-	    || voiceName == "----------"
-	    || voiceName == "~~~~~~~~~~" )
-	{
-		if (Event == MenuEventPgmUp) {
-			PgmUpDownHandler (MenuEventPgmUp);
+		int nPgm = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
+
+		assert (Event == MenuEventPgmDown || Event == MenuEventPgmUp);
+		if (Event == MenuEventPgmDown)
+		{
+			//LOGNOTE("PgmDown");
+			if (--nPgm < 0)
+			{
+				// Switch down a voice bank and set to the last voice
+				nPgm = CSysExFileLoader::VoicesPerBank-1;
+				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+			}
+			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
 		}
-		if (Event == MenuEventPgmDown) {
-			PgmUpDownHandler (MenuEventPgmDown);
+		else
+		{
+			//LOGNOTE("PgmUp");
+			if (++nPgm > (int) CSysExFileLoader::VoicesPerBank-1)
+			{
+				// Switch up a voice bank and reset to voice 0
+				nPgm = 0;
+				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+			}
+			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
+		}
+
+		// Skip empty voices.
+		// Use same criteria in EditProgramNumber () too.
+		string voiceName = m_pMiniDexed->GetVoiceName (nTG);
+		if (voiceName == "EMPTY     "
+			|| voiceName == "          "
+			|| voiceName == "----------"
+			|| voiceName == "~~~~~~~~~~" )
+		{
+			if (Event == MenuEventPgmUp) {
+				PgmUpDownHandler (MenuEventPgmUp);
+			}
+			if (Event == MenuEventPgmDown) {
+				PgmUpDownHandler (MenuEventPgmDown);
+			}
 		}
 	}
 }
@@ -1268,9 +1296,9 @@ void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 		return;
 	}
 
-	// If we're on anything apart from the root menu,
+	// If we're not in the root menu, then see if we are already in a TG menu,
 	// then find the current TG number. Otherwise assume TG1 (nTG=0).
-	if (m_MenuStackMenu[0] == s_MainMenu) {
+	if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
 		nTG = m_nMenuStackSelection[0];
 	}
 

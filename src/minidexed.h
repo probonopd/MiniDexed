@@ -67,6 +67,7 @@ public:
 	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
+	void ProgramChangePerformance (unsigned nProgram, unsigned nTG);
 	void SetVolume (unsigned nVolume, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
@@ -125,6 +126,7 @@ public:
 	bool DoSetNewPerformance (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
+	bool GetPerformanceProgramChange (void);
 	
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter

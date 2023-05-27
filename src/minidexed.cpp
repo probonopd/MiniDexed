@@ -412,6 +412,8 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 {
 	assert (m_pConfig);
+	
+	// Program Change messages change voice on specified TG
 
 	unsigned nBankOffset;
 	bool bPCAcrossBanks = m_pConfig->GetExpandPCAcrossBanks();
@@ -453,6 +455,39 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 		{
 			m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
 		}
+	}
+
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::ProgramChangePerformance (unsigned nProgram, unsigned nTG)
+{
+	assert (m_pConfig);
+	
+	if (m_pConfig-GetPerformanceProgramChange())
+	{
+		// Program Change messages change Performances.
+		//
+		// Only pay attention to PCs received on the MIDI channel
+		// associated with TG1.
+		//
+		// Note: as performances store the MIDI channnel, if
+		//       the MIDI channel for TG1 changes, then further
+		//       PCs will only be actioned on the new channel number...
+		if (nTG == 0)
+		{
+			unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
+
+			// GetLastPerformance actually returns 1-indexed, number of performances
+			if (nProgram < nLastPerformance - 1)
+			{
+				SetNewPerformance(nProgram);
+			}
+		}
+	}
+	else
+	{
+		ProgramChange(nProgram, nTG);
 	}
 
 	m_UI.ParameterChanged ();
@@ -1431,7 +1466,11 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
-
+bool CMiniDexed::GetPerformanceProgramChange (void)
+{
+	assert (m_pConfig);
+	return m_pConfig->GetPerformanceProgramChange();
+}
 
 unsigned CMiniDexed::GetActualPerformanceID()
 {

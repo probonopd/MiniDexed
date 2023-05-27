@@ -162,6 +162,7 @@ public:
 	
 	// Load performance mode. 0 for load just rotating encoder, 1 load just when Select is pushed
 	bool GetPerformanceSelectToLoad (void) const;
+	bool GetPerformanceProgramChange (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -243,6 +244,7 @@ private:
 	bool m_bMIDIDumpEnabled;
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
+	bool m_bPerformanceProgramChange;
 };
 
 #endif
