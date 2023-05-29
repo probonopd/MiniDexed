@@ -1476,7 +1476,7 @@ bool CMiniDexed::DoSetNewPerformance (void)
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
-	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk();
+	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk() && m_PerformanceConfig.CheckFreePerformanceSlot();
 	return m_bSavePerformanceNewFile;
 }
 

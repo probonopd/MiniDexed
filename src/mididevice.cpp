@@ -324,7 +324,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_ALL_NOTES_OFF:
-							if (!m_pConfig->GetIgnoreAllNotesOff ())
+							// As per "MIDI 1.0 Detailed Specification" v4.2
+							// From "ALL NOTES OFF" states:
+							// "Receivers should ignore an All Notes Off message while Omni is on (Modes 1 & 2)"
+							if (!m_pConfig->GetIgnoreAllNotesOff () && m_ChannelMap[nTG] != OmniMode)
 							{
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
