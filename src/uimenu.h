@@ -25,6 +25,9 @@
 
 #include <string>
 #include <circle/timer.h>
+#include <cassert>
+#include <iostream>
+#include <random>
 
 class CMiniDexed;
 class CUserInterface;
@@ -49,12 +52,12 @@ public:
 	};
 
 public:
-	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
+	CUIMenu(CUserInterface *pUI, CMiniDexed *pMiniDexed);
 
-	void EventHandler (TMenuEvent Event);
-	
+	void EventHandler(TMenuEvent Event);
+
 private:
-	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
+	typedef void TMenuHandler(CUIMenu *pUIMenu, TMenuEvent Event);
 
 	struct TMenuItem
 	{
@@ -64,7 +67,7 @@ private:
 		unsigned Parameter;
 	};
 
-	typedef std::string TToString (int nValue);
+	typedef std::string TToString(int nValue);
 
 	struct TParameter
 	{
@@ -75,48 +78,57 @@ private:
 	};
 
 private:
-	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
-	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
-	
-	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
-	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
-	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
-	static std::string GetOPValueString (unsigned nOPParameter, int nValue);
+	static void MenuHandler(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditGlobalParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditVoiceBankNumber(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditProgramNumber(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditVoiceParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditOPParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void SavePerformance(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameter2(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameterModulation(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void PerformanceMenu(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void SavePerformanceNewFile(CUIMenu *pUIMenu, TMenuEvent Event);
 
-	static std::string ToVolume (int nValue);
-	static std::string ToPan (int nValue);
-	static std::string ToMIDIChannel (int nValue);
+	static std::string GetGlobalValueString(unsigned nParameter, int nValue);
+	static std::string GetTGValueString(unsigned nTGParameter, int nValue);
+	static std::string GetVoiceValueString(unsigned nVoiceParameter, int nValue);
+	static std::string GetOPValueString(unsigned nOPParameter, int nValue);
 
-	static std::string ToAlgorithm (int nValue);
-	static std::string ToOnOff (int nValue);
-	static std::string ToLFOWaveform (int nValue);
-	static std::string ToTransposeNote (int nValue);
-	static std::string ToBreakpointNote (int nValue);
-	static std::string ToKeyboardCurve (int nValue);
-	static std::string ToOscillatorMode (int nValue);
-	static std::string ToOscillatorDetune (int nValue);
-	static std::string ToPortaMode (int nValue);  
-	static std::string ToPortaGlissando (int nValue);   
-	static std::string ToPolyMono (int nValue);
+	static std::string ToVolume(int nValue);
+	static std::string ToPan(int nValue);
+	static std::string ToMIDIChannel(int nValue);
 
-	void TGShortcutHandler (TMenuEvent Event);
-	void OPShortcutHandler (TMenuEvent Event);
+	static std::string ToAlgorithm(int nValue);
+	static std::string ToOnOff(int nValue);
+	static std::string ToLFOWaveform(int nValue);
+	static std::string ToTransposeNote(int nValue);
+	static std::string ToBreakpointNote(int nValue);
+	static std::string ToKeyboardCurve(int nValue);
+	static std::string ToOscillatorMode(int nValue);
+	static std::string ToOscillatorDetune(int nValue);
+	static std::string ToPortaMode(int nValue);
+	static std::string ToPortaGlissando(int nValue);
+	static std::string ToPolyMono(int nValue);
 
-	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
+	void TGShortcutHandler(TMenuEvent Event);
+	void OPShortcutHandler(TMenuEvent Event);
 
-	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext);
-	 
+	static void TimerHandler(TKernelTimerHandle hTimer, void *pParam, void *pContext);
+
+	static void InputTxt(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void TimerHandlerNoBack(TKernelTimerHandle hTimer, void *pParam, void *pContext);
+
+	static int GetRandomValue(int min, int max);
+	static void GenerateRandomOperator(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomOperatorTG(CUIMenu *pUIMenu, size_t nTG, size_t nOp);
+	static void GenerateRandomVoice(CUIMenu *pUIMenu, size_t nTG);
+	static void GenerateRandomPreset(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomPresetTG(CUIMenu *pUIMenu, size_t nTG);
+	static void GenerateRandomFX(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomPerformance(CUIMenu *pUIMenu, TMenuEvent Event);
+
 private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;
@@ -145,10 +157,10 @@ private:
 	static const TMenuItem s_EditPitchBendMenu[];
 	static const TMenuItem s_EditPortamentoMenu[];
 	static const TMenuItem s_PerformanceMenu[];
-	
+
 	static const TMenuItem s_ModulationMenu[];
 	static const TMenuItem s_ModulationMenuParameters[];
-			
+
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
 	static const TParameter s_VoiceParameter[];
@@ -156,14 +168,13 @@ private:
 
 	static const char s_NoteName[100][4];
 
-	std::string m_InputText="1234567890ABCD";
-	unsigned m_InputTextPosition=0;
-	unsigned m_InputTextChar=32;
-	bool m_bPerformanceDeleteMode=false;
-	bool m_bConfirmDeletePerformance=false;
-	unsigned m_nSelectedPerformanceID =0;
-	bool m_bSplashShow=false;
-
+	std::string m_InputText = "1234567890ABCD";
+	unsigned m_InputTextPosition = 0;
+	unsigned m_InputTextChar = 32;
+	bool m_bPerformanceDeleteMode = false;
+	bool m_bConfirmDeletePerformance = false;
+	unsigned m_nSelectedPerformanceID = 0;
+	bool m_bSplashShow = false;
 };
 
 #endif
