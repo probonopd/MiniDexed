@@ -32,7 +32,7 @@ class CConfig		// Configuration for MiniDexed
 {
 public:
 #ifndef ARM_ALLOW_MULTI_CORE
-	static const unsigned ToneGenerators = 1;
+	static const unsigned ToneGenerators = 2;
 #else
 	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
 	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
@@ -40,7 +40,7 @@ public:
 #endif
 
 #if RASPPI == 1
-	static const unsigned MaxNotes = 8;		// polyphony
+	static const unsigned MaxNotes = 4;		// polyphony
 #else
 	static const unsigned MaxNotes = 16;
 #endif
