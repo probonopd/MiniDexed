@@ -4,7 +4,7 @@ set -e
 set -x
 
 if [ -z "${RPI}" ] ; then
-  echo "\$RPI missing, exting"
+  echo "\$RPI missing, exiting"
   exit 1
 fi
 
