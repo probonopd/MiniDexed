@@ -29,6 +29,10 @@
 #include <cmath>
 #include <circle/sysconfig.h>
 #include <assert.h>
+#include <chrono>
+#include <random>
+
+#include <dexed.h>
 
 using namespace std;
 
@@ -74,6 +78,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{"Random", CUIMenu::GenerateRandomPreset, nullptr, 0},
 	{0}
 };
 
@@ -130,6 +135,7 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
 	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
+	{"Random", CUIMenu::GenerateRandomFX, nullptr, 0},
 	{0}
 };
 
@@ -168,31 +174,31 @@ const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_OperatorMenu[] =
-{
-	{"Output Level",EditOPParameter,	0,	DEXED_OP_OUTPUT_LEV},
-	{"Freq Coarse",	EditOPParameter,	0,	DEXED_OP_FREQ_COARSE},
-	{"Freq Fine",	EditOPParameter,	0,	DEXED_OP_FREQ_FINE},
-	{"Osc Detune",	EditOPParameter,	0,	DEXED_OP_OSC_DETUNE},
-	{"Osc Mode",	EditOPParameter,	0,	DEXED_OP_OSC_MODE},
-	{"EG Rate 1",	EditOPParameter,	0,	DEXED_OP_EG_R1},
-	{"EG Rate 2",	EditOPParameter,	0,	DEXED_OP_EG_R2},
-	{"EG Rate 3",	EditOPParameter,	0,	DEXED_OP_EG_R3},
-	{"EG Rate 4",	EditOPParameter,	0,	DEXED_OP_EG_R4},
-	{"EG Level 1",	EditOPParameter,	0,	DEXED_OP_EG_L1},
-	{"EG Level 2",	EditOPParameter,	0,	DEXED_OP_EG_L2},
-	{"EG Level 3",	EditOPParameter,	0,	DEXED_OP_EG_L3},
-	{"EG Level 4",	EditOPParameter,	0,	DEXED_OP_EG_L4},
-	{"Break Point",	EditOPParameter,	0,	DEXED_OP_LEV_SCL_BRK_PT},
-	{"L Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_DEPTH},
-	{"R Key Depth",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_DEPTH},
-	{"L Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_LEFT_CURVE},
-	{"R Key Scale",	EditOPParameter,	0,	DEXED_OP_SCL_RGHT_CURVE},
-	{"Rate Scaling",EditOPParameter,	0,	DEXED_OP_OSC_RATE_SCALE},
-	{"A Mod Sens.",	EditOPParameter,	0,	DEXED_OP_AMP_MOD_SENS},
-	{"K Vel. Sens.",EditOPParameter,	0,	DEXED_OP_KEY_VEL_SENS},
-	{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
-	{0}
-};
+	{
+		{"Output Level", EditOPParameter, 0, DEXED_OP_OUTPUT_LEV},
+		{"Freq Coarse", EditOPParameter, 0, DEXED_OP_FREQ_COARSE},
+		{"Freq Fine", EditOPParameter, 0, DEXED_OP_FREQ_FINE},
+		{"Osc Detune", EditOPParameter, 0, DEXED_OP_OSC_DETUNE},
+		{"Osc Mode", EditOPParameter, 0, DEXED_OP_OSC_MODE},
+		{"EG Rate 1", EditOPParameter, 0, DEXED_OP_EG_R1},
+		{"EG Rate 2", EditOPParameter, 0, DEXED_OP_EG_R2},
+		{"EG Rate 3", EditOPParameter, 0, DEXED_OP_EG_R3},
+		{"EG Rate 4", EditOPParameter, 0, DEXED_OP_EG_R4},
+		{"EG Level 1", EditOPParameter, 0, DEXED_OP_EG_L1},
+		{"EG Level 2", EditOPParameter, 0, DEXED_OP_EG_L2},
+		{"EG Level 3", EditOPParameter, 0, DEXED_OP_EG_L3},
+		{"EG Level 4", EditOPParameter, 0, DEXED_OP_EG_L4},
+		{"Break Point", EditOPParameter, 0, DEXED_OP_LEV_SCL_BRK_PT},
+		{"L Key Depth", EditOPParameter, 0, DEXED_OP_SCL_LEFT_DEPTH},
+		{"R Key Depth", EditOPParameter, 0, DEXED_OP_SCL_RGHT_DEPTH},
+		{"L Key Scale", EditOPParameter, 0, DEXED_OP_SCL_LEFT_CURVE},
+		{"R Key Scale", EditOPParameter, 0, DEXED_OP_SCL_RGHT_CURVE},
+		{"Rate Scaling", EditOPParameter, 0, DEXED_OP_OSC_RATE_SCALE},
+		{"A Mod Sens.", EditOPParameter, 0, DEXED_OP_AMP_MOD_SENS},
+		{"K Vel. Sens.", EditOPParameter, 0, DEXED_OP_KEY_VEL_SENS},
+		{"Enable", EditOPParameter, 0, DEXED_OP_ENABLE},
+		{"Random", CUIMenu::GenerateRandomOperator, nullptr, 0},
+		{0}};
 
 const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 {
@@ -324,6 +330,7 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1}, 
+	{"Random", CUIMenu::GenerateRandomPerformance, nullptr, 0},
 	{0}
 };
 
@@ -1551,7 +1558,115 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
-				   
 }
 
+// RANDOMIZATION
 
+int CUIMenu::GetRandomValue(int min, int max)
+{
+	static std::mt19937 gen(std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+
+	std::uniform_int_distribution<int> dice(min, max);
+
+	return dice(gen);
+}
+
+void CUIMenu::GenerateRandomOperator(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != TMenuEvent::MenuEventSelect)
+	{
+		return;
+	}
+
+	size_t nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth - 3];
+	size_t nOP = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth - 1];
+
+	CUIMenu::GenerateRandomOperatorTG(pUIMenu, nTG, nOP);
+}
+
+void CUIMenu::GenerateRandomOperatorTG(CUIMenu *pUIMenu, size_t nTG, size_t nOP)
+{
+	assert(nTG < CConfig::ToneGenerators);
+	assert(nOP <= OPERATORS::OP6);
+
+	for (int nParam = DexedVoiceOPParameters::DEXED_OP_EG_R1; nParam <= DexedVoiceOPParameters::DEXED_OP_OSC_DETUNE; ++nParam)
+	{
+		TParameter param = CUIMenu::s_OPParameter[nParam];
+		uint8_t value = (uint8_t)CUIMenu::GetRandomValue(param.Minimum, param.Maximum);
+		pUIMenu->m_pMiniDexed->SetVoiceParameter(nParam, value, nOP, nTG);
+	}
+}
+
+void CUIMenu::GenerateRandomVoice(CUIMenu *pUIMenu, size_t nTG)
+{
+	assert(nTG < CConfig::ToneGenerators);
+
+	for (size_t nOP = OPERATORS::OP1; nOP <= OPERATORS::OP6; ++nOP)
+	{
+		CUIMenu::GenerateRandomOperatorTG(pUIMenu, nTG, nOP);
+	}
+
+	for (int nParam = DexedVoiceParameters::DEXED_PITCH_EG_R1; nParam < DexedVoiceParameters::DEXED_NAME; ++nParam)
+	{
+		TParameter param = CUIMenu::s_VoiceParameter[nParam];
+		uint8_t value = (uint8_t)CUIMenu::GetRandomValue(param.Minimum, param.Maximum);
+		pUIMenu->m_pMiniDexed->SetVoiceParameter(nParam, value, CMiniDexed::NoOP, nTG);
+	}
+}
+
+void CUIMenu::GenerateRandomPreset(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != TMenuEvent::MenuEventSelect)
+	{
+		return;
+	}
+
+	size_t nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth - 1];
+
+	CUIMenu::GenerateRandomPresetTG(pUIMenu, nTG);
+}
+
+void CUIMenu::GenerateRandomPresetTG(CUIMenu *pUIMenu, size_t nTG)
+{
+	assert(nTG < CConfig::ToneGenerators);
+
+	CUIMenu::GenerateRandomVoice(pUIMenu, nTG);
+
+	for (int nParam = CMiniDexed::TTGParameter::TGParameterVolume; nParam < CMiniDexed::TTGParameter::TGParameterUnknown; ++nParam)
+	{
+		TParameter param = CUIMenu::s_TGParameter[nParam];
+		uint8_t value = (uint8_t)CUIMenu::GetRandomValue(param.Minimum, param.Maximum);
+		pUIMenu->m_pMiniDexed->SetTGParameter(static_cast<CMiniDexed::TTGParameter>(nParam), value, nTG);
+	}
+	pUIMenu->m_pMiniDexed->SetTGParameter(CMiniDexed::TTGParameter::TGParameterMIDIChannel, CMIDIDevice::OmniMode, nTG);
+}
+
+void CUIMenu::GenerateRandomFX(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != TMenuEvent::MenuEventSelect)
+	{
+		return;
+	}
+
+	for (int nParam = CMiniDexed::TParameter::ParameterCompressorEnable; nParam < CMiniDexed::TParameter::ParameterUnknown; ++nParam)
+	{
+		TParameter param = CUIMenu::s_GlobalParameter[nParam];
+		uint8_t value = (uint8_t)CUIMenu::GetRandomValue(param.Minimum, param.Maximum);
+		pUIMenu->m_pMiniDexed->SetParameter(static_cast<CMiniDexed::TParameter>(nParam), value);
+	}
+}
+				   
+void CUIMenu::GenerateRandomPerformance(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	if (Event != TMenuEvent::MenuEventSelect)
+	{
+		return;
+}
+
+	for (size_t nTG = 0; nTG < CConfig::ToneGenerators; ++nTG)
+	{
+		CUIMenu::GenerateRandomPresetTG(pUIMenu, nTG);
+	}
+
+	CUIMenu::GenerateRandomFX(pUIMenu, Event);
+}
