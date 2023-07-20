@@ -34,9 +34,15 @@ public:
 #ifndef ARM_ALLOW_MULTI_CORE
 	static const unsigned ToneGenerators = 1;
 #else
+#if RASPPI == 4
+	static const unsigned TGsCore1 = 4;		// process 4 TGs on core 1
+	static const unsigned TGsCore23 = 6;		// process 6 TGs on core 2 and 3 each
+	static const unsigned ToneGenerators = TGsCore1 + 2*TGsCore23;
+#else
 	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
 	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
 	static const unsigned ToneGenerators = TGsCore1 + 2*TGsCore23;
+#endif
 #endif
 
 #if RASPPI == 1

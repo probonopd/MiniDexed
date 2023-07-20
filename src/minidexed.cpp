@@ -45,7 +45,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_pSoundDevice (0),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
-	m_nActiveTGsLog2 (0),
+	//m_nActiveTGsLog2 (0),
 #endif
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
@@ -567,9 +567,9 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 		}
 	}
 
-	assert (nActiveTGs <= 8);
-	static const unsigned Log2[] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
-	m_nActiveTGsLog2 = Log2[nActiveTGs];
+	//assert (nActiveTGs <= 16);
+	//static const unsigned Log2[] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
+	//m_nActiveTGsLog2 = Log2[nActiveTGs];
 #endif
 
 	m_UI.ParameterChanged ();
@@ -1018,7 +1018,7 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
-		assert (CConfig::ToneGenerators == 8);
+		assert (CConfig::ToneGenerators == 16);
 
 		uint8_t indexL=0, indexR=1;
 		

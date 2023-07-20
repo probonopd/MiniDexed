@@ -282,7 +282,7 @@ private:
 	unsigned m_nQueueSizeFrames;
 
 #ifdef ARM_ALLOW_MULTI_CORE
-	unsigned m_nActiveTGsLog2;
+	//unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
 	float32_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
