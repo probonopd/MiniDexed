@@ -24,6 +24,7 @@
 #define _performanceconfig_h
 
 #include "config.h"
+#include "mixing_console_constants.h"
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
@@ -52,7 +53,9 @@ public:
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+#if defined(PLATE_REVERB_ENABLE)
 	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
+#endif
 	unsigned GetPitchBendRange (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPitchBendStep (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPortamentoMode (unsigned nTG) const;		// 0 .. 1
@@ -80,7 +83,9 @@ public:
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
+#if defined(PLATE_REVERB_ENABLE)
 	void SetReverbSend (unsigned nValue, unsigned nTG);
+#endif
 	void SetPitchBendRange (unsigned nValue, unsigned nTG);
 	void SetPitchBendStep (unsigned nValue, unsigned nTG);
 	void SetPortamentoMode (unsigned nValue, unsigned nTG);
@@ -118,6 +123,82 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
+#ifdef MIXING_CONSOLE_ENABLE
+	bool GetFXTubeEnable(void) const;
+	unsigned GetFXTubeOverdrive(void) const;
+
+	bool GetFXChorusEnable(void) const;
+	unsigned GetFXChorusRate(void) const;
+	unsigned GetFXChorusDepth(void) const;
+
+	bool GetFXFlangerEnable(void) const;
+	unsigned GetFXFlangerRate(void) const;
+	unsigned GetFXFlangerDepth(void) const;
+	unsigned GetFXFlangerFeedback(void) const;
+
+	bool GetFXOrbitoneEnable(void) const;
+	unsigned GetFXOrbitoneRate(void) const;
+	unsigned GetFXOrbitoneDepth(void) const;
+
+	bool GetFXPhaserEnable(void) const;
+	unsigned GetFXPhaserRate(void) const;
+	unsigned GetFXPhaserDepth(void) const;
+	unsigned GetFXPhaserFeedback(void) const;
+	unsigned GetFXPhaserNbStages(void) const;
+
+	bool GetFXDelayEnable(void) const;
+	unsigned GetFXDelayLeftDelayTime(void) const;
+	unsigned GetFXDelayRightDelayTime(void) const;
+	unsigned GetFXDelayFeedback(void) const;
+
+	bool GetFXReverberatorEnable(void) const;
+	unsigned GetFXReverberatorInputGain(void) const;
+	unsigned GetFXReverberatorTime(void) const;
+	unsigned GetFXReverberatorDiffusion(void) const;
+	unsigned GetFXReverberatorLP(void) const;
+	unsigned GetTGSendLevel(unsigned in, MixerOutput fx) const;
+	unsigned GetFXSendLevel(MixerOutput ret, MixerOutput fx) const;
+
+	void SetFXTubeEnable(bool bValue);
+	void SetFXTubeOverdrive(unsigned nValue);
+
+	void SetFXChorusEnable(bool bValue);
+	void SetFXChorusRate(unsigned nValue);
+	void SetFXChorusDepth(unsigned nValue);
+
+	void SetFXFlangerEnable(bool bValue);
+	void SetFXFlangerRate(unsigned nValue);
+	void SetFXFlangerDepth(unsigned nValue);
+	void SetFXFlangerFeedback(unsigned nValue);
+
+	void SetFXOrbitoneEnable(bool bValue);
+	void SetFXOrbitoneRate(unsigned nValue);
+	void SetFXOrbitoneDepth(unsigned nValue);
+
+	void SetFXPhaserEnable(bool bValue);
+	void SetFXPhaserRate(unsigned nValue);
+	void SetFXPhaserDepth(unsigned nValue);
+	void SetFXPhaserFeedback(unsigned nValue);
+	void SetFXPhaserNbStages(unsigned nValue);
+
+	void SetFXDelayEnable(unsigned nValue);
+	void SetFXDelayLeftDelayTime(unsigned nValue);
+	void SetFXDelayRightDelayTime(unsigned nValue);
+	void SetFXDelayFeedback(unsigned nValue);
+
+	void SetFXReverberatorEnable(unsigned nValue);
+	void SetFXReverberatorInputGain(unsigned nValue);
+	void SetFXReverberatorTime(unsigned nValue);
+	void SetFXReverberatorDiffusion(unsigned nValue);
+	void SetFXReverberatorLP(unsigned nValue);
+
+	void SetTGSendLevel(unsigned in, MixerOutput fx, unsigned nValue);
+	void SetFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nValue);
+
+	void SetFXBypass(bool bypass);
+	bool IsFXBypass() const;
+#endif
+
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
 	//std::string m_DirName;
@@ -148,7 +229,9 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
+#if defined(PLATE_REVERB_ENABLE)
 	int m_nReverbSend[CConfig::ToneGenerators];
+#endif
 	unsigned m_nPitchBendRange[CConfig::ToneGenerators];
 	unsigned m_nPitchBendStep[CConfig::ToneGenerators];
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];
@@ -185,6 +268,48 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+
+#if defined(MIXING_CONSOLE_ENABLE)
+	bool m_bFXTubeEnable;
+	unsigned m_nFXTubeWet;
+	unsigned m_nFXTubeOverdrive;
+
+	bool m_bFXChorusEnable;
+	unsigned m_nFXChorusRate;
+	unsigned m_nFXChorusDepth;
+
+	bool m_bFXFlangerEnable;
+	unsigned m_nFXFlangerRate;
+	unsigned m_nFXFlangerDepth;
+	unsigned m_nFXFlangerFeedback;
+
+	bool m_bFXOrbitoneEnable;
+	unsigned m_nFXOrbitoneRate;
+	unsigned m_nFXOrbitoneDepth;
+
+	bool m_bFXPhaserEnable;
+	unsigned m_nFXPhaserRate;
+	unsigned m_nFXPhaserDepth;
+	unsigned m_nFXPhaserFeedback;
+	unsigned m_nFXPhaserNbStages;
+
+	bool m_bFXDelayEnable;
+	unsigned m_nFXDelayLeftDelayTime;
+	unsigned m_nFXDelayRightDelayTime;
+	unsigned m_nFXDelayFeedback;
+
+	bool m_bFXReverberatorEnable;
+	unsigned m_nFXReverberatorInputGain;
+	unsigned m_nFXReverberatorTime;
+	unsigned m_nFXReverberatorDiffusion;
+	unsigned m_nFXReverberatorLP;
+
+	unsigned m_nTGSendLevel[CConfig::ToneGenerators + MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+	unsigned m_nFXSendLevel[MixerOutput::kFXCount - 1][MixerOutput::kFXCount];
+
+	bool m_bFXBypass;
+
+#endif
 };
 
 #endif

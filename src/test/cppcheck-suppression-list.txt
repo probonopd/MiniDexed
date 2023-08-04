@@ -1,0 +1,13 @@
+*:../../CMSIS_5/*
+toomanyconfigs:*
+noExplicitConstructor:*
+unusedFunction:*
+missingIncludeSystem:*
+unmatchedSuppression:*
+unreadVariable:test*.cpp
+
+// unexplained exceptions
+syntaxError:beta.cpp:52
+syntaxError:test_fx_mixing_console.cpp:207
+internalAstError:test_cpp_performance.cpp:22
+unpreciseMathCall:*

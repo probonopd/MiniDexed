@@ -23,6 +23,7 @@
 #ifndef _uimenu_h
 #define _uimenu_h
 
+#include "extra_features.h"
 #include <string>
 #include <circle/timer.h>
 
@@ -84,6 +85,7 @@ private:
 	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGParameter3 (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -138,7 +140,38 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
-	static const TMenuItem s_ReverbMenu[];
+#if defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_TGFXMenu[];
+	static const TMenuItem s_FXTube[];
+	static const TMenuItem s_FXTubeLevels[];
+	static const TMenuItem s_FXTubeSend[];
+	static const TMenuItem s_FXChorus[];
+	static const TMenuItem s_FXChorusLevels[];
+	static const TMenuItem s_FXChorusSend[];
+	static const TMenuItem s_FXFlanger[];
+	static const TMenuItem s_FXFlangerLevels[];
+	static const TMenuItem s_FXFlangerSend[];
+	static const TMenuItem s_FXOrbitone[];
+	static const TMenuItem s_FXOrbitoneLevels[];
+	static const TMenuItem s_FXOrbitoneSend[];
+	static const TMenuItem s_FXPhaser[];
+	static const TMenuItem s_FXPhaserLevels[];
+	static const TMenuItem s_FXPhaserSend[];
+	static const TMenuItem s_FXDelay[];
+	static const TMenuItem s_FXDelayLevels[];
+	static const TMenuItem s_FXDelaySend[];
+#endif
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_FXPlateReverb[];
+#endif
+#if defined(MIXING_CONSOLE_ENABLE)
+	static const TMenuItem s_FXPlateReverbLevels[];
+	static const TMenuItem s_FXPlateReverbSend[];
+	static const TMenuItem s_FXReverberator[];
+	static const TMenuItem s_FXReverberatorLevels[];
+	static const TMenuItem s_FXReverberatorSend[];
+	static const TMenuItem s_FXMainOutputLevels[];
+#endif
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];

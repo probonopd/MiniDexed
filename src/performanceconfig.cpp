@@ -102,9 +102,11 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 
+#if defined(PLATE_REVERB_ENABLE)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
-		
+#endif
+
 		PropertyName.Format ("PitchBendRange%u", nTG+1);
 		m_nPitchBendRange[nTG] = m_Properties.GetNumber (PropertyName, 2);
 
@@ -150,17 +152,91 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
 		
-		}
+	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
-	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
-	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
-	m_nReverbHighDamp = m_Properties.GetNumber ("ReverbHighDamp", 50);
-	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
-	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
-	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
+	this->m_bReverbEnable = this->m_Properties.GetNumber ("ReverbEnable", 1) != 0;
+	this->m_nReverbSize = this->m_Properties.GetNumber ("ReverbSize", 70);
+	this->m_nReverbHighDamp = this->m_Properties.GetNumber ("ReverbHighDamp", 50);
+	this->m_nReverbLowDamp = this->m_Properties.GetNumber ("ReverbLowDamp", 50);
+	this->m_nReverbLowPass = this->m_Properties.GetNumber ("ReverbLowPass", 30);
+	this->m_nReverbDiffusion = this->m_Properties.GetNumber ("ReverbDiffusion", 65);
+	this->m_nReverbLevel = this->m_Properties.GetNumber ("ReverbLevel", 99);
+#endif
+
+#if defined(MIXING_CONSOLE_ENABLE)
+	this->m_bFXTubeEnable = this->m_Properties.GetNumber("FXTubeEnable", 1);
+	this->m_nFXTubeOverdrive = this->m_Properties.GetNumber("FXTubeOverdrive", 10);
+
+	this->m_bFXChorusEnable = this->m_Properties.GetNumber("FXChorusEnable", 1);
+	this->m_nFXChorusRate = this->m_Properties.GetNumber("FXChorusRate", 50);
+	this->m_nFXChorusDepth = this->m_Properties.GetNumber("FXChorusDepth", 50);
+
+	this->m_bFXFlangerEnable = this->m_Properties.GetNumber("FXFlangerEnable", 1);
+	this->m_nFXFlangerRate = this->m_Properties.GetNumber("FXFlangerRate", 15);
+	this->m_nFXFlangerDepth = this->m_Properties.GetNumber("FXFlangerDepth", 10);
+	this->m_nFXFlangerFeedback = this->m_Properties.GetNumber("FXFlangerFeedback", 20);
+
+	this->m_bFXOrbitoneEnable = this->m_Properties.GetNumber("FXOrbitoneEnable", 1);
+	this->m_nFXOrbitoneRate = this->m_Properties.GetNumber("FXOrbitoneRate", 40);
+	this->m_nFXOrbitoneDepth = this->m_Properties.GetNumber("FXOrbitoneDepth", 50);
+
+	this->m_bFXPhaserEnable = this->m_Properties.GetNumber("FXPhaserEnable", 1);
+	this->m_nFXPhaserRate = this->m_Properties.GetNumber("FXPhaserRate", 5);
+	this->m_nFXPhaserDepth = this->m_Properties.GetNumber("FXPhaserDepth", 99);
+	this->m_nFXPhaserFeedback = this->m_Properties.GetNumber("FXPhaserFeedback", 50);
+	this->m_nFXPhaserNbStages = this->m_Properties.GetNumber("FXPhaserNbStages", 12);
+
+	this->m_bFXDelayEnable = this->m_Properties.GetNumber("FXDelayEnable", 1);
+	this->m_nFXDelayLeftDelayTime = this->m_Properties.GetNumber("FXDelayLeftDelayTime", 15);
+	this->m_nFXDelayRightDelayTime = this->m_Properties.GetNumber("FXDelayRightDelayTime", 22);
+	this->m_nFXDelayFeedback = this->m_Properties.GetNumber("FXDelayFeedback", 35);
+
+	this->m_bFXReverberatorEnable = this->m_Properties.GetNumber("FXReverberatorEnable", 1);
+	this->m_nFXReverberatorInputGain = this->m_Properties.GetNumber("FXReverberatorInputGain", 30);
+	this->m_nFXReverberatorTime = this->m_Properties.GetNumber("FXReverberatorTime", 30);
+	this->m_nFXReverberatorDiffusion = this->m_Properties.GetNumber("FXReverberatorDiffusion", 30);
+	this->m_nFXReverberatorLP = this->m_Properties.GetNumber("FXReverberatorLP", 99);
+
+	bool revUsed = false;
+	for(unsigned nTG = 0; nTG < CConfig::ToneGenerators; ++nTG)
+	{
+		CString reverbSendProp;
+		reverbSendProp.Format ("ReverbSend%u", nTG + 1);
+		unsigned reverbSend = m_Properties.GetNumber(reverbSendProp, 50);
+		revUsed |= (reverbSend > 0);
+
+		for(unsigned toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
+		{
+			CString propertyName;
+			propertyName.Format("FXSend_TG%u_to_%s", nTG + 1, toString(static_cast<MixerOutput>(toFX)).c_str());
+			unsigned defaultLevel = 0;
+			if(nTG == 0)
+			{
+				if(toFX == MixerOutput::FX_PlateReverb) defaultLevel = reverbSend;
+				else if(toFX == MixerOutput::MainOutput) defaultLevel = 99 - reverbSend;
+			}
+			this->m_nTGSendLevel[nTG][toFX] = this->m_Properties.GetNumber(propertyName, defaultLevel);
+		}
+	}
+
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t fromFX = 0; fromFX < end; ++fromFX)
+	{
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
+		{
+			CString propertyName;
+			propertyName.Format("FXSend_%s_to_%s", toString(static_cast<MixerOutput>(fromFX)).c_str(), toString(static_cast<MixerOutput>(toFX)).c_str());
+			unsigned defaultLevel = 0;
+			if(fromFX == MixerOutput::FX_PlateReverb && toFX == MixerOutput::MainOutput) defaultLevel = revUsed ? 99 : 0;
+			this->m_nFXSendLevel[fromFX][toFX] = this->m_Properties.GetNumber(propertyName, defaultLevel);
+		}
+	}
+
+	this->m_bFXBypass = this->m_Properties.GetNumber("FXBypass", 0);
+#endif
 
 	return bResult;
 }
@@ -219,9 +295,11 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nNoteShift[nTG]);
 
+#if defined(PLATE_REVERB_ENABLE)
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
-		
+#endif
+
 		PropertyName.Format ("PitchBendRange%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nPitchBendRange[nTG]);
 
@@ -272,6 +350,7 @@ bool CPerformanceConfig::Save (void)
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
+#if defined(PLATE_REVERB_ENABLE) || defined(MIXING_CONSOLE_ENABLE)
 	m_Properties.SetNumber ("ReverbEnable", m_bReverbEnable ? 1 : 0);
 	m_Properties.SetNumber ("ReverbSize", m_nReverbSize);
 	m_Properties.SetNumber ("ReverbHighDamp", m_nReverbHighDamp);
@@ -279,6 +358,65 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
+#endif
+
+#if defined(MIXING_CONSOLE_ENABLE)
+	this->m_Properties.SetNumber("FXTubeEnable", this->m_bFXTubeEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXTubeOverdrive", this->m_nFXTubeOverdrive);
+
+	this->m_Properties.SetNumber("FXChorusEnable", this->m_bFXChorusEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXChorusRate", this->m_nFXChorusRate);
+	this->m_Properties.SetNumber("FXChorusDepth", this->m_nFXChorusDepth);
+
+	this->m_Properties.SetNumber("FXFlangerEnable", this->m_bFXFlangerEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXFlangerRate", this->m_nFXFlangerRate);
+	this->m_Properties.SetNumber("FXFlangerDepth", this->m_nFXFlangerDepth);
+	this->m_Properties.SetNumber("FXFlangerFeedback", this->m_nFXFlangerFeedback);
+
+	this->m_Properties.SetNumber("FXOrbitoneEnable", this->m_bFXOrbitoneEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXOrbitoneRate", this->m_nFXOrbitoneRate);
+	this->m_Properties.SetNumber("FXOrbitoneDepth", this->m_nFXOrbitoneDepth);
+
+	this->m_Properties.SetNumber("FXPhaserEnable", this->m_bFXPhaserEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXPhaserRate", this->m_nFXPhaserRate);
+	this->m_Properties.SetNumber("FXPhaserDepth", this->m_nFXPhaserDepth);
+	this->m_Properties.SetNumber("FXPhaserFeedback", this->m_nFXPhaserFeedback);
+	this->m_Properties.SetNumber("FXPhaserNbStages", this->m_nFXPhaserNbStages);
+
+	this->m_Properties.SetNumber("FXDelayEnable", this->m_bFXDelayEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXDelayLeftDelayTime", this->m_nFXDelayLeftDelayTime);
+	this->m_Properties.SetNumber("FXDelayRightDelayTime", this->m_nFXDelayRightDelayTime);
+	this->m_Properties.SetNumber("FXDelayFeedback", this->m_nFXDelayFeedback);
+
+	this->m_Properties.SetNumber("FXReverberatorEnable", this->m_bFXReverberatorEnable ? 1 : 0);
+	this->m_Properties.SetNumber("FXReverberatorInputGain", this->m_nFXReverberatorInputGain);
+	this->m_Properties.SetNumber("FXReverberatorTime", this->m_nFXReverberatorTime);
+	this->m_Properties.SetNumber("FXReverberatorDiffusion", this->m_nFXReverberatorDiffusion);
+	this->m_Properties.SetNumber("FXReverberatorLP", this->m_nFXReverberatorLP);
+
+	for(unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
+		{
+			CString propertyName;
+			propertyName.Format("FXSend_TG%u_to_%s", nTG + 1, toString(static_cast<MixerOutput>(toFX)).c_str());
+			this->m_Properties.SetNumber(propertyName, this->m_nTGSendLevel[nTG][toFX]);
+		}
+	}
+
+	size_t end = MixerOutput::kFXCount - 1;
+	for(size_t fromFX = 0; fromFX < end; ++fromFX)
+	{
+		for(size_t toFX = 0; toFX < MixerOutput::kFXCount; ++toFX)
+		{
+			CString propertyName;
+			propertyName.Format("FXSend_%s_to_%s", toString(static_cast<MixerOutput>(fromFX)).c_str(), toString(static_cast<MixerOutput>(toFX)).c_str());
+			this->m_Properties.SetNumber(propertyName, this->m_nFXSendLevel[fromFX][toFX]);
+		}
+	}
+
+	this->m_Properties.SetNumber("FXBypass", this->m_bFXBypass ? 1 : 0);
+#endif
 
 	return m_Properties.Save ();
 }
@@ -349,11 +487,13 @@ int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 	return m_nNoteShift[nTG];
 }
 
+#if defined(PLATE_REVERB_ENABLE)
 unsigned CPerformanceConfig::GetReverbSend (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 	return m_nReverbSend[nTG];
 }
+#endif
 
 void CPerformanceConfig::SetBankNumber (unsigned nValue, unsigned nTG)
 {
@@ -421,11 +561,13 @@ void CPerformanceConfig::SetNoteShift (int nValue, unsigned nTG)
 	m_nNoteShift[nTG] = nValue;
 }
 
+#if defined(PLATE_REVERB_ENABLE)
 void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nReverbSend[nTG] = nValue;
 }
+#endif
 
 bool CPerformanceConfig::GetCompressorEnable (void) const
 {
@@ -851,9 +993,12 @@ bool CPerformanceConfig::ListPerformances()
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (nLastPerformance >= NUM_PERFORMANCES) {
+			if (nLastPerformance >= NUM_PERFORMANCES)
+			{
 				LOGNOTE ("Skipping performance %s", FileInfo.fname);
-			} else {
+			}
+			else
+			{
 				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
 				{
 					std::string FileName = FileInfo.fname;
@@ -865,9 +1010,9 @@ bool CPerformanceConfig::ListPerformances()
 						{
 							nLastFileIndex=nPIndex;
 						}
-
+			
 						m_nPerformanceFileName[nLastPerformance++]= FileName;
-					}	
+					}
 				}
 			}
 
@@ -876,15 +1021,14 @@ bool CPerformanceConfig::ListPerformances()
 		// sort by performance number-name
 		if (nLastPerformance > 2)
 		{
-		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
+			sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
 		}
 	}
 	
 	LOGNOTE ("Number of Performances: %d", nLastPerformance);
-	
+ 
 	return nInternalFolderOk;
 }   
-    
 
 void CPerformanceConfig::SetNewPerformance (unsigned nID)
 {
@@ -951,3 +1095,305 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 	}
 	return bOK;
 }
+
+#ifdef MIXING_CONSOLE_ENABLE
+
+bool CPerformanceConfig::GetFXTubeEnable(void) const
+{
+	return this->m_bFXTubeEnable;
+}
+
+unsigned CPerformanceConfig::GetFXTubeOverdrive(void) const
+{
+	return this->m_nFXTubeOverdrive;
+}
+
+bool CPerformanceConfig::GetFXChorusEnable(void) const
+{
+	return this->m_bFXChorusEnable;
+}
+
+unsigned CPerformanceConfig::GetFXChorusRate(void) const
+{
+	return this->m_nFXChorusRate;
+}
+
+unsigned CPerformanceConfig::GetFXChorusDepth(void) const
+{
+	return this->m_nFXChorusDepth;
+}
+
+bool CPerformanceConfig::GetFXFlangerEnable(void) const
+{
+	return this->m_bFXFlangerEnable;
+}
+
+unsigned CPerformanceConfig::GetFXFlangerRate(void) const
+{
+	return this->m_nFXFlangerRate;
+}
+
+unsigned CPerformanceConfig::GetFXFlangerDepth(void) const
+{
+	return this->m_nFXFlangerDepth;
+}
+
+unsigned CPerformanceConfig::GetFXFlangerFeedback(void) const
+{
+	return this->m_nFXFlangerFeedback;
+}
+
+bool CPerformanceConfig::GetFXOrbitoneEnable(void) const
+{
+	return this->m_bFXOrbitoneEnable;
+}
+
+unsigned CPerformanceConfig::GetFXOrbitoneRate(void) const
+{
+	return this->m_nFXOrbitoneRate;
+}
+
+unsigned CPerformanceConfig::GetFXOrbitoneDepth(void) const
+{
+	return this->m_nFXOrbitoneDepth;
+}
+
+bool CPerformanceConfig::GetFXPhaserEnable(void) const
+{
+	return this->m_bFXPhaserEnable;
+}
+
+unsigned CPerformanceConfig::GetFXPhaserRate(void) const
+{
+	return this->m_nFXPhaserRate;
+}
+
+unsigned CPerformanceConfig::GetFXPhaserDepth(void) const
+{
+	return this->m_nFXPhaserDepth;
+}
+
+unsigned CPerformanceConfig::GetFXPhaserFeedback(void) const
+{
+	return this->m_nFXPhaserFeedback;
+}
+
+unsigned CPerformanceConfig::GetFXPhaserNbStages(void) const
+{
+	return this->m_nFXPhaserNbStages;
+}
+
+bool CPerformanceConfig::GetFXDelayEnable(void) const
+{
+	return this->m_bFXDelayEnable;
+}
+
+unsigned CPerformanceConfig::GetFXDelayLeftDelayTime(void) const
+{
+	return this->m_nFXDelayLeftDelayTime;
+}
+
+unsigned CPerformanceConfig::GetFXDelayRightDelayTime(void) const
+{
+	return this->m_nFXDelayRightDelayTime;
+}
+
+unsigned CPerformanceConfig::GetFXDelayFeedback(void) const
+{
+	return this->m_nFXDelayFeedback;
+}
+
+bool CPerformanceConfig::GetFXReverberatorEnable(void) const
+{
+	return this->m_bFXReverberatorEnable;
+}
+
+unsigned CPerformanceConfig::GetFXReverberatorInputGain(void) const
+{
+	return this->m_nFXReverberatorInputGain;
+}
+
+unsigned CPerformanceConfig::GetFXReverberatorTime(void) const
+{
+	return this->m_nFXReverberatorTime;
+}
+
+unsigned CPerformanceConfig::GetFXReverberatorDiffusion(void) const
+{
+	return this->m_nFXReverberatorDiffusion;
+}
+
+unsigned CPerformanceConfig::GetFXReverberatorLP(void) const
+{
+	return this->m_nFXReverberatorLP;
+}
+
+unsigned CPerformanceConfig::GetTGSendLevel(unsigned in, MixerOutput fx) const
+{
+	assert(in < CConfig::ToneGenerators);
+	assert(fx < MixerOutput::kFXCount);
+	return this->m_nTGSendLevel[in][fx];
+}
+
+unsigned CPerformanceConfig::GetFXSendLevel(MixerOutput fromFX, MixerOutput toFX) const
+{
+	assert(fromFX < (MixerOutput::kFXCount - 1));
+	assert(toFX < MixerOutput::kFXCount);
+	return (fromFX == toFX) ? 0 : this->m_nFXSendLevel[fromFX][toFX];
+}
+
+void CPerformanceConfig::SetFXTubeEnable(bool bValue)
+{
+	this->m_bFXTubeEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXTubeOverdrive(unsigned nValue)
+{
+	this->m_nFXTubeOverdrive = nValue;
+}
+
+void CPerformanceConfig::SetFXChorusEnable(bool bValue)
+{
+	this->m_bFXChorusEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXChorusRate(unsigned nValue)
+{
+	this->m_nFXChorusRate = nValue;
+}
+
+void CPerformanceConfig::SetFXChorusDepth(unsigned nValue)
+{
+	this->m_nFXChorusDepth = nValue;
+}
+
+void CPerformanceConfig::SetFXFlangerEnable(bool bValue)
+{
+	this->m_bFXFlangerEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXFlangerRate(unsigned nValue)
+{
+	this->m_nFXFlangerRate = nValue;
+}
+
+void CPerformanceConfig::SetFXFlangerDepth(unsigned nValue)
+{
+	this->m_nFXFlangerDepth = nValue;
+}
+
+void CPerformanceConfig::SetFXFlangerFeedback(unsigned nValue)
+{
+	this->m_nFXFlangerFeedback = nValue;
+}
+
+void CPerformanceConfig::SetFXOrbitoneEnable(bool bValue)
+{
+	this->m_bFXOrbitoneEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXOrbitoneRate(unsigned nValue)
+{
+	this->m_nFXOrbitoneRate = nValue;
+}
+
+void CPerformanceConfig::SetFXOrbitoneDepth(unsigned nValue)
+{
+	this->m_nFXOrbitoneDepth = nValue;
+}
+
+void CPerformanceConfig::SetFXPhaserEnable(bool bValue)
+{
+	this->m_bFXPhaserEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXPhaserRate(unsigned nValue)
+{
+	this->m_nFXPhaserRate = nValue;
+}
+
+void CPerformanceConfig::SetFXPhaserDepth(unsigned nValue)
+{
+	this->m_nFXPhaserDepth = nValue;
+}
+
+void CPerformanceConfig::SetFXPhaserFeedback(unsigned nValue)
+{
+	this->m_nFXPhaserFeedback = nValue;
+}
+
+void CPerformanceConfig::SetFXPhaserNbStages(unsigned nValue)
+{
+	this->m_nFXPhaserNbStages = nValue;
+}
+
+void CPerformanceConfig::SetFXDelayEnable(unsigned bValue)
+{
+	this->m_bFXDelayEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXDelayLeftDelayTime(unsigned nValue)
+{
+	this->m_nFXDelayLeftDelayTime = nValue;
+}
+
+void CPerformanceConfig::SetFXDelayRightDelayTime(unsigned nValue)
+{
+	this->m_nFXDelayRightDelayTime = nValue;
+}
+
+void CPerformanceConfig::SetFXDelayFeedback(unsigned nValue)
+{
+	this->m_nFXDelayFeedback = nValue;
+}
+
+void CPerformanceConfig::SetFXReverberatorEnable(unsigned bValue)
+{
+	this->m_bFXReverberatorEnable = bValue;
+}
+
+void CPerformanceConfig::SetFXReverberatorInputGain(unsigned nValue)
+{
+	this->m_nFXReverberatorInputGain = nValue;
+}
+
+void CPerformanceConfig::SetFXReverberatorTime(unsigned nValue)
+{
+	this->m_nFXReverberatorTime = nValue;
+}
+
+void CPerformanceConfig::SetFXReverberatorDiffusion(unsigned nValue)
+{
+	this->m_nFXReverberatorDiffusion = nValue;
+}
+
+void CPerformanceConfig::SetFXReverberatorLP(unsigned nValue)
+{
+	this->m_nFXReverberatorLP = nValue;
+}
+
+void CPerformanceConfig::SetTGSendLevel(unsigned in, MixerOutput fx, unsigned nValue)
+{
+	assert(in < CConfig::ToneGenerators);
+	assert(fx < MixerOutput::kFXCount);
+	this->m_nTGSendLevel[in][fx] = nValue;
+}
+
+void CPerformanceConfig::SetFXSendLevel(MixerOutput fromFX, MixerOutput toFX, unsigned nValue)
+{
+	assert(fromFX < (MixerOutput::kFXCount - 1));
+	assert(toFX < MixerOutput::kFXCount);
+	this->m_nFXSendLevel[fromFX][toFX] = (fromFX == toFX) ? 0 : nValue;
+}
+
+void CPerformanceConfig::SetFXBypass(bool bypass)
+{
+	this->m_bFXBypass = bypass;
+}
+
+bool CPerformanceConfig::IsFXBypass() const
+{
+	return this->m_bFXBypass;
+}
+
+#endif
