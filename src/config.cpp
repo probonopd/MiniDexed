@@ -21,6 +21,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "config.h"
+#include "../Synth_Dexed/src/dexed.h"
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -45,6 +46,15 @@ void CConfig::Load (void)
 #endif
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
+
+		unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
+	if (newEngineType == 2) {
+  		m_EngineType = MKI;
+	} else if (newEngineType == 3) {
+  		m_EngineType = OPL;
+	} else {
+  		m_EngineType = MSFA;
+	}
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);
 
@@ -149,6 +159,11 @@ unsigned CConfig::GetDACI2CAddress (void) const
 bool CConfig::GetChannelsSwapped (void) const
 {
 	return m_bChannelsSwapped;
+}
+
+unsigned CConfig::GetEngineType (void) const
+{
+	return m_EngineType;
 }
 
 unsigned CConfig::GetMIDIBaudRate (void) const
@@ -400,3 +415,5 @@ bool CConfig::GetPerformanceSelectToLoad (void) const
 {
 	return m_bPerformanceSelectToLoad;
 }
+
+
