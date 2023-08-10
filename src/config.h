@@ -69,6 +69,7 @@ public:
 	unsigned GetChunkSize (void) const;
 	unsigned GetDACI2CAddress (void) const;		// 0 for auto probing
 	bool GetChannelsSwapped (void) const;
+	unsigned GetEngineType (void) const;
 
 	// MIDI
 	unsigned GetMIDIBaudRate (void) const;
@@ -172,6 +173,7 @@ private:
 	unsigned m_nChunkSize;
 	unsigned m_nDACI2CAddress;
 	bool m_bChannelsSwapped;
+	unsigned m_EngineType;
 
 	unsigned m_nMIDIBaudRate;
 	std::string m_MIDIThruIn;
