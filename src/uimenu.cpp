@@ -1318,13 +1318,16 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
 		
-
 		std::string nPSelected = "";
 		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
 		{
-			nPSelected= "[L]";
+		    nPSelected = std::to_string(pUIMenu->m_pMiniDexed->GetActualPerformanceID()) + " [L]";
 		}
-					
+		else
+		{
+		    nPSelected = std::to_string(pUIMenu->m_pMiniDexed->GetActualPerformanceID());
+		}
+	
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
 						  Value.c_str (),
 						 (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance()-1);
