@@ -1316,7 +1316,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		
 	if(!pUIMenu->m_bPerformanceDeleteMode)
 	{
-		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
+		Value = pUIMenu->m_pMiniDexed->GetPerformanceFileName(nValue);
 		
 		std::string nPSelected = "";
 		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
