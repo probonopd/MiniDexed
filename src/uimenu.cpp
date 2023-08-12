@@ -1205,7 +1205,7 @@ void CUIMenu::OPShortcutHandler (TMenuEvent Event)
 
 void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 {
-	if (m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceSelectChannel) > 0)
+	if (m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceSelectChannel) != CMIDIDevice::Disabled)
 	{
 		// Program Up/Down acts on performances
 		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
