@@ -1317,15 +1317,29 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	if(!pUIMenu->m_bPerformanceDeleteMode)
 	{
 		Value = pUIMenu->m_pMiniDexed->GetPerformanceFileName(nValue);
+
+   		// Remove leading 0s
+		Value.erase(0, std::min(Value.find_first_not_of('0'), Value.size()-1));
+
+		// Replace "_" after the performance number with "="
+		size_t nPos = Value.find_first_not_of("0123456789");
+		if (nPos != std::string::npos && Value[nPos] == '_')
+		{
+			Value[nPos] = '=';
+		}
+
+		// Remove suffix
+		Value = Value.substr(0, Value.find_last_of("."));
+		
+		// Limit length to 14 characters
+    	if (Value.length() > 14) {
+    	    Value = Value.substr(0, 14);
+    	}
 		
 		std::string nPSelected = "";
 		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
 		{
-		    nPSelected = std::to_string(pUIMenu->m_pMiniDexed->GetActualPerformanceID()) + " [L]";
-		}
-		else
-		{
-		    nPSelected = std::to_string(pUIMenu->m_pMiniDexed->GetActualPerformanceID());
+		    nPSelected = "[L]";
 		}
 	
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
@@ -1556,5 +1570,3 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 				   
 }
-
-
