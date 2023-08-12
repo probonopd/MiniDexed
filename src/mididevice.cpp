@@ -191,9 +191,24 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		case MIDI_NOTE_ON:
 			if (nLength < 3)
 			{
-				break;	
+				break;
 			}
 			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+			break;
+		case MIDI_PROGRAM_CHANGE:
+			// Check for performance PC messages
+			if( m_pConfig->GetMIDIRXProgramChange() )
+			{
+				unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
+				if( nPerfCh != Disabled)
+				{
+					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
+					{
+						//printf("Performance Select Channel %d\n", nPerfCh);
+						m_pSynthesizer->ProgramChangePerformance (pMessage[1]);
+					}
+				}
+			}
 			break;
 		}
 
@@ -336,9 +351,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						break;
 		
 					case MIDI_PROGRAM_CHANGE:
-						// do program change only if enabled in config
-						if( m_pConfig->GetMIDIRXProgramChange() )
-							m_pSynthesizer->ProgramChangePerformance (pMessage[1], nTG);
+						// do program change only if enabled in config and not in "Performance Select Channel" mode
+						if( m_pConfig->GetMIDIRXProgramChange() && ( m_pSynthesizer->GetPerformanceSelectChannel() == Disabled) ) {
+							//printf("Program Change to %d (%d)\n", ucChannel, m_pSynthesizer->GetPerformanceSelectChannel());
+							m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+						}
 						break;
 		
 					case MIDI_PITCH_BEND: {

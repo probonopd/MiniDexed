@@ -57,8 +57,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bLoadPerformanceBusy(false)
 {
 	assert (m_pConfig);
-		
-	m_bPerformanceProgramChange = m_pConfig->GetPerformanceProgramChange();
+
+	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
@@ -180,6 +180,20 @@ bool CMiniDexed::Initialize (void)
 		LOGNOTE ("Serial MIDI interface enabled");
 
 		m_bUseSerial = true;
+	}
+	
+	if (m_pConfig->GetMIDIRXProgramChange())
+	{
+		int nPerfCh = GetParameter(ParameterPerformanceSelectChannel);
+		if (nPerfCh == CMIDIDevice::Disabled) {
+			LOGNOTE("Program Change: Enabled for Voices");
+		} else if (nPerfCh == CMIDIDevice::OmniMode) {
+			LOGNOTE("Program Change: Enabled for Performances (Omni)");
+		} else {
+			LOGNOTE("Program Change: Enabled for Performances (CH %d)", nPerfCh+1);
+		}
+	} else {
+		LOGNOTE("Program Change: Disabled");
 	}
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
@@ -461,38 +475,20 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-void CMiniDexed::ProgramChangePerformance (unsigned nProgram, unsigned nTG)
+void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 {
-	assert (m_pConfig);
-	
-	if (m_bPerformanceProgramChange)
+	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
 		// Program Change messages change Performances.
-		//
-		// Only pay attention to PCs received on the MIDI channel
-		// associated with TG1.
-		//
-		// Note: as performances store the MIDI channnel, if
-		//       the MIDI channel for TG1 changes, then further
-		//       PCs will only be actioned on the new channel number...
-		if (nTG == 0)
+		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
+
+		// GetLastPerformance actually returns 1-indexed, number of performances
+		if (nProgram < nLastPerformance - 1)
 		{
-			unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
-
-			// GetLastPerformance actually returns 1-indexed, number of performances
-			if (nProgram < nLastPerformance - 1)
-			{
-				SetNewPerformance(nProgram);
-			}
+			SetNewPerformance(nProgram);
 		}
+		m_UI.ParameterChanged ();
 	}
-	else
-	{
-		// Program Change messages change voice on specified TG
-		ProgramChange(nProgram, nTG);
-	}
-
-	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
@@ -789,6 +785,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterPerformanceSelectChannel:
+		// Nothing more to do
 		break;
 
 	default:
@@ -1146,6 +1146,30 @@ void CMiniDexed::ProcessSound (void)
 
 #endif
 
+unsigned CMiniDexed::GetPerformanceSelectChannel (void)
+{
+	// Stores and returns Select Channel using MIDI Device Channel definitions
+	return (unsigned) GetParameter (ParameterPerformanceSelectChannel);
+}
+
+void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
+{
+	// Turns a configuration setting to MIDI Device Channel definitions
+	// Mirrors the logic in Performance Config for handling MIDI channel configuration
+	if (uCh == 0)
+	{
+		SetParameter (ParameterPerformanceSelectChannel, CMIDIDevice::Disabled);
+	}
+	else if (uCh < CMIDIDevice::Channels)
+	{
+		SetParameter (ParameterPerformanceSelectChannel, uCh - 1);
+	}
+	else
+	{
+		SetParameter (ParameterPerformanceSelectChannel, CMIDIDevice::OmniMode);
+	}
+}
+
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
 	m_bSavePerformance = true;
@@ -1466,16 +1490,6 @@ std::string CMiniDexed::GetPerformanceName(unsigned nID)
 unsigned CMiniDexed::GetLastPerformance()
 {
 	return m_PerformanceConfig.GetLastPerformance();
-}
-
-bool CMiniDexed::GetPerformanceProgramChange (void)
-{
-	return m_bPerformanceProgramChange;
-}
-
-void CMiniDexed::SetPerformanceProgramChange (bool bPerfPC)
-{
-	m_bPerformanceProgramChange = bPerfPC;
 }
 
 unsigned CMiniDexed::GetActualPerformanceID()

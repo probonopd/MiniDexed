@@ -213,7 +213,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbLowDamp
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
-	{0,	99,	1}				// ParameterReverbLevel
+	{0,	99,	1},				// ParameterReverbLevel
+	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel} 	// ParameterPerformanceSelectChannel
 };
 
 // must match CMiniDexed::TTGParameter
@@ -325,7 +326,7 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1},
-	{"Program Change", EditPerformanceProgramChange, 0, 0},
+	{"MIDI PC",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
 	{0}
 };
 
@@ -1204,7 +1205,7 @@ void CUIMenu::OPShortcutHandler (TMenuEvent Event)
 
 void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 {
-	if (m_pMiniDexed->GetPerformanceProgramChange())
+	if (m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceSelectChannel) > 0)
 	{
 		// Program Up/Down acts on performances
 		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
@@ -1489,39 +1490,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
 }
-
-void CUIMenu::EditPerformanceProgramChange (CUIMenu *pUIMenu, TMenuEvent Event)
-{
-	bool bPerfPC = pUIMenu->m_pMiniDexed->GetPerformanceProgramChange();
-	switch (Event)
-	{
-	case MenuEventUpdate:
-		break;
-
-	case MenuEventStepDown:
-	case MenuEventStepUp:
-		bPerfPC = !bPerfPC;
-		pUIMenu->m_pMiniDexed->SetPerformanceProgramChange(bPerfPC);
-		break;
-
-	default:
-		return;
-	}
-
-	string PPC (" =");
-	string Value;
-	if (bPerfPC) {
-		Value = "Performance";
-	} else {
-		Value = "Voices";
-	}
-
-	pUIMenu->m_pUI->DisplayWrite (PPC.c_str (),
-					  pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-					  Value.c_str (),
-					  true, true);
-}
-
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 {

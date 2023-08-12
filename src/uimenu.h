@@ -91,7 +91,6 @@ private:
 	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditPerformanceProgramChange (CUIMenu *pUIMenu, TMenuEvent Event);
 	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
