@@ -31,6 +31,7 @@
 #include <assert.h>
 
 using namespace std;
+LOGMODULE ("uimenu");
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
@@ -212,7 +213,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbLowDamp
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
-	{0,	99,	1}				// ParameterReverbLevel
+	{0,	99,	1},				// ParameterReverbLevel
+	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel} 	// ParameterPerformanceSelectChannel
 };
 
 // must match CMiniDexed::TTGParameter
@@ -323,7 +325,8 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
-	{"Delete",	PerformanceMenu, 0, 1}, 
+	{"Delete",	PerformanceMenu, 0, 1},
+	{"PCCH",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
 	{0}
 };
 
@@ -400,6 +403,16 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		m_nMenuStackParameter[0] = 0;
 #endif
 		EventHandler (MenuEventUpdate);
+		break;
+
+	case MenuEventPgmUp:
+	case MenuEventPgmDown:
+		PgmUpDownHandler(Event);
+		break;
+
+	case MenuEventTGUp:
+	case MenuEventTGDown:
+		TGUpDownHandler(Event);
 		break;
 
 	default:
@@ -604,7 +617,9 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG); // Skip empty voices
+	// Skip empty voices.
+	// Use same criteria in PgmUpDownHandler() too.
+	string voiceName = pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 	if (voiceName == "EMPTY     "
 	    || voiceName == "          "
 	    || voiceName == "----------"
@@ -1186,6 +1201,147 @@ void CUIMenu::OPShortcutHandler (TMenuEvent Event)
 
 		EventHandler (MenuEventUpdate);
 	}
+}
+
+void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
+{
+	if (m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceSelectChannel) != CMIDIDevice::Disabled)
+	{
+		// Program Up/Down acts on performances
+		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
+		unsigned nPerformance = m_pMiniDexed->GetActualPerformanceID();
+		//LOGNOTE("Performance actual=%d, last=%d", nPerformance, nLastPerformance);
+		if (Event == MenuEventPgmDown)
+		{
+			if (nPerformance > 0)
+			{
+				m_nSelectedPerformanceID = nPerformance-1;
+				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
+			}
+		}
+		else
+		{
+			if (nPerformance < nLastPerformance-1)
+			{
+				m_nSelectedPerformanceID = nPerformance+1;
+				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
+			}
+		}
+	}
+	else
+	{
+		// Program Up/Down acts on voices within a TG.
+	
+		// If we're not in the root menu, then see if we are already in a TG menu,
+		// then find the current TG number. Otherwise assume TG1 (nTG=0).
+		unsigned nTG = 0;
+		if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
+			nTG = m_nMenuStackSelection[0];
+		}
+		assert (nTG < CConfig::ToneGenerators);
+
+		int nPgm = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
+
+		assert (Event == MenuEventPgmDown || Event == MenuEventPgmUp);
+		if (Event == MenuEventPgmDown)
+		{
+			//LOGNOTE("PgmDown");
+			if (--nPgm < 0)
+			{
+				// Switch down a voice bank and set to the last voice
+				nPgm = CSysExFileLoader::VoicesPerBank-1;
+				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+			}
+			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
+		}
+		else
+		{
+			//LOGNOTE("PgmUp");
+			if (++nPgm > (int) CSysExFileLoader::VoicesPerBank-1)
+			{
+				// Switch up a voice bank and reset to voice 0
+				nPgm = 0;
+				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+			}
+			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
+		}
+
+		// Skip empty voices.
+		// Use same criteria in EditProgramNumber () too.
+		string voiceName = m_pMiniDexed->GetVoiceName (nTG);
+		if (voiceName == "EMPTY     "
+			|| voiceName == "          "
+			|| voiceName == "----------"
+			|| voiceName == "~~~~~~~~~~" )
+		{
+			if (Event == MenuEventPgmUp) {
+				PgmUpDownHandler (MenuEventPgmUp);
+			}
+			if (Event == MenuEventPgmDown) {
+				PgmUpDownHandler (MenuEventPgmDown);
+			}
+		}
+	}
+}
+
+void CUIMenu::TGUpDownHandler (TMenuEvent Event)
+{
+	// This will update the menus to position it for the next TG up or down
+	unsigned nTG = 0;
+	
+	if (CConfig::ToneGenerators <= 1) {
+		// Nothing to do if only a single TG
+		return;
+	}
+
+	// If we're not in the root menu, then see if we are already in a TG menu,
+	// then find the current TG number. Otherwise assume TG1 (nTG=0).
+	if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
+		nTG = m_nMenuStackSelection[0];
+	}
+
+	assert (nTG < CConfig::ToneGenerators);
+	assert (Event == MenuEventTGDown || Event == MenuEventTGUp);
+	if (Event == MenuEventTGDown)
+	{
+		//LOGNOTE("TGDown");
+		if (nTG > 0) {
+			nTG--;
+		}
+	}
+	else
+	{
+		//LOGNOTE("TGUp");
+		if (nTG < CConfig::ToneGenerators - 1) {
+			nTG++;
+		}
+	}
+
+	// Set menu to the appropriate TG menu as follows:
+	//  Top = Root
+	//  Menu [0] = Main
+	//  Menu [1] = TG Menu
+	m_pParentMenu = s_MainMenu;
+	m_pCurrentMenu = s_TGMenu;
+	m_nCurrentMenuItem = nTG;
+	m_nCurrentSelection = 0;
+	m_nCurrentParameter = nTG;
+	m_nCurrentMenuDepth = 1;
+
+	// Place the main menu on the stack with Root as the parent
+	m_MenuStackParent[0] = s_MenuRoot;
+	m_MenuStackMenu[0] = s_MainMenu;
+	m_nMenuStackItem[0] = 0;
+	m_nMenuStackSelection[0] = nTG;
+	m_nMenuStackParameter[0] = 0;
+
+	EventHandler (MenuEventUpdate);
 }
 
 void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext)

@@ -24,11 +24,12 @@
 #include <circle/types.h>
 
 // MIDI CC numbers go 0 to 127.
+// NB: 0 is treated as "unused" so CC=0 won't work
 // Normal GPIO pins are below 100.
 // So use a "pin number" of 128 + MIDI CC message for a "MIDI Pin"
 #define MIDI_PINS 128
-#define ccToMidiPin(c) ((c)+MIDI_PINS)
-#define MidiPinToCC(p) ((p)-MIDI_PINS)
+#define ccToMidiPin(c) (((c)==0)?0:((c)+MIDI_PINS))
+#define MidiPinToCC(p) (((p)>=MIDI_PINS)?((p)-MIDI_PINS):0)
 #define isMidiPin(p)   (((p)>=MIDI_PINS)?1:0)
 
 class CMIDIPin

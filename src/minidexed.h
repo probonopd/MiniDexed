@@ -67,6 +67,7 @@ public:
 	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
+	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
@@ -125,7 +126,9 @@ public:
 	bool DoSetNewPerformance (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
-	
+	unsigned GetPerformanceSelectChannel (void);
+	void SetPerformanceSelectChannel (unsigned uCh);
+
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
 	{
@@ -137,6 +140,7 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
+		ParameterPerformanceSelectChannel,
 		ParameterUnknown
 	};
 

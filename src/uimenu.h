@@ -45,6 +45,10 @@ public:
 		MenuEventStepUp,
 		MenuEventPressAndStepDown,
 		MenuEventPressAndStepUp,
+		MenuEventPgmUp,
+		MenuEventPgmDown,
+		MenuEventTGUp,
+		MenuEventTGDown,
 		MenuEventUnknown
 	};
 
@@ -111,6 +115,9 @@ private:
 
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
+
+	void PgmUpDownHandler (TMenuEvent Event);
+	void TGUpDownHandler (TMenuEvent Event);
 
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 

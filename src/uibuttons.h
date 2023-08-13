@@ -27,8 +27,8 @@
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
 #define DEBOUNCE_TIME 100
-#define MAX_GPIO_BUTTONS 5
-#define MAX_MIDI_BUTTONS 5
+#define MAX_GPIO_BUTTONS 9  // 5 UI buttons, 4 Program/TG Select buttons
+#define MAX_MIDI_BUTTONS 9
 #define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
 
 class CUIButtons;
@@ -52,7 +52,11 @@ public:
 		BtnEventBack = 3,
 		BtnEventSelect = 4,
 		BtnEventHome = 5,
-		BtnEventUnknown = 6
+		BtnEventPgmUp = 6,
+		BtnEventPgmDown = 7,
+		BtnEventTGUp = 8,
+		BtnEventTGDown = 9,
+		BtnEventUnknown = 10
 	};
 	
 	CUIButton (void);
@@ -113,8 +117,13 @@ public:
 			unsigned backPin, const char *backAction,
 			unsigned selectPin, const char *selectAction,
 			unsigned homePin, const char *homeAction,
+			unsigned pgmUpPin, const char *pgmUpAction,
+			unsigned pgmDownPin, const char *pgmDownAction,
+			unsigned TGUpPin, const char *TGUpAction,
+			unsigned TGDownPin, const char *TGDownAction,
 			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi
+			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi,
+			unsigned pgmUpMidi, unsigned pgmDownMidi, unsigned TGUpMidi, unsigned TGDownMidi
 	);
 	~CUIButtons (void);
 	
@@ -149,6 +158,16 @@ private:
 	unsigned m_homePin;
 	CUIButton::BtnTrigger m_homeAction;
 	
+	// Program and TG Selection buttons
+	unsigned m_pgmUpPin;
+	CUIButton::BtnTrigger m_pgmUpAction;
+	unsigned m_pgmDownPin;
+	CUIButton::BtnTrigger m_pgmDownAction;
+	unsigned m_TGUpPin;
+	CUIButton::BtnTrigger m_TGUpAction;
+	unsigned m_TGDownPin;
+	CUIButton::BtnTrigger m_TGDownAction;
+	
 	// MIDI button configuration
 	unsigned m_notesMidi;
 	unsigned m_prevMidi;
@@ -156,6 +175,11 @@ private:
 	unsigned m_backMidi;
 	unsigned m_selectMidi;
 	unsigned m_homeMidi;
+	
+	unsigned m_pgmUpMidi;
+	unsigned m_pgmDownMidi;
+	unsigned m_TGUpMidi;
+	unsigned m_TGDownMidi;
 
 	BtnEventHandler *m_eventHandler;
 	void *m_eventParam;
