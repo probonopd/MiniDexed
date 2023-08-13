@@ -326,7 +326,7 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1},
-	{"MIDI PC",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
+	{"PCCH",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
 	{0}
 };
 

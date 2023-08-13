@@ -58,8 +58,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 {
 	assert (m_pConfig);
 
-	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
-
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
@@ -161,6 +159,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
+
+	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 };
 
 bool CMiniDexed::Initialize (void)
