@@ -307,7 +307,7 @@ const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
 	{0, 1, 1, ToOnOff}		// DEXED_OP_ENABLE
 };
 
-const char CUIMenu::s_NoteName[112][5] =
+const char CUIMenu::s_NoteName[100][5] =
 {
 "A-1", "A#-1", "B-1", "C0", "C#0", "D0", "D#0", "E0", "F0", "F#0", "G0", "G#0",
 "A0", "A#0", "B0", "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1",
