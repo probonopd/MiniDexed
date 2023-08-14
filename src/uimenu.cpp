@@ -307,8 +307,9 @@ const CUIMenu::TParameter CUIMenu::s_OPParameter[] =
 	{0, 1, 1, ToOnOff}		// DEXED_OP_ENABLE
 };
 
-const char CUIMenu::s_NoteName[100][4] =
+const char CUIMenu::s_NoteName[112][5] =
 {
+	"A-1", "A#-1", "B-1", "C-1", "C#-1", "D-1", "D#-1", "E-1", "F-1", "F#-1", "G-1", "G#-1",
 	"A1", "A#1", "B1", "C1", "C#1", "D1", "D#1", "E1", "F1", "F#1",	"G1", "G#1",
 	"A2", "A#2", "B2", "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2",
 	"A3", "A#3", "B3", "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3",
@@ -319,7 +320,7 @@ const char CUIMenu::s_NoteName[100][4] =
 	"A8", "A#8", "B8", "C8", "C#8", "D8", "D#8", "E8", "F8", "F#8", "G8", "G#8",
 	"A9", "A#9", "B9", "C9"
 };
-static const unsigned NoteC3 = 27;
+static const unsigned NoteC3 = 39;
 
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
