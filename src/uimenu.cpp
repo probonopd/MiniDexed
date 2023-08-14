@@ -320,7 +320,7 @@ const char CUIMenu::s_NoteName[112][5] =
 "A7", "A#7", "B7", "C8"
 };
 
-static const unsigned NoteC3 = 60;
+static const unsigned NoteC3 = 39;
 
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
