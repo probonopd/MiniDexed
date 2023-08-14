@@ -161,7 +161,7 @@ private:
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 
-	static const char s_NoteName[124][5];
+	static const char s_NoteName[112][5];
 
 	std::string m_InputText="1234567890ABCD";
 	unsigned m_InputTextPosition=0;
