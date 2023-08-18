@@ -101,6 +101,8 @@ bool CUserInterface::Initialize (void)
 		assert (m_pLCDBuffered);
 
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
+		LCDWrite ("MiniDexed\nLoading...");
+		m_pLCDBuffered->Update ();
 
 		LOGDBG ("LCD initialized");
 	}
