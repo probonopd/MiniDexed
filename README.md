@@ -49,6 +49,8 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 * If the system seems to become unresponsive after a few seconds, remove `usbspeed=full` from `cmdline.txt` and repeat ([details](https://github.com/probonopd/MiniDexed/issues/39))
 * Optionally, put voices in `.syx` files onto the SD card (e.g., using `getsysex.sh`)
 * See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
+* For voice programming, use any DX series editor (using MIDI sysex), including Dexed
+* For library management, use the dedicated [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software
 * If something is unclear or does not work, don't hesitate to [ask](https://github.com/probonopd/MiniDexed/discussions/)!
 
 ## Pinout
@@ -89,3 +91,4 @@ This project stands on the shoulders of giants. Special thanks to:
 * [rsta2](https://github.com/rsta2) for https://github.com/rsta2/circle, the library to run code on bare metal Raspberry Pi (without a Linux kernel or operating system) and for the bulk of the MiniDexed code 
 * [smuehlst](https://github.com/smuehlst) for https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ library support
 * [Banana71](https://github.com/Banana71) for the sound design of the performances shipped with MiniDexed
+* [BobanSpasic] for the [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software
