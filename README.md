@@ -88,3 +88,4 @@ This project stands on the shoulders of giants. Special thanks to:
 * [dcoredump](https://github.com/dcoredump) for https://codeberg.org/dcoredump/Synth_Dexed, a port of Dexed for embedded systems
 * [rsta2](https://github.com/rsta2) for https://github.com/rsta2/circle, the library to run code on bare metal Raspberry Pi (without a Linux kernel or operating system) and for the bulk of the MiniDexed code 
 * [smuehlst](https://github.com/smuehlst) for https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ library support
+* [Banana71](https://github.com/Banana71) for the sound design of the performances shipped with MiniDexed
