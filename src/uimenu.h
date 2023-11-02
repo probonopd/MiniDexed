@@ -45,6 +45,10 @@ public:
 		MenuEventStepUp,
 		MenuEventPressAndStepDown,
 		MenuEventPressAndStepUp,
+		MenuEventPgmUp,
+		MenuEventPgmDown,
+		MenuEventTGUp,
+		MenuEventTGDown,
 		MenuEventUnknown
 	};
 
@@ -112,6 +116,9 @@ private:
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
 
+	void PgmUpDownHandler (TMenuEvent Event);
+	void TGUpDownHandler (TMenuEvent Event);
+
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 
 	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -154,7 +161,7 @@ private:
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 
-	static const char s_NoteName[100][4];
+	static const char s_NoteName[100][5];
 
 	std::string m_InputText="1234567890ABCD";
 	unsigned m_InputTextPosition=0;

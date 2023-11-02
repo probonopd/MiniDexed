@@ -95,6 +95,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		assert (m_pTG[i]);
 
 		m_pTG[i]->setVelocityScale(pConfig->GetVelocityScale ());
+		
+		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 
 		m_pTG[i]->activate ();
 	}
@@ -160,6 +162,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
+
+	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 };
 
 bool CMiniDexed::Initialize (void)
@@ -179,6 +183,20 @@ bool CMiniDexed::Initialize (void)
 		LOGNOTE ("Serial MIDI interface enabled");
 
 		m_bUseSerial = true;
+	}
+	
+	if (m_pConfig->GetMIDIRXProgramChange())
+	{
+		int nPerfCh = GetParameter(ParameterPerformanceSelectChannel);
+		if (nPerfCh == CMIDIDevice::Disabled) {
+			LOGNOTE("Program Change: Enabled for Voices");
+		} else if (nPerfCh == CMIDIDevice::OmniMode) {
+			LOGNOTE("Program Change: Enabled for Performances (Omni)");
+		} else {
+			LOGNOTE("Program Change: Enabled for Performances (CH %d)", nPerfCh+1);
+		}
+	} else {
+		LOGNOTE("Program Change: Disabled");
 	}
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
@@ -458,6 +476,22 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	}
 
 	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
+{
+	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
+	{
+		// Program Change messages change Performances.
+		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
+
+		// GetLastPerformance actually returns 1-indexed, number of performances
+		if (nProgram < nLastPerformance - 1)
+		{
+			SetNewPerformance(nProgram);
+		}
+		m_UI.ParameterChanged ();
+	}
 }
 
 void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
@@ -754,6 +788,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		break;
+
+	case ParameterPerformanceSelectChannel:
+		// Nothing more to do
 		break;
 
 	default:
@@ -1111,6 +1149,30 @@ void CMiniDexed::ProcessSound (void)
 
 #endif
 
+unsigned CMiniDexed::GetPerformanceSelectChannel (void)
+{
+	// Stores and returns Select Channel using MIDI Device Channel definitions
+	return (unsigned) GetParameter (ParameterPerformanceSelectChannel);
+}
+
+void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
+{
+	// Turns a configuration setting to MIDI Device Channel definitions
+	// Mirrors the logic in Performance Config for handling MIDI channel configuration
+	if (uCh == 0)
+	{
+		SetParameter (ParameterPerformanceSelectChannel, CMIDIDevice::Disabled);
+	}
+	else if (uCh < CMIDIDevice::Channels)
+	{
+		SetParameter (ParameterPerformanceSelectChannel, uCh - 1);
+	}
+	else
+	{
+		SetParameter (ParameterPerformanceSelectChannel, CMIDIDevice::OmniMode);
+	}
+}
+
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
 	m_bSavePerformance = true;
@@ -1432,8 +1494,6 @@ unsigned CMiniDexed::GetLastPerformance()
 {
 	return m_PerformanceConfig.GetLastPerformance();
 }
-
-
 
 unsigned CMiniDexed::GetActualPerformanceID()
 {

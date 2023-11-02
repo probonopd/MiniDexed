@@ -101,6 +101,8 @@ bool CUserInterface::Initialize (void)
 		assert (m_pLCDBuffered);
 
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
+		LCDWrite ("MiniDexed\nLoading...");
+		m_pLCDBuffered->Update ();
 
 		LOGDBG ("LCD initialized");
 	}
@@ -115,6 +117,14 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetButtonActionSelect (),
 									m_pConfig->GetButtonPinHome (),
 									m_pConfig->GetButtonActionHome (),
+									m_pConfig->GetButtonPinPgmUp (),
+									m_pConfig->GetButtonActionPgmUp (),
+									m_pConfig->GetButtonPinPgmDown (),
+									m_pConfig->GetButtonActionPgmDown (),
+									m_pConfig->GetButtonPinTGUp (),
+									m_pConfig->GetButtonActionTGUp (),
+									m_pConfig->GetButtonPinTGDown (),
+									m_pConfig->GetButtonActionTGDown (),
 									m_pConfig->GetDoubleClickTimeout (),
 									m_pConfig->GetLongPressTimeout (),
 									m_pConfig->GetMIDIButtonNotes (),
@@ -122,7 +132,11 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetMIDIButtonNext (),
 									m_pConfig->GetMIDIButtonBack (),
 									m_pConfig->GetMIDIButtonSelect (),
-									m_pConfig->GetMIDIButtonHome ()
+									m_pConfig->GetMIDIButtonHome (),
+									m_pConfig->GetMIDIButtonPgmUp (),
+									m_pConfig->GetMIDIButtonPgmDown (),
+									m_pConfig->GetMIDIButtonTGUp (),
+									m_pConfig->GetMIDIButtonTGDown ()
 								  );
 	assert (m_pUIButtons);
 
@@ -318,6 +332,22 @@ void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 
 	case CUIButton::BtnEventHome:
 		m_Menu.EventHandler (CUIMenu::MenuEventHome);
+		break;
+
+	case CUIButton::BtnEventPgmUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventPgmUp);
+		break;
+
+	case CUIButton::BtnEventPgmDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventPgmDown);
+		break;
+
+	case CUIButton::BtnEventTGUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventTGUp);
+		break;
+
+	case CUIButton::BtnEventTGDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventTGDown);
 		break;
 
 	default:
