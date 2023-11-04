@@ -180,12 +180,13 @@ for i in range(0, 63):
 
     # output_lines.append("[Performance]")
     # output_lines.append("Name=" + performance_names[i])
-
+    # output_lines.append("; NOTE: These values are partially guessed and likely wrong")
+    # output_lines.append("; If you have DX5 performance data, please let us know")
     output_lines.append("BankNumber1=1")
     output_lines.append("VoiceNumber1=1")
     output_lines.append("MIDIChannel1=1")
     output_lines.append("Volume1=49")
-    output_lines.append("Pan1=0")
+    output_lines.append("Pan1=62")
     output_lines.append("Detune1=-3")
     output_lines.append("Cutoff1=99")
     output_lines.append("Resonance1=0")
@@ -207,13 +208,13 @@ for i in range(0, 63):
     output_lines.append("BreathControlRange1=99")
     output_lines.append("BreathControlTarget1=0")
     output_lines.append("AftertouchRange1=99")
-    output_lines.append("AftertouchTarget1=0")
-
+    output_lines.append("AftertouchTarget1=1")
+    # output_lines.append("")
     output_lines.append("BankNumber2=2")
     output_lines.append("VoiceNumber2=2")
     output_lines.append("MIDIChannel2=1")
     output_lines.append("Volume2=49")
-    output_lines.append("Pan2=127")
+    output_lines.append("Pan2=65")
     output_lines.append("Detune2=3")
     output_lines.append("Cutoff2=99")
     output_lines.append("Resonance2=0")
@@ -235,7 +236,8 @@ for i in range(0, 63):
     output_lines.append("BreathControlRange2=99")
     output_lines.append("BreathControlTarget2=0")
     output_lines.append("AftertouchRange2=99")
-    output_lines.append("AftertouchTarget2=0")
+    output_lines.append("AftertouchTarget2=1")
+    # output_lines.append("")
 
     # FIXME: Tone generators that are not explicitly configured should be set to 0 in the firmware
     output_lines.append("MIDIChannel3=0")
