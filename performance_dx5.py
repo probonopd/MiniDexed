@@ -109,7 +109,7 @@ basename_b = filename_b.split("/")[-1]
 data_a = data_a[6:]
 data_b = data_b[6:]
 
-# Put the data into a list of 128-byte ones, but only the first 32 ones
+# Put the data into a list of 128-byte voices, but only the first 32 ones
 voices_a2 = [data_a[i:i+128] for i in range(0, 128*32, 128)]
 voices_b2 = [data_b[i:i+128] for i in range(0, 128*32, 128)]
 voicenames_a = []
@@ -123,26 +123,60 @@ for voice_b in voices_b2:
 for i in range(0, 32):
     print("* %i `%s`: `%s` `%s` + `%s` `%s`" % (i+33, performance_names[i+32], basename_a, voicenames_a[i], basename_b, voicenames_b[i]))
 
+def vmem2vced(vmem):
+    # Borrowed from
+    # https://github.com/rarepixel/dxconvert/blob/master/DXconvert/dx7.py
+    if vmem == [vmem[0]] * 128:
+        return initvced()
+    vced=[0]*155
+    for op in range(6):
+        for p in range(11):
+            vced[p+21*op] = vmem[p+17*op]&127
+        vced[11+21*op] = vmem[11+17*op]&0b11
+        vced[12+21*op] = (vmem[11+17*op]&0b1100)>>2
+        vced[13+21*op] = vmem[12+17*op]&0b111
+        vced[20+21*op] = (vmem[12+17*op]&0b1111000)>>3
+        vced[14+21*op] = vmem[13+17*op]&0b11
+        vced[15+21*op] = (vmem[13+17*op]&0b11100)>>2
+        vced[16+21*op] = vmem[14+17*op]&127
+        vced[17+21*op] = vmem[15+17*op]&1
+        vced[18+21*op] = (vmem[15+17*op]&0b111110)>>1
+        vced[19+21*op] = vmem[16+17*op]&127
+    for p in range(102, 110):
+        vced[p+24] = vmem[p]&127
+    vced[134] = vmem[110]&0b11111
+    vced[135] = vmem[111]&0b0111
+    vced[136] = (vmem[111]&0b1000)>>3
+    for p in range(112, 116):
+        vced[p+25] = vmem[p]&127
+    vced[141] = vmem[116]&1
+    vced[142] = (vmem[116]&0b1110)>>1
+    vced[143] = (vmem[116]&0b1110000)>>4
+    for p in range(117, 128):
+        vced[p+27] = vmem[p]
+    for i in range(len(vced)):
+        vced[i] = vced[i]&127
+    # return vced
+    return bytes(vced)
 
 # Create the performances based on the data from the syx
 
 for i in range(0, 63):
     output_lines = []
     if i < 32:
-        voice_data_a = voices_a1[i].hex().upper()
+        voice_data_a = vmem2vced(voices_a1[i]).hex().upper()
     else:
-        voice_data_a = voices_a2[i-32].hex().upper()
+        voice_data_a = vmem2vced(voices_a1[i-32]).hex().upper()
+
     # Add a blank space after every 2 characters
     voice_data_a = " ".join(voice_data_a[i:i+2] for i in range(0, len(voice_data_a), 2))
-    print("voice_data_a: %s" % voice_data_a)
 
     if i < 32:
-        voice_data_b = voices_b1[i].hex().upper()
+        voice_data_b = vmem2vced(voices_b1[i]).hex().upper()
     else:
-        voice_data_b = voices_b2[i-32].hex().upper()
+        voice_data_b = vmem2vced(voices_b2[i-32]).hex().upper()
     # Add a blank space after every 2 characters
     voice_data_b = " ".join(voice_data_b[i:i+2] for i in range(0, len(voice_data_b), 2))
-    print("voice_data_b: %s" % voice_data_b)
 
     # output_lines.append("[Performance]")
     # output_lines.append("Name=" + performance_names[i])
@@ -202,6 +236,14 @@ for i in range(0, 63):
     output_lines.append("BreathControlTarget2=0")
     output_lines.append("AftertouchRange2=99")
     output_lines.append("AftertouchTarget2=0")
+
+    # FIXME: Tone generators that are not explicitly configured should be set to 0 in the firmware
+    output_lines.append("MIDIChannel3=0")
+    output_lines.append("MIDIChannel4=0")
+    output_lines.append("MIDIChannel5=0")
+    output_lines.append("MIDIChannel6=0")
+    output_lines.append("MIDIChannel7=0")
+    output_lines.append("MIDIChannel8=0")
 
     six_digits_number = "%06d" % (i+1+130)
 
