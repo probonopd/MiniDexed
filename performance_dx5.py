@@ -132,6 +132,14 @@ modes = ["dual",
 "dual",
 "split",
 "dual"]
+split_points = [60, 60, 60, 60, 60, 60, 60, 60,
+                60, 60, 66, 60, 60, 60, 60, 60,
+                60, 60, 60, 60, 60, 60, 60, 60,
+                60, 60, 60, 60, 60, 60, 60, 60,
+                60, 60, 60, 60, 60, 60, 60, 60,
+                60, 60, 66, 60, 60, 60, 60, 60,
+                60, 60, 60, 60, 60, 60, 60, 60,
+                55, 60, 60, 60, 60, 60, 60, 60]
 
 filename_a = "/tmp/user/_home_user_Downloads_DX5 Carts.zip/DX5A1.SYX"
 with open(filename_a, "rb") as file:
@@ -262,7 +270,8 @@ for i in range(0, 64):
     if modes[i] == "dual":
         output_lines.append("NoteLimitHigh1=127")
     elif modes[i] == "split":
-        output_lines.append("NoteLimitHigh1=36")
+        split_point = split_points[i]-1
+        output_lines.append("NoteLimitHigh1=%i" % split_point)
     output_lines.append("NoteShift1=0")
     output_lines.append("ReverbSend1=99")
     output_lines.append("PitchBendRange1=2")
@@ -292,7 +301,8 @@ for i in range(0, 64):
     if modes[i] == "dual":
         output_lines.append("NoteLimitLow2=0")
     elif modes[i] == "split":
-        output_lines.append("NoteLimitLow2=37")
+        split_point = split_points[i]
+        output_lines.append("NoteLimitLow2=%i" % split_point)
     output_lines.append("NoteLimitHigh2=127")
     output_lines.append("NoteShift2=0")
     output_lines.append("ReverbSend2=99")
