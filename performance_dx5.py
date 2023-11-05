@@ -334,6 +334,7 @@ for i in range(0, 64):
     six_digits_number = "%06d" % (i+1+130)
 
     performance_name = performance_names[i]
+    performance_name = performance_name.replace("\"", "")
     performance_name = performance_name.replace(" ", "_")
     performance_name = performance_name.replace("(", "")
     performance_name = performance_name.replace(")", "")
