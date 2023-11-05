@@ -65,6 +65,74 @@ performance_names = ["DOUBLE HORN SECTION (DETUNED)",
 "COMBAT (EXPLOSION [L]; GUNS [R])",
 "BOMBS AWAY!!"]
 
+# The following was determined by looking at the sysex data
+# from https://github.com/bladeSk/DX7II-Librarian/issues/3
+# in https://bladesk.github.io/DX7II-Librarian/
+modes = ["dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"dual",
+"split",
+"split",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"split",
+"dual",
+"split",
+"dual",
+"split",
+"dual",
+"split",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"split",
+"dual",
+"split",
+"split",
+"dual",
+"dual",
+"dual",
+"dual",
+"dual",
+"split",
+"dual",
+"split",
+"dual",
+"split",
+"dual",
+"split",
+"dual"]
+
 filename_a = "/tmp/user/_home_user_Downloads_DX5 Carts.zip/DX5A1.SYX"
 with open(filename_a, "rb") as file:
     data_a = file.read()
@@ -161,7 +229,7 @@ def vmem2vced(vmem):
 
 # Create the performances based on the data from the syx
 
-for i in range(0, 63):
+for i in range(0, 64):
     output_lines = []
     if i < 32:
         voice_data_a = vmem2vced(voices_a1[i]).hex().upper()
@@ -218,8 +286,15 @@ for i in range(0, 63):
     output_lines.append("Detune2=3")
     output_lines.append("Cutoff2=99")
     output_lines.append("Resonance2=0")
+    if modes[i] == "dual":
+        output_lines.append("NoteLimitLow2=0")
+    elif modes[i] == "split":
+        output_lines.append("NoteLimitLow2=37")
     output_lines.append("NoteLimitLow2=0")
-    output_lines.append("NoteLimitHigh2=127")
+    if modes[i] == "dual":
+        output_lines.append("NoteLimitHigh2=127")
+    elif modes[i] == "split":
+        output_lines.append("NoteLimitHigh2=36")
     output_lines.append("NoteShift2=0")
     output_lines.append("ReverbSend2=99")
     output_lines.append("PitchBendRange2=2")
