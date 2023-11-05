@@ -62,6 +62,9 @@ public:
 	~CConfig (void);
 
 	void Load (void);
+	
+	// USB Mode
+	bool GetUSBGadgetMode (void) const;	// true if in USB gadget mode
 
 	// Sound device
 	const char *GetSoundDevice (void) const;
@@ -167,6 +170,8 @@ public:
 
 private:
 	CPropertiesFatFsFile m_Properties;
+	
+	bool m_bUSBGadgetMode;
 
 	std::string m_SoundDevice;
 	unsigned m_nSampleRate;
