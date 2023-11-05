@@ -259,7 +259,10 @@ for i in range(0, 64):
     output_lines.append("Cutoff1=99")
     output_lines.append("Resonance1=0")
     output_lines.append("NoteLimitLow1=0")
-    output_lines.append("NoteLimitHigh1=127")
+    if modes[i] == "dual":
+        output_lines.append("NoteLimitHigh1=127")
+    elif modes[i] == "split":
+        output_lines.append("NoteLimitHigh1=36")
     output_lines.append("NoteShift1=0")
     output_lines.append("ReverbSend1=99")
     output_lines.append("PitchBendRange1=2")
@@ -290,11 +293,7 @@ for i in range(0, 64):
         output_lines.append("NoteLimitLow2=0")
     elif modes[i] == "split":
         output_lines.append("NoteLimitLow2=37")
-    output_lines.append("NoteLimitLow2=0")
-    if modes[i] == "dual":
-        output_lines.append("NoteLimitHigh2=127")
-    elif modes[i] == "split":
-        output_lines.append("NoteLimitHigh2=36")
+    output_lines.append("NoteLimitHigh2=127")
     output_lines.append("NoteShift2=0")
     output_lines.append("ReverbSend2=99")
     output_lines.append("PitchBendRange2=2")
