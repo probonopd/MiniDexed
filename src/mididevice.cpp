@@ -27,15 +27,19 @@
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
+#include "userinterface.h"
 
 LOGMODULE ("mididevice");
 
 #define MIDI_NOTE_OFF		0b1000
 #define MIDI_NOTE_ON		0b1001
 #define MIDI_AFTERTOUCH		0b1010			// TODO
+#define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
 #define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0	// TODO
+	#define MIDI_CC_BANK_SELECT_MSB		0
 	#define MIDI_CC_MODULATION			1
+	#define MIDI_CC_BREATH_CONTROLLER	2 
+	#define MIDI_CC_FOOT_PEDAL 		4
 	#define MIDI_CC_VOLUME				7
 	#define MIDI_CC_PAN_POSITION		10
 	#define MIDI_CC_BANK_SELECT_LSB		32
@@ -56,9 +60,10 @@ LOGMODULE ("mididevice");
 
 CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 
-CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig)
+CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	m_pSynthesizer (pSynthesizer),
-	m_pConfig (pConfig)
+	m_pConfig (pConfig),
+	m_pUI (pUI)
 {
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
@@ -159,7 +164,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 	if (nLength < 2)
 	{
-		LOGERR("MIDI message is shorter than 2 bytes!");
+		// LOGERR("MIDI message is shorter than 2 bytes!");
 		return;
 	}
 
@@ -178,12 +183,42 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
+		// Perform any MiniDexed level MIDI handling before specific Tone Generators
+		switch (ucType)
+		{
+		case MIDI_CONTROL_CHANGE:
+		case MIDI_NOTE_OFF:
+		case MIDI_NOTE_ON:
+			if (nLength < 3)
+			{
+				break;
+			}
+			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+			break;
+		case MIDI_PROGRAM_CHANGE:
+			// Check for performance PC messages
+			if( m_pConfig->GetMIDIRXProgramChange() )
+			{
+				unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
+				if( nPerfCh != Disabled)
+				{
+					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
+					{
+						//printf("Performance Select Channel %d\n", nPerfCh);
+						m_pSynthesizer->ProgramChangePerformance (pMessage[1]);
+					}
+				}
+			}
+			break;
+		}
+
+		// Process MIDI for each Tone Generator
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
 				// MIDI SYSEX per MIDI channel
-				uint8_t ucSysExChannel = (pMessage[2] & 0x07);
+				uint8_t ucSysExChannel = (pMessage[2] & 0x0F);
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
@@ -226,6 +261,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						m_pSynthesizer->keyup (pMessage[1], nTG);
 						break;
 		
+					case MIDI_CHANNEL_AFTERTOUCH:
+						
+						m_pSynthesizer->setAftertouch (pMessage[1], nTG);
+						m_pSynthesizer->ControllersRefresh (nTG);
+						break;
+							
 					case MIDI_CONTROL_CHANGE:
 						if (nLength < 3)
 						{
@@ -238,13 +279,27 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->setModWheel (pMessage[2], nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
-		
+								
+						case MIDI_CC_FOOT_PEDAL:
+							m_pSynthesizer->setFootController (pMessage[2], nTG);
+							m_pSynthesizer->ControllersRefresh (nTG);
+							break;
+
+						case MIDI_CC_BREATH_CONTROLLER:
+							m_pSynthesizer->setBreathController (pMessage[2], nTG);
+							m_pSynthesizer->ControllersRefresh (nTG);
+							break;
+								
 						case MIDI_CC_VOLUME:
 							m_pSynthesizer->SetVolume (pMessage[2], nTG);
 							break;
 		
 						case MIDI_CC_PAN_POSITION:
 							m_pSynthesizer->SetPan (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_BANK_SELECT_MSB:
+							m_pSynthesizer->BankSelectMSB (pMessage[2], nTG);
 							break;
 		
 						case MIDI_CC_BANK_SELECT_LSB:
@@ -284,15 +339,23 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_ALL_NOTES_OFF:
-							m_pSynthesizer->notesOff (pMessage[2], nTG);
+							// As per "MIDI 1.0 Detailed Specification" v4.2
+							// From "ALL NOTES OFF" states:
+							// "Receivers should ignore an All Notes Off message while Omni is on (Modes 1 & 2)"
+							if (!m_pConfig->GetIgnoreAllNotesOff () && m_ChannelMap[nTG] != OmniMode)
+							{
+								m_pSynthesizer->notesOff (pMessage[2], nTG);
+							}
 							break;
 						}
 						break;
 		
 					case MIDI_PROGRAM_CHANGE:
-						// do program change only if enabled in config
-						if( m_pConfig->GetMIDIRXProgramChange() )
+						// do program change only if enabled in config and not in "Performance Select Channel" mode
+						if( m_pConfig->GetMIDIRXProgramChange() && ( m_pSynthesizer->GetPerformanceSelectChannel() == Disabled) ) {
+							//printf("Program Change to %d (%d)\n", ucChannel, m_pSynthesizer->GetPerformanceSelectChannel());
 							m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+						}
 						break;
 		
 					case MIDI_PITCH_BEND: {

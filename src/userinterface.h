@@ -25,6 +25,7 @@
 #include "uibuttons.h"
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
+#include <display/ssd1306device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
 #include <circle/i2cmaster.h>
@@ -51,6 +52,9 @@ public:
 	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
 			   bool bArrowDown, bool bArrowUp);
 
+	// To be called from the MIDI device on reception of a MIDI CC message
+	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
+
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
@@ -58,6 +62,7 @@ private:
 	static void EncoderEventStub (CKY040::TEvent Event, void *pParam);
 	void UIButtonsEventHandler (CUIButton::BtnEvent Event);
 	static void UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam);
+	void UISetMIDIButtonChannel (unsigned uCh);
 
 private:
 	CMiniDexed *m_pMiniDexed;
@@ -65,10 +70,14 @@ private:
 	CI2CMaster *m_pI2CMaster;
 	CConfig *m_pConfig;
 
-	CHD44780Device *m_pLCD;
+	CCharDevice    *m_pLCD;
+	CHD44780Device *m_pHD44780;
+	CSSD1306Device *m_pSSD1306;
 	CWriteBufferDevice *m_pLCDBuffered;
 	
 	CUIButtons *m_pUIButtons;
+
+	unsigned m_nMIDIButtonCh;
 
 	CKY040 *m_pRotaryEncoder;
 	bool m_bSwitchPressed;

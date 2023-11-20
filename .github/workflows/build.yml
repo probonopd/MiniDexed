@@ -16,16 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Recursively pull git submodules
+    - name: Get specific commits of git submodules
       run: |
-           set -ex
-           git submodule update --init --recursive
-    - name: Use Circle develop branch for WM8960 and i2c display support until it is merged upstream
-      run: |
-           set -ex
-           cd circle-stdlib/libs/circle
-           git checkout c9a4815 # develop
-           cd -
+           sh -ex ./submod.sh
     - name: Install toolchains
       run: |
            set -ex
@@ -71,6 +64,7 @@ jobs:
            rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
            cp ./getsysex.sh sdcard/
+           cp -r ./performance sdcard/
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true

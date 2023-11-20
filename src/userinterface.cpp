@@ -56,9 +56,20 @@ bool CUserInterface::Initialize (void)
 	if (m_pConfig->GetLCDEnabled ())
 	{
 		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
-		if (i2caddr == 0)
+		unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
+		if (ssd1306addr != 0) {
+			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (),
+											 m_pI2CMaster, ssd1306addr,
+											 m_pConfig->GetSSD1306LCDRotate (), m_pConfig->GetSSD1306LCDMirror ());
+			LOGDBG ("LCD: SSD1306");
+			if (!m_pSSD1306->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pSSD1306;
+		} else if (i2caddr == 0)
 		{
-			m_pLCD = new CHD44780Device (CConfig::LCDColumns, CConfig::LCDRows,
+			m_pHD44780 = new CHD44780Device (m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows (),
 							 m_pConfig->GetLCDPinData4 (),
 							 m_pConfig->GetLCDPinData5 (),
 							 m_pConfig->GetLCDPinData6 (),
@@ -66,23 +77,32 @@ bool CUserInterface::Initialize (void)
 							 m_pConfig->GetLCDPinEnable (),
 							 m_pConfig->GetLCDPinRegisterSelect (),
 							 m_pConfig->GetLCDPinReadWrite ());
+			LOGDBG ("LCD: HD44780");
+			if (!m_pHD44780->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pHD44780;
 		}
 		else
 		{
-			m_pLCD = new CHD44780Device (m_pI2CMaster, i2caddr,
-							CConfig::LCDColumns, CConfig::LCDRows);
+			m_pHD44780 = new CHD44780Device (m_pI2CMaster, i2caddr,
+							m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
+			LOGDBG ("LCD: HD44780 I2C");
+			if (!m_pHD44780->Initialize ())
+			{
+				return false;
+			}
+			m_pLCD = m_pHD44780;
 		}
 		assert (m_pLCD);
-
-		if (!m_pLCD->Initialize ())
-		{
-			return false;
-		}
 
 		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
 
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
+		LCDWrite ("MiniDexed\nLoading...");
+		m_pLCDBuffered->Update ();
 
 		LOGDBG ("LCD initialized");
 	}
@@ -97,8 +117,27 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetButtonActionSelect (),
 									m_pConfig->GetButtonPinHome (),
 									m_pConfig->GetButtonActionHome (),
+									m_pConfig->GetButtonPinPgmUp (),
+									m_pConfig->GetButtonActionPgmUp (),
+									m_pConfig->GetButtonPinPgmDown (),
+									m_pConfig->GetButtonActionPgmDown (),
+									m_pConfig->GetButtonPinTGUp (),
+									m_pConfig->GetButtonActionTGUp (),
+									m_pConfig->GetButtonPinTGDown (),
+									m_pConfig->GetButtonActionTGDown (),
 									m_pConfig->GetDoubleClickTimeout (),
-									m_pConfig->GetLongPressTimeout () );
+									m_pConfig->GetLongPressTimeout (),
+									m_pConfig->GetMIDIButtonNotes (),
+									m_pConfig->GetMIDIButtonPrev (),
+									m_pConfig->GetMIDIButtonNext (),
+									m_pConfig->GetMIDIButtonBack (),
+									m_pConfig->GetMIDIButtonSelect (),
+									m_pConfig->GetMIDIButtonHome (),
+									m_pConfig->GetMIDIButtonPgmUp (),
+									m_pConfig->GetMIDIButtonPgmDown (),
+									m_pConfig->GetMIDIButtonTGUp (),
+									m_pConfig->GetMIDIButtonTGDown ()
+								  );
 	assert (m_pUIButtons);
 
 	if (!m_pUIButtons->Initialize ())
@@ -107,6 +146,7 @@ bool CUserInterface::Initialize (void)
 	}
 
 	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+	UISetMIDIButtonChannel (m_pConfig->GetMIDIButtonCh ());
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -157,15 +197,15 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	assert (pParam);
 	assert (pValue);
 
-	CString Msg ("\x1B[H");		// cursor home
+	CString Msg ("\x1B[H\E[?25l");		// cursor home and off
 
 	// first line
 	Msg.Append (pParam);
 
 	size_t nLen = strlen (pParam) + strlen (pMenu);
-	if (nLen < CConfig::LCDColumns)
+	if (nLen < m_pConfig->GetLCDColumns ())
 	{
-		for (unsigned i = CConfig::LCDColumns-nLen; i > 0; i--)
+		for (unsigned i = m_pConfig->GetLCDColumns ()-nLen; i > 0; i--)
 		{
 			Msg.Append (" ");
 		}
@@ -184,9 +224,9 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 
 	if (bArrowUp)
 	{
-		if (Value.GetLength () < CConfig::LCDColumns-1)
+		if (Value.GetLength () < m_pConfig->GetLCDColumns ()-1)
 		{
-			for (unsigned i = CConfig::LCDColumns-Value.GetLength ()-1; i > 0; i--)
+			for (unsigned i = m_pConfig->GetLCDColumns ()-Value.GetLength ()-1; i > 0; i--)
 			{
 				Value.Append (" ");
 			}
@@ -197,7 +237,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 
 	Msg.Append (Value);
 
-	if (Value.GetLength () < CConfig::LCDColumns)
+	if (Value.GetLength () < m_pConfig->GetLCDColumns ())
 	{
 		Msg.Append ("\x1B[K");		// clear end of line
 	}
@@ -294,6 +334,22 @@ void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 		m_Menu.EventHandler (CUIMenu::MenuEventHome);
 		break;
 
+	case CUIButton::BtnEventPgmUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventPgmUp);
+		break;
+
+	case CUIButton::BtnEventPgmDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventPgmDown);
+		break;
+
+	case CUIButton::BtnEventTGUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventTGUp);
+		break;
+
+	case CUIButton::BtnEventTGDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventTGDown);
+		break;
+
 	default:
 		break;
 	}
@@ -305,4 +361,40 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 	assert (pThis != 0);
 
 	pThis->UIButtonsEventHandler (Event);
+}
+
+void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
+{
+	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
+	{
+		// MIDI buttons are not enabled
+		return;
+	}
+	if ((m_nMIDIButtonCh != nMidiCh) && (m_nMIDIButtonCh != CMIDIDevice::OmniMode))
+	{
+		// Message not on the MIDI Button channel and MIDI buttons not in OMNI mode
+		return;
+	}
+	
+	if (m_pUIButtons)
+	{
+		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
+	}
+}
+
+void CUserInterface::UISetMIDIButtonChannel (unsigned uCh)
+{
+	// Mirrors the logic in Performance Config for handling MIDI channel configuration
+	if (uCh == 0)
+	{
+		m_nMIDIButtonCh = CMIDIDevice::Disabled;
+	}
+	else if (uCh < CMIDIDevice::Channels)
+	{
+		m_nMIDIButtonCh = uCh - 1;
+	}
+	else
+	{
+		m_nMIDIButtonCh = CMIDIDevice::OmniMode;
+	}
 }

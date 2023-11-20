@@ -37,7 +37,7 @@
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
-#include <circle/soundbasedevice.h>
+#include <circle/sound/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
@@ -63,8 +63,11 @@ public:
 
 	CSysExFileLoader *GetSysExFileLoader (void);
 
+	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
+	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
@@ -81,6 +84,10 @@ public:
 	void setModWheel (uint8_t value, unsigned nTG);
 	void setPitchbend (int16_t value, unsigned nTG);
 	void ControllersRefresh (unsigned nTG);
+
+	void setFootController (uint8_t value, unsigned nTG);
+	void setBreathController (uint8_t value, unsigned nTG);
+	void setAftertouch (uint8_t value, unsigned nTG);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
@@ -102,6 +109,9 @@ public:
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
 	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
 
+	void setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG);
+	unsigned getModController (unsigned controller, unsigned parameter, uint8_t nTG);
+
 	int16_t checkSystemExclusive(const uint8_t* pMessage, const uint16_t nLength, uint8_t nTG);
 
 	std::string GetPerformanceFileName(unsigned nID);
@@ -111,12 +121,15 @@ public:
 	void SetActualPerformanceID(unsigned nID);
 	bool SetNewPerformance(unsigned nID);
 	bool SavePerformanceNewFile ();
-	unsigned GetMenuSelectedPerformanceID();
-	void SetMenuSelectedPerformanceID(unsigned nID);
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
-	
+	bool GetPerformanceSelectToLoad(void);
+	bool SavePerformance (bool bSaveAsDeault);
+	unsigned GetPerformanceSelectChannel (void);
+	void SetPerformanceSelectChannel (unsigned uCh);
+
+	// Must match the order in CUIMenu::TParameter
 	enum TParameter
 	{
 		ParameterCompressorEnable,
@@ -127,15 +140,25 @@ public:
 		ParameterReverbLowPass,
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
+		ParameterPerformanceSelectChannel,
 		ParameterUnknown
 	};
 
 	void SetParameter (TParameter Parameter, int nValue);
 	int GetParameter (TParameter Parameter);
 
+	std::string GetNewPerformanceDefaultName(void);
+	void SetNewPerformanceName(std::string nName);
+	void SetVoiceName (std::string VoiceName, unsigned nTG);
+	bool DeletePerformance(unsigned nID);
+	bool DoDeletePerformance(void);
+
+	// Must match the order in CUIMenu::TGParameter
 	enum TTGParameter
 	{
 		TGParameterVoiceBank,
+		TGParameterVoiceBankMSB,
+		TGParameterVoiceBankLSB,
 		TGParameterProgram,
 		TGParameterVolume,
 		TGParameterPan,
@@ -149,6 +172,28 @@ public:
 		TGParameterPortamentoMode,
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
+		TGParameterMonoMode,  
+				
+		TGParameterMWRange,
+		TGParameterMWPitch,
+		TGParameterMWAmplitude,
+		TGParameterMWEGBias,
+		
+		TGParameterFCRange,
+		TGParameterFCPitch,
+		TGParameterFCAmplitude,
+		TGParameterFCEGBias,
+		
+		TGParameterBCRange,
+		TGParameterBCPitch,
+		TGParameterBCAmplitude,
+		TGParameterBCEGBias,
+		
+		TGParameterATRange,
+		TGParameterATPitch,
+		TGParameterATAmplitude,
+		TGParameterATEGBias,
+		
 		TGParameterUnknown
 	};
 
@@ -192,6 +237,7 @@ private:
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
@@ -204,7 +250,17 @@ private:
 	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
-
+	bool m_bMonoMode[CConfig::ToneGenerators]; 
+				
+	unsigned m_nModulationWheelRange[CConfig::ToneGenerators];
+	unsigned m_nModulationWheelTarget[CConfig::ToneGenerators];
+	unsigned m_nFootControlRange[CConfig::ToneGenerators];
+	unsigned m_nFootControlTarget[CConfig::ToneGenerators];
+	unsigned m_nBreathControlRange[CConfig::ToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];
+		
 	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
@@ -214,13 +270,7 @@ private:
 	uint8_t m_nRawVoiceData[156]; 
 	
 	
-	bool m_bSavePerformanceNewFile;
-	bool m_bSetNewPerformance;
-	unsigned m_nSetNewPerformanceID;
-	
 	float32_t nMasterVolume;
-
-
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -252,6 +302,13 @@ private:
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
+	bool m_bSavePerformanceNewFile;
+	bool m_bSetNewPerformance;
+	unsigned m_nSetNewPerformanceID;	
+	bool	m_bDeletePerformance;
+	unsigned m_nDeletePerformanceID;
+	bool m_bLoadPerformanceBusy;
+	bool m_bSaveAsDeault;
 };
 
 #endif

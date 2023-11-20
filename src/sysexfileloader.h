@@ -29,10 +29,13 @@
 class CSysExFileLoader		// Loader for DX7 .syx files
 {
 public:
-	static const unsigned MaxVoiceBankID = 127;	// TODO? 16383
+	static const unsigned MaxVoiceBankID = 16383; // i.e. 14-bit MSB/LSB value between 0 and 16383
 	static const unsigned VoicesPerBank = 32;
 	static const size_t SizePackedVoice = 128;
 	static const size_t SizeSingleVoice = 156;
+	static const unsigned VoiceSysExHdrSize = 8; // Additional (optional) Header/Footer bytes for bank of 32 voices
+	static const unsigned VoiceSysExSize = 4096; // Bank of 32 voices as per DX7 MIDI Spec
+	static const unsigned MaxSubDirs = 3; // Number of nested subdirectories supported.
 
 	struct TVoiceBank
 	{
@@ -54,11 +57,15 @@ public:
 	CSysExFileLoader (const char *pDirName = "/sysex");
 	~CSysExFileLoader (void);
 
-	void Load (void);
+	void Load (bool bHeaderlessSysExVoices = false);
 
-	std::string GetBankName (unsigned nBankID);	// 0 .. 127
+	std::string GetBankName (unsigned nBankID);	// 0 .. MaxVoiceBankID
+	unsigned GetNumHighestBank (); // 0 .. MaxVoiceBankID
+	bool     IsValidBank (unsigned nBankID);
+	unsigned GetNextBankUp (unsigned nBankID);
+	unsigned GetNextBankDown (unsigned nBankID);
 
-	void GetVoice (unsigned nBankID,		// 0 .. 127
+	void GetVoice (unsigned nBankID,		// 0 .. MaxVoiceBankID
 		       unsigned nVoiceID,		// 0 .. 31
 		       uint8_t *pVoiceData);		// returns unpacked format (156 bytes)
 
@@ -67,11 +74,16 @@ private:
 
 private:
 	std::string m_DirName;
+	
+	unsigned m_nNumHighestBank;
+	unsigned m_nBanksLoaded;
 
 	TVoiceBank *m_pVoiceBank[MaxVoiceBankID+1];
 	std::string m_BankFileName[MaxVoiceBankID+1];
 
 	static uint8_t s_DefaultVoice[SizeSingleVoice];
+	
+	void LoadBank (const char * sDirName, const char * sBankName, bool bHeaderlessSysExVoices, unsigned nSubDirCount);
 };
 
 #endif
