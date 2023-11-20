@@ -11,5 +11,5 @@ cd circle-stdlib/libs/circle-newlib
 git checkout 48bf91d # needed for circle ec09d7e
 cd -
 cd Synth_Dexed/
-git checkout c9f5274
+git checkout af3c7ce
 cd -
