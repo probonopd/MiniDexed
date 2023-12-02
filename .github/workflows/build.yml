@@ -73,7 +73,7 @@ jobs:
     - name: Get performance files
       run: |
            git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
-           cp ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
+           cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
