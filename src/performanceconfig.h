@@ -27,7 +27,6 @@
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
-#define PERFORMANCE_DIR "performance" 
 #define NUM_PERFORMANCES 256
 
 class CPerformanceConfig	// Performance configuration
@@ -39,6 +38,9 @@ public:
 	bool Load (void);
 
 	bool Save (void);
+
+	const char *GetPerformanceDir (void) const;
+	void SetPerformanceDir (const char *pDir);
 
 	// TG#
 	unsigned GetBankNumber (unsigned nTG) const;		// 0 .. 127
@@ -176,6 +178,8 @@ private:
 	bool nInternalFolderOk=false;
 	bool nExternalFolderOk=false; // for future USB implementation
 	std::string NewPerformanceName="";
+
+	std::string m_PerformanceDir = "performance";
 	
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
