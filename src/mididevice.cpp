@@ -299,10 +299,14 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_BANK_SELECT_MSB:
+							// TODO: Check whether we want to change the performance directory and act accordingly
+							// (in "Performance Select Channel" mode)
 							m_pSynthesizer->BankSelectMSB (pMessage[2], nTG);
 							break;
 		
 						case MIDI_CC_BANK_SELECT_LSB:
+							// TODO: Check whether we want to change the performance directory and act accordingly
+							// (in "Performance Select Channel" mode)
 							m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
 							break;
 		
@@ -355,25 +359,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						if( m_pConfig->GetMIDIRXProgramChange() && ( m_pSynthesizer->GetPerformanceSelectChannel() == Disabled) ) {
 							//printf("Program Change to %d (%d)\n", ucChannel, m_pSynthesizer->GetPerformanceSelectChannel());
 							m_pSynthesizer->ProgramChange (pMessage[1], nTG);
-
-							/* TODO: Depending on whether we get a MSB or LSB, we need to change the performance directory
-							   or do a program change. This is not yet implemented. Pseudo code:
-							
-							switch (pMessage[1])
-							{
-								case MIDI_CC_BANK_SELECT_MSB:
-									CString sDir;
-									sDir.Format ("performance/%d", pMessage[2]);
-									// Check if we find a performance directory that starts with that name; if yes, use it
-									m_pConfig->SetPerformanceDir (sDir.c_str ());
-									break;
-			
-								case MIDI_CC_BANK_SELECT_LSB:
-								    // Check if we find a performance file that starts with that name; if yes, use it
-									m_pSynthesizer->ProgramChange (pMessage[1], nTG);
-									break;
-							}
-							*/
 						}
 						break;
 		
