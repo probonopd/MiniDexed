@@ -25,6 +25,7 @@
 #include "mididevice.h"
 #include <cstring> 
 #include <algorithm>
+#include "minidexed.h"
 
 LOGMODULE ("Performance");
 
@@ -796,7 +797,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	m_nPerformanceFileName[nLastPerformance]= nFileName;
 	
 	nPath = "SD:/" ;
-	nPath += PERFORMANCE_DIR;
+	nPath += GetPerformanceDir();
 	nPath += "/";
 	nFileName = nPath + nFileName;
 	
@@ -832,8 +833,11 @@ bool CPerformanceConfig::ListPerformances()
     DIR Directory;
 	FILINFO FileInfo;
 	FRESULT Result;
-	//Check if internal "performance" directory exists
-	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
+	// Check if internal "performance" directory exists
+	std::string Path = "SD:/" ;
+	Path += GetPerformanceDir();
+	Result = f_opendir (&Directory, Path.c_str());
+	
 	if (Result == FR_OK)
 	{
 		nInternalFolderOk=true;		
@@ -841,14 +845,14 @@ bool CPerformanceConfig::ListPerformances()
 	}
 	else
 	{
-		// attenpt to create the folder
-		Result = f_mkdir("SD:/" PERFORMANCE_DIR);
+		// attempt to create the folder
+		Result = f_mkdir(Path.c_str());
 		nInternalFolderOk = (Result == FR_OK);
 	}
 	
 	if (nInternalFolderOk)
 	{
-	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
+	Result = f_findfirst (&Directory, &FileInfo, Path.c_str(), "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
 			if (nLastPerformance >= NUM_PERFORMANCES) {
@@ -892,7 +896,7 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 		std::string FileN = "";
 		if (nID != 0) // in order to assure retrocompatibility
 		{
-			FileN += PERFORMANCE_DIR;
+			FileN += GetPerformanceDir();
 			FileN += "/";
 		}
 		FileN += m_nPerformanceFileName[nID];
@@ -928,8 +932,7 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 	DIR Directory;
 	FILINFO FileInfo;
 	std::string FileN = "SD:/";
-	FileN += PERFORMANCE_DIR;
-
+	FileN += GetPerformanceDir();
 	
 	FRESULT Result = f_findfirst (&Directory, &FileInfo, FileN.c_str(), m_nPerformanceFileName[nID].c_str());
 	if (Result == FR_OK && FileInfo.fname[0])
@@ -950,4 +953,17 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 		}
 	}
 	return bOK;
+}
+
+const char *CPerformanceConfig::GetPerformanceDir (void) const
+{
+	return m_PerformanceDir.c_str();
+}
+
+void CPerformanceConfig::SetPerformanceDir (const char *pDir)
+{
+	m_PerformanceDir = pDir;
+
+	// TODO: Load performance files from new directory
+
 }
