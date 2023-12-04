@@ -1366,7 +1366,9 @@ void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void 
 void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	bool bPerformanceSelectToLoad = pUIMenu->m_pMiniDexed->GetPerformanceSelectToLoad();
+	unsigned nLastPerformance = pUIMenu->m_pMiniDexed->GetLastPerformance();
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
+	unsigned nStart = nValue;
 	std::string Value;
 		
 	if (Event == MenuEventUpdate)
@@ -1380,17 +1382,25 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	}		
 	
 	if(!pUIMenu->m_bPerformanceDeleteMode)
-	{		
+	{
 		switch (Event)
 		{
 		case MenuEventUpdate:
 			break;
 
 		case MenuEventStepDown:
-			if (nValue > 0)
+			do
 			{
-				--nValue;
-			}
+				if (nValue == 0)
+				{
+					// Wrap around
+					nValue = nLastPerformance;
+				}
+				else if (nValue > 0)
+				{
+					--nValue;
+				}
+			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
 			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
 			{
@@ -1399,10 +1409,18 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			break;
 
 		case MenuEventStepUp:
-			if (++nValue > (unsigned) pUIMenu->m_pMiniDexed->GetLastPerformance()-1)
+			do
 			{
-				nValue = pUIMenu->m_pMiniDexed->GetLastPerformance()-1;
-			}
+				if (nValue == nLastPerformance)
+				{
+					// Wrap around
+					nValue = 0;
+				}
+				else if (nValue < nLastPerformance)
+				{
+					++nValue;
+				}
+			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
 			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
 			{

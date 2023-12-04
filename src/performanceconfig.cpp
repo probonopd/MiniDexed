@@ -28,8 +28,10 @@
 
 LOGMODULE ("Performance");
 
+#define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
+
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
-:	m_Properties ("performance.ini", pFileSystem)
+:	m_Properties (DEFAULT_PERFORMANCE_FILENAME, pFileSystem)
 {
 	m_pFileSystem = pFileSystem; 
 }
@@ -715,19 +717,44 @@ bool CPerformanceConfig::VoiceDataFilled(unsigned nTG)
 
 std::string CPerformanceConfig::GetPerformanceFileName(unsigned nID)
 {
-	return m_nPerformanceFileName[nID];
+	assert (nID < NUM_PERFORMANCES);
+	std::string FileN = "";
+	if (nID == 0) // in order to assure retrocompatibility
+	{
+		FileN += DEFAULT_PERFORMANCE_FILENAME;
+	}
+	else
+	{
+		// Build up from the index, "_", performance name, and ".ini"
+		// NB: Index on disk = index in memory + 1
+		std::string nIndex = "000000";
+		nIndex += std::to_string(nID+1);
+		nIndex = nIndex.substr(nIndex.length()-6,6);
+		FileN += nIndex;
+		FileN += "_";
+		FileN += m_nPerformanceFileName[nID];
+		FileN += ".ini";
+	}
+	return FileN;
+}
+
+std::string CPerformanceConfig::GetPerformanceFullFilePath(unsigned nID)
+{
+	assert (nID < NUM_PERFORMANCES);
+	std::string FileN = "";
+	if (nID != 0)
+	{
+		FileN += PERFORMANCE_DIR;
+		FileN += "/";
+	}
+	FileN += GetPerformanceFileName(nID);
+	return FileN;
 }
 
 std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
 {
-	if(nID == 0) // in order to assure retrocompatibility
-	{
-		return "Default";
-	}
-	else
-	{
-		return m_nPerformanceFileName[nID].substr(0,m_nPerformanceFileName[nID].length()-4).substr(7,14);
-	}
+	assert (nID < NUM_PERFORMANCES);
+	return m_nPerformanceFileName[nID];
 }
 
 unsigned CPerformanceConfig::GetLastPerformance()
@@ -742,6 +769,7 @@ unsigned CPerformanceConfig::GetActualPerformanceID()
 
 void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
 {
+	assert (nID < NUM_PERFORMANCES);
 	nActualPerformance = nID;
 }
 
@@ -749,6 +777,20 @@ bool CPerformanceConfig::GetInternalFolderOk()
 {
 	return nInternalFolderOk;
 }
+
+bool CPerformanceConfig::IsValidPerformance(unsigned nID)
+{
+	if (nID < NUM_PERFORMANCES)
+	{
+		if (!m_nPerformanceFileName[nID].empty())
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 
 bool CPerformanceConfig::CheckFreePerformanceSlot(void)
 {
@@ -774,10 +816,11 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
 	nActualPerformance=nLastPerformance;
+	unsigned nNewPerformance = nLastPerformance + 1;
 	std::string nFileName;
 	std::string nPath;
 	std::string nIndex = "000000";
-	nIndex += std::to_string(++nLastFileIndex);
+	nIndex += std::to_string(nNewPerformance+1);  // Index on disk = index in memory+1
 	nIndex = nIndex.substr(nIndex.length()-6,6);
 	
 
@@ -793,7 +836,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 		nFileName +=sPerformanceName.substr(0,14);
 	}
 	nFileName += ".ini";
-	m_nPerformanceFileName[nLastPerformance]= nFileName;
+	m_nPerformanceFileName[nNewPerformance]= sPerformanceName;
 	
 	nPath = "SD:/" ;
 	nPath += PERFORMANCE_DIR;
@@ -804,17 +847,17 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	FRESULT Result = f_open (&File, nFileName.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
 	if (Result != FR_OK)
 	{
-		m_nPerformanceFileName[nLastPerformance]=nullptr;
+		m_nPerformanceFileName[nNewPerformance]=nullptr;
 		return false;
 	}
 
 	if (f_close (&File) != FR_OK)
 	{
-		m_nPerformanceFileName[nLastPerformance]=nullptr;
+		m_nPerformanceFileName[nNewPerformance]=nullptr;
 		return false;
 	}
 	
-	nLastPerformance++;
+	nLastPerformance = nNewPerformance;
 	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
 	
 	return true;
@@ -825,8 +868,7 @@ bool CPerformanceConfig::ListPerformances()
 	nInternalFolderOk=false;
 	nExternalFolderOk=false; // for future USB implementation
 	nLastPerformance=0;
-	nLastFileIndex=0;
-   	m_nPerformanceFileName[nLastPerformance++]="performance.ini"; // in order to assure retrocompatibility
+   	m_nPerformanceFileName[0]="Default"; // in order to assure retrocompatibility
 	
 	unsigned nPIndex;
     DIR Directory;
@@ -848,7 +890,7 @@ bool CPerformanceConfig::ListPerformances()
 	
 	if (nInternalFolderOk)
 	{
-	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
+		Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
 			if (nLastPerformance >= NUM_PERFORMANCES) {
@@ -856,31 +898,56 @@ bool CPerformanceConfig::ListPerformances()
 			} else {
 				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
 				{
-					std::string FileName = FileInfo.fname;
-					size_t nLen = FileName.length();
-					if (   nLen > 8 && nLen <26	 && strcmp(FileName.substr(6,1).c_str(), "_")==0)
-					{			
-						nPIndex=stoi(FileName.substr(0,6));
-						if(nPIndex > nLastFileIndex)
+					std::string OriFileName = FileInfo.fname;
+					size_t nLen = OriFileName.length();
+					if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
+					{
+						// Note: nLastPerformance - refers to the number (index) of the last performance in memory,
+						//       which includes a default performance.
+						//
+						//       Filenames on the disk start from 1 to match what the user might see in MIDI.
+						//       So this means that actually file 000001_ will correspond to index position [0]
+						//       which is the default performance.  Consequently file-loaded performances
+						//       will start from index position 000002.
+						//          m_nPerformanceFileName[0] = default performance (file 000001)
+						//          m_nPerformanceFileName[1] = first available on-disk performance (file 000002)
+						//
+						// Note2: filenames assume 6 digits, underscore, name, finally ".ini"
+						//        i.e.   123456_Performance Name.ini
+						//
+						nPIndex=stoi(OriFileName.substr(0,6));
+						if ((nPIndex < 2) || (nPIndex >= (NUM_PERFORMANCES+1)))
 						{
-							nLastFileIndex=nPIndex;
+							// Index is out of range - skip to next file
+							continue;
 						}
+						// Convert from "user facing" 1..indexed number to internal 0..indexed
+						nPIndex = nPIndex-1;
+						if (m_nPerformanceFileName[nPIndex].empty())
+						{
+							if(nPIndex > nLastPerformance)
+							{
+								nLastPerformance=nPIndex;
+							}
 
-						m_nPerformanceFileName[nLastPerformance++]= FileName;
+							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
+
+							m_nPerformanceFileName[nPIndex] = FileName;
+							//LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
+						}
+						else
+						{
+							LOGNOTE ("Duplicate performance %s", OriFileName.c_str());
+						}
 					}	
 				}
 			}
 
 			Result = f_findnext (&Directory, &FileInfo);
 		}
-		// sort by performance number-name
-		if (nLastPerformance > 2)
-		{
-		sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // default is always on first place. %%%%%%%%%%%%%%%%
-		}
 	}
 	
-	LOGNOTE ("Number of Performances: %d", nLastPerformance);
+	LOGNOTE ("Last Performance: %d", nLastPerformance + 1); // Show "user facing" index
 	
 	return nInternalFolderOk;
 }   
@@ -888,22 +955,17 @@ bool CPerformanceConfig::ListPerformances()
 
 void CPerformanceConfig::SetNewPerformance (unsigned nID)
 {
-		nActualPerformance=nID;
-		std::string FileN = "";
-		if (nID != 0) // in order to assure retrocompatibility
-		{
-			FileN += PERFORMANCE_DIR;
-			FileN += "/";
-		}
-		FileN += m_nPerformanceFileName[nID];
-		new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
-		
+	assert (nID < NUM_PERFORMANCES);
+	nActualPerformance=nID;
+	std::string FileN = GetPerformanceFullFilePath(nID);
+
+	new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
 }
 
 std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
 {
 	std::string nIndex = "000000";
-	nIndex += std::to_string(nLastFileIndex+1);
+	nIndex += std::to_string(nLastPerformance+1+1); // Convert from internal 0.. index to a file-based 1.. index to show the user
 	nIndex = nIndex.substr(nIndex.length()-6,6);
 	return "Perf" + nIndex;
 }
@@ -930,23 +992,23 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 	std::string FileN = "SD:/";
 	FileN += PERFORMANCE_DIR;
 
-	
-	FRESULT Result = f_findfirst (&Directory, &FileInfo, FileN.c_str(), m_nPerformanceFileName[nID].c_str());
+	FRESULT Result = f_findfirst (&Directory, &FileInfo, FileN.c_str(), GetPerformanceFileName(nID).c_str());
 	if (Result == FR_OK && FileInfo.fname[0])
 	{
 		FileN += "/";
-		FileN += m_nPerformanceFileName[nID];
+		FileN += GetPerformanceFileName(nID);
 		Result=f_unlink (FileN.c_str());
 		if (Result == FR_OK)
 		{
 			SetNewPerformance(0);
 			nActualPerformance =0;
 			//nMenuSelectedPerformance=0;
-			m_nPerformanceFileName[nID]="ZZZZZZ";
-			sort (m_nPerformanceFileName+1, m_nPerformanceFileName + nLastPerformance); // test si va con -1 o no
-			--nLastPerformance;
-			m_nPerformanceFileName[nLastPerformance]=nullptr;
+			m_nPerformanceFileName[nID].clear();
 			bOK=true;
+		}
+		else
+		{
+			LOGNOTE ("Failed to delete %s", FileN.c_str());
 		}
 	}
 	return bOK;

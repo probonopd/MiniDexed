@@ -123,6 +123,7 @@ public:
 	//std::string m_DirName;
 	void SetNewPerformance (unsigned nID);
 	std::string GetPerformanceFileName(unsigned nID);
+	std::string GetPerformanceFullFilePath(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
 	unsigned GetLastPerformance();
 	void SetActualPerformanceID(unsigned nID);
@@ -133,6 +134,7 @@ public:
 	void SetNewPerformanceName(std::string nName);
 	bool DeletePerformance(unsigned nID);
 	bool CheckFreePerformanceSlot(void);
+	bool IsValidPerformance(unsigned nID);
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -167,7 +169,6 @@ private:
 	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];	
 
 	unsigned nLastPerformance;  
-	unsigned nLastFileIndex;
 	unsigned nActualPerformance = 0;  
 	//unsigned nMenuSelectedPerformance = 0; 
 	std::string m_nPerformanceFileName[NUM_PERFORMANCES];

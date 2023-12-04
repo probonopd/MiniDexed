@@ -489,10 +489,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
 		// Program Change messages change Performances.
-		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
-
-		// GetLastPerformance actually returns 1-indexed, number of performances
-		if (nProgram < nLastPerformance - 1)
+		if (m_PerformanceConfig.IsValidPerformance(nProgram))
 		{
 			SetNewPerformance(nProgram);
 		}
@@ -1629,6 +1626,11 @@ std::string CMiniDexed::GetNewPerformanceDefaultName(void)
 void CMiniDexed::SetNewPerformanceName(std::string nName)
 {
 	m_PerformanceConfig.SetNewPerformanceName(nName);
+}
+
+bool CMiniDexed::IsValidPerformance(unsigned nID)
+{
+	return m_PerformanceConfig.IsValidPerformance(nID);
 }
 
 void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)

@@ -128,6 +128,7 @@ public:
 	bool SavePerformance (bool bSaveAsDeault);
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
+	bool IsValidPerformance(unsigned nID);
 
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
