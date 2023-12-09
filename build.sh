@@ -30,8 +30,11 @@ if [ "${USB_DID}" ] ; then
 fi
 
 # Patch Circle so that descriptive strings are used in dmesg and in DAWs
-sed -i -e 's|"Circle"|"probonopd"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp 
-sed -i -e 's|"MIDI Gadget"|"MiniDexed"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp 
+sed -i -e 's|"Circle"|"probonopd"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp
+sed -i -e 's|"MIDI Gadget"|"MiniDexed"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp
+
+# Disable the MIDI Output as it is currently unused
+sed -i -e 's|m_pEP\[EPOut\]->AttachInterface|// m_pEP[EPOut]->AttachInterface|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp
 
 # Build circle-stdlib library
 cd circle-stdlib/
