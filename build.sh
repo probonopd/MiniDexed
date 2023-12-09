@@ -29,6 +29,10 @@ if [ "${USB_DID}" ] ; then
 	OPTIONS="${OPTIONS} -o USB_GADGET_DEVICE_ID=${USB_DID}"
 fi
 
+# Patch Circle so that descriptive strings are used in dmesg and in DAWs
+sed -i -e 's|"Circle"|"probonopd"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp 
+sed -i -e 's|"MIDI Gadget"|"MiniDexed"|g' circle-stdlib/libs/circle/lib/usb/gadget/usbmidigadget.cpp 
+
 # Build circle-stdlib library
 cd circle-stdlib/
 make mrproper || true
