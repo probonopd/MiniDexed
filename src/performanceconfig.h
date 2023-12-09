@@ -29,6 +29,7 @@
 #define NUM_VOICE_PARAM 156
 #define PERFORMANCE_DIR "performance" 
 #define NUM_PERFORMANCES 256
+#define NUM_PERFORMANCE_BANKS 8
 
 class CPerformanceConfig	// Performance configuration
 {
@@ -136,6 +137,12 @@ public:
 	bool CheckFreePerformanceSlot(void);
 	bool IsValidPerformance(unsigned nID);
 
+	bool ListPerformanceBanks(void); 
+	void SetPerformanceBank(unsigned nBankID);
+	unsigned GetPerformanceBank(void);
+	std::string GetPerformanceBankName(unsigned nBankID);
+	bool IsValidPerformanceBank(unsigned nBankID);
+
 private:
 	CPropertiesFatFsFile m_Properties;
 
@@ -170,8 +177,10 @@ private:
 
 	unsigned nLastPerformance;  
 	unsigned nActualPerformance = 0;  
+	unsigned nPerformanceBank;
 	//unsigned nMenuSelectedPerformance = 0; 
 	std::string m_nPerformanceFileName[NUM_PERFORMANCES];
+	std::string m_nPerformanceBankName[NUM_PERFORMANCE_BANKS];
 	FATFS *m_pFileSystem; 
 
 	bool nInternalFolderOk=false;

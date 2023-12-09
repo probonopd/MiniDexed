@@ -407,6 +407,22 @@ void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 	}
 }
 
+void CMiniDexed::BankSelectPerformance (unsigned nBank)
+{
+	nBank=constrain((int)nBank,0,16383);
+
+	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
+	{
+	//	if (GetSysExFileLoader ()->IsValidBank(nBank))
+		{
+			// Only change if we have the bank loaded
+			m_nVoiceBankIDPerformance = nBank;
+
+			m_UI.ParameterChanged ();
+		}
+	}
+}
+
 void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 {
 	nBankMSB=constrain((int)nBankMSB,0,127);
@@ -422,6 +438,12 @@ void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 	m_nVoiceBankIDMSB[nTG] = nBankMSB;
 }
 
+void CMiniDexed::BankSelectMSBPerformance (unsigned nBankMSB)
+{
+	nBankMSB=constrain((int)nBankMSB,0,127);
+	m_nVoiceBankIDMSBPerformance = nBankMSB;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	nBankLSB=constrain((int)nBankLSB,0,127);
@@ -433,6 +455,18 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	// Now should have both MSB and LSB so enable the BankSelect
 	BankSelect(nBank, nTG);
+}
+
+void CMiniDexed::BankSelectLSBPerformance (unsigned nBankLSB)
+{
+	nBankLSB=constrain((int)nBankLSB,0,127);
+
+	unsigned nBank = m_nVoiceBankIDPerformance;
+	unsigned nBankMSB = m_nVoiceBankIDMSBPerformance;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	// Now should have both MSB and LSB so enable the BankSelect
+	BankSelectPerformance(nBank);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)

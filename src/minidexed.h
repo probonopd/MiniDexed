@@ -64,8 +64,11 @@ public:
 	CSysExFileLoader *GetSysExFileLoader (void);
 
 	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectPerformance    (unsigned nBank);
 	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
+	void BankSelectMSBPerformance (unsigned nBankMSB);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
+	void BankSelectLSBPerformance (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
@@ -239,6 +242,8 @@ private:
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
 	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankIDPerformance;
+	unsigned m_nVoiceBankIDMSBPerformance;
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];

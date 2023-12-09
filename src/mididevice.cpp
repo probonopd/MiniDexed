@@ -184,9 +184,31 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	else
 	{
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
+		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
 		{
 		case MIDI_CONTROL_CHANGE:
+			// Check for performance PC messages
+			if (nPerfCh != Disabled)
+			{
+				if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
+				{
+					if (pMessage[1] == MIDI_CC_BANK_SELECT_MSB)
+					{
+						m_pSynthesizer->BankSelectMSBPerformance (pMessage[2]);
+					}
+					else if (pMessage[1] == MIDI_CC_BANK_SELECT_LSB)
+					{
+						m_pSynthesizer->BankSelectLSBPerformance (pMessage[2]);
+					}
+					else
+					{
+						// Ignore any other CC messages at this time
+					}
+				}
+			}
+			break;
+
 		case MIDI_NOTE_OFF:
 		case MIDI_NOTE_ON:
 			if (nLength < 3)
@@ -195,11 +217,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
 			break;
+
 		case MIDI_PROGRAM_CHANGE:
 			// Check for performance PC messages
 			if( m_pConfig->GetMIDIRXProgramChange() )
 			{
-				unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 				if( nPerfCh != Disabled)
 				{
 					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))

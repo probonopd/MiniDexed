@@ -949,6 +949,8 @@ bool CPerformanceConfig::ListPerformances()
 	
 	LOGNOTE ("Last Performance: %d", nLastPerformance + 1); // Show "user facing" index
 	
+	ListPerformanceBanks();
+	
 	return nInternalFolderOk;
 }   
     
@@ -1012,4 +1014,123 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 		}
 	}
 	return bOK;
+}
+
+bool CPerformanceConfig::ListPerformanceBanks()
+{
+	// Open performance directory
+    DIR Directory;
+	FILINFO FileInfo;
+	FRESULT Result;
+	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
+	if (Result != FR_OK)
+	{
+		// No performance directory, so no performance banks.
+		// So nothing else to do here
+		return false;
+	}
+
+	LOGNOTE ("Performance Directory Found");
+	
+	unsigned nNumBanks = 0;
+	unsigned nHighestBank = 0;
+
+	// List directories with names in format 01_Perf Bank Name
+	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*");
+	for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
+	{
+		// Check to see if it is a directory
+		if ((FileInfo.fattrib & AM_DIR) != 0)
+		{
+			// Looking for Performance banks of the form: 01_Perf Bank Name
+			// So positions 0,1 = decimal digit
+			//    position  2   = "_"
+			//    positions 3.. = actual name
+			//
+			std::string OriFileName = FileInfo.fname;
+			size_t nLen = OriFileName.length();
+			if (   nLen > 3 && nLen <26	 && strcmp(OriFileName.substr(2,1).c_str(), "_")==0)
+			{
+				unsigned nBankIndex = stoi(OriFileName.substr(0,2));
+				// Recall user index numbered 01..NUM_PERFORMANCE_BANKS
+				if ((nBankIndex > 0) && (nBankIndex <= NUM_PERFORMANCE_BANKS))
+				{
+					// Convert from "user facing" 1..indexed number to internal 0..indexed
+					nBankIndex = nBankIndex-1;
+					if (m_nPerformanceBankName[nBankIndex].empty())
+					{
+						std::string BankName = OriFileName.substr(3,nLen);
+
+						m_nPerformanceBankName[nBankIndex] = BankName;
+						//LOGNOTE ("Found performance bank %s (%d, %s)", OriFileName.c_str(), nBankIndex, BankName.c_str());
+						nNumBanks++;
+						if (nBankIndex > nHighestBank)
+						{
+							nHighestBank = nBankIndex;
+						}
+					}
+					else
+					{
+						LOGNOTE ("Duplicate Performance Bank: %s", FileInfo.fname);
+					}
+				}
+				else
+				{
+					LOGNOTE ("Performance Bank number out of range: %s", FileInfo.fname);
+				}
+			}
+			else
+			{
+				//LOGNOTE ("Skipping: %s", FileInfo.fname);
+			}
+		}
+		
+		Result = f_findnext (&Directory, &FileInfo);
+	}
+	
+	if (nNumBanks > 0)
+	{
+		LOGNOTE ("Number of Performance Banks: %d (last = %d)", nNumBanks, nHighestBank+1);
+	}
+	return true;
+}
+
+void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
+{
+	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	if (IsValidPerformanceBank(nBankID))
+	{
+		// Construct performance bank directory name
+		// Change directory
+		// Reload performances from that directory
+		nPerformanceBank = nBankID;
+	}
+}
+
+unsigned CPerformanceConfig::GetPerformanceBank(void)
+{
+	return nPerformanceBank;
+}
+
+std::string CPerformanceConfig::GetPerformanceBankName(unsigned nBankID)
+{
+	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	if (IsValidPerformanceBank(nBankID))
+	{
+		return m_nPerformanceBankName[nBankID];
+	}
+	else
+	{
+		return "Default";
+	}
+}
+
+bool CPerformanceConfig::IsValidPerformanceBank(unsigned nBankID)
+{
+	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	if (m_nPerformanceBankName[nBankID].empty())
+	{
+		return false;
+	}
+	return true;
 }
