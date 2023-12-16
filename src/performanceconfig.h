@@ -27,15 +27,16 @@
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
-#define PERFORMANCE_DIR "performance" 
 #define NUM_PERFORMANCES 256
-#define NUM_PERFORMANCE_BANKS 8
+#define NUM_PERFORMANCE_BANKS 64
 
 class CPerformanceConfig	// Performance configuration
 {
 public:
 	CPerformanceConfig (FATFS *pFileSystem);
 	~CPerformanceConfig (void);
+	
+	bool Init (void);
 
 	bool Load (void);
 
@@ -135,6 +136,7 @@ public:
 	void SetNewPerformanceName(std::string nName);
 	bool DeletePerformance(unsigned nID);
 	bool CheckFreePerformanceSlot(void);
+	std::string AddPerformanceBankDirName(unsigned nBankID);
 	bool IsValidPerformance(unsigned nID);
 
 	bool ListPerformanceBanks(void); 
@@ -175,16 +177,15 @@ private:
 	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
 	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];	
 
-	unsigned nLastPerformance;  
-	unsigned nActualPerformance = 0;  
-	unsigned nPerformanceBank;
+	unsigned m_nLastPerformance;  
+	unsigned m_nActualPerformance = 0;  
+	unsigned m_nPerformanceBank;
+	bool     m_bPerformanceDirectoryExists;
 	//unsigned nMenuSelectedPerformance = 0; 
-	std::string m_nPerformanceFileName[NUM_PERFORMANCES];
-	std::string m_nPerformanceBankName[NUM_PERFORMANCE_BANKS];
+	std::string m_PerformanceFileName[NUM_PERFORMANCES];
+	std::string m_PerformanceBankName[NUM_PERFORMANCE_BANKS];
 	FATFS *m_pFileSystem; 
 
-	bool nInternalFolderOk=false;
-	bool nExternalFolderOk=false; // for future USB implementation
 	std::string NewPerformanceName="";
 	
 	bool m_bCompressorEnable;

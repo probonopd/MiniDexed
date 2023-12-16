@@ -227,6 +227,7 @@ bool CMiniDexed::Initialize (void)
 		reverb_send_mixer->gain(i,mapfloat(m_nReverbSend[i],0,99,0.0f,1.0f));
 	}
 
+	m_PerformanceConfig.Init();
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters(); 
@@ -234,12 +235,6 @@ bool CMiniDexed::Initialize (void)
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
-	}
-	
-	// load performances file list, and attempt to create the performance folder
-	if (!m_PerformanceConfig.ListPerformances()) 
-	{
-		LOGERR ("Cannot create internal Performance folder, new performances can't be created");
 	}
 	
 	// setup and start the sound device
@@ -392,6 +387,11 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
+CPerformanceConfig *CMiniDexed::GetPerformanceConfig (void)
+{
+	return &m_PerformanceConfig;
+}
+
 void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
 	nBank=constrain((int)nBank,0,16383);
@@ -413,10 +413,11 @@ void CMiniDexed::BankSelectPerformance (unsigned nBank)
 
 	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
-	//	if (GetSysExFileLoader ()->IsValidBank(nBank))
+		if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
 		{
 			// Only change if we have the bank loaded
 			m_nVoiceBankIDPerformance = nBank;
+			GetPerformanceConfig ()->SetPerformanceBank (nBank);
 
 			m_UI.ParameterChanged ();
 		}

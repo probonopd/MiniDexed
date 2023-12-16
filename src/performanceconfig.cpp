@@ -28,7 +28,10 @@
 
 LOGMODULE ("Performance");
 
+#define PERFORMANCE_DIR "performance" 
 #define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
+#define DEFAULT_PERFORMANCE_NAME "Default"
+#define DEFAULT_PERFORMANCE_BANK_NAME "Default"
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties (DEFAULT_PERFORMANCE_FILENAME, pFileSystem)
@@ -38,6 +41,45 @@ CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 
 CPerformanceConfig::~CPerformanceConfig (void)
 {
+}
+
+bool CPerformanceConfig::Init (void)
+{
+	// Check intermal performance directory exists
+    DIR Directory;
+	FRESULT Result;
+	//Check if internal "performance" directory exists
+	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
+	if (Result == FR_OK)
+	{
+		m_bPerformanceDirectoryExists=true;		
+		Result = f_closedir (&Directory);
+	}
+	else
+	{
+		m_bPerformanceDirectoryExists = false;
+	}
+	
+	// List banks if present
+	ListPerformanceBanks();
+	
+	LOGNOTE("Testing loading of banks");
+	for (unsigned i=0; i<NUM_PERFORMANCE_BANKS; i++)
+	{
+		if (!m_PerformanceBankName[i].empty())
+		{
+			SetPerformanceBank(i);
+			SetNewPerformance(0);
+		}
+	}
+
+	// Set to default initial bank
+	SetPerformanceBank(0);
+	SetNewPerformance(0);
+
+	LOGNOTE ("Loaded Default Performance Bank - Last Performance: %d", m_nLastPerformance + 1); // Show "user facing" index
+
+	return true;
 }
 
 bool CPerformanceConfig::Load (void)
@@ -719,7 +761,7 @@ std::string CPerformanceConfig::GetPerformanceFileName(unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
 	std::string FileN = "";
-	if (nID == 0) // in order to assure retrocompatibility
+	if ((m_nPerformanceBank==0) && (nID == 0)) // in order to assure retrocompatibility
 	{
 		FileN += DEFAULT_PERFORMANCE_FILENAME;
 	}
@@ -732,7 +774,7 @@ std::string CPerformanceConfig::GetPerformanceFileName(unsigned nID)
 		nIndex = nIndex.substr(nIndex.length()-6,6);
 		FileN += nIndex;
 		FileN += "_";
-		FileN += m_nPerformanceFileName[nID];
+		FileN += m_PerformanceFileName[nID];
 		FileN += ".ini";
 	}
 	return FileN;
@@ -741,48 +783,54 @@ std::string CPerformanceConfig::GetPerformanceFileName(unsigned nID)
 std::string CPerformanceConfig::GetPerformanceFullFilePath(unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
-	std::string FileN = "";
-	if (nID != 0)
+	std::string FileN = "SD:/";
+	if ((m_nPerformanceBank == 0) && (nID == 0))
+	{
+		// Special case for the legacy Bank 1/Default performance
+		FileN += DEFAULT_PERFORMANCE_FILENAME;
+	}
+	else
 	{
 		FileN += PERFORMANCE_DIR;
+		FileN += AddPerformanceBankDirName(m_nPerformanceBank);
 		FileN += "/";
+		FileN += GetPerformanceFileName(nID);
 	}
-	FileN += GetPerformanceFileName(nID);
 	return FileN;
 }
 
 std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
-	return m_nPerformanceFileName[nID];
+	return m_PerformanceFileName[nID];
 }
 
 unsigned CPerformanceConfig::GetLastPerformance()
 {
-	return nLastPerformance;
+	return m_nLastPerformance;
 }
 
 unsigned CPerformanceConfig::GetActualPerformanceID()
 {
-	return nActualPerformance;
+	return m_nActualPerformance;
 }
 
 void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
-	nActualPerformance = nID;
+	m_nActualPerformance = nID;
 }
 
 bool CPerformanceConfig::GetInternalFolderOk()
 {
-	return nInternalFolderOk;
+	return m_bPerformanceDirectoryExists;
 }
 
 bool CPerformanceConfig::IsValidPerformance(unsigned nID)
 {
 	if (nID < NUM_PERFORMANCES)
 	{
-		if (!m_nPerformanceFileName[nID].empty())
+		if (!m_PerformanceFileName[nID].empty())
 		{
 			return true;
 		}
@@ -794,7 +842,7 @@ bool CPerformanceConfig::IsValidPerformance(unsigned nID)
 
 bool CPerformanceConfig::CheckFreePerformanceSlot(void)
 {
-	if (nLastPerformance < NUM_PERFORMANCES)
+	if (m_nLastPerformance < NUM_PERFORMANCES)
 	{
 		// There is a free slot...
 		return true;
@@ -807,16 +855,27 @@ bool CPerformanceConfig::CheckFreePerformanceSlot(void)
 
 bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
-	if (nLastPerformance >= NUM_PERFORMANCES) {
+	if (m_nLastPerformance >= NUM_PERFORMANCES) {
 		// No space left for new performances
 		LOGWARN ("No space left for new performance");
 		return false;
 	}
+	
+	// Note: New performances are created at the end of the currently selected bank.
+	//       Sould we default to a new bank just for user-performances?
+	//
+	//       There is the possibility of MIDI changing the Bank Number and the user
+	//       not spotting the bank has changed...
+	//
+	//       Another option would be to find empty slots in the current bank
+	//       rather than always add at the end.
+	//
+	//       Sorting this out is left for a future update.
 
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
-	nActualPerformance=nLastPerformance;
-	unsigned nNewPerformance = nLastPerformance + 1;
+	m_nActualPerformance=m_nLastPerformance;
+	unsigned nNewPerformance = m_nLastPerformance + 1;
 	std::string nFileName;
 	std::string nPath;
 	std::string nIndex = "000000";
@@ -836,10 +895,11 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 		nFileName +=sPerformanceName.substr(0,14);
 	}
 	nFileName += ".ini";
-	m_nPerformanceFileName[nNewPerformance]= sPerformanceName;
+	m_PerformanceFileName[nNewPerformance]= sPerformanceName;
 	
 	nPath = "SD:/" ;
 	nPath += PERFORMANCE_DIR;
+	nPath += AddPerformanceBankDirName(m_nPerformanceBank);
 	nPath += "/";
 	nFileName = nPath + nFileName;
 	
@@ -847,17 +907,17 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	FRESULT Result = f_open (&File, nFileName.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
 	if (Result != FR_OK)
 	{
-		m_nPerformanceFileName[nNewPerformance]=nullptr;
+		m_PerformanceFileName[nNewPerformance]=nullptr;
 		return false;
 	}
 
 	if (f_close (&File) != FR_OK)
 	{
-		m_nPerformanceFileName[nNewPerformance]=nullptr;
+		m_PerformanceFileName[nNewPerformance]=nullptr;
 		return false;
 	}
 	
-	nLastPerformance = nNewPerformance;
+	m_nLastPerformance = nNewPerformance;
 	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
 	
 	return true;
@@ -865,35 +925,36 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 bool CPerformanceConfig::ListPerformances()
 {
-	nInternalFolderOk=false;
-	nExternalFolderOk=false; // for future USB implementation
-	nLastPerformance=0;
-   	m_nPerformanceFileName[0]="Default"; // in order to assure retrocompatibility
-	
-	unsigned nPIndex;
-    DIR Directory;
-	FILINFO FileInfo;
-	FRESULT Result;
-	//Check if internal "performance" directory exists
-	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
-	if (Result == FR_OK)
+	// Clear any existing lists of performances
+	for (unsigned i=0; i<NUM_PERFORMANCES; i++)
 	{
-		nInternalFolderOk=true;		
-//		Result = f_closedir (&Directory);
+		m_PerformanceFileName[i].clear();
 	}
-	else
+	m_nLastPerformance=0;
+	if (m_nPerformanceBank == 0)
 	{
-		// attenpt to create the folder
-		Result = f_mkdir("SD:/" PERFORMANCE_DIR);
-		nInternalFolderOk = (Result == FR_OK);
+		// The first bank is the default performance directory
+	   	m_PerformanceFileName[0]=DEFAULT_PERFORMANCE_NAME; // in order to assure retrocompatibility
 	}
 	
-	if (nInternalFolderOk)
+	if (m_bPerformanceDirectoryExists)
 	{
-		Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*.ini");
+		DIR Directory;
+		FILINFO FileInfo;
+		FRESULT Result;
+		std::string PerfDir = "SD:/" PERFORMANCE_DIR + AddPerformanceBankDirName(m_nPerformanceBank);
+		LOGNOTE("Listing Performances from %s", PerfDir.c_str());
+		Result = f_opendir (&Directory, PerfDir.c_str());
+		if (Result != FR_OK)
+		{
+			return false;
+		}
+		unsigned nPIndex;
+
+		Result = f_findfirst (&Directory, &FileInfo, PerfDir.c_str(), "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (nLastPerformance >= NUM_PERFORMANCES) {
+			if (m_nLastPerformance >= NUM_PERFORMANCES) {
 				LOGNOTE ("Skipping performance %s", FileInfo.fname);
 			} else {
 				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
@@ -902,38 +963,37 @@ bool CPerformanceConfig::ListPerformances()
 					size_t nLen = OriFileName.length();
 					if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
 					{
-						// Note: nLastPerformance - refers to the number (index) of the last performance in memory,
+						// Note: m_nLastPerformance - refers to the number (index) of the last performance in memory,
 						//       which includes a default performance.
 						//
 						//       Filenames on the disk start from 1 to match what the user might see in MIDI.
-						//       So this means that actually file 000001_ will correspond to index position [0]
-						//       which is the default performance.  Consequently file-loaded performances
-						//       will start from index position 000002.
-						//          m_nPerformanceFileName[0] = default performance (file 000001)
-						//          m_nPerformanceFileName[1] = first available on-disk performance (file 000002)
+						//       So this means that actually file 000001_ will correspond to index position [0].
+						//       For the default bank though, ID 1 is the default performance, so will already exist.
+						//          m_PerformanceFileName[0] = default performance (file 000001)
+						//          m_PerformanceFileName[1] = first available on-disk performance (file 000002)
 						//
 						// Note2: filenames assume 6 digits, underscore, name, finally ".ini"
 						//        i.e.   123456_Performance Name.ini
 						//
 						nPIndex=stoi(OriFileName.substr(0,6));
-						if ((nPIndex < 2) || (nPIndex >= (NUM_PERFORMANCES+1)))
+						if ((nPIndex < 1) || (nPIndex >= (NUM_PERFORMANCES+1)))
 						{
 							// Index is out of range - skip to next file
 							continue;
 						}
 						// Convert from "user facing" 1..indexed number to internal 0..indexed
 						nPIndex = nPIndex-1;
-						if (m_nPerformanceFileName[nPIndex].empty())
+						if (m_PerformanceFileName[nPIndex].empty())
 						{
-							if(nPIndex > nLastPerformance)
+							if(nPIndex > m_nLastPerformance)
 							{
-								nLastPerformance=nPIndex;
+								m_nLastPerformance=nPIndex;
 							}
 
 							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
 
-							m_nPerformanceFileName[nPIndex] = FileName;
-							//LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
+							m_PerformanceFileName[nPIndex] = FileName;
+							LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
 						}
 						else
 						{
@@ -945,29 +1005,26 @@ bool CPerformanceConfig::ListPerformances()
 
 			Result = f_findnext (&Directory, &FileInfo);
 		}
+		f_closedir (&Directory);
 	}
 	
-	LOGNOTE ("Last Performance: %d", nLastPerformance + 1); // Show "user facing" index
-	
-	ListPerformanceBanks();
-	
-	return nInternalFolderOk;
-}   
-    
+	return true;
+}
 
 void CPerformanceConfig::SetNewPerformance (unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
-	nActualPerformance=nID;
+	m_nActualPerformance=nID;
 	std::string FileN = GetPerformanceFullFilePath(nID);
 
 	new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
+	LOGNOTE("Selecting Performance: %d (%s)", nID+1, FileN.c_str());
 }
 
 std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
 {
 	std::string nIndex = "000000";
-	nIndex += std::to_string(nLastPerformance+1+1); // Convert from internal 0.. index to a file-based 1.. index to show the user
+	nIndex += std::to_string(m_nLastPerformance+1+1); // Convert from internal 0.. index to a file-based 1.. index to show the user
 	nIndex = nIndex.substr(nIndex.length()-6,6);
 	return "Perf" + nIndex;
 }
@@ -988,12 +1045,13 @@ void CPerformanceConfig::SetNewPerformanceName(std::string nName)
 bool CPerformanceConfig::DeletePerformance(unsigned nID)
 {
 	bool bOK = false;
-	if(nID == 0){return bOK;} // default (performance.ini at root directory) can't be deleted
+	if((m_nPerformanceBank == 0) && (nID == 0)){return bOK;} // default (performance.ini at root directory) can't be deleted
 	DIR Directory;
 	FILINFO FileInfo;
 	std::string FileN = "SD:/";
 	FileN += PERFORMANCE_DIR;
-
+	FileN += AddPerformanceBankDirName(m_nPerformanceBank);
+	
 	FRESULT Result = f_findfirst (&Directory, &FileInfo, FileN.c_str(), GetPerformanceFileName(nID).c_str());
 	if (Result == FR_OK && FileInfo.fname[0])
 	{
@@ -1003,9 +1061,9 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 		if (Result == FR_OK)
 		{
 			SetNewPerformance(0);
-			nActualPerformance =0;
+			m_nActualPerformance =0;
 			//nMenuSelectedPerformance=0;
-			m_nPerformanceFileName[nID].clear();
+			m_PerformanceFileName[nID].clear();
 			bOK=true;
 		}
 		else
@@ -1019,7 +1077,7 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 bool CPerformanceConfig::ListPerformanceBanks()
 {
 	// Open performance directory
-    DIR Directory;
+	DIR Directory;
 	FILINFO FileInfo;
 	FRESULT Result;
 	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
@@ -1030,10 +1088,13 @@ bool CPerformanceConfig::ListPerformanceBanks()
 		return false;
 	}
 
-	LOGNOTE ("Performance Directory Found");
-	
 	unsigned nNumBanks = 0;
 	unsigned nHighestBank = 0;
+	
+	// Add in the default performance directory as the first bank
+	m_PerformanceBankName[0] = DEFAULT_PERFORMANCE_BANK_NAME;
+	nNumBanks = 1;
+	nHighestBank = 0;
 
 	// List directories with names in format 01_Perf Bank Name
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*");
@@ -1052,17 +1113,18 @@ bool CPerformanceConfig::ListPerformanceBanks()
 			if (   nLen > 3 && nLen <26	 && strcmp(OriFileName.substr(2,1).c_str(), "_")==0)
 			{
 				unsigned nBankIndex = stoi(OriFileName.substr(0,2));
-				// Recall user index numbered 01..NUM_PERFORMANCE_BANKS
+				// Recall user index numbered 02..NUM_PERFORMANCE_BANKS
+				// NB: Bank 01 is reserved for the default performance directory
 				if ((nBankIndex > 0) && (nBankIndex <= NUM_PERFORMANCE_BANKS))
 				{
 					// Convert from "user facing" 1..indexed number to internal 0..indexed
 					nBankIndex = nBankIndex-1;
-					if (m_nPerformanceBankName[nBankIndex].empty())
+					if (m_PerformanceBankName[nBankIndex].empty())
 					{
 						std::string BankName = OriFileName.substr(3,nLen);
 
-						m_nPerformanceBankName[nBankIndex] = BankName;
-						//LOGNOTE ("Found performance bank %s (%d, %s)", OriFileName.c_str(), nBankIndex, BankName.c_str());
+						m_PerformanceBankName[nBankIndex] = BankName;
+						LOGNOTE ("Found performance bank %s (%d, %s)", OriFileName.c_str(), nBankIndex, BankName.c_str());
 						nNumBanks++;
 						if (nBankIndex > nHighestBank)
 						{
@@ -1072,6 +1134,10 @@ bool CPerformanceConfig::ListPerformanceBanks()
 					else
 					{
 						LOGNOTE ("Duplicate Performance Bank: %s", FileInfo.fname);
+						if (nBankIndex==0)
+						{
+							LOGNOTE ("(Bank 01 is the default performance directory)");
+						}
 					}
 				}
 				else
@@ -1092,6 +1158,8 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	{
 		LOGNOTE ("Number of Performance Banks: %d (last = %d)", nNumBanks, nHighestBank+1);
 	}
+	
+	f_closedir (&Directory);
 	return true;
 }
 
@@ -1100,16 +1168,15 @@ void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
 	if (IsValidPerformanceBank(nBankID))
 	{
-		// Construct performance bank directory name
-		// Change directory
-		// Reload performances from that directory
-		nPerformanceBank = nBankID;
+		LOGNOTE("Selecting Performance Bank: %d", nBankID+1);
+		m_nPerformanceBank = nBankID;
+		ListPerformances();
 	}
 }
 
 unsigned CPerformanceConfig::GetPerformanceBank(void)
 {
-	return nPerformanceBank;
+	return m_nPerformanceBank;
 }
 
 std::string CPerformanceConfig::GetPerformanceBankName(unsigned nBankID)
@@ -1117,18 +1184,46 @@ std::string CPerformanceConfig::GetPerformanceBankName(unsigned nBankID)
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
 	if (IsValidPerformanceBank(nBankID))
 	{
-		return m_nPerformanceBankName[nBankID];
+		return m_PerformanceBankName[nBankID];
 	}
 	else
 	{
-		return "Default";
+		return DEFAULT_PERFORMANCE_BANK_NAME;
+	}
+}
+
+std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
+{
+	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	if (IsValidPerformanceBank(nBankID))
+	{
+		// Performance Banks directories in format "01_Bank Name"
+		std::string Index;
+		if (nBankID == 0)
+		{
+			// Legacy: Bank 1 is the default performance directory
+			return "";
+		}
+		if (nBankID < 9)
+		{
+			Index = "0" + std::to_string(nBankID+1);
+		}
+		else
+		{
+			Index = std::to_string(nBankID+1);
+		}
+		return "/" + Index + "_" + m_PerformanceBankName[nBankID];
+	}
+	else
+	{
+		return "";
 	}
 }
 
 bool CPerformanceConfig::IsValidPerformanceBank(unsigned nBankID)
 {
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
-	if (m_nPerformanceBankName[nBankID].empty())
+	if (m_PerformanceBankName[nBankID].empty())
 	{
 		return false;
 	}

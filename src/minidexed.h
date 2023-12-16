@@ -62,6 +62,7 @@ public:
 #endif
 
 	CSysExFileLoader *GetSysExFileLoader (void);
+	CPerformanceConfig *GetPerformanceConfig (void);
 
 	void BankSelect    (unsigned nBank, unsigned nTG);
 	void BankSelectPerformance    (unsigned nBank);
