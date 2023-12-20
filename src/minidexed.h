@@ -121,9 +121,11 @@ public:
 	std::string GetPerformanceFileName(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
 	unsigned GetLastPerformance();
+	unsigned GetLastPerformanceBank();
 	unsigned GetActualPerformanceID();
 	void SetActualPerformanceID(unsigned nID);
 	bool SetNewPerformance(unsigned nID);
+	unsigned SetFirstPerformance(void);
 	bool SavePerformanceNewFile ();
 	
 	bool DoSavePerformanceNewFile (void);
@@ -133,6 +135,7 @@ public:
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
 	bool IsValidPerformance(unsigned nID);
+	bool IsValidPerformanceBank(unsigned nBankID);
 
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
@@ -146,6 +149,7 @@ public:
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
+		ParameterPerformanceBank,
 		ParameterUnknown
 	};
 

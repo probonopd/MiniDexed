@@ -170,6 +170,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
+		
+	SetParameter (ParameterPerformanceBank, 0);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -830,6 +832,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	case ParameterPerformanceSelectChannel:
 		// Nothing more to do
+		break;
+
+	case ParameterPerformanceBank:
+		BankSelectPerformance(nValue);
 		break;
 
 	default:
@@ -1533,6 +1539,11 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
+unsigned CMiniDexed::GetLastPerformanceBank()
+{
+	return m_PerformanceConfig.GetLastPerformanceBank();
+}
+
 unsigned CMiniDexed::GetActualPerformanceID()
 {
 	return m_PerformanceConfig.GetActualPerformanceID();
@@ -1549,6 +1560,13 @@ bool CMiniDexed::SetNewPerformance(unsigned nID)
 	m_nSetNewPerformanceID = nID;
 
 	return true;
+}
+
+unsigned CMiniDexed::SetFirstPerformance(void)
+{
+	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
+	SetNewPerformance(nID);
+	return nID;
 }
 
 bool CMiniDexed::DoSetNewPerformance (void)
@@ -1666,6 +1684,11 @@ void CMiniDexed::SetNewPerformanceName(std::string nName)
 bool CMiniDexed::IsValidPerformance(unsigned nID)
 {
 	return m_PerformanceConfig.IsValidPerformance(nID);
+}
+
+bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
+{
+	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
 }
 
 void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)

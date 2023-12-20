@@ -124,10 +124,12 @@ public:
 	bool ListPerformances(); 
 	//std::string m_DirName;
 	void SetNewPerformance (unsigned nID);
+	unsigned FindFirstPerformance (void);
 	std::string GetPerformanceFileName(unsigned nID);
 	std::string GetPerformanceFullFilePath(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
 	unsigned GetLastPerformance();
+	unsigned GetLastPerformanceBank();
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceID();
 	bool CreateNewPerformanceFile(void);
@@ -180,6 +182,7 @@ private:
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  
 	unsigned m_nPerformanceBank;
+	unsigned m_nLastPerformanceBank;  
 	bool     m_bPerformanceDirectoryExists;
 	//unsigned nMenuSelectedPerformance = 0; 
 	std::string m_PerformanceFileName[NUM_PERFORMANCES];

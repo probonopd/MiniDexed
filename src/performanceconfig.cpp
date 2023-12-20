@@ -1,3 +1,4 @@
+
 //
 // performanceconfig.cpp
 //
@@ -46,7 +47,7 @@ CPerformanceConfig::~CPerformanceConfig (void)
 bool CPerformanceConfig::Init (void)
 {
 	// Check intermal performance directory exists
-    DIR Directory;
+	DIR Directory;
 	FRESULT Result;
 	//Check if internal "performance" directory exists
 	Result = f_opendir (&Directory, "SD:/" PERFORMANCE_DIR);
@@ -810,6 +811,11 @@ unsigned CPerformanceConfig::GetLastPerformance()
 	return m_nLastPerformance;
 }
 
+unsigned CPerformanceConfig::GetLastPerformanceBank()
+{
+	return m_nLastPerformanceBank;
+}
+
 unsigned CPerformanceConfig::GetActualPerformanceID()
 {
 	return m_nActualPerformance;
@@ -1021,6 +1027,19 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 	LOGNOTE("Selecting Performance: %d (%s)", nID+1, FileN.c_str());
 }
 
+unsigned CPerformanceConfig::FindFirstPerformance (void)
+{
+	for (int nID=0; nID < NUM_PERFORMANCES; nID++)
+	{
+		if (IsValidPerformance(nID))
+		{
+			return nID;
+		}
+	}
+
+	return 0; // Even though 0 is a valid performance, not much else to do
+}
+
 std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
 {
 	std::string nIndex = "000000";
@@ -1089,12 +1108,12 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	}
 
 	unsigned nNumBanks = 0;
-	unsigned nHighestBank = 0;
+	m_nLastPerformanceBank = 0;
 	
 	// Add in the default performance directory as the first bank
 	m_PerformanceBankName[0] = DEFAULT_PERFORMANCE_BANK_NAME;
 	nNumBanks = 1;
-	nHighestBank = 0;
+	m_nLastPerformanceBank = 0;
 
 	// List directories with names in format 01_Perf Bank Name
 	Result = f_findfirst (&Directory, &FileInfo, "SD:/" PERFORMANCE_DIR, "*");
@@ -1126,9 +1145,9 @@ bool CPerformanceConfig::ListPerformanceBanks()
 						m_PerformanceBankName[nBankIndex] = BankName;
 						LOGNOTE ("Found performance bank %s (%d, %s)", OriFileName.c_str(), nBankIndex, BankName.c_str());
 						nNumBanks++;
-						if (nBankIndex > nHighestBank)
+						if (nBankIndex > m_nLastPerformanceBank)
 						{
-							nHighestBank = nBankIndex;
+							m_nLastPerformanceBank = nBankIndex;
 						}
 					}
 					else
@@ -1156,7 +1175,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	
 	if (nNumBanks > 0)
 	{
-		LOGNOTE ("Number of Performance Banks: %d (last = %d)", nNumBanks, nHighestBank+1);
+		LOGNOTE ("Number of Performance Banks: %d (last = %d)", nNumBanks, m_nLastPerformanceBank+1);
 	}
 	
 	f_closedir (&Directory);

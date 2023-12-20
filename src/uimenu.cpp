@@ -214,7 +214,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbLowPass
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
-	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel} 	// ParameterPerformanceSelectChannel
+	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
+	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
 };
 
 // must match CMiniDexed::TTGParameter
@@ -327,6 +328,7 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 	{"Load",	PerformanceMenu, 0, 0}, 
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1},
+	{"Bank",	EditPerformanceBankNumber, 0, 0},
 	{"PCCH",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
 	{0}
 };
@@ -1508,6 +1510,87 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
+}
+
+void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	bool bPerformanceSelectToLoad = pUIMenu->m_pMiniDexed->GetPerformanceSelectToLoad();
+	unsigned nLastPerformanceBank = pUIMenu->m_pMiniDexed->GetLastPerformanceBank();
+	unsigned nValue = pUIMenu->m_nSelectedPerformanceBankID;
+	unsigned nStart = nValue;
+	std::string Value;
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		do
+		{
+			if (nValue == 0)
+			{
+				// Wrap around
+				nValue = nLastPerformanceBank;
+			}
+			else if (nValue > 0)
+			{
+				--nValue;
+			}
+		} while ((pUIMenu->m_pMiniDexed->IsValidPerformanceBank(nValue) != true) && (nValue != nStart));
+		pUIMenu->m_nSelectedPerformanceBankID = nValue;
+		if (!bPerformanceSelectToLoad)
+		{
+			// Switch to the new bank and select the first performance voice
+			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
+			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+		}
+		break;
+
+	case MenuEventStepUp:
+		do
+		{
+			if (nValue == nLastPerformanceBank)
+			{
+				// Wrap around
+				nValue = 0;
+			}
+			else if (nValue < nLastPerformanceBank)
+			{
+				++nValue;
+			}
+		} while ((pUIMenu->m_pMiniDexed->IsValidPerformanceBank(nValue) != true) && (nValue != nStart));
+		pUIMenu->m_nSelectedPerformanceBankID = nValue;
+		if (!bPerformanceSelectToLoad)
+		{
+			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
+			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+		}
+		break;
+
+	case MenuEventSelect:	
+		if (bPerformanceSelectToLoad)
+		{
+			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
+			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	Value = pUIMenu->m_pMiniDexed->GetPerformanceConfig ()->GetPerformanceBankName(nValue);
+	std::string nPSelected = "";
+	if(nValue == (unsigned)pUIMenu->m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceBank))
+	{
+		nPSelected= "[L]";
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
+							Value.c_str (),
+							nValue > 0,
+							nValue < pUIMenu->m_pMiniDexed->GetLastPerformanceBank()-1);
 }
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
