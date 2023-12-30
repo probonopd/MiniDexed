@@ -29,7 +29,7 @@
 
 LOGMODULE ("Performance");
 
-#define VERBOSE_DEBUG
+//#define VERBOSE_DEBUG
 
 #define PERFORMANCE_DIR "performance" 
 #define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
