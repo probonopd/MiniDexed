@@ -26,7 +26,7 @@ if [ "${USB_VID}" ] ; then
 	OPTIONS="${OPTIONS} -o USB_GADGET_VENDOR_ID=${USB_VID}"
 fi
 if [ "${USB_DID}" ] ; then
-	OPTIONS="${OPTIONS} -o USB_GADGET_DEVICE_ID=${USB_DID}"
+	OPTIONS="${OPTIONS} -o USB_GADGET_DEVICE_ID_BASE=${USB_DID}"
 fi
 
 # Build circle-stdlib library
