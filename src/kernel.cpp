@@ -22,7 +22,7 @@
 #include <circle/synchronize.h>
 #include <assert.h>
 #include <circle/usb/usbhcidevice.h>
-#include <circle/usb/gadget/usbmidigadget.h>
+#include "usbminidexedmidigadget.h"
 
 LOGMODULE ("kernel");
 
@@ -69,7 +69,7 @@ bool CKernel::Initialize (void)
 	if (m_Config.GetUSBGadgetMode())
 	{
 		// Run the USB stack in USB Gadget (device) mode
-		m_pUSB = new CUSBMIDIGadget (&mInterrupt);
+		m_pUSB = new CUSBMiniDexedMIDIGadget (&mInterrupt);
 	}
 	else
 	{
