@@ -15,7 +15,7 @@ MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known 
 - [x] Menu structure on optional [HD44780 display](https://www.berrybase.de/sensoren-module/displays/alphanumerische-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) and rotary encoder
 - [x] Runs up to 8 Dexed instances simultaneously (like in a TX816) and mixes their output together
 - [x] Allows for each Dexed instance to be detuned and stereo shifted
-- [x] Allows to configure multiple Dexed instances through `performance.ini` files
+- [x] Allows to configure multiple Dexed instances through `performance.ini` files (e.g., [converted](https://github.com/BobanSpasic/MDX_Vault) from DX1, DX5, TX816, DX7II, TX802)
 - [x] Compressor effect
 - [x] Reverb effect
 - [x] Voices can be edited over MIDI, e.g., using the [synthmata](https://synthmata.github.io/volca-fm/) online editor (requires [additional hardware](https://github.com/probonopd/MiniDexed/wiki/Hardware#usb-midi-device))
@@ -90,5 +90,5 @@ This project stands on the shoulders of giants. Special thanks to:
 * [dcoredump](https://github.com/dcoredump) for https://codeberg.org/dcoredump/Synth_Dexed, a port of Dexed for embedded systems
 * [rsta2](https://github.com/rsta2) for https://github.com/rsta2/circle, the library to run code on bare metal Raspberry Pi (without a Linux kernel or operating system) and for the bulk of the MiniDexed code 
 * [smuehlst](https://github.com/smuehlst) for https://github.com/smuehlst/circle-stdlib, a version with Standard C and C++ library support
-* [Banana71](https://github.com/Banana71) for the sound design of the performances shipped with MiniDexed
-* [BobanSpasic](https://github.com/BobanSpasic) for the [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software
+* [Banana71](https://github.com/Banana71) for the sound design of the [Soundplantage](https://github.com/Banana71/Soundplantage) performances shipped with MiniDexed
+* [BobanSpasic](https://github.com/BobanSpasic) for the [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software, [MiniDexed performance converter](https://github.com/BobanSpasic/MDX_PerfConv) and [collection of performances for MiniDexed](https://github.com/BobanSpasic/MDX_Vault)
