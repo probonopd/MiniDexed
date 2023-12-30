@@ -1,4 +1,3 @@
-
 //
 // performanceconfig.cpp
 //
@@ -982,7 +981,7 @@ bool CPerformanceConfig::ListPerformances()
 		Result = f_findfirst (&Directory, &FileInfo, PerfDir.c_str(), "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (m_nLastPerformance >= NUM_PERFORMANCES) {
+			if (m_nLastPerformance >= NUM_PERFORMANCES - 1) {
 				LOGNOTE ("Skipping performance %s", FileInfo.fname);
 			} else {
 				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
