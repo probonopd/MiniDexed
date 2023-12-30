@@ -27,8 +27,8 @@
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #define NUM_VOICE_PARAM 156
-#define NUM_PERFORMANCES 256
-#define NUM_PERFORMANCE_BANKS 64
+#define NUM_PERFORMANCES 128
+#define NUM_PERFORMANCE_BANKS 128
 
 class CPerformanceConfig	// Performance configuration
 {

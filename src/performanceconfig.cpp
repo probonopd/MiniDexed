@@ -29,6 +29,8 @@
 
 LOGMODULE ("Performance");
 
+//#define VERBOSE_DEBUG
+
 #define PERFORMANCE_DIR "performance" 
 #define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
 #define DEFAULT_PERFORMANCE_NAME "Default"
@@ -63,7 +65,9 @@ bool CPerformanceConfig::Init (void)
 	
 	// List banks if present
 	ListPerformanceBanks();
-	
+
+#ifdef VERBOSE_DEBUG
+#warning "PerformanceConfig in verbose debug printing mode"
 	LOGNOTE("Testing loading of banks");
 	for (unsigned i=0; i<NUM_PERFORMANCE_BANKS; i++)
 	{
@@ -73,7 +77,7 @@ bool CPerformanceConfig::Init (void)
 			SetNewPerformance(0);
 		}
 	}
-
+#endif
 	// Set to default initial bank
 	SetPerformanceBank(0);
 	SetNewPerformance(0);
@@ -949,7 +953,9 @@ bool CPerformanceConfig::ListPerformances()
 		FILINFO FileInfo;
 		FRESULT Result;
 		std::string PerfDir = "SD:/" PERFORMANCE_DIR + AddPerformanceBankDirName(m_nPerformanceBank);
+#ifdef VERBOSE_DEBUG
 		LOGNOTE("Listing Performances from %s", PerfDir.c_str());
+#endif
 		Result = f_opendir (&Directory, PerfDir.c_str());
 		if (Result != FR_OK)
 		{
@@ -985,27 +991,32 @@ bool CPerformanceConfig::ListPerformances()
 						if ((nPIndex < 1) || (nPIndex >= (NUM_PERFORMANCES+1)))
 						{
 							// Index is out of range - skip to next file
-							continue;
-						}
-						// Convert from "user facing" 1..indexed number to internal 0..indexed
-						nPIndex = nPIndex-1;
-						if (m_PerformanceFileName[nPIndex].empty())
-						{
-							if(nPIndex > m_nLastPerformance)
-							{
-								m_nLastPerformance=nPIndex;
-							}
-
-							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
-
-							m_PerformanceFileName[nPIndex] = FileName;
-							LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
+							LOGNOTE ("Performance number out of range: %s (%d to %d)", FileInfo.fname, 1, NUM_PERFORMANCES);
 						}
 						else
 						{
-							LOGNOTE ("Duplicate performance %s", OriFileName.c_str());
+							// Convert from "user facing" 1..indexed number to internal 0..indexed
+							nPIndex = nPIndex-1;
+							if (m_PerformanceFileName[nPIndex].empty())
+							{
+								if(nPIndex > m_nLastPerformance)
+								{
+									m_nLastPerformance=nPIndex;
+								}
+
+								std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
+
+								m_PerformanceFileName[nPIndex] = FileName;
+#ifdef VERBOSE_DEBUG
+								LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
+#endif
+							}
+							else
+							{
+								LOGNOTE ("Duplicate performance %s", OriFileName.c_str());
+							}
 						}
-					}	
+					}
 				}
 			}
 
@@ -1024,7 +1035,9 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 	std::string FileN = GetPerformanceFullFilePath(nID);
 
 	new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
+#ifdef VERBOSE_DEBUG
 	LOGNOTE("Selecting Performance: %d (%s)", nID+1, FileN.c_str());
+#endif
 }
 
 unsigned CPerformanceConfig::FindFirstPerformance (void)
@@ -1123,27 +1136,29 @@ bool CPerformanceConfig::ListPerformanceBanks()
 		if ((FileInfo.fattrib & AM_DIR) != 0)
 		{
 			// Looking for Performance banks of the form: 01_Perf Bank Name
-			// So positions 0,1 = decimal digit
-			//    position  2   = "_"
-			//    positions 3.. = actual name
+			// So positions 0,1,2 = decimal digit
+			//    position  3   = "_"
+			//    positions 4.. = actual name
 			//
 			std::string OriFileName = FileInfo.fname;
 			size_t nLen = OriFileName.length();
-			if (   nLen > 3 && nLen <26	 && strcmp(OriFileName.substr(2,1).c_str(), "_")==0)
+			if (   nLen > 4 && nLen <26	 && strcmp(OriFileName.substr(3,1).c_str(), "_")==0)
 			{
-				unsigned nBankIndex = stoi(OriFileName.substr(0,2));
-				// Recall user index numbered 02..NUM_PERFORMANCE_BANKS
-				// NB: Bank 01 is reserved for the default performance directory
+				unsigned nBankIndex = stoi(OriFileName.substr(0,3));
+				// Recall user index numbered 002..NUM_PERFORMANCE_BANKS
+				// NB: Bank 001 is reserved for the default performance directory
 				if ((nBankIndex > 0) && (nBankIndex <= NUM_PERFORMANCE_BANKS))
 				{
 					// Convert from "user facing" 1..indexed number to internal 0..indexed
 					nBankIndex = nBankIndex-1;
 					if (m_PerformanceBankName[nBankIndex].empty())
 					{
-						std::string BankName = OriFileName.substr(3,nLen);
+						std::string BankName = OriFileName.substr(4,nLen);
 
 						m_PerformanceBankName[nBankIndex] = BankName;
+#ifdef VERBOSE_DEBUG
 						LOGNOTE ("Found performance bank %s (%d, %s)", OriFileName.c_str(), nBankIndex, BankName.c_str());
+#endif
 						nNumBanks++;
 						if (nBankIndex > m_nLastPerformanceBank)
 						{
@@ -1155,18 +1170,20 @@ bool CPerformanceConfig::ListPerformanceBanks()
 						LOGNOTE ("Duplicate Performance Bank: %s", FileInfo.fname);
 						if (nBankIndex==0)
 						{
-							LOGNOTE ("(Bank 01 is the default performance directory)");
+							LOGNOTE ("(Bank 001 is the default performance directory)");
 						}
 					}
 				}
 				else
 				{
-					LOGNOTE ("Performance Bank number out of range: %s", FileInfo.fname);
+					LOGNOTE ("Performance Bank number out of range: %s (%d to %d)", FileInfo.fname, 1, NUM_PERFORMANCE_BANKS);
 				}
 			}
 			else
 			{
-				//LOGNOTE ("Skipping: %s", FileInfo.fname);
+#ifdef VERBOSE_DEBUG
+				LOGNOTE ("Skipping: %s", FileInfo.fname);
+#endif
 			}
 		}
 		
@@ -1187,7 +1204,9 @@ void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
 	if (IsValidPerformanceBank(nBankID))
 	{
+#ifdef VERBOSE_DEBUG
 		LOGNOTE("Selecting Performance Bank: %d", nBankID+1);
+#endif
 		m_nPerformanceBank = nBankID;
 		ListPerformances();
 	}
@@ -1216,14 +1235,19 @@ std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
 	if (IsValidPerformanceBank(nBankID))
 	{
-		// Performance Banks directories in format "01_Bank Name"
+		// Performance Banks directories in format "001_Bank Name"
 		std::string Index;
 		if (nBankID == 0)
 		{
 			// Legacy: Bank 1 is the default performance directory
 			return "";
 		}
+
 		if (nBankID < 9)
+		{
+			Index = "00" + std::to_string(nBankID+1);
+		}
+		else if (nBankID < 99)
 		{
 			Index = "0" + std::to_string(nBankID+1);
 		}
@@ -1231,6 +1255,7 @@ std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
 		{
 			Index = std::to_string(nBankID+1);
 		}
+
 		return "/" + Index + "_" + m_PerformanceBankName[nBankID];
 	}
 	else

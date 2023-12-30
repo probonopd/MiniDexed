@@ -1213,24 +1213,43 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 		// Program Up/Down acts on performances
 		unsigned nLastPerformance = m_pMiniDexed->GetLastPerformance();
 		unsigned nPerformance = m_pMiniDexed->GetActualPerformanceID();
+		unsigned nStart = nPerformance;
 		//LOGNOTE("Performance actual=%d, last=%d", nPerformance, nLastPerformance);
 		if (Event == MenuEventPgmDown)
 		{
-			if (nPerformance > 0)
+			do
 			{
-				m_nSelectedPerformanceID = nPerformance-1;
-				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
-				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
-			}
+				if (nPerformance == 0)
+				{
+					// Wrap around
+					nPerformance = nLastPerformance;
+				}
+				else if (nPerformance > 0)
+				{
+					--nPerformance;
+				}
+			} while ((m_pMiniDexed->IsValidPerformance(nPerformance) != true) && (nPerformance != nStart));
+			m_nSelectedPerformanceID = nPerformance;
+			m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+			//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 		}
-		else
+		else // MenuEventPgmUp
 		{
-			if (nPerformance < nLastPerformance-1)
+			do
 			{
-				m_nSelectedPerformanceID = nPerformance+1;
-				m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
-				//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
-			}
+				if (nPerformance == nLastPerformance)
+				{
+					// Wrap around
+					nPerformance = 0;
+				}
+				else if (nPerformance < nLastPerformance)
+				{
+					++nPerformance;
+				}
+			} while ((m_pMiniDexed->IsValidPerformance(nPerformance) != true) && (nPerformance != nStart));
+			m_nSelectedPerformanceID = nPerformance;
+			m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+			//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 		}
 	}
 	else
@@ -1503,8 +1522,8 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 					
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
-						  Value.c_str (),
-						 (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance()-1);
+						  Value.c_str (), true, true);
+//						 (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance());
 	}
 	else
 	{
