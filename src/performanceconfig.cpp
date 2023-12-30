@@ -29,7 +29,7 @@
 
 LOGMODULE ("Performance");
 
-//#define VERBOSE_DEBUG
+#define VERBOSE_DEBUG
 
 #define PERFORMANCE_DIR "performance" 
 #define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
@@ -796,10 +796,13 @@ std::string CPerformanceConfig::GetPerformanceFullFilePath(unsigned nID)
 	}
 	else
 	{
-		FileN += PERFORMANCE_DIR;
-		FileN += AddPerformanceBankDirName(m_nPerformanceBank);
-		FileN += "/";
-		FileN += GetPerformanceFileName(nID);
+		if (m_bPerformanceDirectoryExists)
+		{
+			FileN += PERFORMANCE_DIR;
+			FileN += AddPerformanceBankDirName(m_nPerformanceBank);
+			FileN += "/";
+			FileN += GetPerformanceFileName(nID);
+		}
 	}
 	return FileN;
 }
@@ -807,7 +810,14 @@ std::string CPerformanceConfig::GetPerformanceFullFilePath(unsigned nID)
 std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
 {
 	assert (nID < NUM_PERFORMANCES);
-	return m_PerformanceFileName[nID];
+	if ((m_nPerformanceBank==0) && (nID == 0)) // in order to assure retrocompatibility
+	{
+		return DEFAULT_PERFORMANCE_NAME;
+	}
+	else
+	{
+		return m_PerformanceFileName[nID];
+	}
 }
 
 unsigned CPerformanceConfig::GetLastPerformance()
@@ -852,7 +862,7 @@ bool CPerformanceConfig::IsValidPerformance(unsigned nID)
 
 bool CPerformanceConfig::CheckFreePerformanceSlot(void)
 {
-	if (m_nLastPerformance < NUM_PERFORMANCES)
+	if (m_nLastPerformance < NUM_PERFORMANCES-1)
 	{
 		// There is a free slot...
 		return true;
@@ -865,6 +875,12 @@ bool CPerformanceConfig::CheckFreePerformanceSlot(void)
 
 bool CPerformanceConfig::CreateNewPerformanceFile(void)
 {
+	if (!m_bPerformanceDirectoryExists)
+	{
+		// Nothing can be done if there is no performance directory
+		LOGNOTE("Performance directory does not exist");
+		return false;
+	}
 	if (m_nLastPerformance >= NUM_PERFORMANCES) {
 		// No space left for new performances
 		LOGWARN ("No space left for new performance");
@@ -1076,6 +1092,12 @@ void CPerformanceConfig::SetNewPerformanceName(std::string nName)
 
 bool CPerformanceConfig::DeletePerformance(unsigned nID)
 {
+	if (!m_bPerformanceDirectoryExists)
+	{
+		// Nothing can be done if there is no performance directory
+		LOGNOTE("Performance directory does not exist");
+		return false;
+	}
 	bool bOK = false;
 	if((m_nPerformanceBank == 0) && (nID == 0)){return bOK;} // default (performance.ini at root directory) can't be deleted
 	DIR Directory;
@@ -1096,6 +1118,15 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 			m_nActualPerformance =0;
 			//nMenuSelectedPerformance=0;
 			m_PerformanceFileName[nID].clear();
+			// If this was the last performance in the bank...
+			if (nID == m_nLastPerformance)
+			{
+				do
+				{
+					// Find the new last performance
+					m_nLastPerformance--;
+				} while (!IsValidPerformance(m_nLastPerformance) && (m_nLastPerformance > 0));
+			}
 			bOK=true;
 		}
 		else
@@ -1108,6 +1139,10 @@ bool CPerformanceConfig::DeletePerformance(unsigned nID)
 
 bool CPerformanceConfig::ListPerformanceBanks()
 {
+	m_nPerformanceBank = 0;
+	m_nLastPerformance = 0;
+	m_nLastPerformanceBank = 0;
+
 	// Open performance directory
 	DIR Directory;
 	FILINFO FileInfo;
@@ -1117,11 +1152,12 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	{
 		// No performance directory, so no performance banks.
 		// So nothing else to do here
+		LOGNOTE ("No performance banks detected");
+		m_bPerformanceDirectoryExists = false;
 		return false;
 	}
 
 	unsigned nNumBanks = 0;
-	m_nLastPerformanceBank = 0;
 	
 	// Add in the default performance directory as the first bank
 	m_PerformanceBankName[0] = DEFAULT_PERFORMANCE_BANK_NAME;
@@ -1209,6 +1245,12 @@ void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
 #endif
 		m_nPerformanceBank = nBankID;
 		ListPerformances();
+	}
+	else
+	{
+#ifdef VERBOSE_DEBUG
+		LOGNOTE("Not selecting invalid Performance Bank: %d", nBankID+1);
+#endif
 	}
 }
 

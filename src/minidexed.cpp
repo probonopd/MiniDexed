@@ -1219,10 +1219,17 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
-	m_bSavePerformance = true;
-	m_bSaveAsDeault=bSaveAsDeault;
+	if (m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bSavePerformance = true;
+		m_bSaveAsDeault=bSaveAsDeault;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoSavePerformance (void)
@@ -1702,10 +1709,17 @@ void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
 {
-	m_bDeletePerformance = true;
-	m_nDeletePerformanceID = nID;
+	if (m_PerformanceConfig.IsValidPerformance(nID) && m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bDeletePerformance = true;
+		m_nDeletePerformanceID = nID;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoDeletePerformance(void)
