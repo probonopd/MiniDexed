@@ -25,7 +25,6 @@
 #include <circle/writebuffer.h>
 #include <circle/timer.h>
 #include <circle/logger.h>
-#include <circle/usb/usbhcidevice.h>
 #include <SDCard/emmc.h>
 #include <circle/input/console.h>
 #include <circle/sched/scheduler.h>
@@ -160,7 +159,6 @@ public:
                          const char *pPartitionName = CSTDLIBAPP_DEFAULT_PARTITION)
                 : CStdlibAppScreen (kernel),
                   mpPartitionName (pPartitionName),
-                  mUSBHCI (&mInterrupt, &mTimer, TRUE),
                   mEMMC (&mInterrupt, &mTimer, &mActLED),
 #if !defined(__aarch64__) || !defined(LEAVE_QEMU_ON_HALT)
                   //mConsole (&mScreen, TRUE)
@@ -199,16 +197,6 @@ public:
                         return false;
                 }
 
-#if !defined(__aarch64__) || !defined(LEAVE_QEMU_ON_HALT)
-                // The USB driver is not supported under 64-bit QEMU, so
-                // the initialization must be skipped in this case, or an
-                // exit happens here under 64-bit QEMU.
-                if (!mUSBHCI.Initialize ())
-                {
-                        return false;
-                }
-#endif
-
                 if (!mConsole.Initialize ())
                 {
                         return false;
@@ -223,7 +211,7 @@ public:
 
                 return true;
         }
-
+		
         virtual void Cleanup (void)
         {
                 f_mount(0, "", 0);
@@ -232,7 +220,6 @@ public:
         }
 
 protected:
-        CUSBHCIDevice   mUSBHCI;
         CEMMCDevice     mEMMC;
         FATFS           mFileSystem;
         CConsole        mConsole;

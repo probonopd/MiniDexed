@@ -35,6 +35,8 @@ CConfig::~CConfig (void)
 void CConfig::Load (void)
 {
 	m_Properties.Load ();
+	
+	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
 
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
 
@@ -161,6 +163,11 @@ void CConfig::Load (void)
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
 
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
+}
+
+bool CConfig::GetUSBGadgetMode (void) const
+{
+	return m_bUSBGadgetMode;
 }
 
 const char *CConfig::GetSoundDevice (void) const

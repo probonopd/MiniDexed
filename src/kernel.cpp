@@ -21,6 +21,8 @@
 #include <circle/logger.h>
 #include <circle/synchronize.h>
 #include <assert.h>
+#include <circle/usb/usbhcidevice.h>
+#include "usbminidexedmidigadget.h"
 
 LOGMODULE ("kernel");
 
@@ -63,7 +65,23 @@ bool CKernel::Initialize (void)
 	}
 
 	m_Config.Load ();
+	
+	if (m_Config.GetUSBGadgetMode())
+	{
+		// Run the USB stack in USB Gadget (device) mode
+		m_pUSB = new CUSBMiniDexedMIDIGadget (&mInterrupt);
+	}
+	else
+	{
+		// Run the USB stack in USB Host (default) mode
+		m_pUSB = new CUSBHCIDevice (&mInterrupt, &mTimer, TRUE);
+	}
 
+    if (!m_pUSB->Initialize ())
+    {
+		return FALSE;
+    }
+	
 	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster,
 				   &mFileSystem);
 	assert (m_pDexed);
@@ -82,7 +100,7 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 
 	while (42 == 42)
 	{
-		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
+		boolean bUpdated = m_pUSB->UpdatePlugAndPlay ();
 
 		m_pDexed->Process(bUpdated);
 

@@ -24,6 +24,7 @@
 #include <circle/cputhrottle.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
+#include <circle/usb/usbcontroller.h>
 #include "config.h"
 #include "minidexed.h"
 
@@ -54,6 +55,7 @@ private:
 	CGPIOManager	m_GPIOManager;
 	CI2CMaster	m_I2CMaster;
 	CMiniDexed	*m_pDexed;
+	CUSBController *m_pUSB;
 
 	static CKernel *s_pThis;
 };

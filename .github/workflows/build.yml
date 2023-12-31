@@ -64,12 +64,18 @@ jobs:
            rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
            cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
            cp ./getsysex.sh sdcard/
-           cp -r ./performance sdcard/
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
+           cd -
+    - name: Get performance files
+      run: |
+           git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
+           cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
+           cd sdcard
            zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
            echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+           cd -
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
