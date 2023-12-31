@@ -981,55 +981,51 @@ bool CPerformanceConfig::ListPerformances()
 		Result = f_findfirst (&Directory, &FileInfo, PerfDir.c_str(), "*.ini");
 		for (unsigned i = 0; Result == FR_OK && FileInfo.fname[0]; i++)
 		{
-			if (m_nLastPerformance >= NUM_PERFORMANCES - 1) {
-				LOGNOTE ("Skipping performance %s", FileInfo.fname);
-			} else {
-				if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+			if (!(FileInfo.fattrib & (AM_HID | AM_SYS)))  
+			{
+				std::string OriFileName = FileInfo.fname;
+				size_t nLen = OriFileName.length();
+				if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
 				{
-					std::string OriFileName = FileInfo.fname;
-					size_t nLen = OriFileName.length();
-					if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
+					// Note: m_nLastPerformance - refers to the number (index) of the last performance in memory,
+					//       which includes a default performance.
+					//
+					//       Filenames on the disk start from 1 to match what the user might see in MIDI.
+					//       So this means that actually file 000001_ will correspond to index position [0].
+					//       For the default bank though, ID 1 is the default performance, so will already exist.
+					//          m_PerformanceFileName[0] = default performance (file 000001)
+					//          m_PerformanceFileName[1] = first available on-disk performance (file 000002)
+					//
+					// Note2: filenames assume 6 digits, underscore, name, finally ".ini"
+					//        i.e.   123456_Performance Name.ini
+					//
+					nPIndex=stoi(OriFileName.substr(0,6));
+					if ((nPIndex < 1) || (nPIndex >= (NUM_PERFORMANCES+1)))
 					{
-						// Note: m_nLastPerformance - refers to the number (index) of the last performance in memory,
-						//       which includes a default performance.
-						//
-						//       Filenames on the disk start from 1 to match what the user might see in MIDI.
-						//       So this means that actually file 000001_ will correspond to index position [0].
-						//       For the default bank though, ID 1 is the default performance, so will already exist.
-						//          m_PerformanceFileName[0] = default performance (file 000001)
-						//          m_PerformanceFileName[1] = first available on-disk performance (file 000002)
-						//
-						// Note2: filenames assume 6 digits, underscore, name, finally ".ini"
-						//        i.e.   123456_Performance Name.ini
-						//
-						nPIndex=stoi(OriFileName.substr(0,6));
-						if ((nPIndex < 1) || (nPIndex >= (NUM_PERFORMANCES+1)))
+						// Index is out of range - skip to next file
+						LOGNOTE ("Performance number out of range: %s (%d to %d)", FileInfo.fname, 1, NUM_PERFORMANCES);
+					}
+					else
+					{
+						// Convert from "user facing" 1..indexed number to internal 0..indexed
+						nPIndex = nPIndex-1;
+						if (m_PerformanceFileName[nPIndex].empty())
 						{
-							// Index is out of range - skip to next file
-							LOGNOTE ("Performance number out of range: %s (%d to %d)", FileInfo.fname, 1, NUM_PERFORMANCES);
+							if(nPIndex > m_nLastPerformance)
+							{
+								m_nLastPerformance=nPIndex;
+							}
+
+							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
+
+							m_PerformanceFileName[nPIndex] = FileName;
+#ifdef VERBOSE_DEBUG
+							LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
+#endif
 						}
 						else
 						{
-							// Convert from "user facing" 1..indexed number to internal 0..indexed
-							nPIndex = nPIndex-1;
-							if (m_PerformanceFileName[nPIndex].empty())
-							{
-								if(nPIndex > m_nLastPerformance)
-								{
-									m_nLastPerformance=nPIndex;
-								}
-
-								std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
-
-								m_PerformanceFileName[nPIndex] = FileName;
-#ifdef VERBOSE_DEBUG
-								LOGNOTE ("Loading performance %s (%d, %s)", OriFileName.c_str(), nPIndex, FileName.c_str());
-#endif
-							}
-							else
-							{
-								LOGNOTE ("Duplicate performance %s", OriFileName.c_str());
-							}
+							LOGNOTE ("Duplicate performance %s", OriFileName.c_str());
 						}
 					}
 				}
