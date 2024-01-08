@@ -899,7 +899,6 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
-	m_nActualPerformance=m_nLastPerformance;
 	unsigned nNewPerformance = m_nLastPerformance + 1;
 	std::string nFileName;
 	std::string nPath;
@@ -943,6 +942,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	}
 	
 	m_nLastPerformance = nNewPerformance;
+	m_nActualPerformance = nNewPerformance;
 	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
 	
 	return true;
