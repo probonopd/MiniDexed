@@ -1513,12 +1513,19 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	if(!pUIMenu->m_bPerformanceDeleteMode)
 	{
 		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
+		unsigned nBankNum = pUIMenu->m_pMiniDexed->GetPerformanceBank();
 		
+		std::string nPSelected = "000";
+		nPSelected += std::to_string(nBankNum+1);  // Convert to user-facing bank number rather than index
+		nPSelected = nPSelected.substr(nPSelected.length()-3,3);
+		std::string nPPerf = "000";
+		nPPerf += std::to_string(nValue+1);  // Convert to user-facing performance number rather than index
+		nPPerf = nPPerf.substr(nPPerf.length()-3,3);
 
-		std::string nPSelected = "";
+		nPSelected += ":"+nPPerf;
 		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
 		{
-			nPSelected= "[L]";
+			nPSelected += " [L]";
 		}
 					
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
@@ -1600,10 +1607,13 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 
 	Value = pUIMenu->m_pMiniDexed->GetPerformanceConfig ()->GetPerformanceBankName(nValue);
-	std::string nPSelected = "";
+	std::string nPSelected = "000";
+	nPSelected += std::to_string(nValue+1);  // Convert to user-facing number rather than index
+	nPSelected = nPSelected.substr(nPSelected.length()-3,3);
+
 	if(nValue == (unsigned)pUIMenu->m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceBank))
 	{
-		nPSelected= "[L]";
+		nPSelected += " [L]";
 	}
 
 	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),

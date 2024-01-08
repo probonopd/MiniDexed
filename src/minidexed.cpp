@@ -1546,6 +1546,11 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
+unsigned CMiniDexed::GetPerformanceBank()
+{
+	return m_PerformanceConfig.GetPerformanceBank();
+}
+
 unsigned CMiniDexed::GetLastPerformanceBank()
 {
 	return m_PerformanceConfig.GetLastPerformanceBank();
