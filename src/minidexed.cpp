@@ -53,8 +53,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
+	m_bSetNewPerformanceBank (false),
+	m_bSetFirstPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
 
@@ -302,14 +305,30 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
+	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	{
+		DoSetNewPerformanceBank ();
+		if (m_nSetNewPerformanceBankID == GetActualPerformanceBankID())
+		{
+			m_bSetNewPerformanceBank = false;
+		}
+		
+		// If there is no pending SetNewPerformance already, then see if we need to find the first performance to load
+		// NB: If called from the UI, then there will not be a SetNewPerformance, so load the first existing one.
+		//     If called from MIDI, there will probably be a SetNewPerformance alongside the Bank select.
+		if (!m_bSetNewPerformance && m_bSetFirstPerformance)
+		{
+			DoSetFirstPerformance();
+		}
+	}
+	
+	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
 	{
 		DoSetNewPerformance ();
 		if (m_nSetNewPerformanceID == GetActualPerformanceID())
 		{
 			m_bSetNewPerformance = false;
 		}
-		
 	}
 	
 	if(m_bDeletePerformance)
@@ -419,7 +438,7 @@ void CMiniDexed::BankSelectPerformance (unsigned nBank)
 		{
 			// Only change if we have the bank loaded
 			m_nVoiceBankIDPerformance = nBank;
-			GetPerformanceConfig ()->SetPerformanceBank (nBank);
+			SetNewPerformanceBank (nBank);
 
 			m_UI.ParameterChanged ();
 		}
@@ -1566,6 +1585,16 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
+unsigned CMiniDexed::GetActualPerformanceBankID()
+{
+	return m_PerformanceConfig.GetActualPerformanceBankID();
+}
+
+void CMiniDexed::SetActualPerformanceBankID(unsigned nBankID)
+{
+	m_PerformanceConfig.SetActualPerformanceBankID(nBankID);
+}
+
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
@@ -1574,11 +1603,18 @@ bool CMiniDexed::SetNewPerformance(unsigned nID)
 	return true;
 }
 
-unsigned CMiniDexed::SetFirstPerformance(void)
+bool CMiniDexed::SetNewPerformanceBank(unsigned nBankID)
 {
-	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
-	SetNewPerformance(nID);
-	return nID;
+	m_bSetNewPerformanceBank = true;
+	m_nSetNewPerformanceBankID = nBankID;
+
+	return true;
+}
+
+void CMiniDexed::SetFirstPerformance(void)
+{
+	m_bSetFirstPerformance = true;
+	return;
 }
 
 bool CMiniDexed::DoSetNewPerformance (void)
@@ -1600,6 +1636,25 @@ bool CMiniDexed::DoSetNewPerformance (void)
 		m_bLoadPerformanceBusy = false;
 		return false;
 	}
+}
+
+bool CMiniDexed::DoSetNewPerformanceBank (void)
+{
+	m_bLoadPerformanceBankBusy = true;
+	
+	unsigned nBankID = m_nSetNewPerformanceBankID;
+	m_PerformanceConfig.SetNewPerformanceBank(nBankID);
+	
+	m_bLoadPerformanceBankBusy = false;
+	return true;
+}
+
+void CMiniDexed::DoSetFirstPerformance(void)
+{
+	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
+	SetNewPerformance(nID);
+	m_bSetFirstPerformance = false;
+	return;
 }
 
 bool CMiniDexed::SavePerformanceNewFile ()

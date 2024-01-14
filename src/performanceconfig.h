@@ -132,6 +132,8 @@ public:
 	unsigned GetLastPerformanceBank();
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceID();
+	void SetActualPerformanceBankID(unsigned nBankID);
+	unsigned GetActualPerformanceBankID();
 	bool CreateNewPerformanceFile(void);
 	bool GetInternalFolderOk(); 
 	std::string GetNewPerformanceDefaultName(void);
@@ -142,7 +144,7 @@ public:
 	bool IsValidPerformance(unsigned nID);
 
 	bool ListPerformanceBanks(void); 
-	void SetPerformanceBank(unsigned nBankID);
+	void SetNewPerformanceBank(unsigned nBankID);
 	unsigned GetPerformanceBank(void);
 	std::string GetPerformanceBankName(unsigned nBankID);
 	bool IsValidPerformanceBank(unsigned nBankID);
@@ -181,6 +183,7 @@ private:
 
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  
+	unsigned m_nActualPerformanceBank = 0;  
 	unsigned m_nPerformanceBank;
 	unsigned m_nLastPerformanceBank;  
 	bool     m_bPerformanceDirectoryExists;

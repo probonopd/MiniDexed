@@ -72,13 +72,13 @@ bool CPerformanceConfig::Init (void)
 	{
 		if (!m_PerformanceBankName[i].empty())
 		{
-			SetPerformanceBank(i);
+			SetNewPerformanceBank(i);
 			SetNewPerformance(0);
 		}
 	}
 #endif
 	// Set to default initial bank
-	SetPerformanceBank(0);
+	SetNewPerformanceBank(0);
 	SetNewPerformance(0);
 
 	LOGNOTE ("Loaded Default Performance Bank - Last Performance: %d", m_nLastPerformance + 1); // Show "user facing" index
@@ -840,6 +840,17 @@ void CPerformanceConfig::SetActualPerformanceID(unsigned nID)
 	m_nActualPerformance = nID;
 }
 
+unsigned CPerformanceConfig::GetActualPerformanceBankID()
+{
+	return m_nActualPerformanceBank;
+}
+
+void CPerformanceConfig::SetActualPerformanceBankID(unsigned nBankID)
+{
+	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	m_nActualPerformanceBank = nBankID;
+}
+
 bool CPerformanceConfig::GetInternalFolderOk()
 {
 	return m_bPerformanceDirectoryExists;
@@ -1230,7 +1241,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	return true;
 }
 
-void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
+void CPerformanceConfig::SetNewPerformanceBank(unsigned nBankID)
 {
 	assert (nBankID < NUM_PERFORMANCE_BANKS);
 	if (IsValidPerformanceBank(nBankID))
@@ -1239,6 +1250,7 @@ void CPerformanceConfig::SetPerformanceBank(unsigned nBankID)
 		LOGNOTE("Selecting Performance Bank: %d", nBankID+1);
 #endif
 		m_nPerformanceBank = nBankID;
+		m_nActualPerformanceBank = nBankID;
 		ListPerformances();
 	}
 	else

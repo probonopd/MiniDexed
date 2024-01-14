@@ -1569,7 +1569,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		{
 			// Switch to the new bank and select the first performance voice
 			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
-			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+			pUIMenu->m_pMiniDexed->SetFirstPerformance();
 		}
 		break;
 
@@ -1590,7 +1590,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		if (!bPerformanceSelectToLoad)
 		{
 			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
-			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+			pUIMenu->m_pMiniDexed->SetFirstPerformance();
 		}
 		break;
 
@@ -1598,7 +1598,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		if (bPerformanceSelectToLoad)
 		{
 			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nValue);
-			pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->SetFirstPerformance();
+			pUIMenu->m_pMiniDexed->SetFirstPerformance();
 		}
 		break;
 

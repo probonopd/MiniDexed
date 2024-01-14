@@ -125,12 +125,17 @@ public:
 	unsigned GetLastPerformanceBank();
 	unsigned GetActualPerformanceID();
 	void SetActualPerformanceID(unsigned nID);
+	unsigned GetActualPerformanceBankID();
+	void SetActualPerformanceBankID(unsigned nBankID);
 	bool SetNewPerformance(unsigned nID);
-	unsigned SetFirstPerformance(void);
+	bool SetNewPerformanceBank(unsigned nBankID);
+	void SetFirstPerformance(void);
+	void DoSetFirstPerformance(void);
 	bool SavePerformanceNewFile ();
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	unsigned GetPerformanceSelectChannel (void);
@@ -317,9 +322,13 @@ private:
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;	
+	bool m_bSetNewPerformanceBank;
+	unsigned m_nSetNewPerformanceBankID;	
+	bool m_bSetFirstPerformance;
 	bool	m_bDeletePerformance;
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
+	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
 };
 
