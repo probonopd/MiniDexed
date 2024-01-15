@@ -1,3 +1,4 @@
+
 //
 // performanceconfig.cpp
 //
@@ -1315,7 +1316,9 @@ std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
 
 bool CPerformanceConfig::IsValidPerformanceBank(unsigned nBankID)
 {
-	assert (nBankID < NUM_PERFORMANCE_BANKS);
+	if (nBankID >= NUM_PERFORMANCE_BANKS) {
+		return false;
+	}
 	if (m_PerformanceBankName[nBankID].empty())
 	{
 		return false;
