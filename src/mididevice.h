@@ -63,6 +63,8 @@ private:
 	CUserInterface *m_pUI;
 
 	u8 m_ChannelMap[CConfig::ToneGenerators];
+	u8 m_NRPNoffset[CConfig::ToneGenerators];
+	u8 m_NRPNop[CConfig::ToneGenerators];
 
 	std::string m_DeviceName;
 
