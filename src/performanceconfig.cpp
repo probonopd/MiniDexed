@@ -1,4 +1,3 @@
-
 //
 // performanceconfig.cpp
 //

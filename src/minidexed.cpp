@@ -432,16 +432,13 @@ void CMiniDexed::BankSelectPerformance (unsigned nBank)
 {
 	nBank=constrain((int)nBank,0,16383);
 
-	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
+	if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
 	{
-		if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
-		{
-			// Only change if we have the bank loaded
-			m_nVoiceBankIDPerformance = nBank;
-			SetNewPerformanceBank (nBank);
+		// Only change if we have the bank loaded
+		m_nVoiceBankIDPerformance = nBank;
+		SetNewPerformanceBank (nBank);
 
-			m_UI.ParameterChanged ();
-		}
+		m_UI.ParameterChanged ();
 	}
 }
 

@@ -1390,6 +1390,12 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nLastPerformance = pUIMenu->m_pMiniDexed->GetLastPerformance();
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	unsigned nStart = nValue;
+	if (pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true)
+	{
+		// A bank change has left the selected performance out of sync
+		nValue = pUIMenu->m_pMiniDexed->GetActualPerformanceID();
+		pUIMenu->m_nSelectedPerformanceID = nValue;
+	}
 	std::string Value;
 		
 	if (Event == MenuEventUpdate)
