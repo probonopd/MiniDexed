@@ -388,13 +388,16 @@ void CUserInterface::UISetMIDIButtonChannel (unsigned uCh)
 	if (uCh == 0)
 	{
 		m_nMIDIButtonCh = CMIDIDevice::Disabled;
+		LOGNOTE("MIDI Button channel not set");
 	}
 	else if (uCh < CMIDIDevice::Channels)
 	{
 		m_nMIDIButtonCh = uCh - 1;
+		LOGNOTE("MIDI Button channel set to: %d", m_nMIDIButtonCh);
 	}
 	else
 	{
 		m_nMIDIButtonCh = CMIDIDevice::OmniMode;
+		LOGNOTE("MIDI Button channel set to: OMNI");
 	}
 }

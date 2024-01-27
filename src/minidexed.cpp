@@ -53,8 +53,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
+	m_bSetNewPerformanceBank (false),
+	m_bSetFirstPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
 
@@ -170,6 +173,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
+		
+	SetParameter (ParameterPerformanceBank, 0);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -227,6 +232,7 @@ bool CMiniDexed::Initialize (void)
 		reverb_send_mixer->gain(i,mapfloat(m_nReverbSend[i],0,99,0.0f,1.0f));
 	}
 
+	m_PerformanceConfig.Init();
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters(); 
@@ -234,12 +240,6 @@ bool CMiniDexed::Initialize (void)
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
-	}
-	
-	// load performances file list, and attempt to create the performance folder
-	if (!m_PerformanceConfig.ListPerformances()) 
-	{
-		LOGERR ("Cannot create internal Performance folder, new performances can't be created");
 	}
 	
 	// setup and start the sound device
@@ -305,14 +305,30 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
+	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	{
+		DoSetNewPerformanceBank ();
+		if (m_nSetNewPerformanceBankID == GetActualPerformanceBankID())
+		{
+			m_bSetNewPerformanceBank = false;
+		}
+		
+		// If there is no pending SetNewPerformance already, then see if we need to find the first performance to load
+		// NB: If called from the UI, then there will not be a SetNewPerformance, so load the first existing one.
+		//     If called from MIDI, there will probably be a SetNewPerformance alongside the Bank select.
+		if (!m_bSetNewPerformance && m_bSetFirstPerformance)
+		{
+			DoSetFirstPerformance();
+		}
+	}
+	
+	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
 	{
 		DoSetNewPerformance ();
 		if (m_nSetNewPerformanceID == GetActualPerformanceID())
 		{
 			m_bSetNewPerformance = false;
 		}
-		
 	}
 	
 	if(m_bDeletePerformance)
@@ -392,6 +408,11 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
+CPerformanceConfig *CMiniDexed::GetPerformanceConfig (void)
+{
+	return &m_PerformanceConfig;
+}
+
 void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
 	nBank=constrain((int)nBank,0,16383);
@@ -402,6 +423,20 @@ void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 	{
 		// Only change if we have the bank loaded
 		m_nVoiceBankID[nTG] = nBank;
+
+		m_UI.ParameterChanged ();
+	}
+}
+
+void CMiniDexed::BankSelectPerformance (unsigned nBank)
+{
+	nBank=constrain((int)nBank,0,16383);
+
+	if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
+	{
+		// Only change if we have the bank loaded
+		m_nVoiceBankIDPerformance = nBank;
+		SetNewPerformanceBank (nBank);
 
 		m_UI.ParameterChanged ();
 	}
@@ -422,6 +457,12 @@ void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 	m_nVoiceBankIDMSB[nTG] = nBankMSB;
 }
 
+void CMiniDexed::BankSelectMSBPerformance (unsigned nBankMSB)
+{
+	nBankMSB=constrain((int)nBankMSB,0,127);
+	m_nVoiceBankIDMSBPerformance = nBankMSB;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	nBankLSB=constrain((int)nBankLSB,0,127);
@@ -433,6 +474,18 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	// Now should have both MSB and LSB so enable the BankSelect
 	BankSelect(nBank, nTG);
+}
+
+void CMiniDexed::BankSelectLSBPerformance (unsigned nBankLSB)
+{
+	nBankLSB=constrain((int)nBankLSB,0,127);
+
+	unsigned nBank = m_nVoiceBankIDPerformance;
+	unsigned nBankMSB = m_nVoiceBankIDMSBPerformance;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	// Now should have both MSB and LSB so enable the BankSelect
+	BankSelectPerformance(nBank);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -489,10 +542,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
 		// Program Change messages change Performances.
-		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
-
-		// GetLastPerformance actually returns 1-indexed, number of performances
-		if (nProgram < nLastPerformance - 1)
+		if (m_PerformanceConfig.IsValidPerformance(nProgram))
 		{
 			SetNewPerformance(nProgram);
 		}
@@ -798,6 +848,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	case ParameterPerformanceSelectChannel:
 		// Nothing more to do
+		break;
+
+	case ParameterPerformanceBank:
+		BankSelectPerformance(nValue);
 		break;
 
 	default:
@@ -1181,10 +1235,17 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
-	m_bSavePerformance = true;
-	m_bSaveAsDeault=bSaveAsDeault;
+	if (m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bSavePerformance = true;
+		m_bSaveAsDeault=bSaveAsDeault;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoSavePerformance (void)
@@ -1501,6 +1562,16 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
+unsigned CMiniDexed::GetPerformanceBank()
+{
+	return m_PerformanceConfig.GetPerformanceBank();
+}
+
+unsigned CMiniDexed::GetLastPerformanceBank()
+{
+	return m_PerformanceConfig.GetLastPerformanceBank();
+}
+
 unsigned CMiniDexed::GetActualPerformanceID()
 {
 	return m_PerformanceConfig.GetActualPerformanceID();
@@ -1511,12 +1582,36 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
+unsigned CMiniDexed::GetActualPerformanceBankID()
+{
+	return m_PerformanceConfig.GetActualPerformanceBankID();
+}
+
+void CMiniDexed::SetActualPerformanceBankID(unsigned nBankID)
+{
+	m_PerformanceConfig.SetActualPerformanceBankID(nBankID);
+}
+
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
 	m_nSetNewPerformanceID = nID;
 
 	return true;
+}
+
+bool CMiniDexed::SetNewPerformanceBank(unsigned nBankID)
+{
+	m_bSetNewPerformanceBank = true;
+	m_nSetNewPerformanceBankID = nBankID;
+
+	return true;
+}
+
+void CMiniDexed::SetFirstPerformance(void)
+{
+	m_bSetFirstPerformance = true;
+	return;
 }
 
 bool CMiniDexed::DoSetNewPerformance (void)
@@ -1538,6 +1633,25 @@ bool CMiniDexed::DoSetNewPerformance (void)
 		m_bLoadPerformanceBusy = false;
 		return false;
 	}
+}
+
+bool CMiniDexed::DoSetNewPerformanceBank (void)
+{
+	m_bLoadPerformanceBankBusy = true;
+	
+	unsigned nBankID = m_nSetNewPerformanceBankID;
+	m_PerformanceConfig.SetNewPerformanceBank(nBankID);
+	
+	m_bLoadPerformanceBankBusy = false;
+	return true;
+}
+
+void CMiniDexed::DoSetFirstPerformance(void)
+{
+	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
+	SetNewPerformance(nID);
+	m_bSetFirstPerformance = false;
+	return;
 }
 
 bool CMiniDexed::SavePerformanceNewFile ()
@@ -1631,6 +1745,16 @@ void CMiniDexed::SetNewPerformanceName(std::string nName)
 	m_PerformanceConfig.SetNewPerformanceName(nName);
 }
 
+bool CMiniDexed::IsValidPerformance(unsigned nID)
+{
+	return m_PerformanceConfig.IsValidPerformance(nID);
+}
+
+bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
+{
+	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
+}
+
 void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -1642,10 +1766,17 @@ void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
 {
-	m_bDeletePerformance = true;
-	m_nDeletePerformanceID = nID;
+	if (m_PerformanceConfig.IsValidPerformance(nID) && m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bDeletePerformance = true;
+		m_nDeletePerformanceID = nID;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoDeletePerformance(void)
