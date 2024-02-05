@@ -80,7 +80,7 @@ public:
 	const char *GetMIDIThruOut (void) const;	// "" if not specified
 	bool GetMIDIRXProgramChange (void) const;	// true if not specified
 	bool GetIgnoreAllNotesOff (void) const;
-	bool GetMIDIAutoVoiceDumpOnPC (void) const; // true if not specified
+	bool GetMIDIAutoVoiceDumpOnPC (void) const; // false if not specified
 	bool GetHeaderlessSysExVoices (void) const; // false if not specified
 	bool GetExpandPCAcrossBanks (void) const; // true if not specified
 
