@@ -50,6 +50,9 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_DETUNE_LEVEL		94
 	#define MIDI_CC_ALL_SOUND_OFF		120
 	#define MIDI_CC_ALL_NOTES_OFF		123
+	#define MIDI_CC_NRPN_PARAM_MSB		99
+	#define MIDI_CC_NRPN_PARAM_LSB		98
+	#define MIDI_CC_NRPN_DATA_LSB		38
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -57,6 +60,12 @@ LOGMODULE ("mididevice");
 #define MIDI_SYSTEM_EXCLUSIVE_END	0xF7
 #define MIDI_TIMING_CLOCK	0xF8
 #define MIDI_ACTIVE_SENSING	0xFE
+
+#define MIDI_NRPN_PROGRAM_CHANGE	21
+
+uint8_t scale(uint8_t max, uint8_t value) {
+	return (uint8_t)((((unsigned)value) * max) / 127);
+}
 
 CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 
@@ -68,6 +77,8 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
+		m_NRPNoffset[nTG] = 0;
+		m_NRPNop[nTG] = 0;
 	}
 }
 
@@ -373,6 +384,178 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
 							break;
+
+						case MIDI_CC_NRPN_PARAM_MSB:
+							if(pMessage[2] <= 6) {
+								m_NRPNop[nTG] = pMessage[2];
+							}
+							break;
+
+						case MIDI_CC_NRPN_PARAM_LSB:
+							m_NRPNoffset[nTG] = pMessage[2];
+							break;
+
+						case MIDI_CC_NRPN_DATA_LSB:
+							switch(m_NRPNoffset[nTG])
+							{
+							case MIDI_NRPN_PROGRAM_CHANGE:
+								m_pSynthesizer->ProgramChange(pMessage[2], nTG);
+								break;
+							default:
+								if(m_NRPNop[nTG] < 6)
+								{
+									switch(m_NRPNoffset[nTG]) {
+										case DEXED_OP_EG_R1:
+											m_pSynthesizer->m_pTG[nTG]->setOPRate(m_NRPNop[nTG], 0, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_R2:
+											m_pSynthesizer->m_pTG[nTG]->setOPRate(m_NRPNop[nTG], 1, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_R3:
+											m_pSynthesizer->m_pTG[nTG]->setOPRate(m_NRPNop[nTG], 2, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_R4:
+											m_pSynthesizer->m_pTG[nTG]->setOPRate(m_NRPNop[nTG], 3, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_L1:
+											m_pSynthesizer->m_pTG[nTG]->setOPLevel(m_NRPNop[nTG], 0, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_L2:
+											m_pSynthesizer->m_pTG[nTG]->setOPLevel(m_NRPNop[nTG], 1, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_L3:
+											m_pSynthesizer->m_pTG[nTG]->setOPLevel(m_NRPNop[nTG], 2, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_EG_L4:
+											m_pSynthesizer->m_pTG[nTG]->setOPLevel(m_NRPNop[nTG], 3, scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_LEV_SCL_BRK_PT:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardLevelScalingBreakPoint(m_NRPNop[nTG], scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_SCL_LEFT_DEPTH:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardLevelScalingDepthLeft(m_NRPNop[nTG], scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_SCL_RGHT_DEPTH:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardLevelScalingDepthRight(m_NRPNop[nTG], scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_SCL_LEFT_CURVE:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardLevelScalingCurveLeft(m_NRPNop[nTG], scale(3, pMessage[2]));
+											break;
+										case DEXED_OP_SCL_RGHT_CURVE:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardLevelScalingCurveRight(m_NRPNop[nTG], scale(3, pMessage[2]));
+											break;
+										case DEXED_OP_OSC_RATE_SCALE:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardRateScale(m_NRPNop[nTG], scale(7, pMessage[2]));
+											break;
+										case DEXED_OP_AMP_MOD_SENS:
+											m_pSynthesizer->m_pTG[nTG]->setOPAmpModulationSensity(m_NRPNop[nTG], scale(3, pMessage[2]));
+											break;
+										case DEXED_OP_KEY_VEL_SENS:
+											m_pSynthesizer->m_pTG[nTG]->setOPKeyboardVelocitySensity(m_NRPNop[nTG], scale(7, pMessage[2]));
+											break;
+										case DEXED_OP_OUTPUT_LEV:
+											m_pSynthesizer->m_pTG[nTG]->setOPOutputLevel(m_NRPNop[nTG], scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_OSC_MODE:
+											m_pSynthesizer->m_pTG[nTG]->setOPMode(m_NRPNop[nTG], scale(1, pMessage[2]));
+											break;
+										case DEXED_OP_FREQ_COARSE:
+											m_pSynthesizer->m_pTG[nTG]->setOPFrequencyCoarse(m_NRPNop[nTG], scale(31, pMessage[2]));
+											break;
+										case DEXED_OP_FREQ_FINE:
+											m_pSynthesizer->m_pTG[nTG]->setOPFrequencyFine(m_NRPNop[nTG], scale(99, pMessage[2]));
+											break;
+										case DEXED_OP_OSC_DETUNE:
+											m_pSynthesizer->m_pTG[nTG]->setOPDetune(m_NRPNop[nTG], scale(14, pMessage[2]));
+											break;
+									}
+									// TODO: send partial update, but this will do for now
+									SendSystemExclusiveVoice(0, 0, nTG);
+								}
+								if(m_NRPNop[nTG] == 6) {
+									switch(m_NRPNoffset[nTG]) {
+										case  DEXED_PITCH_EG_R1:
+											m_pSynthesizer->m_pTG[nTG]->setPitchRate(0, scale(99, pMessage[2]));
+											break;
+										case  DEXED_PITCH_EG_R2:
+											m_pSynthesizer->m_pTG[nTG]->setPitchRate(1, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_R3:
+											m_pSynthesizer->m_pTG[nTG]->setPitchRate(2, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_R4:
+											m_pSynthesizer->m_pTG[nTG]->setPitchRate(3, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_L1:
+											m_pSynthesizer->m_pTG[nTG]->setPitchLevel(0, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_L2:
+											m_pSynthesizer->m_pTG[nTG]->setPitchLevel(1, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_L3:
+											m_pSynthesizer->m_pTG[nTG]->setPitchLevel(2, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_PITCH_EG_L4:
+											m_pSynthesizer->m_pTG[nTG]->setPitchLevel(3, scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_ALGORITHM:
+											m_pSynthesizer->m_pTG[nTG]->setAlgorithm(scale(31, pMessage[2]));
+
+											break;
+										case  DEXED_FEEDBACK:
+											m_pSynthesizer->m_pTG[nTG]->setFeedback(scale(7, pMessage[2]));
+
+											break;
+										case  DEXED_OSC_KEY_SYNC:
+											m_pSynthesizer->m_pTG[nTG]->setOscillatorSync(scale(1, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_SPEED:
+											m_pSynthesizer->m_pTG[nTG]->setLFOSpeed(scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_DELAY:
+											m_pSynthesizer->m_pTG[nTG]->setLFODelay(scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_PITCH_MOD_DEP:
+											m_pSynthesizer->m_pTG[nTG]->setLFOPitchModulationDepth(scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_AMP_MOD_DEP:
+											m_pSynthesizer->m_pTG[nTG]->setLFOAmpModulationDepth(scale(99, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_SYNC:
+											m_pSynthesizer->m_pTG[nTG]->setLFOSync(scale(1, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_WAVE:
+											m_pSynthesizer->m_pTG[nTG]->setLFOWaveform(scale(4, pMessage[2]));
+
+											break;
+										case  DEXED_LFO_PITCH_MOD_SENS:
+											m_pSynthesizer->m_pTG[nTG]->setLFOPitchModulationSensitivity(scale(7, pMessage[2]));
+
+											break;
+										case  DEXED_TRANSPOSE:
+											m_pSynthesizer->m_pTG[nTG]->setTranspose(scale(48, pMessage[2]));
+
+											break;
+									}
+									// TODO: send partial update, but this will do for now
+									SendSystemExclusiveVoice(0, 0, nTG);
+								}
+							}
+							break;
+
 						}
 						break;
 		
