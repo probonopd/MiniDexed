@@ -238,7 +238,7 @@ CUIButton::BtnEvent CUIButton::Read (void) {
 
 CUIButton::BtnTrigger CUIButton::triggerTypeFromString(const char* triggerString)
 {
-	if (strcmp(triggerString, "") == 0 || strcmp(triggerString, "none") == 0) {
+	if (strcmp(triggerString, "") == 0 || strcmp(triggerString, "none") == 0 || strcmp(triggerString, "0") == 0) {
 		return BtnTriggerNone;
 	}
 	else if (strcmp(triggerString, "click") == 0) {
@@ -413,7 +413,9 @@ boolean CUIButtons::Initialize (void)
 	// events assigned to them
 	
 	for (unsigned i=0; i<MAX_BUTTONS; i++) {
-		bindButton(pins[i], triggers[i], events[i]);
+		if (pins[i] != 0) {
+			bindButton(pins[i], triggers[i], events[i]);
+		}
 	}
 
 	return TRUE;
@@ -429,15 +431,19 @@ void CUIButtons::bindButton(unsigned pinNumber, CUIButton::BtnTrigger trigger, C
 			found = true;
 			
 			if (trigger == CUIButton::BtnTriggerClick) {
+				LOGNOTE("Button %d = click", pinNumber % MIDI_PINS);
 				m_buttons[i].setClickEvent(event);
 			}
 			else if (trigger == CUIButton::BtnTriggerDoubleClick) {
+				LOGNOTE("Button %d = doubleclick", pinNumber % MIDI_PINS);
 				m_buttons[i].setDoubleClickEvent(event);
 			}
 			else if (trigger == CUIButton::BtnTriggerLongPress) {
+				LOGNOTE("Button %d = longpress", pinNumber % MIDI_PINS);
 				m_buttons[i].setLongPressEvent(event);
 			}
 			else {
+				LOGNOTE("Button %d = no action", pinNumber % MIDI_PINS);
 				assert (trigger == CUIButton::BtnTriggerNone);
 			}
 
