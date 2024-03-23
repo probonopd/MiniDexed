@@ -390,10 +390,10 @@ void CUserInterface::UISetMIDIButtonChannel (unsigned uCh)
 		m_nMIDIButtonCh = CMIDIDevice::Disabled;
 		LOGNOTE("MIDI Button channel not set");
 	}
-	else if (uCh < CMIDIDevice::Channels)
+	else if (uCh <= CMIDIDevice::Channels)
 	{
 		m_nMIDIButtonCh = uCh - 1;
-		LOGNOTE("MIDI Button channel set to: %d", m_nMIDIButtonCh);
+		LOGNOTE("MIDI Button channel set to: %d", m_nMIDIButtonCh+1);
 	}
 	else
 	{
