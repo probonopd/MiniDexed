@@ -4,6 +4,10 @@
 
 MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known Japanese manufacturer running on a bare metal Raspberry Pi (without a Linux kernel or operating system). On Raspberry Pi 2 and larger, it can run 8 tone generators, not unlike the TX816/TX802 (8 DX7 instances without the keyboard in one box). [Featured by HACKADAY](https://hackaday.com/2022/04/19/bare-metal-gives-this-pi-some-classic-synths/), [Adafruit](https://blog.adafruit.com/2022/04/25/free-yamaha-dx7-synth-emulator-on-a-raspberry-pi/), and [Synth Geekery](https://www.youtube.com/watch?v=TDSy5nnm0jA).
 
+## Demo songs
+
+Listen to some examples made with MiniDexed by Banana71 [here](https://soundcloud.com/soundplantage/sets/minidexed2).
+
 ## Features
 
 - [x] Uses [Synth_Dexed](https://codeberg.org/dcoredump/Synth_Dexed) with [circle-stdlib](https://github.com/smuehlst/circle-stdlib)
