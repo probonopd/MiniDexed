@@ -41,6 +41,8 @@ public:
 
 #if RASPPI == 1
 	static const unsigned MaxNotes = 8;		// polyphony
+#elif RASPPI == 4
+	static const unsigned MaxNotes = 32;
 #else
 	static const unsigned MaxNotes = 16;
 #endif

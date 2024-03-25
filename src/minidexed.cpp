@@ -101,6 +101,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pTG[i]->activate ();
 	}
 		
+	LOGNOTE ("Polyphony = %d", CConfig::MaxNotes);
+		
 	if (pConfig->GetUSBGadgetMode())
 	{
 		LOGNOTE ("USB In Gadget (Device) Mode");
