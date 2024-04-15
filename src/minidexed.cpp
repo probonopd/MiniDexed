@@ -103,7 +103,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		
 	if (pConfig->GetUSBGadgetMode())
 	{
+#if RASPPI==5
+		LOGNOTE ("USB Gadget (Device) Mode NOT supported on RPI 5");
+#else
 		LOGNOTE ("USB In Gadget (Device) Mode");
+#endif
 	}
 	else
 	{
@@ -128,6 +132,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 	else if (strcmp (pDeviceName, "hdmi") == 0)
 	{
+#if RASPPI==5
+		LOGNOTE ("HDMI mode NOT supported on RPI 5.");
+#else
 		LOGNOTE ("HDMI mode");
 
 		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
@@ -136,6 +143,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		// The channels are swapped by default in the HDMI sound driver.
 		// TODO: Remove this line, when this has been fixed in the driver.
 		m_bChannelsSwapped = !m_bChannelsSwapped;
+#endif
 	}
 	else
 	{
