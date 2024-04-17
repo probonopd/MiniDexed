@@ -22,6 +22,23 @@
 #ifndef _usbminidexedmidigadget_h
 #define _usbminidexedmidigadget_h
 
+#if RASPPI==5
+#include <circle/sysconfig.h>
+#include <assert.h>
+
+#warning No support for USB Gadget Mode on RPI 5 yet
+class CUSBMiniDexedMIDIGadget
+{
+public:
+	CUSBMiniDexedMIDIGadget (CInterruptSystem *pInterruptSystem)
+	{
+	}
+
+	~CUSBMiniDexedMIDIGadget (void)
+	{
+	}
+};
+#else
 #include <circle/usb/gadget/usbmidigadget.h>
 #include <circle/usb/gadget/usbmidigadgetendpoint.h>
 #include <circle/sysconfig.h>
@@ -82,5 +99,6 @@ protected:
 		return CUSBMIDIGadget::GetDescriptor(wValue, wIndex, pLength);
 	}
 };
+#endif
 
 #endif
