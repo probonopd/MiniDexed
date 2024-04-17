@@ -68,8 +68,12 @@ bool CKernel::Initialize (void)
 	
 	if (m_Config.GetUSBGadgetMode())
 	{
+#if RASPPI==5
+#warning No support for USB Gadget Mode on RPI 5 yet
+#else
 		// Run the USB stack in USB Gadget (device) mode
 		m_pUSB = new CUSBMiniDexedMIDIGadget (&mInterrupt);
+#endif
 	}
 	else
 	{
