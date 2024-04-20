@@ -33,7 +33,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 ## System Requirements
 
 - Raspberry Pi 1, 2, 3, 4, or 400. Raspberry Pi Zero and Zero 2 can be used but need HDMI or a supported i2s DAC for audio out. On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
-- Raspberry Pi 5 can be used but currently support is experimental; HDMI sound and USB Gadget mode are not available yet 
+- Raspberry Pi 5 can be used but currently support is experimental: HDMI sound and USB Gadget mode are not available yet, and it is not clear if there are implications for cooling from running MiniDexed. **We would recommend using one of the cheaper or older Raspberry Pi boards for your first build.**
 - A [PCM5102A or PCM5122 based DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2s-dac), HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
 - Optionally (but highly recommended), an [LCDC1602 Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) (with or without i2c "backpack" board) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
 
