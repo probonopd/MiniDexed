@@ -31,7 +31,7 @@
 #include <circle/types.h>
 #include <queue>
 
-#define USB_SYSEX_BUFFER_SIZE (MAX_DX7_SYSEX_LENGTH+128)
+#define USB_SYSEX_BUFFER_SIZE (MAX_DX7_SYSEX_LENGTH+128) // Allow a bit spare to handle unexpected SysEx messages
 
 class CMiniDexed;
 
@@ -56,7 +56,7 @@ private:
 
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 	
-	void USBMIDIMessageHandler (unsigned nInstance, u8 *pPacket, unsigned nLength, unsigned nCable);
+	void USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable);
 
 private:
 	struct TSendQueueEntry
