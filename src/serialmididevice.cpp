@@ -75,7 +75,7 @@ void CSerialMIDIDevice::Process (void)
 		return;
 	}
 
-        if (m_pConfig->GetMIDIDumpEnabled ())
+/*        if (m_pConfig->GetMIDIDumpEnabled ())
 	{
 		printf("Incoming MIDI data:");
 		for (uint16_t i = 0; i < nResult; i++)
@@ -85,7 +85,7 @@ void CSerialMIDIDevice::Process (void)
 			printf(" 0x%02x",Buffer[i]);
 		}
 		printf("\n");
-	}
+	}*/
 
 	// Process MIDI messages
 	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message
