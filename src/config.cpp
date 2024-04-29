@@ -49,7 +49,16 @@ void CConfig::Load (void)
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
 
-		unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
+	unsigned newVelocityScale = m_Properties.GetNumber ("VelocityScale", 0);
+        if (newVelocityScale == 1) {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_DX7;
+        } else if (newVelocityScale == 2) {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_DX7II;
+        } else {
+                m_VelocityScale = MIDI_VELOCITY_SCALING_OFF;
+        }
+
+	unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
 	if (newEngineType == 2) {
   		m_EngineType = MKI;
 	} else if (newEngineType == 3) {
@@ -57,6 +66,7 @@ void CConfig::Load (void)
 	} else {
   		m_EngineType = MSFA;
 	}
+
 
 	m_nMIDIBaudRate = m_Properties.GetNumber ("MIDIBaudRate", 31250);
 
@@ -151,6 +161,7 @@ void CConfig::Load (void)
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
+
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
 }
 
@@ -182,6 +193,11 @@ unsigned CConfig::GetDACI2CAddress (void) const
 bool CConfig::GetChannelsSwapped (void) const
 {
 	return m_bChannelsSwapped;
+}
+
+unsigned CConfig::GetVelocityScale (void) const
+{
+        return m_VelocityScale;
 }
 
 unsigned CConfig::GetEngineType (void) const
