@@ -27,10 +27,11 @@
 
 LOGMODULE ("ui");
 
-CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig)
+CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
 	m_pGPIOManager (pGPIOManager),
 	m_pI2CMaster (pI2CMaster),
+	m_pSPIMaster (pSPIMaster),
 	m_pConfig (pConfig),
 	m_pLCD (0),
 	m_pLCDBuffered (0),
@@ -57,17 +58,65 @@ bool CUserInterface::Initialize (void)
 	{
 		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
 		unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
+		bool st7789 = m_pConfig->GetST7789Enabled ();
 		if (ssd1306addr != 0) {
 			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (),
 											 m_pI2CMaster, ssd1306addr,
 											 m_pConfig->GetSSD1306LCDRotate (), m_pConfig->GetSSD1306LCDMirror ());
-			LOGDBG ("LCD: SSD1306");
 			if (!m_pSSD1306->Initialize ())
 			{
+				LOGDBG("LCD: SSD1306 initialization failed");
 				return false;
 			}
+			LOGDBG ("LCD: SSD1306");
 			m_pLCD = m_pSSD1306;
-		} else if (i2caddr == 0)
+		}
+		else if (st7789)
+		{
+			if (m_pSPIMaster == nullptr)
+			{
+				LOGDBG("LCD: ST7789 Enabled but SPI Initialisation Failed");
+				return false;
+			}
+
+			LOGDBG ("ST7789 Params: dc=%d, cs=%d", m_pConfig->GetST7789Data(), m_pConfig->GetST7789Select());
+
+			m_pST7789Display = new CST7789Display (m_pSPIMaster,
+													m_pConfig->GetST7789Data(),
+													m_pConfig->GetST7789Reset(),
+													m_pConfig->GetST7789Backlight(),
+													m_pConfig->GetST7789Width(),
+													m_pConfig->GetST7789Height(),
+													SPI_CPOL, SPI_CPHA, SPI_CLOCK_SPEED,
+													m_pConfig->GetST7789Select());
+			LOGDBG ("ST7789 Display OK");
+			if (m_pST7789Display->Initialize())
+			{
+				m_pST7789 = new CST7789Device (m_pSPIMaster, m_pST7789Display, m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
+				if (m_pST7789->Initialize())
+				{
+					LOGDBG ("LCD: ST7789");
+					m_pLCD = m_pST7789;
+				}
+				else
+				{
+					LOGDBG ("LCD: Failed to initalize ST7789 character device");
+					delete (m_pST7789);
+					delete (m_pST7789Display);
+					m_pST7789 = nullptr;
+					m_pST7789Display = nullptr;
+					return false;
+				}
+			}
+			else
+			{
+				LOGDBG ("LCD: Failed to initialize ST7789 display");
+				delete (m_pST7789Display);
+				m_pST7789Display = nullptr;
+				return false;
+			}
+		}
+		else if (i2caddr == 0)
 		{
 			m_pHD44780 = new CHD44780Device (m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows (),
 							 m_pConfig->GetLCDPinData4 (),
@@ -77,22 +126,24 @@ bool CUserInterface::Initialize (void)
 							 m_pConfig->GetLCDPinEnable (),
 							 m_pConfig->GetLCDPinRegisterSelect (),
 							 m_pConfig->GetLCDPinReadWrite ());
-			LOGDBG ("LCD: HD44780");
 			if (!m_pHD44780->Initialize ())
 			{
+				LOGDBG("LCD: HD44780 initialization failed");
 				return false;
 			}
+			LOGDBG ("LCD: HD44780");
 			m_pLCD = m_pHD44780;
 		}
 		else
 		{
 			m_pHD44780 = new CHD44780Device (m_pI2CMaster, i2caddr,
 							m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
-			LOGDBG ("LCD: HD44780 I2C");
 			if (!m_pHD44780->Initialize ())
 			{
+				LOGDBG("LCD: HD44780 (I2C) initialization failed");
 				return false;
 			}
+			LOGDBG ("LCD: HD44780 I2C");
 			m_pLCD = m_pHD44780;
 		}
 		assert (m_pLCD);
