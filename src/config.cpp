@@ -110,6 +110,7 @@ void CConfig::Load (void)
 	m_nST7789Backlight = m_Properties.GetNumber ("ST7789Backlight", 0);  // optional
 	m_nST7789Width = m_Properties.GetNumber ("ST7789Width", 240);
 	m_nST7789Height = m_Properties.GetNumber ("ST7789Height", 240);
+	m_nST7789Rotation = m_Properties.GetNumber ("ST7789Rotation", 0);
 
 	m_nLCDColumns = m_Properties.GetNumber ("LCDColumns", 16);
 	m_nLCDRows = m_Properties.GetNumber ("LCDRows", 2);
@@ -346,6 +347,11 @@ unsigned CConfig::GetST7789Width (void) const
 unsigned CConfig::GetST7789Height (void) const
 {
 	return m_nST7789Height;
+}
+
+unsigned CConfig::GetST7789Rotation (void) const
+{
+	return m_nST7789Rotation;
 }
 
 unsigned CConfig::GetLCDColumns (void) const

@@ -30,8 +30,8 @@
 
 #define SPI_INACTIVE	255
 #define SPI_CLOCK_SPEED	15000000	// Hz
-#define SPI_CPOL		1			// Taken from circle sample application
-#define SPI_CPHA		0
+#define SPI_CPOL		0			// Taken from circle sample application
+#define SPI_CPHA		0			// Apparently Mode 0 (0,0) is common...?
 
 
 class CConfig		// Configuration for MiniDexed
@@ -118,6 +118,7 @@ public:
 	unsigned GetST7789Backlight (void) const;
 	unsigned GetST7789Width (void) const;
 	unsigned GetST7789Height (void) const;
+	unsigned GetST7789Rotation (void) const;
 
 	unsigned GetLCDColumns (void) const;
 	unsigned GetLCDRows (void) const;
@@ -229,6 +230,7 @@ private:
 	unsigned m_nST7789Backlight;
 	unsigned m_nST7789Width;
 	unsigned m_nST7789Height;
+	unsigned m_nST7789Rotation;
 
 	unsigned m_nLCDColumns;
 	unsigned m_nLCDRows;

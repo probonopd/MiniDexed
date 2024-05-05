@@ -79,8 +79,6 @@ bool CUserInterface::Initialize (void)
 				return false;
 			}
 
-			LOGDBG ("ST7789 Params: dc=%d, cs=%d", m_pConfig->GetST7789Data(), m_pConfig->GetST7789Select());
-
 			m_pST7789Display = new CST7789Display (m_pSPIMaster,
 													m_pConfig->GetST7789Data(),
 													m_pConfig->GetST7789Reset(),
@@ -89,9 +87,9 @@ bool CUserInterface::Initialize (void)
 													m_pConfig->GetST7789Height(),
 													SPI_CPOL, SPI_CPHA, SPI_CLOCK_SPEED,
 													m_pConfig->GetST7789Select());
-			LOGDBG ("ST7789 Display OK");
 			if (m_pST7789Display->Initialize())
 			{
+				m_pST7789Display->SetRotation (m_pConfig->GetST7789Rotation());
 				m_pST7789 = new CST7789Device (m_pSPIMaster, m_pST7789Display, m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
 				if (m_pST7789->Initialize())
 				{
@@ -268,7 +266,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	CString Value (" ");
 	if (bArrowDown)
 	{
-		Value = "\x7F";			// arrow left character
+		Value = "<";			// arrow left character
 	}
 
 	Value.Append (pValue);
@@ -283,7 +281,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 			}
 		}
 
-		Value.Append ("\x7E");		// arrow right character
+		Value.Append (">");		// arrow right character
 	}
 
 	Msg.Append (Value);
