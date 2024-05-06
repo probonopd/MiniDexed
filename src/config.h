@@ -30,8 +30,8 @@
 
 #define SPI_INACTIVE	255
 #define SPI_CLOCK_SPEED	15000000	// Hz
-#define SPI_CPOL		0			// Taken from circle sample application
-#define SPI_CPHA		0			// Apparently Mode 0 (0,0) is common...?
+#define SPI_CPOL	0		// Taken from circle sample application
+#define SPI_CPHA	0		// Apparently Mode 0 (0,0) is common...?
 
 
 class CConfig		// Configuration for MiniDexed

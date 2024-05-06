@@ -80,13 +80,13 @@ bool CUserInterface::Initialize (void)
 			}
 
 			m_pST7789Display = new CST7789Display (m_pSPIMaster,
-													m_pConfig->GetST7789Data(),
-													m_pConfig->GetST7789Reset(),
-													m_pConfig->GetST7789Backlight(),
-													m_pConfig->GetST7789Width(),
-													m_pConfig->GetST7789Height(),
-													SPI_CPOL, SPI_CPHA, SPI_CLOCK_SPEED,
-													m_pConfig->GetST7789Select());
+							m_pConfig->GetST7789Data(),
+							m_pConfig->GetST7789Reset(),
+							m_pConfig->GetST7789Backlight(),
+							m_pConfig->GetST7789Width(),
+							m_pConfig->GetST7789Height(),
+							SPI_CPOL, SPI_CPHA, SPI_CLOCK_SPEED,
+							m_pConfig->GetST7789Select());
 			if (m_pST7789Display->Initialize())
 			{
 				m_pST7789Display->SetRotation (m_pConfig->GetST7789Rotation());
