@@ -68,6 +68,8 @@ bool CKernel::Initialize (void)
 	m_Config.Load ();
 	
 	unsigned nSPIMaster = m_Config.GetSPIBus();
+	unsigned nSPIMode = m_Config.GetSPIMode();
+	unsigned long nSPIClock = 1000 * m_Config.GetSPIClockKHz();
 #if RASPPI<4
 	// By default older RPI versions use SPI 0.
 	// It is possible to build circle to support SPI 1 for
@@ -81,7 +83,9 @@ bool CKernel::Initialize (void)
 	if (nSPIMaster == 0 || nSPIMaster == 3 || nSPIMaster == 4 || nSPIMaster == 5 || nSPIMaster == 6)
 #endif
 	{
-		m_pSPIMaster = new CSPIMaster (SPI_CLOCK_SPEED, SPI_CPOL, SPI_CPHA, nSPIMaster);
+		unsigned nCPHA = (nSPIMode & 1) ? 1 : 0;
+		unsigned nCPOL = (nSPIMode & 2) ? 1 : 0;
+		m_pSPIMaster = new CSPIMaster (nSPIClock, nCPOL, nCPHA, nSPIMaster);
 		if (!m_pSPIMaster->Initialize())
 		{
 			delete (m_pSPIMaster);

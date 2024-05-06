@@ -29,10 +29,8 @@
 #include <string>
 
 #define SPI_INACTIVE	255
-#define SPI_CLOCK_SPEED	15000000	// Hz
-#define SPI_CPOL	0		// Taken from circle sample application
-#define SPI_CPHA	0		// Apparently Mode 0 (0,0) is common...?
-
+#define SPI_DEF_CLOCK	15000	// kHz
+#define SPI_DEF_MODE	0		// Default mode (0,1,2,3)
 
 class CConfig		// Configuration for MiniDexed
 {
@@ -109,8 +107,12 @@ public:
 	bool     GetSSD1306LCDRotate (void) const;
 	bool     GetSSD1306LCDMirror (void) const;
 
-	// ST7789 LCD
+	// SPI support
 	unsigned GetSPIBus (void) const;
+	unsigned GetSPIMode (void) const;
+	unsigned GetSPIClockKHz (void) const;
+
+	// ST7789 LCD
 	bool GetST7789Enabled (void) const;
 	unsigned GetST7789Data (void) const;
 	unsigned GetST7789Select (void) const;
@@ -223,6 +225,9 @@ private:
 	bool     m_bSSD1306LCDMirror;
 
 	unsigned m_nSPIBus;
+	unsigned m_nSPIMode;
+	unsigned m_nSPIClockKHz;
+
 	bool     m_bST7789Enabled;
 	unsigned m_nST7789Data;
 	unsigned m_nST7789Select;

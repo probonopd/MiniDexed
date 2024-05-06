@@ -79,13 +79,18 @@ bool CUserInterface::Initialize (void)
 				return false;
 			}
 
+			unsigned long nSPIClock = 1000 * m_pConfig->GetSPIClockKHz();
+			unsigned nSPIMode = m_pConfig->GetSPIMode();
+			unsigned nCPHA = (nSPIMode & 1) ? 1 : 0;
+			unsigned nCPOL = (nSPIMode & 2) ? 1 : 0;
+			LOGDBG("SPI: CPOL=%u; CPHA=%u; CLK=%u",nCPOL,nCPHA,nSPIClock);
 			m_pST7789Display = new CST7789Display (m_pSPIMaster,
 							m_pConfig->GetST7789Data(),
 							m_pConfig->GetST7789Reset(),
 							m_pConfig->GetST7789Backlight(),
 							m_pConfig->GetST7789Width(),
 							m_pConfig->GetST7789Height(),
-							SPI_CPOL, SPI_CPHA, SPI_CLOCK_SPEED,
+							nCPOL, nCPHA, nSPIClock,
 							m_pConfig->GetST7789Select());
 			if (m_pST7789Display->Initialize())
 			{

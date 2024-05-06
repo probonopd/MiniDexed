@@ -103,6 +103,9 @@ void CConfig::Load (void)
 	m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
 
 	m_nSPIBus = m_Properties.GetNumber ("SPIBus", SPI_INACTIVE);  // Disabled by default
+	m_nSPIMode = m_Properties.GetNumber ("SPIMode", SPI_DEF_MODE);
+	m_nSPIClockKHz = m_Properties.GetNumber ("SPIClockKHz", SPI_DEF_CLOCK);
+
 	m_bST7789Enabled = m_Properties.GetNumber ("ST7789Enabled", 0) != 0;
 	m_nST7789Data = m_Properties.GetNumber ("ST7789Data", 0);
 	m_nST7789Select = m_Properties.GetNumber ("ST7789Select", 0);
@@ -312,6 +315,16 @@ bool CConfig::GetSSD1306LCDMirror (void) const
 unsigned CConfig::GetSPIBus (void) const
 {
 	return m_nSPIBus;
+}
+
+unsigned CConfig::GetSPIMode (void) const
+{
+	return m_nSPIMode;
+}
+
+unsigned CConfig::GetSPIClockKHz (void) const
+{
+	return m_nSPIClockKHz;
 }
 
 bool CConfig::GetST7789Enabled (void) const
