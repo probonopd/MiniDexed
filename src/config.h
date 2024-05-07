@@ -113,7 +113,7 @@ public:
 	unsigned GetSPIClockKHz (void) const;
 
 	// ST7789 LCD
-	bool GetST7789Enabled (void) const;
+	bool     GetST7789Enabled (void) const;
 	unsigned GetST7789Data (void) const;
 	unsigned GetST7789Select (void) const;
 	unsigned GetST7789Reset (void) const;
@@ -121,6 +121,7 @@ public:
 	unsigned GetST7789Width (void) const;
 	unsigned GetST7789Height (void) const;
 	unsigned GetST7789Rotation (void) const;
+	bool     GetST7789SmallFont (void) const;
 
 	unsigned GetLCDColumns (void) const;
 	unsigned GetLCDRows (void) const;
@@ -236,6 +237,7 @@ private:
 	unsigned m_nST7789Width;
 	unsigned m_nST7789Height;
 	unsigned m_nST7789Rotation;
+	unsigned m_bST7789SmallFont;
 
 	unsigned m_nLCDColumns;
 	unsigned m_nLCDRows;

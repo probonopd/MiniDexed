@@ -95,7 +95,8 @@ bool CUserInterface::Initialize (void)
 			if (m_pST7789Display->Initialize())
 			{
 				m_pST7789Display->SetRotation (m_pConfig->GetST7789Rotation());
-				m_pST7789 = new CST7789Device (m_pSPIMaster, m_pST7789Display, m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows ());
+				bool bLargeFont = !(m_pConfig->GetST7789SmallFont());
+				m_pST7789 = new CST7789Device (m_pSPIMaster, m_pST7789Display, m_pConfig->GetLCDColumns (), m_pConfig->GetLCDRows (), bLargeFont, bLargeFont);
 				if (m_pST7789->Initialize())
 				{
 					LOGDBG ("LCD: ST7789");

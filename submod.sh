@@ -12,7 +12,7 @@ cd -
 #
 # Optional update submodules explicitly
 cd circle-stdlib/libs/circle
-git checkout f8c9026
+git checkout 4155f43
 cd -
 cd circle-stdlib/libs/circle-newlib
 #git checkout develop
