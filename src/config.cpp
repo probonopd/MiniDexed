@@ -102,6 +102,20 @@ void CConfig::Load (void)
 	m_bSSD1306LCDRotate = m_Properties.GetNumber ("SSD1306LCDRotate", 0) != 0;
 	m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
 
+	m_nSPIBus = m_Properties.GetNumber ("SPIBus", SPI_INACTIVE);  // Disabled by default
+	m_nSPIMode = m_Properties.GetNumber ("SPIMode", SPI_DEF_MODE);
+	m_nSPIClockKHz = m_Properties.GetNumber ("SPIClockKHz", SPI_DEF_CLOCK);
+
+	m_bST7789Enabled = m_Properties.GetNumber ("ST7789Enabled", 0) != 0;
+	m_nST7789Data = m_Properties.GetNumber ("ST7789Data", 0);
+	m_nST7789Select = m_Properties.GetNumber ("ST7789Select", 0);
+	m_nST7789Reset = m_Properties.GetNumber ("ST7789Reset", 0);  // optional
+	m_nST7789Backlight = m_Properties.GetNumber ("ST7789Backlight", 0);  // optional
+	m_nST7789Width = m_Properties.GetNumber ("ST7789Width", 240);
+	m_nST7789Height = m_Properties.GetNumber ("ST7789Height", 240);
+	m_nST7789Rotation = m_Properties.GetNumber ("ST7789Rotation", 0);
+	m_bST7789SmallFont = m_Properties.GetNumber ("ST7789SmallFont", 0) != 0;
+
 	m_nLCDColumns = m_Properties.GetNumber ("LCDColumns", 16);
 	m_nLCDRows = m_Properties.GetNumber ("LCDRows", 2);
 
@@ -299,6 +313,65 @@ bool CConfig::GetSSD1306LCDMirror (void) const
 	return m_bSSD1306LCDMirror;
 }
 
+unsigned CConfig::GetSPIBus (void) const
+{
+	return m_nSPIBus;
+}
+
+unsigned CConfig::GetSPIMode (void) const
+{
+	return m_nSPIMode;
+}
+
+unsigned CConfig::GetSPIClockKHz (void) const
+{
+	return m_nSPIClockKHz;
+}
+
+bool CConfig::GetST7789Enabled (void) const
+{
+	return m_bST7789Enabled;
+}
+
+unsigned CConfig::GetST7789Data (void) const
+{
+	return m_nST7789Data;
+}
+
+unsigned CConfig::GetST7789Select (void) const
+{
+	return m_nST7789Select;
+}
+
+unsigned CConfig::GetST7789Reset (void) const
+{
+	return m_nST7789Reset;
+}
+
+unsigned CConfig::GetST7789Backlight (void) const
+{
+	return m_nST7789Backlight;
+}
+
+unsigned CConfig::GetST7789Width (void) const
+{
+	return m_nST7789Width;
+}
+
+unsigned CConfig::GetST7789Height (void) const
+{
+	return m_nST7789Height;
+}
+
+unsigned CConfig::GetST7789Rotation (void) const
+{
+	return m_nST7789Rotation;
+}
+
+bool CConfig::GetST7789SmallFont (void) const
+{
+	return m_bST7789SmallFont;
+}
 unsigned CConfig::GetLCDColumns (void) const
 {
 	return m_nLCDColumns;
