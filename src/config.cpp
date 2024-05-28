@@ -85,6 +85,7 @@ void CConfig::Load (void)
 	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 0) != 0;
 	m_bHeaderlessSysExVoices = m_Properties.GetNumber ("HeaderlessSysExVoices", 0) != 0;
 	m_bExpandPCAcrossBanks = m_Properties.GetNumber ("ExpandPCAcrossBanks", 1) != 0;
+	m_bQuadDAC8Chan = m_Properties.GetNumber ("QuadDAC8Chan", 0) != 0;
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -241,6 +242,11 @@ bool CConfig::GetHeaderlessSysExVoices (void) const
 bool CConfig::GetExpandPCAcrossBanks (void) const
 {
 	return m_bExpandPCAcrossBanks;
+}
+
+bool CConfig::GetQuadDAC8Chan (void) const
+{
+	return m_bQuadDAC8Chan;
 }
 
 bool CConfig::GetLCDEnabled (void) const

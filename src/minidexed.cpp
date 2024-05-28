@@ -42,6 +42,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_PCKeyboard (this, pConfig, &m_UI),
 	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
 	m_bUseSerial (false),
+	m_bQuadDAC8Chan (false),
 	m_pSoundDevice (0),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -125,10 +126,26 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	if (strcmp (pDeviceName, "i2s") == 0)
 	{
 		LOGNOTE ("I2S mode");
-
-		m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-							  pConfig->GetChunkSize (), false,
-							  pI2CMaster, pConfig->GetDACI2CAddress ());
+#if RASPPI==5
+		// Quad DAC 8-channel mono only an option for RPI 5
+		m_bQuadDAC8Chan = pConfig->GetQuadDAC8Chan ();
+#endif
+		if (m_bQuadDAC8Chan) {
+			LOGNOTE ("Configured for Quad DAC 8-channel Mono audio");
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  8);  // 8 channels - L+R x4 across 4 I2S lanes
+		}
+		else
+		{
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  2);  // 2 channels - L+R
+		}
 	}
 	else if (strcmp (pDeviceName, "hdmi") == 0)
 	{
@@ -251,18 +268,25 @@ bool CMiniDexed::Initialize (void)
 	}
 	
 	// setup and start the sound device
-	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
+	int Channels = 1;	// 16-bit Mono
+#ifdef ARM_ALLOW_MULTI_CORE
+	if (m_bQuadDAC8Chan)
+	{
+		Channels = 8;	// 16-bit 8-channel mono
+	}
+	else
+	{
+		Channels = 2;	// 16-bit Stereo
+	}
+#endif
+	if (!m_pSoundDevice->AllocateQueueFrames (Channels * m_pConfig->GetChunkSize ()))
 	{
 		LOGERR ("Cannot allocate sound queue");
 
 		return false;
 	}
 
-#ifndef ARM_ALLOW_MULTI_CORE
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
-#else
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
-#endif
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, Channels);
 
 	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
 
@@ -1128,85 +1152,130 @@ void CMiniDexed::ProcessSound (void)
 
 		assert (CConfig::ToneGenerators == 8);
 
-		uint8_t indexL=0, indexR=1;
-		
-		// BEGIN TG mixing
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
+		if (m_bQuadDAC8Chan) {
+			// No mixing is performed by MiniDexed, sound is output in 8 channels.
+			// Note: one TG per audio channel; output=mono; no processing.
+			const int Channels = 8;  // One TG per channel
+			float32_t tmp_float[nFrames*Channels];
+			int16_t tmp_int[nFrames*Channels];
 
-		if(nMasterVolume > 0.0)
-		{
-			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+			if(nMasterVolume > 0.0)
 			{
-				tg_mixer->doAddMix(i,m_OutputLevel[i]);
-				reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
-			}
-			// END TG mixing
-	
-			// BEGIN create SampleBuffer for holding audio data
-			float32_t SampleBuffer[2][nFrames];
-			// END create SampleBuffer for holding audio data
-
-			// get the mix of all TGs
-			tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
-
-			// BEGIN adding reverb
-			if (m_nParameter[ParameterReverbEnable])
-			{
-				float32_t ReverbBuffer[2][nFrames];
-				float32_t ReverbSendBuffer[2][nFrames];
-
-				arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-				arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-	
-				m_ReverbSpinLock.Acquire ();
-	
-       		         	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-	
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
-	
-				m_ReverbSpinLock.Release ();
-			}
-			// END adding reverb
-	
-			// swap stereo channels if needed prior to writing back out
-			if (m_bChannelsSwapped)
-			{
-				indexL=1;
-				indexR=0;
-			}
-
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			for(uint16_t i=0; i<nFrames;i++)
-			{
-				if(nMasterVolume >0.0 && nMasterVolume <1.0)
+				// Convert dual float array (8 chan) to single int16 array (8 chan)
+				for(uint16_t i=0; i<nFrames;i++)
 				{
-					tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					// TGs will alternate on L/R channels for each output
+					// reading directly from the TG OutputLevel buffer with
+					// no additional processing.
+					for (uint8_t tg = 0; tg < Channels; tg++)
+					{
+						if(nMasterVolume >0.0 && nMasterVolume <1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+						}
+						else if(nMasterVolume == 1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
+						}
+					}
 				}
-				else if(nMasterVolume == 1.0)
-				{
-					tmp_float[i*2]=SampleBuffer[indexL][i];
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
-				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*Channels);
 			}
-			arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames*Channels);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
 		}
 		else
-			arm_fill_q15(0, tmp_int, nFrames * 2);
-
-		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
-			LOGERR ("Sound data dropped");
-		}
+			// Mix everything down to stereo		
+			uint8_t indexL=0, indexR=1;
+
+			// BEGIN TG mixing
+			float32_t tmp_float[nFrames*2];
+			int16_t tmp_int[nFrames*2];
+
+			if(nMasterVolume > 0.0)
+			{
+				for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+				{
+					tg_mixer->doAddMix(i,m_OutputLevel[i]);
+					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+				}
+				// END TG mixing
+
+				// BEGIN create SampleBuffer for holding audio data
+				float32_t SampleBuffer[2][nFrames];
+				// END create SampleBuffer for holding audio data
+
+				// get the mix of all TGs
+				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
+
+				// BEGIN adding reverb
+				if (m_nParameter[ParameterReverbEnable])
+				{
+					float32_t ReverbBuffer[2][nFrames];
+					float32_t ReverbSendBuffer[2][nFrames];
+
+					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+
+					m_ReverbSpinLock.Acquire ();
+
+					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+					reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+
+					// scale down and add left reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+					arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+					// scale down and add right reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+					arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+
+					m_ReverbSpinLock.Release ();
+				}
+				// END adding reverb
+
+				// swap stereo channels if needed prior to writing back out
+				if (m_bChannelsSwapped)
+				{
+					indexL=1;
+					indexR=0;
+				}
+
+				// Convert dual float array (left, right) to single int16 array (left/right)
+				for(uint16_t i=0; i<nFrames;i++)
+				{
+					if(nMasterVolume >0.0 && nMasterVolume <1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					}
+					else if(nMasterVolume == 1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i];
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+					}
+				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			}
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames * 2);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
+		} // End of Stereo mixing
 
 		if (m_bProfileEnabled)
 		{
