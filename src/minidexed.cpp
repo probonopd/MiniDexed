@@ -279,7 +279,7 @@ bool CMiniDexed::Initialize (void)
 		Channels = 2;	// 16-bit Stereo
 	}
 #endif
-	if (!m_pSoundDevice->AllocateQueueFrames (Channels * m_pConfig->GetChunkSize ()))
+	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize () / Channels))
 	{
 		LOGERR ("Cannot allocate sound queue");
 
