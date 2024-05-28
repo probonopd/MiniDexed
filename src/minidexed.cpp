@@ -279,7 +279,12 @@ bool CMiniDexed::Initialize (void)
 		Channels = 2;	// 16-bit Stereo
 	}
 #endif
-	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize () / Channels))
+	// Need 2 x ChunkSize / Channel queue frames as the audio driver uses
+	// two DMA channels each of ChunkSize and one single single frame
+	// contains a sample for each of all the channels.
+	//
+	// See discussion here: https://github.com/rsta2/circle/discussions/453
+	if (!m_pSoundDevice->AllocateQueueFrames (2 * m_pConfig->GetChunkSize () / Channels))
 	{
 		LOGERR ("Cannot allocate sound queue");
 
