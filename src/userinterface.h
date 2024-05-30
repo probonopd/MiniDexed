@@ -26,16 +26,18 @@
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <display/ssd1306device.h>
+#include <display/st7789device.h>
 #include <circle/gpiomanager.h>
 #include <circle/writebuffer.h>
 #include <circle/i2cmaster.h>
+#include <circle/spimaster.h>
 
 class CMiniDexed;
 
 class CUserInterface
 {
 public:
-	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CConfig *pConfig);
+	CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, CConfig *pConfig);
 	~CUserInterface (void);
 
 	bool Initialize (void);
@@ -68,11 +70,14 @@ private:
 	CMiniDexed *m_pMiniDexed;
 	CGPIOManager *m_pGPIOManager;
 	CI2CMaster *m_pI2CMaster;
+	CSPIMaster *m_pSPIMaster;
 	CConfig *m_pConfig;
 
 	CCharDevice    *m_pLCD;
 	CHD44780Device *m_pHD44780;
 	CSSD1306Device *m_pSSD1306;
+	CST7789Display *m_pST7789Display;
+	CST7789Device  *m_pST7789;
 	CWriteBufferDevice *m_pLCDBuffered;
 	
 	CUIButtons *m_pUIButtons;

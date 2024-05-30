@@ -33,6 +33,7 @@ CKernel::CKernel (void)
 	m_Config (&mFileSystem),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
+	m_pSPIMaster (nullptr),
 	m_pDexed (0)
 {
 	s_pThis = this;
@@ -66,6 +67,32 @@ bool CKernel::Initialize (void)
 
 	m_Config.Load ();
 	
+	unsigned nSPIMaster = m_Config.GetSPIBus();
+	unsigned nSPIMode = m_Config.GetSPIMode();
+	unsigned long nSPIClock = 1000 * m_Config.GetSPIClockKHz();
+#if RASPPI<4
+	// By default older RPI versions use SPI 0.
+	// It is possible to build circle to support SPI 1 for
+	// devices that use the 40-pin header, but that isn't
+	// enabled at present...
+	if (nSPIMaster == 0)
+#else
+	// RPI 4+ has several possible SPI Bus Configurations.
+	// As mentioned above, SPI 1 is not built by default.
+	// See circle/include/circle/spimaster.h
+	if (nSPIMaster == 0 || nSPIMaster == 3 || nSPIMaster == 4 || nSPIMaster == 5 || nSPIMaster == 6)
+#endif
+	{
+		unsigned nCPHA = (nSPIMode & 1) ? 1 : 0;
+		unsigned nCPOL = (nSPIMode & 2) ? 1 : 0;
+		m_pSPIMaster = new CSPIMaster (nSPIClock, nCPOL, nCPHA, nSPIMaster);
+		if (!m_pSPIMaster->Initialize())
+		{
+			delete (m_pSPIMaster);
+			m_pSPIMaster = nullptr;
+		}
+	}
+	
 	if (m_Config.GetUSBGadgetMode())
 	{
 #if RASPPI==5
@@ -86,7 +113,7 @@ bool CKernel::Initialize (void)
 		return FALSE;
     }
 	
-	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster,
+	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster, m_pSPIMaster,
 				   &mFileSystem);
 	assert (m_pDexed);
 

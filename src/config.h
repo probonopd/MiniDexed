@@ -28,6 +28,10 @@
 #include <circle/sysconfig.h>
 #include <string>
 
+#define SPI_INACTIVE	255
+#define SPI_DEF_CLOCK	15000	// kHz
+#define SPI_DEF_MODE	0		// Default mode (0,1,2,3)
+
 class CConfig		// Configuration for MiniDexed
 {
 public:
@@ -102,6 +106,22 @@ public:
 	unsigned GetSSD1306LCDHeight (void) const;
 	bool     GetSSD1306LCDRotate (void) const;
 	bool     GetSSD1306LCDMirror (void) const;
+
+	// SPI support
+	unsigned GetSPIBus (void) const;
+	unsigned GetSPIMode (void) const;
+	unsigned GetSPIClockKHz (void) const;
+
+	// ST7789 LCD
+	bool     GetST7789Enabled (void) const;
+	unsigned GetST7789Data (void) const;
+	unsigned GetST7789Select (void) const;
+	unsigned GetST7789Reset (void) const;
+	unsigned GetST7789Backlight (void) const;
+	unsigned GetST7789Width (void) const;
+	unsigned GetST7789Height (void) const;
+	unsigned GetST7789Rotation (void) const;
+	bool     GetST7789SmallFont (void) const;
 
 	unsigned GetLCDColumns (void) const;
 	unsigned GetLCDRows (void) const;
@@ -204,7 +224,21 @@ private:
 	unsigned m_nSSD1306LCDHeight;
 	bool     m_bSSD1306LCDRotate;
 	bool     m_bSSD1306LCDMirror;
-	
+
+	unsigned m_nSPIBus;
+	unsigned m_nSPIMode;
+	unsigned m_nSPIClockKHz;
+
+	bool     m_bST7789Enabled;
+	unsigned m_nST7789Data;
+	unsigned m_nST7789Select;
+	unsigned m_nST7789Reset;
+	unsigned m_nST7789Backlight;
+	unsigned m_nST7789Width;
+	unsigned m_nST7789Height;
+	unsigned m_nST7789Rotation;
+	unsigned m_bST7789SmallFont;
+
 	unsigned m_nLCDColumns;
 	unsigned m_nLCDRows;
 	
