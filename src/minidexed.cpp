@@ -1767,8 +1767,9 @@ void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-	char Name[10];
+	char Name[11];
 	strncpy(Name, VoiceName.c_str(),10);
+	Name[10] = '\0';
 	m_pTG[nTG]->getName (Name);
 }
 
