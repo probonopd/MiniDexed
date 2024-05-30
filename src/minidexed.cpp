@@ -1763,20 +1763,14 @@ bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
 	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
 }
 
-void CMiniDexed::SetVoiceName(std::string VoiceName, unsigned nTG)
+void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 {
-	assert(nTG < CConfig::ToneGenerators);
-	assert(m_pTG[nTG]);
-
-	// Define a buffer with enough space for the string and null terminator
-	char Name[VoiceName.size() + 1];
-
-	// Copy the string and ensure null termination
-	strncpy(Name, VoiceName.c_str(), VoiceName.size());
-	Name[VoiceName.size()] = '\0';
-
-	// Pass the null-terminated string to getName
-	m_pTG[nTG]->getName(Name);
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_pTG[nTG]);
+	char Name[11];
+	strncpy(Name, VoiceName.c_str(),10);
+	Name[10] = '\0';
+	m_pTG[nTG]->getName (Name);
 }
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
