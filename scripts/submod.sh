@@ -5,20 +5,20 @@ set -ex
 git submodule update --init --recursive
 #
 # Use fixed master branch of circle-stdlib then re-update
-cd circle-stdlib/
+cd external/circle-stdlib/
 git checkout 3bd135d
 git submodule update --init --recursive
 cd -
 #
 # Optional update submodules explicitly
-cd circle-stdlib/libs/circle
+cd external/circle-stdlib/libs/circle
 git checkout 4155f43
 cd -
-cd circle-stdlib/libs/circle-newlib
+cd external/circle-stdlib/libs/circle-newlib
 #git checkout develop
 cd -
 #
 # Use fixed master branch of Synth_Dexed
-cd Synth_Dexed/
+cd external/Synth_Dexed/
 git checkout c9f5274
 cd -

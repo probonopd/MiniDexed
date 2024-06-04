@@ -1,51 +1,11 @@
-# Prerequisites
+*.elf
 *.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-*.O
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Toolchain
-gcc-*
-
-# Build artefacts
-kernel*
-MiniDexed*
-sdcard
-*.zip
 *.img
+*.lst
+*.map
+*.o
 
-# Editor related files
-*.swp
-*.swo
-
-CMSIS_5/
-Synth_Dexed/
-circle-stdlib/
+build/
+external/gcc/
+external/soundplantage/
+tmp/

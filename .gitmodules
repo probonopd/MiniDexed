@@ -1,9 +1,9 @@
-[submodule "circle-stdlib"]
-	path = circle-stdlib
+[submodule "external/circle-stdlib"]
+	path = external/circle-stdlib
 	url = https://github.com/smuehlst/circle-stdlib
-[submodule "Synth_Dexed"]
-	path = Synth_Dexed
+[submodule "external/Synth_Dexed"]
+	path = external/Synth_Dexed
 	url = https://codeberg.org/dcoredump/Synth_Dexed.git
-[submodule "CMSIS_5"]
-	path = CMSIS_5
+[submodule "external/CMSIS_5"]
+	path = external/CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5

@@ -33,7 +33,7 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 ## System Requirements
 
 - Raspberry Pi 1, 2, 3, 4, or 400. Raspberry Pi Zero and Zero 2 can be used but need HDMI or a supported i2s DAC for audio out. On Raspberry Pi 1 and on Raspberry Pi Zero there will be severely limited functionality (only one tone generator instead of 8)
-- Raspberry Pi 5 can be used but currently support is experimental: HDMI sound and USB Gadget mode are not available yet, and it is not clear if there are implications for cooling from running MiniDexed. Also, MiniDexed is currently not taking advantage of the higher processing power of the Raspberry Pi 5 yet. *Hence, you may consider using one of the less expensive, older Raspberry Pi boards for your first build.*
+- Raspberry Pi 5 can be used but currently support is experimental: HDMI sound and USB Gadget mode are not available yet, and it is not clear if there are implications for cooling from running MiniDexed. Also, MiniDexed is currently not taking advantage of the higher processing power of the Raspberry Pi 5 yet. _Hence, you may consider using one of the less expensive, older Raspberry Pi boards for your first build._
 - A [PCM5102A or PCM5122 based DAC](https://github.com/probonopd/MiniDexed/wiki/Hardware#i2s-dac), HDMI display or [audio extractor](https://github.com/probonopd/MiniDexed/wiki/Hardware#hdmi-to-audio) for good sound quality. If you don't have this, you can use the headphone jack on the Raspberry Pi but on anything but the Raspberry 4 the sound quality will be seriously limited
 - Optionally (but highly recommended), an [LCDC1602 Display](https://www.berrybase.de/en/sensors-modules/displays/alphanumeric-displays/alphanumerisches-lcd-16x2-gr-252-n/gelb) (with or without i2c "backpack" board) and a [KY-040 rotary encoder](https://www.berrybase.de/en/components/passive-components/potentiometer/rotary-encoder/drehregler/rotary-encoder-mit-breakoutboard-ohne-gewinde-und-mutter)
 
@@ -45,14 +45,14 @@ Video about this project by [Floyd Steinberg](https://www.youtube.com/watch?v=Z3
 - Put the files into the root directory of a FAT32 formatted partition on SD/microSD card (Note for small SD cards which are no longer sold: If less than 65525 clusters, you may need to format as FAT16.)
 - Put SD/microSD card into Raspberry Pi 1, 2, 3 or 4, or 400 (Zero and Zero 2 can be used but need HDMI or a supported i2c DAC for audio out)
 - Attach headphones to the headphone jack using `SoundDevice=pwm` in `minidexed.ini` (default) (poor audio quality)
-- Alternatively, attach a  PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini` (best audio quality)
+- Alternatively, attach a PCM5102A or PCM5122 based DAC and select i2c sound output using `SoundDevice=i2s` in `minidexed.ini` (best audio quality)
 - Alternatively, attach a HDMI display with sound and select HDMI sound output using `SoundDevice=hdmi` in `minidexed.ini` (this may introduce slight latency)
 - Attach a MIDI keyboard via USB (alternatively you can build a circuit that allows you to attach a "traditional" MIDI keyboard using a DIN connector, or use a DIN-MIDI-to-USB adapter)
 - If you are using a LCDC1602 with an i2c "backpack" board, then you need to set `LCDI2CAddress=0x27` (or another address your i2c "backpack" board is set to) in `minidexed.ini`
 - Boot
 - Start playing
 - If the system seems to become unresponsive after a few seconds, remove `usbspeed=full` from `cmdline.txt` and repeat ([details](https://github.com/probonopd/MiniDexed/issues/39))
-- Optionally, put voices in `.syx` files onto the SD card (e.g., using `getsysex.sh`)
+- Optionally, put voices in `.syx` files onto the SD card (e.g., using `scripts/get-sysex.sh`)
 - See the Wiki for [Menu](https://github.com/probonopd/MiniDexed/wiki/Menu) operation
 - For voice programming, use any DX series editor (using MIDI sysex), including Dexed
 - For library management, use the dedicated [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software

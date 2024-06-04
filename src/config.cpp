@@ -21,7 +21,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "config.h"
-#include "../Synth_Dexed/src/dexed.h"
+#include "../external/Synth_Dexed/src/dexed.h"
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)

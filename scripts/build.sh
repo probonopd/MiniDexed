@@ -1,8 +1,5 @@
 #!/bin/bash
 
-set -e 
-set -x
-
 if [ -z "${RPI}" ] ; then
   echo "\$RPI missing, exiting"
   exit 1
@@ -21,7 +18,7 @@ if [ "${RPI}" -gt "1" ]; then
 fi
 
 # USB Vendor and Device ID for use with USB Gadget Mode
-source USBID.sh
+source scripts/USBID.sh
 if [ "${USB_VID}" ] ; then
 	OPTIONS="${OPTIONS} -o USB_GADGET_VENDOR_ID=${USB_VID}"
 fi
@@ -30,9 +27,10 @@ if [ "${USB_DID}" ] ; then
 fi
 
 # Build circle-stdlib library
-cd circle-stdlib/
+echo "Building circle-stdlib with RPI ${RPI} ${TOOLCHAIN_PREFIX}..."
+cd external/circle-stdlib/
 make mrproper || true
-./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
+./configure -r ${RPI} -p "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o "KERNEL_MAX_SIZE=0x400000"
 make -j
 
 # Build additional libraries
@@ -47,11 +45,13 @@ make clean || true
 make -j
 cd ../../../..
 
-cd ..
+cd ../..
 
-# Build MiniDexed
+# Build
 cd src
 make clean || true
 make -j
 ls *.img
 cd ..
+
+cp src/*.img build/kernels/

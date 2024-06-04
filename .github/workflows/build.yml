@@ -1,95 +1,49 @@
-name: Build
+name: build
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  PROJECT_NAME: "MiniDexed"
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  Build:
-
+  build:
     runs-on: ubuntu-20.04
-
+    strategy:
+      matrix:
+        builds: [{ rpi: 5 }, { rpi: 4 }, { rpi: 3 }, { rpi: 2 }, { rpi: 1 }]
     steps:
-    - uses: actions/checkout@v2
-    - name: Get specific commits of git submodules
-      run: |
-           sh -ex ./submod.sh
-    - name: Install toolchains
-      run: |
-           set -ex
-           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
-           tar xf *-aarch64-none-elf.tar.xz
-           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
-           tar xf *-arm-none-eabi.tar.xz
-           mkdir -p kernels
-    - name: Build for Raspberry Pi 5
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=5 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 4
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=4 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 3
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=3 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 2
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
-           RPI=2 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 1
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
-           RPI=1 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Get Raspberry Pi boot files
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           cd ./circle-stdlib/libs/circle/boot
-           make
-           make armstub64
-           cd -
-           mkdir -p sdcard
-           cp -r ./circle-stdlib/libs/circle/boot/* sdcard
-           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-           cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
-           cp ./getsysex.sh sdcard/
-           echo "usbspeed=full" > sdcard/cmdline.txt
-           cd sdcard
-           cp ../kernels/* . || true
-           cd -
-    - name: Get performance files
-      run: |
-           git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
-           cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
-           cd sdcard
-           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
-           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-           cd -
-    - uses: actions/upload-artifact@v3
-      with:
-        name: ${{ env.artifactName }} # Exported above
-        path: ./sdcard/*
-    - name: Upload to GitHub Releases (only when building from main branch)
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: |
-           set -ex
-           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-           bash ./upload.sh ./MiniDexed*.zip
-           
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install toolchain
+        run: |
+          RPI=${{ matrix.builds.rpi }} make install-toolchain
+          echo "$(pwd)/external/gcc/bin" >> $GITHUB_PATH
+
+      - name: Build for Raspberry Pi ${{ matrix.builds.rpi }}
+        run: |
+          RPI=${{ matrix.builds.rpi }} make build
+
+      - name: Build & zip Raspberry Pi boot files
+        run: |
+          make get-performances
+          make get-sysex
+          RPI=${{ matrix.builds.rpi }} make build-stub
+          RPI=${{ matrix.builds.rpi }} make zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{env.PROJECT_NAME}}_$(git rev-parse --short HEAD)
+          path: ./build/sdcard/*
+
+      - name: Release
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+          bash ./upload.sh ./${{env.PROJECT_NAME}}*.zip
