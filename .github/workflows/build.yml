@@ -16,8 +16,10 @@ jobs:
         builds: [{ rpi: 5 }, { rpi: 4 }, { rpi: 3 }, { rpi: 2 }, { rpi: 1 }]
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Setup submodules
+        run: |
+          make submodules
 
       - name: Install toolchain
         run: |

@@ -36,7 +36,11 @@ install:
 .PHONY: install-toolchain
 install-toolchain:
 	@./scripts/install-toolchain.sh
-	
+
+.PHONY: submodules
+submodules:
+	@./scripts/submodules.sh
+
 .PHONY: zip
 zip:
 	@./scripts/zip.sh
