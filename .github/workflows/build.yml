@@ -39,7 +39,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{env.PROJECT_NAME}}_$(git rev-parse --short HEAD)
+          name: ${{env.PROJECT_NAME}}_rpi${{ matrix.builds.rpi }}_${{ github.sha }}
           path: ./build/sdcard/*
 
       - name: Release

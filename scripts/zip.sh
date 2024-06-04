@@ -2,6 +2,11 @@
 
 echo "Zipping boot files..."
 
+if [ -z "${RPI}" ] ; then
+  echo "\$RPI missing, exiting"
+  exit 1
+fi
+
 DEST="build/sdcard"
 
 mkdir -p ${DEST}
@@ -17,7 +22,6 @@ rm -rf \
 cp \
   build/kernels/* \
   src/config.txt \
-  src/*img \
   src/minidexed.ini \
   src/performance.ini \
   ${DEST}
@@ -26,6 +30,6 @@ echo "usbspeed=full" > ${DEST}/cmdline.txt
 
 cp build/kernels/* ${DEST}
 
-zip -r build/MiniDexed_$(date +%Y-%m-%d).zip ${DEST}/*
+zip -r build/MiniDexed_rpi_${RPI}_$(date +%Y-%m-%d).zip ${DEST}/*
 
 echo "  Done."

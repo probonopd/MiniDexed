@@ -54,4 +54,8 @@ make -j
 ls *.img
 cd ..
 
+mkdir -p build/kernels
+mkdir -p build/sdcard
+
 cp src/*.img build/kernels/
+cp src/*.img build/sdcard/
