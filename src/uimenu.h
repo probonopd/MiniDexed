@@ -92,6 +92,8 @@ private:
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
+
+	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
@@ -113,6 +115,7 @@ private:
 	static std::string ToPortaMode (int nValue);  
 	static std::string ToPortaGlissando (int nValue);   
 	static std::string ToPolyMono (int nValue);
+	static std::string ToFXType (int nValue);
 
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
@@ -147,6 +150,9 @@ private:
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
 	static const TMenuItem s_ReverbMenu[];
+	static const TMenuItem s_InsertFX[];
+	static const TMenuItem s_FXNone[];
+	static const TMenuItem s_FXChorus[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];

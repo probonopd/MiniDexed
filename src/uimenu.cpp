@@ -35,7 +35,7 @@ LOGMODULE ("uimenu");
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
-	{"MiniDexed", MenuHandler, s_MainMenu},
+	{"MiniDexed JN", MenuHandler, s_MainMenu},
 	{0}
 };
 
@@ -65,6 +65,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
 #endif
+    {"Insert FX", MenuHandler, s_InsertFX},
 	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
@@ -135,6 +136,28 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 };
 
 #endif
+
+const CUIMenu::TMenuItem CUIMenu::s_InsertFX[] =
+{
+	{"Type", EditTGParameter2, 0, CMiniDexed::TGParameterInsertFXType},
+	{"Edit", EditInsertFX},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
+{
+	{"None", EditTGParameter2},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
+{
+	{"Chorus I", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusI},
+	{"Chorus II", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusII},
+	{"Rate I", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusIRate},
+	{"Rate II", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusIIRate},
+	{0}
+};
 
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
@@ -227,6 +250,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
+	{0,	2, 1, ToFXType}, // TGParameterInsertFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -253,7 +277,12 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias	
+
+	{0, 1, 1, ToOnOff}, // TGParameterFXChorusI
+	{0, 100, 1}, // TGParameterFXChorusIRate
+	{0, 1, 1, ToOnOff}, // TGParameterFXChorusII
+	{0, 100, 1}, // TGParameterFXChorusIIRate
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -701,14 +730,14 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second menu level. Redundant code but in order to not modified original code
 {
-
-	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
+	
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
 
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
 	const TParameter &rParam = s_TGParameter[Param];
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
-
+	
 	switch (Event)
 	{
 	case MenuEventUpdate:
@@ -750,7 +779,82 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
-				   
+}
+
+void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
+
+	int fxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
+	switch (fxType)
+	{
+	case EFFECT_CHORUS:
+		pUIMenu->m_pCurrentMenu = s_FXChorus;
+		break;
+	
+	default:
+		pUIMenu->m_pCurrentMenu = s_FXNone;
+		break;
+	}
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		pUIMenu->m_pUI->DisplayWrite (
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			"",
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
 }
 
 void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
@@ -1143,6 +1247,17 @@ string CUIMenu::ToPolyMono (int nValue)
 	case 0:		return "Poly";
 	case 1:		return "Mono";
 	default:	return to_string (nValue);
+	}
+}
+
+string CUIMenu::ToFXType (int nValue)
+{
+	switch (nValue)
+	{
+	case EFFECT_CHORUS:	return "Juno Chorus";
+	case EFFECT_DELAY:	return "Delay";
+	case EFFECT_NONE:
+	default: return "None";
 	}
 }
 

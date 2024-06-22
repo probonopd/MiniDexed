@@ -91,6 +91,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nAftertouchRange[i]=99;	
 		m_nAftertouchTarget[i]=0;
 		
+		m_InsertFX[i] = new AudioEffectNone(pConfig->GetSampleRate ());
 		m_nReverbSend[i] = 0;
 		m_uchOPMask[i] = 0b111111;	// All operators on
 
@@ -403,7 +404,9 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
+				float32_t Dummy[m_nFramesToProcess];
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
+				m_InsertFX[nTG]->process(m_OutputLevel[nTG], Dummy, m_OutputLevel[nTG], Dummy, m_nFramesToProcess);
 			}
 		}
 	}
@@ -580,6 +583,31 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 	
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
 	reverb_send_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
+
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
+{
+	nType=constrain((int) nType, 0, 2);
+
+	assert (nTG < CConfig::ToneGenerators);
+
+	delete m_InsertFX[nTG];
+
+	switch (nType)
+	{
+	case EFFECT_CHORUS:
+		m_InsertFX[nTG] = new AudioEffectChorus(m_pConfig->GetSampleRate());
+		break;
+	case EFFECT_DELAY:
+		m_InsertFX[nTG] = new AudioEffectDelay(m_pConfig->GetSampleRate());
+		break;
+	case EFFECT_NONE:
+	default:
+		m_InsertFX[nTG] = new AudioEffectNone(m_pConfig->GetSampleRate());
+		break;
+	}
 
 	m_UI.ParameterChanged ();
 }
@@ -922,6 +950,12 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 		break;
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
+	case TGParameterInsertFXType: setInsertFXType(nValue, nTG); break;
+
+	case TGParameterFXChorusI: setChorusIEnable(nTG, nValue); break;
+	case TGParameterFXChorusII: setChorusIIEnable(nTG, nValue); break;
+	case TGParameterFXChorusIRate: setChorusIRate(nTG, nValue); break;
+	case TGParameterFXChorusIIRate: setChorusIIRate(nTG, nValue); break;
 
 	default:
 		assert (0);
@@ -946,6 +980,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterResonance:	return m_nResonance[nTG];
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
+	case TGParameterInsertFXType:	return m_InsertFX[nTG]->getId();
 	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
 	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
@@ -973,6 +1008,10 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
 	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
 	
+	case TGParameterFXChorusI: return getChorusIEnable(nTG);
+	case TGParameterFXChorusII: return getChorusIIEnable(nTG);
+	case TGParameterFXChorusIRate: return getChorusIRate(nTG);
+	case TGParameterFXChorusIIRate: return getChorusIIRate(nTG);
 	
 	default:
 		assert (0);
@@ -1064,7 +1103,9 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		float32_t SampleBuffer[nFrames];
+		float32_t Dummy[nFrames];
 		m_pTG[0]->getSamples (SampleBuffer, nFrames);
+		m_InsertFX[0]->process(SampleBuffer, Dummy, SampleBuffer, Dummy, nFrames);
 
 		// Convert single float array (mono) to int16 array
 		int16_t tmp_int[nFrames];
@@ -1110,7 +1151,9 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
+			float32_t Dummy[nFrames];
 			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
+			m_InsertFX[i]->process(m_OutputLevel[i], Dummy, m_OutputLevel[i], Dummy, nFrames);
 		}
 
 		// wait for cores 2 and 3 to complete their work
@@ -1941,4 +1984,92 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 		break;
 	}
 	
+}
+
+unsigned CMiniDexed::getChorusIEnable (uint8_t nTG)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return 0;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->getChorusI();
+}
+
+void CMiniDexed::setChorusIEnable (uint8_t nTG, unsigned enable)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->setChorusI(enable);
+}
+
+unsigned CMiniDexed::getChorusIIEnable (uint8_t nTG)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return 0;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->getChorusII();
+}
+
+void CMiniDexed::setChorusIIEnable (uint8_t nTG, unsigned enable)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->setChorusII(enable);
+}
+
+unsigned CMiniDexed::getChorusIRate (uint8_t nTG)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return 0;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->getChorusIRate();
+}
+
+void CMiniDexed::setChorusIRate (uint8_t nTG, unsigned int rate)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->setChorusIRate(rate);
+}
+
+unsigned CMiniDexed::getChorusIIRate (uint8_t nTG)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return 0;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->getChorusIIRate();
+}
+
+void CMiniDexed::setChorusIIRate (uint8_t nTG, unsigned int rate)
+{
+	AudioEffect* effect = m_InsertFX[nTG];
+	if (effect->getId() != EFFECT_CHORUS) {
+		return;
+	}
+
+	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
+	return chorus->setChorusIIRate(rate);
 }
