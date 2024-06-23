@@ -250,7 +250,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	2, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	3, 1, ToFXType}, // TGParameterInsertFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -1252,13 +1252,7 @@ string CUIMenu::ToPolyMono (int nValue)
 
 string CUIMenu::ToFXType (int nValue)
 {
-	switch (nValue)
-	{
-	case EFFECT_CHORUS:	return "Juno Chorus";
-	case EFFECT_DELAY:	return "Delay";
-	case EFFECT_NONE:
-	default: return "None";
-	}
+	return getFXTypeName(nValue);
 }
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)

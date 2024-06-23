@@ -591,28 +591,16 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 
 void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 {
-	nType=constrain((int) nType, 0, 2);
-
 	assert (nTG < CConfig::ToneGenerators);
 
-	m_InsertFXSpinLock[nTG]->Acquire();
-
-	delete m_InsertFX[nTG];
-
-	switch (nType)
-	{
-	case EFFECT_CHORUS:
-		m_InsertFX[nTG] = new AudioEffectChorus(m_pConfig->GetSampleRate());
-		break;
-	case EFFECT_DELAY:
-		m_InsertFX[nTG] = new AudioEffectDelay(m_pConfig->GetSampleRate());
-		break;
-	case EFFECT_NONE:
-	default:
-		m_InsertFX[nTG] = new AudioEffectNone(m_pConfig->GetSampleRate());
-		break;
+	// If the effect type is already set just return
+	if (m_InsertFX[nTG]->getId() == nType) {
+		return;
 	}
 
+	m_InsertFXSpinLock[nTG]->Acquire();
+	delete m_InsertFX[nTG];
+	m_InsertFX[nTG] = newAudioEffect(nType, m_pConfig->GetSampleRate());
 	m_InsertFXSpinLock[nTG]->Release();
 
 	m_UI.ParameterChanged ();

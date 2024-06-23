@@ -1,30 +1,30 @@
 #include <circle/logger.h>
 #include "effect_delay.h"
 
-LOGMODULE ("fx chorus");
+LOGMODULE ("fx delay");
 
 AudioEffectDelay::AudioEffectDelay(float32_t samplerate) : AudioEffect(samplerate)
 {   
-    bufferSize = (int) samplerate * MAX_DELAY_TIME;
-    bufferL = new float32_t[this->bufferSize];
-    bufferR = new float32_t[this->bufferSize];
-    index = 0;
+    this->bufferSize = (int) samplerate * MAX_DELAY_TIME;
+    this->bufferL = new float32_t[this->bufferSize];
+    this->bufferR = new float32_t[this->bufferSize];
+    this->index = 0;
 
-    for (size_t i = 0; i < bufferSize; i++)
+    for (size_t i = 0; i < this->bufferSize; i++)
     {
-        bufferL[i] = 0.0f;
-        bufferR[i] = 0.0f;
+        this->bufferL[i] = 0.0f;
+        this->bufferR[i] = 0.0f;
     }
 
-    timeL = 0.36f;
-    timeR = 0.36f;
-    feedback = 0.3f;
+    this->timeL = 0.36f;
+    this->timeR = 0.36f;
+    this->feedback = 0.3f;
 }
 
 AudioEffectDelay::~AudioEffectDelay()
 {
-    delete bufferL;
-    delete bufferR;
+    delete this->bufferL;
+    delete this->bufferR;
 }
 
 unsigned AudioEffectDelay::getId()
@@ -37,30 +37,30 @@ void AudioEffectDelay::doProcess(const float32_t* inblockL, const float32_t* inb
     for (uint16_t i=0; i < len; i++) 
     {
         // Update buffers
-        bufferL[index] = inblockL[i];
-        bufferR[index] = inblockR[i];
+        this->bufferL[index] = inblockL[i];
+        this->bufferR[index] = inblockR[i];
 
         // Calculate offsets
-        int offsetL = index - (timeL * samplerate);
+        int offsetL = this->index - (this->timeL * this->samplerate);
         if (offsetL < 0) {
-            offsetL = bufferSize + offsetL;
+            offsetL = this->bufferSize + offsetL;
         }
-        int offsetR = index - (timeR * samplerate);
+        int offsetR = this->index - (this->timeR * this->samplerate);
         if (offsetR < 0) {
-            offsetR = bufferSize + offsetR;
+            offsetR = this->bufferSize + offsetR;
         }
 
-        bufferL[index] += bufferL[offsetL] * feedback;
-        bufferR[index] += bufferR[offsetR] * feedback;
+        this->bufferL[index] += this->bufferL[offsetL] * this->feedback;
+        this->bufferR[index] += this->bufferR[offsetR] * this->feedback;
 
-        outblockL[i] = bufferL[index];
-        outblockR[i] = bufferR[index];
+        outblockL[i] = this->bufferL[index];
+        outblockR[i] = this->bufferR[index];
 
         // Update index
-        index++;
-        if (index >= bufferSize)
+        this->index++;
+        if (this->index >= this->bufferSize)
         {
-            index = 0;
+            this->index = 0;
         }
     }
 }

@@ -7,6 +7,7 @@
 #define EFFECT_NONE 0
 #define EFFECT_CHORUS 1
 #define EFFECT_DELAY 2
+#define EFFECT_LPF 3
 
 class AudioEffect
 {
