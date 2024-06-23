@@ -44,9 +44,7 @@
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
-#include "effect.h"
-#include "effect_chorus.h"
-#include "effect_delay.h"
+#include "effects.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -338,6 +336,7 @@ private:
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
 
+	CSpinLock* m_InsertFXSpinLock[CConfig::ToneGenerators];
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;

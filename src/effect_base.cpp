@@ -1,4 +1,4 @@
-#include "effect.h"
+#include "effect_base.h"
 
 AudioEffect::AudioEffect(float32_t samplerate)
 {
@@ -22,6 +22,15 @@ bool AudioEffect::getBypass()
 unsigned AudioEffect::getId()
 {
     return EFFECT_NONE;
+}
+
+    
+void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_t len)
+{
+    // Mono process
+    // Dummy buffer for right channel
+    float32_t dummyBuffer[len];
+    process(inblock, dummyBuffer, outblock, dummyBuffer, len);
 }
 
 void AudioEffect::process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)

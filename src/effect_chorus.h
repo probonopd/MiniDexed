@@ -1,7 +1,7 @@
 #ifndef _EFFECT_CHORUS_H
 #define _EFFECT_CHORUS_H
 
-#include "effect.h"
+#include "effect_base.h"
 #include "ykchorus/ChorusEngine.h"
 
 class AudioEffectChorus : public AudioEffect

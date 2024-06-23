@@ -91,6 +91,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nAftertouchRange[i]=99;	
 		m_nAftertouchTarget[i]=0;
 		
+		m_InsertFXSpinLock[i] = new CSpinLock();
 		m_InsertFX[i] = new AudioEffectNone(pConfig->GetSampleRate ());
 		m_nReverbSend[i] = 0;
 		m_uchOPMask[i] = 0b111111;	// All operators on
@@ -404,9 +405,10 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
-				float32_t Dummy[m_nFramesToProcess];
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
-				m_InsertFX[nTG]->process(m_OutputLevel[nTG], Dummy, m_OutputLevel[nTG], Dummy, m_nFramesToProcess);
+				m_InsertFXSpinLock[i]->Acquire();
+				m_InsertFX[nTG]->process(m_OutputLevel[nTG], m_OutputLevel[nTG], m_nFramesToProcess);
+				m_InsertFXSpinLock[i]->Release();
 			}
 		}
 	}
@@ -593,6 +595,8 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 
 	assert (nTG < CConfig::ToneGenerators);
 
+	m_InsertFXSpinLock[nTG]->Acquire();
+
 	delete m_InsertFX[nTG];
 
 	switch (nType)
@@ -608,6 +612,8 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 		m_InsertFX[nTG] = new AudioEffectNone(m_pConfig->GetSampleRate());
 		break;
 	}
+
+	m_InsertFXSpinLock[nTG]->Release();
 
 	m_UI.ParameterChanged ();
 }
@@ -1103,9 +1109,10 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		float32_t SampleBuffer[nFrames];
-		float32_t Dummy[nFrames];
 		m_pTG[0]->getSamples (SampleBuffer, nFrames);
-		m_InsertFX[0]->process(SampleBuffer, Dummy, SampleBuffer, Dummy, nFrames);
+		m_InsertFXSpinLock[0]->Acquire();
+		m_InsertFX[0]->process(SampleBuffer, SampleBuffer, nFrames);
+		m_InsertFXSpinLock[0]->Release();
 
 		// Convert single float array (mono) to int16 array
 		int16_t tmp_int[nFrames];
@@ -1151,9 +1158,10 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
-			float32_t Dummy[nFrames];
 			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
-			m_InsertFX[i]->process(m_OutputLevel[i], Dummy, m_OutputLevel[i], Dummy, nFrames);
+			m_InsertFXSpinLock[i]->Acquire();
+			m_InsertFX[i]->process(m_OutputLevel[i], m_OutputLevel[i], nFrames);
+			m_InsertFXSpinLock[i]->Release();
 		}
 
 		// wait for cores 2 and 3 to complete their work
@@ -1206,7 +1214,7 @@ void CMiniDexed::ProcessSound (void)
 	
 				m_ReverbSpinLock.Acquire ();
 	
-       		         	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+       		    reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
 				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
 	
 				// scale down and add left reverb buffer by reverb level 
@@ -1999,13 +2007,16 @@ unsigned CMiniDexed::getChorusIEnable (uint8_t nTG)
 
 void CMiniDexed::setChorusIEnable (uint8_t nTG, unsigned enable)
 {
+	m_InsertFXSpinLock[nTG]->Acquire();
 	AudioEffect* effect = m_InsertFX[nTG];
 	if (effect->getId() != EFFECT_CHORUS) {
+		m_InsertFXSpinLock[nTG]->Release();
 		return;
 	}
 
 	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->setChorusI(enable);
+	chorus->setChorusI(enable);
+	m_InsertFXSpinLock[nTG]->Release();
 }
 
 unsigned CMiniDexed::getChorusIIEnable (uint8_t nTG)
@@ -2021,13 +2032,16 @@ unsigned CMiniDexed::getChorusIIEnable (uint8_t nTG)
 
 void CMiniDexed::setChorusIIEnable (uint8_t nTG, unsigned enable)
 {
+	m_InsertFXSpinLock[nTG]->Acquire();
 	AudioEffect* effect = m_InsertFX[nTG];
 	if (effect->getId() != EFFECT_CHORUS) {
+		m_InsertFXSpinLock[nTG]->Release();
 		return;
 	}
 
 	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->setChorusII(enable);
+	chorus->setChorusII(enable);
+	m_InsertFXSpinLock[nTG]->Release();
 }
 
 unsigned CMiniDexed::getChorusIRate (uint8_t nTG)
@@ -2043,13 +2057,16 @@ unsigned CMiniDexed::getChorusIRate (uint8_t nTG)
 
 void CMiniDexed::setChorusIRate (uint8_t nTG, unsigned int rate)
 {
+	m_InsertFXSpinLock[nTG]->Acquire();
 	AudioEffect* effect = m_InsertFX[nTG];
 	if (effect->getId() != EFFECT_CHORUS) {
+		m_InsertFXSpinLock[nTG]->Release();
 		return;
 	}
 
 	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->setChorusIRate(rate);
+	chorus->setChorusIRate(rate);
+	m_InsertFXSpinLock[nTG]->Release();
 }
 
 unsigned CMiniDexed::getChorusIIRate (uint8_t nTG)
@@ -2065,11 +2082,14 @@ unsigned CMiniDexed::getChorusIIRate (uint8_t nTG)
 
 void CMiniDexed::setChorusIIRate (uint8_t nTG, unsigned int rate)
 {
+	m_InsertFXSpinLock[nTG]->Acquire();
 	AudioEffect* effect = m_InsertFX[nTG];
 	if (effect->getId() != EFFECT_CHORUS) {
+		m_InsertFXSpinLock[nTG]->Release();
 		return;
 	}
 
 	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->setChorusIIRate(rate);
+	chorus->setChorusIIRate(rate);
+	m_InsertFXSpinLock[nTG]->Release();
 }

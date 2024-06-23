@@ -1,7 +1,7 @@
 #ifndef _EFFECT_DELAY_H
 #define _EFFECT_DELAY_H
 
-#include "effect.h"
+#include "effect_base.h"
 
 class AudioEffectDelay : public AudioEffect
 {
