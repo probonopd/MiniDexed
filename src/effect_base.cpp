@@ -24,7 +24,6 @@ unsigned AudioEffect::getId()
     return EFFECT_NONE;
 }
 
-    
 void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_t len)
 {
     // Mono process

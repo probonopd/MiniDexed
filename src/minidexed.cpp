@@ -946,11 +946,6 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 	case TGParameterInsertFXType: setInsertFXType(nValue, nTG); break;
 
-	case TGParameterFXChorusI: setChorusIEnable(nTG, nValue); break;
-	case TGParameterFXChorusII: setChorusIIEnable(nTG, nValue); break;
-	case TGParameterFXChorusIRate: setChorusIRate(nTG, nValue); break;
-	case TGParameterFXChorusIIRate: setChorusIIRate(nTG, nValue); break;
-
 	default:
 		assert (0);
 		break;
@@ -1002,15 +997,24 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
 	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
 	
-	case TGParameterFXChorusI: return getChorusIEnable(nTG);
-	case TGParameterFXChorusII: return getChorusIIEnable(nTG);
-	case TGParameterFXChorusIRate: return getChorusIRate(nTG);
-	case TGParameterFXChorusIIRate: return getChorusIIRate(nTG);
-	
 	default:
 		assert (0);
 		return 0;
 	}
+}
+
+void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_InsertFX[nTG]->getId() == nFXType);
+
+	m_InsertFX[nTG]->setParameter(Parameter, nValue);
+}
+
+int CMiniDexed::GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_InsertFX[nTG]->getId() == nFXType);
+
+	return m_InsertFX[nTG]->getParameter(Parameter);;
 }
 
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
@@ -1982,102 +1986,3 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 	
 }
 
-unsigned CMiniDexed::getChorusIEnable (uint8_t nTG)
-{
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		return 0;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->getChorusI();
-}
-
-void CMiniDexed::setChorusIEnable (uint8_t nTG, unsigned enable)
-{
-	m_InsertFXSpinLock[nTG]->Acquire();
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		m_InsertFXSpinLock[nTG]->Release();
-		return;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	chorus->setChorusI(enable);
-	m_InsertFXSpinLock[nTG]->Release();
-}
-
-unsigned CMiniDexed::getChorusIIEnable (uint8_t nTG)
-{
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		return 0;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->getChorusII();
-}
-
-void CMiniDexed::setChorusIIEnable (uint8_t nTG, unsigned enable)
-{
-	m_InsertFXSpinLock[nTG]->Acquire();
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		m_InsertFXSpinLock[nTG]->Release();
-		return;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	chorus->setChorusII(enable);
-	m_InsertFXSpinLock[nTG]->Release();
-}
-
-unsigned CMiniDexed::getChorusIRate (uint8_t nTG)
-{
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		return 0;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->getChorusIRate();
-}
-
-void CMiniDexed::setChorusIRate (uint8_t nTG, unsigned int rate)
-{
-	m_InsertFXSpinLock[nTG]->Acquire();
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		m_InsertFXSpinLock[nTG]->Release();
-		return;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	chorus->setChorusIRate(rate);
-	m_InsertFXSpinLock[nTG]->Release();
-}
-
-unsigned CMiniDexed::getChorusIIRate (uint8_t nTG)
-{
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		return 0;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	return chorus->getChorusIIRate();
-}
-
-void CMiniDexed::setChorusIIRate (uint8_t nTG, unsigned int rate)
-{
-	m_InsertFXSpinLock[nTG]->Acquire();
-	AudioEffect* effect = m_InsertFX[nTG];
-	if (effect->getId() != EFFECT_CHORUS) {
-		m_InsertFXSpinLock[nTG]->Release();
-		return;
-	}
-
-	AudioEffectChorus* chorus = (AudioEffectChorus*) effect;
-	chorus->setChorusIIRate(rate);
-	m_InsertFXSpinLock[nTG]->Release();
-}

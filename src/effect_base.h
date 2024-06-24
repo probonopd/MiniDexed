@@ -19,8 +19,13 @@ public:
     bool getBypass();
 
     virtual unsigned getId();
-    //virtual void setParameter(unsigned param, unsigned value);
-    //virtual void getParameter(unsigned param);
+    virtual void setParameter(unsigned param, unsigned value)
+    {
+    }
+    virtual unsigned getParameter(unsigned param)
+    {
+        return 0;
+    }
 
     void process(const float32_t* inblockL, float32_t* outblockL, uint16_t len);
     void process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);

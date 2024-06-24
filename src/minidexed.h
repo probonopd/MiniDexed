@@ -213,17 +213,15 @@ public:
 		TGParameterATPitch,
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
-
-		TGParameterFXChorusI,
-		TGParameterFXChorusIRate,
-		TGParameterFXChorusII,
-		TGParameterFXChorusIIRate,
-		
+	
 		TGParameterUnknown
 	};
 
 	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
 	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
+
+	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
+	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
 
 	// access (global or OP-related) parameter of the active voice of a TG
 	static const unsigned NoOP = 6;		// for global parameters

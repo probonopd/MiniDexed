@@ -22,6 +22,44 @@ unsigned AudioEffectChorus::getId()
     return EFFECT_CHORUS;
 }
 
+void AudioEffectChorus::setParameter(unsigned param, unsigned value)
+{
+    switch (param)
+    {
+    case AudioEffectChorus::Param::CHORUS_I_ENABLE:
+        this->setChorusI(value);
+        break;
+    case AudioEffectChorus::Param::CHORUS_II_ENABLE:
+        this->setChorusII(value);
+        break;
+    case AudioEffectChorus::Param::CHORUS_I_RATE:
+        this->setChorusIRate(value);
+        break;
+    case AudioEffectChorus::Param::CHORUS_II_RATE:
+        this->setChorusIIRate(value);
+        break;
+    default:
+        break;
+    }
+}
+
+unsigned AudioEffectChorus::getParameter(unsigned param)
+{
+    switch (param)
+    {
+    case AudioEffectChorus::Param::CHORUS_I_ENABLE:
+        return this->getChorusI();
+    case AudioEffectChorus::Param::CHORUS_II_ENABLE:
+        return this->getChorusII();
+    case AudioEffectChorus::Param::CHORUS_I_RATE:
+        return this->getChorusIRate();
+    case AudioEffectChorus::Param::CHORUS_II_RATE:
+        return this->getChorusIIRate();
+    default:
+        return 0;
+    }
+}
+
 void AudioEffectChorus::doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
 {
     for (uint16_t i=0; i < len; i++) 

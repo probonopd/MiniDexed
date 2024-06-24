@@ -94,6 +94,7 @@ private:
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 
 	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
@@ -153,6 +154,8 @@ private:
 	static const TMenuItem s_InsertFX[];
 	static const TMenuItem s_FXNone[];
 	static const TMenuItem s_FXChorus[];
+	static const TMenuItem s_FXDelay[];
+	static const TMenuItem s_FXLPFilter[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];
@@ -165,6 +168,9 @@ private:
 			
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
+	static const TParameter s_TGFXChorusParam[];
+	static const TParameter s_TGFXDelayParam[];
+	static const TParameter s_TGFXLPFParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 

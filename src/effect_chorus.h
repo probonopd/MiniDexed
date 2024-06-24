@@ -7,10 +7,22 @@
 class AudioEffectChorus : public AudioEffect
 {
 public:
+    enum Param
+    {
+        CHORUS_I_ENABLE,
+        CHORUS_II_ENABLE,
+        CHORUS_I_RATE,
+        CHORUS_II_RATE,
+        UNKNOWN
+    };
+
     AudioEffectChorus(float32_t samplerate);
     virtual ~AudioEffectChorus();
 
     virtual unsigned getId();
+
+    virtual void setParameter(unsigned param, unsigned value);
+    virtual unsigned getParameter(unsigned param);
 
     unsigned getChorusI();
     void setChorusI(unsigned enable);

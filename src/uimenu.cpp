@@ -152,10 +152,26 @@ const CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 {
-	{"Chorus I", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusI},
-	{"Chorus II", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusII},
-	{"Rate I", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusIRate},
-	{"Rate II", EditTGParameter2, 0, CMiniDexed::TGParameterFXChorusIIRate},
+	{"Chorus I", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_I_ENABLE},
+	{"Chorus II", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_II_ENABLE},
+	{"Rate I", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_I_RATE},
+	{"Rate II", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_II_RATE},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
+{
+	{"Time L", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_L},
+	{"Time R", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_R},
+	{"Feedback", EditTGFXParameter, 0, AudioEffectDelay::Param::FEEDBACK},
+	{"Tone", EditTGFXParameter, 0, AudioEffectDelay::Param::TONE},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
+{
+	{"Cutoff", EditTGFXParameter, 0, AudioEffectLPF::Param::CUTOFF},
+	{"Resonance", EditTGFXParameter, 0, AudioEffectLPF::Param::RESONANCE},
 	{0}
 };
 
@@ -277,12 +293,32 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff}, //AT EGBias	
+	{0, 1, 1, ToOnOff} //AT EGBias	
+};
 
-	{0, 1, 1, ToOnOff}, // TGParameterFXChorusI
-	{0, 100, 1}, // TGParameterFXChorusIRate
-	{0, 1, 1, ToOnOff}, // TGParameterFXChorusII
-	{0, 100, 1}, // TGParameterFXChorusIIRate
+// must match AudioEffectChorus::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXChorusParam[AudioEffectChorus::Param::UNKNOWN] =
+{
+	{0, 1, 1, ToOnOff}, // CHORUS_I_ENABLE
+	{0, 1, 1, ToOnOff}, // CHORUS_II_ENABLE
+	{0, 100, 1}, // CHORUS_I_RATE,
+	{0, 100, 1} // CHORUS_II_RATE
+};
+
+// must match AudioEffectDelay::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNKNOWN] =
+{
+	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_L
+	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_R
+	{0, 100, 1}, // FEEDBACK,
+	{0, 100, 1} // TONE
+};
+
+// must match AudioEffectLPF::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXLPFParam[AudioEffectLPF::Param::UNKNOWN] =
+{
+	{0, 100, 1}, // CUTOFF
+	{0, 100, 1} // RESONANCE
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -792,6 +828,14 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pCurrentMenu = s_FXChorus;
 		break;
 	
+	case EFFECT_DELAY:
+		pUIMenu->m_pCurrentMenu = s_FXDelay;
+		break;
+
+	case EFFECT_LPF:
+		pUIMenu->m_pCurrentMenu = s_FXLPFilter;
+		break;
+
 	default:
 		pUIMenu->m_pCurrentMenu = s_FXNone;
 		break;
@@ -855,6 +899,89 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
 	}
+}
+
+void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Get TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
+
+	// Get FX type
+	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
+	
+	// Get Param
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	TParameter pParam;
+	switch (nFXType)
+	{
+	case EFFECT_CHORUS:
+		pParam = s_TGFXChorusParam[nParam];
+		break;
+	case EFFECT_DELAY:
+		pParam = s_TGFXDelayParam[nParam];
+		break;
+	case EFFECT_LPF:
+		pParam = s_TGFXLPFParam[nParam];
+		break;
+	default:
+		return;
+	}
+	const TParameter &rParam = pParam;
+
+	int nValue = pUIMenu->m_pMiniDexed->GetTGFXParameter (nParam, nTG, nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetTGFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	// Get value again after change
+	nValue = pUIMenu->m_pMiniDexed->GetTGFXParameter (nParam, nTG, nFXType);
+	CUIMenu::TToString *pToString = rParam.ToString;
+	string Value;
+	if (pToString)
+	{
+		Value = (*pToString) (nValue);
+	}
+	else
+	{
+		Value = to_string (nValue);
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
