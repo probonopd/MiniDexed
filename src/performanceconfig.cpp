@@ -23,8 +23,9 @@
 #include <circle/logger.h>
 #include "performanceconfig.h"
 #include "mididevice.h"
-#include <cstring> 
+#include <cstring>
 #include <algorithm>
+#include <sstream>
 
 LOGMODULE ("Performance");
 
@@ -131,6 +132,12 @@ bool CPerformanceConfig::Load (void)
 
 		PropertyName.Format ("Pan%u", nTG+1);
 		m_nPan[nTG] = m_Properties.GetNumber (PropertyName, 64);
+
+		PropertyName.Format ("InsertFX%u", nTG+1);
+		m_nInsertFX[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("InsertFXParams%u", nTG+1);
+		m_nInsertFXParams[nTG] = m_Properties.GetString (PropertyName, "");
 
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_nDetune[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
@@ -249,6 +256,12 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("Pan%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nPan[nTG]);
 
+		PropertyName.Format ("InsertFX%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nInsertFX[nTG]);
+
+		PropertyName.Format ("InsertFXParams%u", nTG+1);
+		m_Properties.SetString (PropertyName, m_nInsertFXParams[nTG].c_str());
+
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nDetune[nTG]);
 
@@ -361,6 +374,39 @@ unsigned CPerformanceConfig::GetPan (unsigned nTG) const
 	return m_nPan[nTG];
 }
 
+unsigned CPerformanceConfig::GetInsertFX (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_nInsertFX[nTG];
+}
+
+std::vector<unsigned> CPerformanceConfig::GetInsertFXParams (unsigned nTG) const
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	LOGNOTE("Loading Insert FX Params");
+
+	std::string params = m_nInsertFXParams[nTG];
+	if (params.empty()) {
+		LOGNOTE("Empty Insert FX Params");
+		std::vector<unsigned int> empty;
+		return empty; 
+	}
+
+	char delimiter = ',';
+	std::stringstream ss(params);
+	std::string temp;
+	std::vector<unsigned> tokens;
+	while (getline(ss, temp, delimiter))
+	{
+		LOGNOTE("Insert FX Params token: %s", temp.c_str());
+		tokens.push_back(stoi(temp));
+	}
+	LOGNOTE("Insert FX Params tokens size: %d\n", tokens.size());
+	LOGNOTE("Loaded Insert FX Params\n");
+	return tokens;
+}
+
 int CPerformanceConfig::GetDetune (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -431,6 +477,30 @@ void CPerformanceConfig::SetPan (unsigned nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	m_nPan[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetInsertFX (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	m_nInsertFX[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG)
+{
+	LOGNOTE("SetInsertFXParams");
+	assert (nTG < CConfig::ToneGenerators);
+
+	LOGNOTE("SetInsertFXParams sizeof %d", pParams.size());
+	std::string params = "";
+	for (size_t i = 0; i < pParams.size(); i++)
+	{
+		if (i != 0) {
+			params += ",";
+		}
+		params += std::to_string(pParams[i]);
+	}
+	LOGNOTE("SetInsertFXParams %s", params.c_str());
+	m_nInsertFXParams[nTG] = params;
 }
 
 void CPerformanceConfig::SetDetune (int nValue, unsigned nTG)

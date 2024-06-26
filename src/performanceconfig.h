@@ -26,6 +26,7 @@
 #include "config.h"
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
+#include <vector>
 #define NUM_VOICE_PARAM 156
 #define NUM_PERFORMANCES 128
 #define NUM_PERFORMANCE_BANKS 128
@@ -48,6 +49,8 @@ public:
 	unsigned GetMIDIChannel (unsigned nTG) const;		// 0 .. 15, omni, off
 	unsigned GetVolume (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPan (unsigned nTG) const;			// 0 .. 127
+	unsigned GetInsertFX (unsigned nTG) const;		// 0 .. X
+	std::vector<unsigned> GetInsertFXParams (unsigned nTG) const;
 	int GetDetune (unsigned nTG) const;			// -99 .. 99
 	unsigned GetCutoff (unsigned nTG) const;		// 0 .. 99
 	unsigned GetResonance (unsigned nTG) const;		// 0 .. 99
@@ -76,6 +79,8 @@ public:
 	void SetMIDIChannel (unsigned nValue, unsigned nTG);
 	void SetVolume (unsigned nValue, unsigned nTG);
 	void SetPan (unsigned nValue, unsigned nTG);
+	void SetInsertFX (unsigned nValue, unsigned nTG);
+	void SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG);
 	void SetDetune (int nValue, unsigned nTG);
 	void SetCutoff (unsigned nValue, unsigned nTG);
 	void SetResonance (unsigned nValue, unsigned nTG);
@@ -157,6 +162,8 @@ private:
 	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
+	unsigned m_nInsertFX[CConfig::ToneGenerators];
+	std::string m_nInsertFXParams[CConfig::ToneGenerators];
 	int m_nDetune[CConfig::ToneGenerators];
 	unsigned m_nCutoff[CConfig::ToneGenerators];
 	unsigned m_nResonance[CConfig::ToneGenerators];

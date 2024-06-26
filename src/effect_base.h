@@ -3,6 +3,7 @@
 
 //#include <stdint.h>
 #include <arm_math.h>
+#include <vector>
 
 #define EFFECT_NONE 0
 #define EFFECT_CHORUS 1
@@ -19,20 +20,28 @@ public:
     bool getBypass();
 
     virtual unsigned getId();
+    
     virtual void setParameter(unsigned param, unsigned value)
     {
     }
+    
     virtual unsigned getParameter(unsigned param)
     {
         return 0;
     }
 
+    void setParameters(std::vector<unsigned> params);
+    std::vector<unsigned> getParameters();
     void process(const float32_t* inblockL, float32_t* outblockL, uint16_t len);
     void process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
 protected:
     bool bypass = false;
     float32_t samplerate;
     
+    virtual size_t getParametersSize()
+    {
+        return 0;
+    }
     virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
 };
 

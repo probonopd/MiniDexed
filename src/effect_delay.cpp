@@ -19,7 +19,7 @@ AudioEffectDelay::AudioEffectDelay(float32_t samplerate) : AudioEffect(samplerat
     
     this->timeL = 0.36f;
     this->timeR = 0.36f;
-    this->feedback = 0.3f;
+    this->feedback = 0.5f;
 }
 
 AudioEffectDelay::~AudioEffectDelay()

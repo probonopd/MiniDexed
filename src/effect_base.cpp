@@ -1,4 +1,7 @@
+#include <circle/logger.h>
 #include "effect_base.h"
+
+LOGMODULE ("AudioEffect");
 
 AudioEffect::AudioEffect(float32_t samplerate)
 {
@@ -24,6 +27,30 @@ unsigned AudioEffect::getId()
     return EFFECT_NONE;
 }
 
+void AudioEffect::setParameters(std::vector<unsigned> params)
+{
+    LOGNOTE("setParameters size: %d", params.size());
+    for (size_t i = 0; i < params.size(); i++)
+    {
+        this->setParameter(i, params[i]);
+        LOGNOTE("Param %d: %d", i, params[i]);
+    }
+}
+
+std::vector<unsigned> AudioEffect::getParameters()
+{
+    LOGNOTE("getParameters");
+    size_t len = getParametersSize();
+    LOGNOTE("sizeof: %d", len);
+    std::vector<unsigned> params;
+    for (size_t i = 0; i < len; i++)
+    {
+        params.push_back(getParameter(i));
+        LOGNOTE("Param %d: %d", i, params[i]);
+    }
+    return params;
+}
+
 void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_t len)
 {
     // Mono process
@@ -35,17 +62,20 @@ void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_
 void AudioEffect::process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
 {
     if (bypass) {
+        if (inblockL != outblockL || inblockR != outblockR) {
+            // if input and output buffers are different we should copy the content
+            for (uint16_t i=0; i < len; i++) 
+            {
+                outblockL[i] = inblockL[i];
+                outblockR[i] = inblockR[i];
+            }
+        }
         return;
     }
     doProcess(inblockL, inblockR, outblockL, outblockR, len);
 }
 
 void AudioEffect::doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len) {
-    for (uint16_t i=0; i < len; i++) 
-    {
-        outblockL[i] = inblockL[i];
-        outblockR[i] = inblockR[i];
-    }
 }
 
 AudioEffectNone::AudioEffectNone(float32_t samplerate) : AudioEffect(samplerate)
@@ -58,11 +88,6 @@ AudioEffectNone::~AudioEffectNone()
 
 void AudioEffectNone::doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
 {
-    for (uint16_t i=0; i < len; i++) 
-    {
-        outblockL[i] = inblockL[i];
-        outblockR[i] = inblockR[i];
-    }
 }
 
 unsigned AudioEffectNone::getId()

@@ -1308,6 +1308,14 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetMIDIChannel (m_nMIDIChannel[nTG], nTG);
 		m_PerformanceConfig.SetVolume (m_nVolume[nTG], nTG);
 		m_PerformanceConfig.SetPan (m_nPan[nTG], nTG);
+		
+		m_PerformanceConfig.SetInsertFX (m_InsertFX[nTG]->getId(), nTG);
+		LOGNOTE("Saving Insert FX Paramas");
+		std::vector<unsigned> pParams = m_InsertFX[nTG]->getParameters();
+		m_PerformanceConfig.SetInsertFXParams (pParams, nTG);
+		pParams.clear();
+		pParams.shrink_to_fit();
+				
 		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
 		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
 		m_PerformanceConfig.SetResonance (m_nResonance[nTG], nTG);
@@ -1751,6 +1759,12 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
 			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
 
+			setInsertFXType(m_PerformanceConfig.GetInsertFX (nTG), nTG);
+			std::vector<unsigned> pParams = m_PerformanceConfig.GetInsertFXParams(nTG);
+			m_InsertFX[nTG]->setParameters(pParams);
+			pParams.clear();
+			pParams.shrink_to_fit();
+			
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
