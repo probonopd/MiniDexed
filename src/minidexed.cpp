@@ -1012,9 +1012,9 @@ void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG,
 
 int CMiniDexed::GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
 	assert (nTG < CConfig::ToneGenerators);
-	assert (m_InsertFX[nTG]->getId() == nFXType);
+		assert (m_InsertFX[nTG]->getId() == nFXType);
 
-	return m_InsertFX[nTG]->getParameter(Parameter);;
+	return m_InsertFX[nTG]->getParameter(Parameter);
 }
 
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
