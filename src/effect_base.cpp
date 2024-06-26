@@ -29,24 +29,19 @@ unsigned AudioEffect::getId()
 
 void AudioEffect::setParameters(std::vector<unsigned> params)
 {
-    LOGNOTE("setParameters size: %d", params.size());
     for (size_t i = 0; i < params.size(); i++)
     {
         this->setParameter(i, params[i]);
-        LOGNOTE("Param %d: %d", i, params[i]);
     }
 }
 
 std::vector<unsigned> AudioEffect::getParameters()
 {
-    LOGNOTE("getParameters");
     size_t len = getParametersSize();
-    LOGNOTE("sizeof: %d", len);
     std::vector<unsigned> params;
     for (size_t i = 0; i < len; i++)
     {
         params.push_back(getParameter(i));
-        LOGNOTE("Param %d: %d", i, params[i]);
     }
     return params;
 }

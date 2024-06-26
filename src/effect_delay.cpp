@@ -39,7 +39,7 @@ void AudioEffectDelay::setParameter(unsigned param, unsigned value)
     switch (param)
     {
     case AudioEffectDelay::Param::BYPASS:
-        this->setBypass(value);
+        this->setBypass(value == 1);
         break;
     case AudioEffectDelay::Param::TIME_L:
         this->timeL = (float32_t) value / 1000.0f;
@@ -62,6 +62,8 @@ unsigned AudioEffectDelay::getParameter(unsigned param)
 {
     switch (param)
     {
+    case AudioEffectDelay::Param::BYPASS:
+		return this->getBypass() ? 1 : 0;
     case AudioEffectDelay::Param::TIME_L:
         return roundf(this->timeL * 1000);
     case AudioEffectDelay::Param::TIME_R:

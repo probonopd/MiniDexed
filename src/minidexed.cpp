@@ -1310,7 +1310,6 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetPan (m_nPan[nTG], nTG);
 		
 		m_PerformanceConfig.SetInsertFX (m_InsertFX[nTG]->getId(), nTG);
-		LOGNOTE("Saving Insert FX Paramas");
 		std::vector<unsigned> pParams = m_InsertFX[nTG]->getParameters();
 		m_PerformanceConfig.SetInsertFXParams (pParams, nTG);
 		pParams.clear();

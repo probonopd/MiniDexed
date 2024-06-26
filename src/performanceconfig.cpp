@@ -384,26 +384,19 @@ std::vector<unsigned> CPerformanceConfig::GetInsertFXParams (unsigned nTG) const
 {
 	assert (nTG < CConfig::ToneGenerators);
 
-	LOGNOTE("Loading Insert FX Params");
-
+	std::vector<unsigned> tokens;
 	std::string params = m_nInsertFXParams[nTG];
 	if (params.empty()) {
-		LOGNOTE("Empty Insert FX Params");
-		std::vector<unsigned int> empty;
-		return empty; 
+		return tokens; 
 	}
 
 	char delimiter = ',';
 	std::stringstream ss(params);
 	std::string temp;
-	std::vector<unsigned> tokens;
 	while (getline(ss, temp, delimiter))
 	{
-		LOGNOTE("Insert FX Params token: %s", temp.c_str());
 		tokens.push_back(stoi(temp));
 	}
-	LOGNOTE("Insert FX Params tokens size: %d\n", tokens.size());
-	LOGNOTE("Loaded Insert FX Params\n");
 	return tokens;
 }
 
@@ -487,10 +480,8 @@ void CPerformanceConfig::SetInsertFX (unsigned nValue, unsigned nTG)
 
 void CPerformanceConfig::SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG)
 {
-	LOGNOTE("SetInsertFXParams");
 	assert (nTG < CConfig::ToneGenerators);
 
-	LOGNOTE("SetInsertFXParams sizeof %d", pParams.size());
 	std::string params = "";
 	for (size_t i = 0; i < pParams.size(); i++)
 	{
@@ -499,7 +490,6 @@ void CPerformanceConfig::SetInsertFXParams (std::vector<unsigned> pParams, unsig
 		}
 		params += std::to_string(pParams[i]);
 	}
-	LOGNOTE("SetInsertFXParams %s", params.c_str());
 	m_nInsertFXParams[nTG] = params;
 }
 

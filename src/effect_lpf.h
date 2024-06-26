@@ -55,7 +55,7 @@ public:
 		switch (param)
 		{
 		case AudioEffectLPF::Param::BYPASS:
-			this->setBypass(value);
+			this->setBypass(value == 1);
 			break;
 		case AudioEffectLPF::Param::CUTOFF:
 			this->setCutoff(((float32_t) value / 100.0f) * MAX_CUTOFF);
@@ -72,6 +72,8 @@ public:
 	{
 		switch (param)
 		{
+		case AudioEffectLPF::Param::BYPASS:
+			return this->getBypass() ? 1 : 0;
 		case AudioEffectLPF::Param::CUTOFF:
 			return roundf((this->cutoff / MAX_CUTOFF) * 100);
 		case AudioEffectLPF::Param::RESONANCE:
