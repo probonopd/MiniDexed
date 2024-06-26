@@ -26,6 +26,9 @@ void AudioEffectChorus::setParameter(unsigned param, unsigned value)
 {
     switch (param)
     {
+    case AudioEffectChorus::Param::BYPASS:
+        this->setBypass(value);
+        break;
     case AudioEffectChorus::Param::CHORUS_I_ENABLE:
         this->setChorusI(value);
         break;

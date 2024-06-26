@@ -146,12 +146,13 @@ const CUIMenu::TMenuItem CUIMenu::s_InsertFX[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
 {
-	{"None", EditTGParameter2},
+	{"None"},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 {
+	{"Bypass", EditTGFXParameter, 0, AudioEffectChorus::Param::BYPASS},
 	{"Chorus I", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_I_ENABLE},
 	{"Chorus II", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_II_ENABLE},
 	{"Rate I", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_I_RATE},
@@ -161,6 +162,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 {
+	{"Bypass", EditTGFXParameter, 0, AudioEffectDelay::Param::BYPASS},
 	{"Time L", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_L},
 	{"Time R", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_R},
 	{"Feedback", EditTGFXParameter, 0, AudioEffectDelay::Param::FEEDBACK},
@@ -170,6 +172,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
 {
+	{"Bypass", EditTGFXParameter, 0, AudioEffectLPF::Param::BYPASS},
 	{"Cutoff", EditTGFXParameter, 0, AudioEffectLPF::Param::CUTOFF},
 	{"Resonance", EditTGFXParameter, 0, AudioEffectLPF::Param::RESONANCE},
 	{0}
@@ -299,6 +302,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 // must match AudioEffectChorus::Param
 const CUIMenu::TParameter CUIMenu::s_TGFXChorusParam[AudioEffectChorus::Param::UNKNOWN] =
 {
+	{0, 1, 1, ToOnOff}, // BYPASS
 	{0, 1, 1, ToOnOff}, // CHORUS_I_ENABLE
 	{0, 1, 1, ToOnOff}, // CHORUS_II_ENABLE
 	{0, 100, 1}, // CHORUS_I_RATE,
@@ -308,6 +312,7 @@ const CUIMenu::TParameter CUIMenu::s_TGFXChorusParam[AudioEffectChorus::Param::U
 // must match AudioEffectDelay::Param
 const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNKNOWN] =
 {
+	{0, 1, 1, ToOnOff}, // BYPASS
 	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_L
 	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_R
 	{0, 100, 1}, // FEEDBACK,
@@ -317,6 +322,7 @@ const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNK
 // must match AudioEffectLPF::Param
 const CUIMenu::TParameter CUIMenu::s_TGFXLPFParam[AudioEffectLPF::Param::UNKNOWN] =
 {
+	{0, 1, 1, ToOnOff}, // BYPASS
 	{0, 100, 1}, // CUTOFF
 	{0, 100, 1} // RESONANCE
 };

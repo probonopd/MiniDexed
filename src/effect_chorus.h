@@ -9,6 +9,7 @@ class AudioEffectChorus : public AudioEffect
 public:
     enum Param
     {
+        BYPASS,
         CHORUS_I_ENABLE,
         CHORUS_II_ENABLE,
         CHORUS_I_RATE,

@@ -25,6 +25,7 @@ public:
 
 	enum Param
     {
+		BYPASS,
         CUTOFF,
         RESONANCE,
         UNKNOWN
@@ -53,6 +54,9 @@ public:
 	{
 		switch (param)
 		{
+		case AudioEffectLPF::Param::BYPASS:
+			this->setBypass(value);
+			break;
 		case AudioEffectLPF::Param::CUTOFF:
 			this->setCutoff(((float32_t) value / 100.0f) * MAX_CUTOFF);
 			break;

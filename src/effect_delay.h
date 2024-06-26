@@ -11,6 +11,7 @@ public:
 
     enum Param
     {
+        BYPASS,
         TIME_L,
         TIME_R,
         FEEDBACK,
