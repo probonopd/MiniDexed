@@ -10,6 +10,9 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        mididevice.o midikeyboard.o serialmididevice.o pckeyboard.o \
        sysexfileloader.o performanceconfig.o perftimer.o \
        effect_base.o effect_chorus.o effect_delay.o \
+       effect_ds1.o effect_bigmuff.o \
+       moddistortion/Distortion_DS1.o moddistortion/Distortion_BigMuff.o \
+       moddistortion/HyperbolicTables.o moddistortion/OverSample.o \
        effect_compressor.o effect_platervbstereo.o uibuttons.o midipin.o
 
 OPTIMIZE = -O3

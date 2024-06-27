@@ -9,6 +9,8 @@
 #define EFFECT_CHORUS 1
 #define EFFECT_DELAY 2
 #define EFFECT_LPF 3
+#define EFFECT_DS1 4
+#define EFFECT_BIGMUFF 5
 
 class AudioEffect
 {

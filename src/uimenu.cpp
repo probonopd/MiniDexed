@@ -178,6 +178,24 @@ const CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXDS1[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectDS1::Param::BYPASS},
+	{"Dist", EditTGFXParameter, 0, AudioEffectDS1::Param::DIST},
+	{"Tone", EditTGFXParameter, 0, AudioEffectDS1::Param::TONE},
+	{"Level", EditTGFXParameter, 0, AudioEffectDS1::Param::LEVEL},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_FXBigMuff[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectBigMuff::Param::BYPASS},
+	{"Sustain", EditTGFXParameter, 0, AudioEffectBigMuff::Param::SUSTAIN},
+	{"Tone", EditTGFXParameter, 0, AudioEffectBigMuff::Param::TONE},
+	{"Level", EditTGFXParameter, 0, AudioEffectBigMuff::Param::LEVEL},
+	{0}
+};
+
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
@@ -269,7 +287,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	3, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	5, 1, ToFXType}, // TGParameterInsertFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -325,6 +343,24 @@ const CUIMenu::TParameter CUIMenu::s_TGFXLPFParam[AudioEffectLPF::Param::UNKNOWN
 	{0, 1, 1, ToOnOff}, // BYPASS
 	{0, 100, 1}, // CUTOFF
 	{0, 100, 1} // RESONANCE
+};
+
+// must match AudioEffectDS1::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXDS1Param[AudioEffectDS1::Param::UNKNOWN] =
+{
+	{0, 1, 1, ToOnOff}, // BYPASS
+	{1, 99, 1}, // DIST
+	{1, 99, 1}, // TONE
+	{1, 99, 1} // LEVEL
+};
+
+// must match AudioEffectDS1::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXBigMuffParam[AudioEffectBigMuff::Param::UNKNOWN] =
+{
+	{0, 1, 1, ToOnOff}, // BYPASS
+	{0, 100, 1}, // SUSTAIN
+	{0, 100, 1}, // TONE
+	{0, 100, 1} // LEVEL
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -841,6 +877,15 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	case EFFECT_LPF:
 		pUIMenu->m_pCurrentMenu = s_FXLPFilter;
 		break;
+	
+	case EFFECT_DS1:
+		pUIMenu->m_pCurrentMenu = s_FXDS1;
+		break;
+
+	case EFFECT_BIGMUFF:
+		pUIMenu->m_pCurrentMenu = s_FXBigMuff;
+		break;
+
 
 	default:
 		pUIMenu->m_pCurrentMenu = s_FXNone;
@@ -928,6 +973,12 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 	case EFFECT_LPF:
 		pParam = s_TGFXLPFParam[nParam];
+		break;
+	case EFFECT_DS1:
+		pParam = s_TGFXDS1Param[nParam];
+		break;
+	case EFFECT_BIGMUFF:
+		pParam = s_TGFXBigMuffParam[nParam];
 		break;
 	default:
 		return;
