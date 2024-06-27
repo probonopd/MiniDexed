@@ -221,5 +221,6 @@ void AudioEffectDS1::doProcess(const float32_t* inblockL, const float32_t* inblo
 	 for (uint32_t i=1; i<=len; i++)
     {
 		outblockL[i-1] = outblockL[i-1]*OUTPUT_GAIN; //-15dB
+        outblockR[i-1] = outblockL[i-1];
 	}
 }

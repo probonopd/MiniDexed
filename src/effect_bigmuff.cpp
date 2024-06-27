@@ -223,6 +223,7 @@ void AudioEffectBigMuff::doProcess(const float32_t* inblockL, const float32_t* i
 	 for (uint32_t i=1; i<=len; i++)
     {
 		outblockL[i-1] = y3[i-1]*OUTPUT_GAIN; //-26dB
+        outblockR[i-1] = outblockL[i-1];
 	}
 	
 	SustainMedia_1 = SustainMedia;
