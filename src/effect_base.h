@@ -11,6 +11,7 @@
 #define EFFECT_LPF 3
 #define EFFECT_DS1 4
 #define EFFECT_BIGMUFF 5
+#define EFFECT_TALREVERB3 6
 
 class AudioEffect
 {

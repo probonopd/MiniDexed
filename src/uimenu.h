@@ -158,6 +158,7 @@ private:
 	static const TMenuItem s_FXLPFilter[];
 	static const TMenuItem s_FXDS1[];
 	static const TMenuItem s_FXBigMuff[];
+	static const TMenuItem s_FXTalReverb3[];
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];
@@ -175,6 +176,7 @@ private:
 	static const TParameter s_TGFXLPFParam[];
 	static const TParameter s_TGFXDS1Param[];
 	static const TParameter s_TGFXBigMuffParam[];
+	static const TParameter s_TGFXTalReverb3Param[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 

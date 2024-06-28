@@ -196,6 +196,21 @@ const CUIMenu::TMenuItem CUIMenu::s_FXBigMuff[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXTalReverb3[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::BYPASS},
+	{"Dry", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::DRY},
+	{"Wet", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::WET},
+	{"Decay Time", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::DECAYTIME},
+	{"Predelay", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::PREDELAY},
+	{"Low Shelf", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::LOWSHELFGAIN},
+	{"High Shelf", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::HIGHSHELFGAIN},
+	{"Stereo Width", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::STEREO},
+	{"Stereo Mode", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::REALSTEREOMODE},
+	{"Power", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::POWER},
+	{0}
+};
+
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
@@ -287,7 +302,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	5, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	6, 1, ToFXType}, // TGParameterInsertFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -361,6 +376,21 @@ const CUIMenu::TParameter CUIMenu::s_TGFXBigMuffParam[AudioEffectBigMuff::Param:
 	{0, 100, 1}, // SUSTAIN
 	{0, 100, 1}, // TONE
 	{0, 100, 1} // LEVEL
+};
+
+// must match AudioEffectTalReverb3::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXTalReverb3Param[AudioEffectTalReverb3::Param::UNKNOWN] =
+{
+	{0, 1, 1, ToOnOff}, // BYPASS
+	{0, 100, 1}, // DRY
+	{0, 100, 1}, // WET
+	{0, 100, 1}, // DECAYTIME
+	{0, 100, 1}, // PREDELAY
+	{0, 100, 1}, // LOWSHELFGAIN
+	{0, 100, 1}, // HIGHSHELFGAIN
+	{0, 100, 1}, // STEREO
+	{0, 100, 1}, // REALSTEREOMODE
+	{0, 100, 1} // POWER
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -869,24 +899,21 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	case EFFECT_CHORUS:
 		pUIMenu->m_pCurrentMenu = s_FXChorus;
 		break;
-	
 	case EFFECT_DELAY:
 		pUIMenu->m_pCurrentMenu = s_FXDelay;
 		break;
-
 	case EFFECT_LPF:
 		pUIMenu->m_pCurrentMenu = s_FXLPFilter;
 		break;
-	
 	case EFFECT_DS1:
 		pUIMenu->m_pCurrentMenu = s_FXDS1;
 		break;
-
 	case EFFECT_BIGMUFF:
 		pUIMenu->m_pCurrentMenu = s_FXBigMuff;
 		break;
-
-
+	case EFFECT_TALREVERB3:
+		pUIMenu->m_pCurrentMenu = s_FXTalReverb3;
+		break;
 	default:
 		pUIMenu->m_pCurrentMenu = s_FXNone;
 		break;
@@ -979,6 +1006,9 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 	case EFFECT_BIGMUFF:
 		pParam = s_TGFXBigMuffParam[nParam];
+		break;
+	case EFFECT_TALREVERB3:
+		pParam = s_TGFXTalReverb3Param[nParam];
 		break;
 	default:
 		return;

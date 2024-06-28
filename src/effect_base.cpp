@@ -51,6 +51,7 @@ void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_
     // Mono process
     // Dummy buffer for right channel
     float32_t dummyBuffer[len];
+    memset(dummyBuffer, 0, len * sizeof(float32_t));
     process(inblock, dummyBuffer, outblock, dummyBuffer, len);
 }
 

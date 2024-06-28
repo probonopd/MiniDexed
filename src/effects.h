@@ -8,6 +8,7 @@
 #include "effect_lpf.h"
 #include "effect_ds1.h"
 #include "effect_bigmuff.h" 
+#include "effect_talreverb3.h"
 
 inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 {
@@ -23,6 +24,8 @@ inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 		return new AudioEffectDS1(samplerate);
 	case EFFECT_BIGMUFF:
 		return new AudioEffectBigMuff(samplerate);
+	case EFFECT_TALREVERB3:
+		return new AudioEffectTalReverb3(samplerate);
 	case EFFECT_NONE:
 	default:
 		return new AudioEffectNone(samplerate);
@@ -38,6 +41,7 @@ inline std::string getFXTypeName(int nValue)
 	case EFFECT_LPF: return "LP Filter";
 	case EFFECT_DS1: return "DS1";
 	case EFFECT_BIGMUFF: return "Big Muff";
+	case EFFECT_TALREVERB3: return "Tal Reverb 3";
 	case EFFECT_NONE:
 	default: return "None";
 	}
