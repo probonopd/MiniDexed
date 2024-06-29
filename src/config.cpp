@@ -39,9 +39,8 @@ void CConfig::Load (void)
 	
 	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
 	unsigned usbGadgetPinNumber = m_Properties.GetNumber ("USBGadgetPin", 26); // Default to GPIO pin 26 if not specified
-	CGPIOPin usbGadgetPin(usbGadgetPinNumber);
-	usbGadgetPin.Input();
-	usbGadgetPin.PullUp();  // Enable the internal pull-up resistor
+	CGPIOPin usbGadgetPin(usbGadgetPinNumber, GPIOModeInputPullUp);
+	
 	if (usbGadgetPin.Read() == 0)  // If the pin is pulled down
 	{
 		m_bUSBGadgetMode = true;
