@@ -22,6 +22,7 @@
 //
 #include "config.h"
 #include "../Synth_Dexed/src/dexed.h"
+#include <circle/gpiopin.h>
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -36,6 +37,16 @@ void CConfig::Load (void)
 {
 	m_Properties.Load ();
 	
+	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
+	unsigned usbGadgetPinNumber = m_Properties.GetNumber ("USBGadgetPin", 26); // Default to GPIO pin 26 if not specified
+	CGPIOPin usbGadgetPin(usbGadgetPinNumber);
+	usbGadgetPin.Input();
+	usbGadgetPin.PullUp();  // Enable the internal pull-up resistor
+	if (usbGadgetPin.Read() == 0)  // If the pin is pulled down
+	{
+		m_bUSBGadgetMode = true;
+	}
+
 	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
 
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
