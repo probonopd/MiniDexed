@@ -41,15 +41,22 @@ void CConfig::Load (void)
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
 
 	m_nSampleRate = m_Properties.GetNumber ("SampleRate", 48000);
+	m_bQuadDAC8Chan = m_Properties.GetNumber ("QuadDAC8Chan", 0) != 0;
+	if (m_SoundDevice == "hdmi") {
+		m_nChunkSize = m_Properties.GetNumber ("ChunkSize", 384*6);
+	}
+	else
+	{
 #ifdef ARM_ALLOW_MULTI_CORE
-	m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_SoundDevice == "hdmi" ? 384*6 : 256);
+		m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_bQuadDAC8Chan ? 1024 : 256);  // 128 per channel
 #else
-	m_nChunkSize = m_Properties.GetNumber ("ChunkSize", m_SoundDevice == "hdmi" ? 384*6 : 1024);
+		m_nChunkSize = m_Properties.GetNumber ("ChunkSize", 1024);
 #endif
+	}
 	m_nDACI2CAddress = m_Properties.GetNumber ("DACI2CAddress", 0);
 	m_bChannelsSwapped = m_Properties.GetNumber ("ChannelsSwapped", 0) != 0;
 
-		unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
+	unsigned newEngineType = m_Properties.GetNumber ("EngineType", 1);
 	if (newEngineType == 2) {
   		m_EngineType = MKI;
 	} else if (newEngineType == 3) {
@@ -241,6 +248,11 @@ bool CConfig::GetHeaderlessSysExVoices (void) const
 bool CConfig::GetExpandPCAcrossBanks (void) const
 {
 	return m_bExpandPCAcrossBanks;
+}
+
+bool CConfig::GetQuadDAC8Chan (void) const
+{
+	return m_bQuadDAC8Chan;
 }
 
 bool CConfig::GetLCDEnabled (void) const
