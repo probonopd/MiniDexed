@@ -46,8 +46,6 @@ void CConfig::Load (void)
 		m_bUSBGadgetMode = true;
 	}
 
-	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
-
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
 
 	m_nSampleRate = m_Properties.GetNumber ("SampleRate", 48000);
