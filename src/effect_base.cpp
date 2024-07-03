@@ -58,14 +58,30 @@ void AudioEffect::process(const float32_t* inblock, float32_t* outblock, uint16_
 void AudioEffect::process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
 {
     if (bypass) {
+        if (inblockL != outblockL)
+        {
+            memcpy(outblockL, inblockL, len * sizeof(float32_t));
+        }
+        if (inblockR != outblockR) {
+            memcpy(outblockR, inblockR, len * sizeof(float32_t));
+        }
+        /*
         if (inblockL != outblockL || inblockR != outblockR) {
             // if input and output buffers are different we should copy the content
             for (uint16_t i=0; i < len; i++) 
             {
                 outblockL[i] = inblockL[i];
-                outblockR[i] = inblockR[i];
+                if (inblockL == inblockR) {
+                    outblockR[i] = inblockL[i];
+                }
+                else
+                {
+                    outblockR[i] = inblockR[i];
+                }
+                
             }
         }
+        */
         return;
     }
     doProcess(inblockL, inblockR, outblockL, outblockR, len);
@@ -76,6 +92,7 @@ void AudioEffect::doProcess(const float32_t* inblockL, const float32_t* inblockR
 
 AudioEffectNone::AudioEffectNone(float32_t samplerate) : AudioEffect(samplerate)
 {
+    setBypass(true);
 }
 
 AudioEffectNone::~AudioEffectNone()

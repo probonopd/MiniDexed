@@ -324,7 +324,7 @@ private:
 	unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
-	float32_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
+	float32_t m_OutputLevel[CConfig::ToneGenerators][CConfig::TGChannels][CConfig::MaxChunkSize];
 #endif
 
 	CPerformanceTimer m_GetChunkTimer;

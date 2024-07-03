@@ -90,6 +90,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nBreathControlTarget[i]=0;	
 		m_nAftertouchRange[i]=99;	
 		m_nAftertouchTarget[i]=0;
+
+		memset(m_OutputLevel[i][0], 0, CConfig::MaxChunkSize * sizeof(float32_t));
+		memset(m_OutputLevel[i][1], 0, CConfig::MaxChunkSize * sizeof(float32_t));
 		
 		m_InsertFXSpinLock[i] = new CSpinLock();
 		m_InsertFX[i] = new AudioEffectNone(pConfig->GetSampleRate ());
@@ -405,10 +408,10 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
-				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
-				m_InsertFXSpinLock[i]->Acquire();
-				m_InsertFX[nTG]->process(m_OutputLevel[nTG], m_OutputLevel[nTG], m_nFramesToProcess);
-				m_InsertFXSpinLock[i]->Release();
+				m_pTG[nTG]->getSamples (m_OutputLevel[nTG][0],m_nFramesToProcess);
+				m_InsertFXSpinLock[nTG]->Acquire();
+				m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
+				m_InsertFXSpinLock[nTG]->Release();
 			}
 		}
 	}
@@ -1100,10 +1103,10 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		float32_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (SampleBuffer, nFrames);
+		float32_t SampleBuffer[2][nFrames];
+		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
 		m_InsertFXSpinLock[0]->Acquire();
-		m_InsertFX[0]->process(SampleBuffer, SampleBuffer, nFrames);
+		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
 		m_InsertFXSpinLock[0]->Release();
 
 		// Convert single float array (mono) to int16 array
@@ -1150,9 +1153,9 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
-			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
+			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
 			m_InsertFXSpinLock[i]->Acquire();
-			m_InsertFX[i]->process(m_OutputLevel[i], m_OutputLevel[i], nFrames);
+			m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
 			m_InsertFXSpinLock[i]->Release();
 		}
 
@@ -1181,8 +1184,8 @@ void CMiniDexed::ProcessSound (void)
 		{
 			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
 			{
-				tg_mixer->doAddMix(i,m_OutputLevel[i]);
-				reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+				tg_mixer->doAddMix(i, m_OutputLevel[i][0], m_OutputLevel[i][1]);
+				reverb_send_mixer->doAddMix(i, m_OutputLevel[i][0], m_OutputLevel[i][1]);
 			}
 			// END TG mixing
 	

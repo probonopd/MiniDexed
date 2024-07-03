@@ -1,7 +1,6 @@
 #ifndef _EFFECT_BASE_H
 #define _EFFECT_BASE_H
 
-//#include <stdint.h>
 #include <arm_math.h>
 #include <vector>
 
