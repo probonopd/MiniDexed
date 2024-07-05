@@ -298,6 +298,7 @@ private:
 	CPCKeyboard m_PCKeyboard;
 	CSerialMIDIDevice m_SerialMIDI;
 	bool m_bUseSerial;
+	bool m_bQuadDAC8Chan;
 
 	CSoundBaseDevice *m_pSoundDevice;
 	bool m_bChannelsSwapped;
