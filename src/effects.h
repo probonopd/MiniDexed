@@ -36,12 +36,12 @@ inline std::string getFXTypeName(int nValue)
 {
 	switch (nValue)
 	{
-	case EFFECT_CHORUS: return "Juno Chorus";
+	case EFFECT_CHORUS: return "YKChorus";
 	case EFFECT_DELAY: return "Delay";
 	case EFFECT_LPF: return "LP Filter";
 	case EFFECT_DS1: return "DS1";
 	case EFFECT_BIGMUFF: return "Big Muff";
-	case EFFECT_TALREVERB3: return "Tal Reverb 3";
+	case EFFECT_TALREVERB3: return "TalRvrb3";
 	case EFFECT_NONE:
 	default: return "None";
 	}

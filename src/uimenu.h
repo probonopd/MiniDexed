@@ -93,6 +93,7 @@ private:
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 
+	static void MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	
