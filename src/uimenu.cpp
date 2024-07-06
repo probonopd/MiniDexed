@@ -167,6 +167,8 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 	{"Time R", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_R},
 	{"Feedback", EditTGFXParameter, 0, AudioEffectDelay::Param::FEEDBACK},
 	{"Tone", EditTGFXParameter, 0, AudioEffectDelay::Param::TONE},
+	{"Ping Pong", EditTGFXParameter, 0, AudioEffectDelay::Param::PING_PONG},
+	{"Mix", EditTGFXParameter, 0, AudioEffectDelay::Param::MIX},
 	{0}
 };
 
@@ -349,7 +351,9 @@ const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNK
 	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_L
 	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_R
 	{0, 100, 1}, // FEEDBACK,
-	{0, 100, 1} // TONE
+	{0, 100, 1}, // TONE
+	{0, 1, 1, ToOnOff}, // PING_PONG
+	{0, 100, 1} // MIX
 };
 
 // must match AudioEffectLPF::Param

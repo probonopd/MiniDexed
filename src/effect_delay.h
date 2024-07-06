@@ -1,3 +1,10 @@
+/* 
+ * Stereo Delay
+ * Features:
+ * - Tone control using Low Pass Filter
+ * - Ping Pong mode.
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_DELAY_H
 #define _EFFECT_DELAY_H
 
@@ -16,6 +23,8 @@ public:
         TIME_R,
         FEEDBACK,
         TONE,
+        PING_PONG,
+        MIX,
         UNKNOWN
     };
 
@@ -41,6 +50,12 @@ private:
     float32_t timeR; // Right delay time in seconds (0.0 - 2.0)
     float32_t feedback; // Feedback (0.0 - 1.0)
     AudioEffectLPF* lpf;
+    bool pingPongMode;
+    float32_t mix;
+    float32_t dryMix;
+    float32_t wetMix;
+    
+    void setMix(float32_t mix);
 };
 
 #endif // _EFFECT_DELAY_H
