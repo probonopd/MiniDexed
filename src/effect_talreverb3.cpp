@@ -1,3 +1,9 @@
+/* 
+ * Tal Reverb 3 Port
+ * Ported from https://github.com/DISTRHO/DISTRHO-Ports/tree/master/ports-juce5/tal-reverb-3
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #include <circle/logger.h>
 #include "effect_talreverb3.h"
 
@@ -15,8 +21,8 @@ AudioEffectTalReverb3::AudioEffectTalReverb3(float32_t samplerate) : AudioEffect
     this->setParameter(AudioEffectTalReverb3::Param::LOWSHELFGAIN, 89);
     this->setParameter(AudioEffectTalReverb3::Param::HIGHSHELFGAIN, 33);
     this->setParameter(AudioEffectTalReverb3::Param::STEREO, 100);
-    this->setParameter(AudioEffectTalReverb3::Param::REALSTEREOMODE, 100);
-    this->setParameter(AudioEffectTalReverb3::Param::POWER, 100);
+    this->setParameter(AudioEffectTalReverb3::Param::REALSTEREOMODE, 1);
+    this->setParameter(AudioEffectTalReverb3::Param::POWER, 1);
 }
 
 AudioEffectTalReverb3::~AudioEffectTalReverb3()
@@ -55,10 +61,10 @@ void AudioEffectTalReverb3::setParameter(unsigned param, unsigned value)
         this->engine->setStereoWidth((float) value / 100.0f);
         break;
     case AudioEffectTalReverb3::Param::REALSTEREOMODE:
-        this->engine->setStereoMode((float) value / 100.0f);
+        this->engine->setStereoMode((float) value);
         break;
     case AudioEffectTalReverb3::Param::POWER:
-        this->engine->setPower((float) value / 100.0f);
+        this->engine->setPower((float) value);
         break;
     default:
         break;

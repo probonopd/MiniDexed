@@ -393,8 +393,8 @@ const CUIMenu::TParameter CUIMenu::s_TGFXTalReverb3Param[AudioEffectTalReverb3::
 	{0, 100, 1}, // LOWSHELFGAIN
 	{0, 100, 1}, // HIGHSHELFGAIN
 	{0, 100, 1}, // STEREO
-	{0, 100, 1}, // REALSTEREOMODE
-	{0, 100, 1} // POWER
+	{0, 1, 1, ToOnOff}, // REALSTEREOMODE
+	{0, 1, 1, ToOnOff} // POWER
 };
 
 // must match DexedVoiceParameters in Synth_Dexed

@@ -1,3 +1,9 @@
+/* 
+ * Tal Reverb 3 Port
+ * Ported from https://github.com/DISTRHO/DISTRHO-Ports/tree/master/ports-juce5/tal-reverb-3
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_TALREVERB3_H
 #define _EFFECT_TALREVERB3_H
 

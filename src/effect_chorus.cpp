@@ -1,3 +1,9 @@
+/* 
+ * YK Chorus Port
+ * Ported from https://github.com/SpotlightKid/ykchorus
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #include <circle/logger.h>
 #include "effect_chorus.h"
 
