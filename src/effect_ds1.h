@@ -1,3 +1,9 @@
+/* 
+ * MOD DS-1 Port
+ * Ported from https://github.com/moddevices/mod-distortion/tree/master/ds1
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_DS1_H
 #define _EFFECT_DS1_H
 

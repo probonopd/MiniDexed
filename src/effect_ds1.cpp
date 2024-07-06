@@ -1,3 +1,9 @@
+/* 
+ * MOD DS-1 Port
+ * Ported from https://github.com/moddevices/mod-distortion/tree/master/ds1
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #include <circle/logger.h>
 #include "effect_ds1.h"
 #include "moddistortion/OverSample.h"

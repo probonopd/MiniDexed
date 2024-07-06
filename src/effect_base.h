@@ -1,3 +1,7 @@
+/* 
+ * Base AudioEffect interface
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_BASE_H
 #define _EFFECT_BASE_H
 

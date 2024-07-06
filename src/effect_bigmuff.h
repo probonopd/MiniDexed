@@ -1,3 +1,9 @@
+/* 
+ * MOD Big Muff Port
+ * Ported from https://github.com/moddevices/mod-distortion/tree/master/bigmuff
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_BIGMUFF_H
 #define _EFFECT_BIGMUFF_H
 

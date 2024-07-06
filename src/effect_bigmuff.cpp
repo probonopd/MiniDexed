@@ -1,3 +1,9 @@
+/* 
+ * MOD Big Muff Port
+ * Ported from https://github.com/moddevices/mod-distortion/tree/master/bigmuff
+ *  
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #include <circle/logger.h>
 #include "effect_bigmuff.h"
 #include "moddistortion/OverSample.h"

@@ -1,3 +1,7 @@
+/* 
+ * Base AudioEffect interface
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #include <circle/logger.h>
 #include "effect_base.h"
 

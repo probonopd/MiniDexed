@@ -1,3 +1,7 @@
+/* 
+ * Stereo Low Pass Filter
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECT_LPF_H
 #define _EFFECT_LPF_H
 

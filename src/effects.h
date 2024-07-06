@@ -1,3 +1,7 @@
+/* 
+ * AudioEffect Utilities
+ * Javier Nonis (https://github.com/jnonis) - 2024
+ */
 #ifndef _EFFECTS_H
 #define _EFFECTS_H
 
