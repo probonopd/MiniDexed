@@ -96,6 +96,7 @@ public:
 	void setAftertouch (uint8_t value, unsigned nTG);
 
 	void setInsertFXType (unsigned nType, unsigned nTG);
+	void setSendFXType (unsigned nType);
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
@@ -151,6 +152,7 @@ public:
 	enum TParameter
 	{
 		ParameterCompressorEnable,
+		ParameterSendFXType,
 		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
@@ -222,6 +224,9 @@ public:
 
 	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
 	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
+
+	void SetSendFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
+	int GetSendFXParameter (unsigned Parameter, unsigned nFXType);
 
 	// access (global or OP-related) parameter of the active voice of a TG
 	static const unsigned NoOP = 6;		// for global parameters
@@ -333,8 +338,10 @@ private:
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
-
+	AudioEffect* m_SendFX;
+	
 	CSpinLock* m_InsertFXSpinLock[CConfig::ToneGenerators];
+	CSpinLock m_SendFXSpinLock;
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;

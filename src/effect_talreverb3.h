@@ -38,6 +38,7 @@ public:
         return EFFECT_TALREVERB3;
     }
 
+    virtual void initializeSendFX();
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);
 protected:

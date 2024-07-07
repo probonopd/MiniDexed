@@ -82,6 +82,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
 	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
+	{"Send FX",	MenuHandlerSendFX},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
@@ -121,6 +122,13 @@ const CUIMenu::TMenuItem CUIMenu::s_ModulationMenuParameters[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_SendFXMenu[] =
+{
+	{"Type:", EditGlobalParameter, 0, CMiniDexed::ParameterSendFXType},
+	{"Edit:", EditSendFX},
+	{0}
+};
+
 #ifdef ARM_ALLOW_MULTI_CORE
 
 const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
@@ -144,13 +152,13 @@ const CUIMenu::TMenuItem CUIMenu::s_InsertFX[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
+CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
 {
 	{"None"},
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
+CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectChorus::Param::BYPASS},
 	{"Chorus I", EditTGFXParameter, 0, AudioEffectChorus::Param::CHORUS_I_ENABLE},
@@ -160,7 +168,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXChorus[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
+CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectDelay::Param::BYPASS},
 	{"Time L", EditTGFXParameter, 0, AudioEffectDelay::Param::TIME_L},
@@ -172,7 +180,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDelay[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
+CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectLPF::Param::BYPASS},
 	{"Cutoff", EditTGFXParameter, 0, AudioEffectLPF::Param::CUTOFF},
@@ -180,7 +188,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXLPFilter[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXDS1[] =
+CUIMenu::TMenuItem CUIMenu::s_FXDS1[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectDS1::Param::BYPASS},
 	{"Dist", EditTGFXParameter, 0, AudioEffectDS1::Param::DIST},
@@ -189,7 +197,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXDS1[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXBigMuff[] =
+CUIMenu::TMenuItem CUIMenu::s_FXBigMuff[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectBigMuff::Param::BYPASS},
 	{"Sustain", EditTGFXParameter, 0, AudioEffectBigMuff::Param::SUSTAIN},
@@ -198,7 +206,7 @@ const CUIMenu::TMenuItem CUIMenu::s_FXBigMuff[] =
 	{0}
 };
 
-const CUIMenu::TMenuItem CUIMenu::s_FXTalReverb3[] =
+CUIMenu::TMenuItem CUIMenu::s_FXTalReverb3[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::BYPASS},
 	{"Dry", EditTGFXParameter, 0, AudioEffectTalReverb3::Param::DRY},
@@ -284,6 +292,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	6, 1, ToFXType}, // ParameterSendFXType
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
@@ -714,6 +723,87 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 }
 
+void CUIMenu::MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Setup menu when it's open
+	if (!pUIMenu->m_pCurrentMenu)
+	{
+		pUIMenu->m_pCurrentMenu = s_SendFXMenu;
+	}
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		// Get current FX type
+		int fxType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterSendFXType);
+
+		// Create Paramter with type label
+		std::string value;
+		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+		value.append(getFXTypeName(fxType));
+
+		pUIMenu->m_pUI->DisplayWrite (
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			"",
+			value.c_str(),
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
 void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	CMiniDexed::TParameter Param = (CMiniDexed::TParameter) pUIMenu->m_nCurrentParameter;
@@ -985,30 +1075,7 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
 
 	int fxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
-	switch (fxType)
-	{
-	case EFFECT_CHORUS:
-		pUIMenu->m_pCurrentMenu = s_FXChorus;
-		break;
-	case EFFECT_DELAY:
-		pUIMenu->m_pCurrentMenu = s_FXDelay;
-		break;
-	case EFFECT_LPF:
-		pUIMenu->m_pCurrentMenu = s_FXLPFilter;
-		break;
-	case EFFECT_DS1:
-		pUIMenu->m_pCurrentMenu = s_FXDS1;
-		break;
-	case EFFECT_BIGMUFF:
-		pUIMenu->m_pCurrentMenu = s_FXBigMuff;
-		break;
-	case EFFECT_TALREVERB3:
-		pUIMenu->m_pCurrentMenu = s_FXTalReverb3;
-		break;
-	default:
-		pUIMenu->m_pCurrentMenu = s_FXNone;
-		break;
-	}
+	pUIMenu->m_pCurrentMenu = getInsertFXMenuItem(fxType);
 
 	switch (Event)
 	{
@@ -1060,9 +1127,6 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		string TG ("TG");
 		TG += to_string (nTG+1);
 		
-		// Get current FX type
-		int fxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
-
 		pUIMenu->m_pUI->DisplayWrite (
 			TG.c_str (),
 			getFXTypeName(fxType).c_str(),
@@ -1086,30 +1150,7 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	
 	// Get Param
 	unsigned nParam = pUIMenu->m_nCurrentParameter;
-	TParameter pParam;
-	switch (nFXType)
-	{
-	case EFFECT_CHORUS:
-		pParam = s_TGFXChorusParam[nParam];
-		break;
-	case EFFECT_DELAY:
-		pParam = s_TGFXDelayParam[nParam];
-		break;
-	case EFFECT_LPF:
-		pParam = s_TGFXLPFParam[nParam];
-		break;
-	case EFFECT_DS1:
-		pParam = s_TGFXDS1Param[nParam];
-		break;
-	case EFFECT_BIGMUFF:
-		pParam = s_TGFXBigMuffParam[nParam];
-		break;
-	case EFFECT_TALREVERB3:
-		pParam = s_TGFXTalReverb3Param[nParam];
-		break;
-	default:
-		return;
-	}
+	TParameter pParam = getFXParameter(nFXType, nParam);
 	const TParameter &rParam = pParam;
 
 	int nValue = pUIMenu->m_pMiniDexed->GetTGFXParameter (nParam, nTG, nFXType);
@@ -1164,6 +1205,130 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+void CUIMenu::EditSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	int nFXType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterSendFXType);
+	pUIMenu->m_pCurrentMenu = getSendFXMenuItem(nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		pUIMenu->m_pUI->DisplayWrite (
+			getFXTypeName(nFXType).c_str(),
+			"",
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
+void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Get FX type
+	int nFXType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterSendFXType);
+	
+	// Get Param
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	TParameter pParam = getFXParameter(nFXType, nParam);
+	const TParameter &rParam = pParam;
+
+	int nValue = pUIMenu->m_pMiniDexed->GetSendFXParameter (nParam, nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetSendFXParameter (nParam, nValue, nFXType);
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetSendFXParameter (nParam, nValue, nFXType);
+		break;
+
+	default:
+		return;
+	}
+
+	// Get value again after change
+	nValue = pUIMenu->m_pMiniDexed->GetSendFXParameter (nParam, nFXType);
+	CUIMenu::TToString *pToString = rParam.ToString;
+	string Value;
+	if (pToString)
+	{
+		Value = (*pToString) (nValue);
+	}
+	else
+	{
+		Value = to_string (nValue);
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					  "",
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
@@ -2267,4 +2432,86 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				   
 }
 
+CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
+{
+	CUIMenu::TMenuItem* menu;
+	switch (type)
+	{
+	case EFFECT_CHORUS:
+		menu = s_FXChorus;
+		break;
+	case EFFECT_DELAY:
+		menu = s_FXDelay;
+		break;
+	case EFFECT_LPF:
+		menu = s_FXLPFilter;
+		break;
+	case EFFECT_DS1:
+		menu = s_FXDS1;
+		break;
+	case EFFECT_BIGMUFF:
+		menu = s_FXBigMuff;
+		break;
+	case EFFECT_TALREVERB3:
+		menu = s_FXTalReverb3;
+		break;
+	case EFFECT_NONE:
+	default:
+        menu = s_FXNone;
+		break;
+	}
+	return menu;
+}
 
+CUIMenu::TMenuItem* CUIMenu::getInsertFXMenuItem(unsigned type)
+{
+	CUIMenu::TMenuItem* menu = getFXMenuItem(type);
+	
+	for (size_t i = 0; i < sizeof(menu); i++)
+	{
+		menu[i].Handler = EditTGFXParameter;
+	}
+	
+	return menu;
+}
+
+CUIMenu::TMenuItem* CUIMenu::getSendFXMenuItem(unsigned type)
+{
+	CUIMenu::TMenuItem* menu = getFXMenuItem(type);
+	
+	for (size_t i = 0; i < sizeof(menu); i++)
+	{
+		menu[i].Handler = EditSendFXParameter;
+	}
+	
+	return menu;
+}
+
+CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
+{
+	TParameter pParam;
+	switch (type)
+	{
+	case EFFECT_CHORUS:
+		pParam = s_TGFXChorusParam[nParam];
+		break;
+	case EFFECT_DELAY:
+		pParam = s_TGFXDelayParam[nParam];
+		break;
+	case EFFECT_LPF:
+		pParam = s_TGFXLPFParam[nParam];
+		break;
+	case EFFECT_DS1:
+		pParam = s_TGFXDS1Param[nParam];
+		break;
+	case EFFECT_BIGMUFF:
+		pParam = s_TGFXBigMuffParam[nParam];
+		break;
+	case EFFECT_TALREVERB3:
+		pParam = s_TGFXTalReverb3Param[nParam];
+		break;
+	default:
+		break;
+	}
+	return pParam;
+}

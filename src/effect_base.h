@@ -27,6 +27,13 @@ public:
 
     virtual unsigned getId();
     
+    /**
+     * Set default parameters for the FX when is used as Send FX.
+     */
+    virtual void initializeSendFX()
+    {
+    }
+
     virtual void setParameter(unsigned param, unsigned value)
     {
     }

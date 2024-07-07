@@ -40,6 +40,11 @@ unsigned AudioEffectDelay::getId()
     return EFFECT_DELAY;
 }
 
+void AudioEffectDelay::initializeSendFX()
+{
+    this->setParameter(AudioEffectDelay::Param::MIX, 100);
+}
+
 void AudioEffectDelay::setParameter(unsigned param, unsigned value)
 {
     switch (param)

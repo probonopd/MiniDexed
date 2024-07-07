@@ -93,10 +93,19 @@ private:
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 
+	static CUIMenu::TMenuItem* getFXMenuItem(unsigned type);	
+	static CUIMenu::TParameter getFXParameter(unsigned type, unsigned param);
+
 	static void MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	
+	static CUIMenu::TMenuItem* getInsertFXMenuItem(unsigned type);
+
+	static void MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getSendFXMenuItem(unsigned type);
+
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
 	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
@@ -151,15 +160,18 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
+	static const TMenuItem s_SendFXMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_InsertFX[];
-	static const TMenuItem s_FXNone[];
-	static const TMenuItem s_FXChorus[];
-	static const TMenuItem s_FXDelay[];
-	static const TMenuItem s_FXLPFilter[];
-	static const TMenuItem s_FXDS1[];
-	static const TMenuItem s_FXBigMuff[];
-	static const TMenuItem s_FXTalReverb3[];
+	
+	static TMenuItem s_FXNone[];
+	static TMenuItem s_FXChorus[];
+	static TMenuItem s_FXDelay[];
+	static TMenuItem s_FXLPFilter[];
+	static TMenuItem s_FXDS1[];
+	static TMenuItem s_FXBigMuff[];
+	static TMenuItem s_FXTalReverb3[];
+
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];

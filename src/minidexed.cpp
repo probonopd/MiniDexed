@@ -172,6 +172,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup tgmixer
 
 	// BEGIN setup reverb
+	m_SendFX = new AudioEffectNone(pConfig->GetSampleRate());
 	reverb_send_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -181,6 +182,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbLowPass, 30);
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 99);
+	SetParameter (ParameterSendFXType, 0);
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
@@ -609,6 +611,17 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+void CMiniDexed::setSendFXType (unsigned nType)
+{
+	m_SendFXSpinLock.Acquire();
+	delete m_SendFX;
+	m_SendFX = newAudioEffect(nType, m_pConfig->GetSampleRate());
+	m_SendFX->initializeSendFX();
+	m_SendFXSpinLock.Release();
+
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 {
 	nReverbSend=constrain((int)nReverbSend,0,99);
@@ -830,6 +843,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		}
 		break;
 
+	case ParameterSendFXType:
+		setSendFXType(nValue);
+		break;
+
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
@@ -1015,9 +1032,21 @@ void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG,
 
 int CMiniDexed::GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
 	assert (nTG < CConfig::ToneGenerators);
-		assert (m_InsertFX[nTG]->getId() == nFXType);
+	assert (m_InsertFX[nTG]->getId() == nFXType);
 
 	return m_InsertFX[nTG]->getParameter(Parameter);
+}
+
+void CMiniDexed::SetSendFXParameter (unsigned Parameter, int nValue, unsigned nFXType) {
+	assert (m_SendFX->getId() == nFXType);
+
+	m_SendFX->setParameter(Parameter, nValue);
+}
+
+int CMiniDexed::GetSendFXParameter (unsigned Parameter, unsigned nFXType) {
+	assert (m_SendFX->getId() == nFXType);
+
+	return m_SendFX->getParameter(Parameter);
 }
 
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
@@ -1207,10 +1236,12 @@ void CMiniDexed::ProcessSound (void)
 				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
 				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
 	
+				m_SendFXSpinLock.Acquire ();
 				m_ReverbSpinLock.Acquire ();
 	
        		    reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+				//reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+				m_SendFX->process(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], ReverbBuffer[indexL], ReverbBuffer[indexR], nFrames);
 	
 				// scale down and add left reverb buffer by reverb level 
 				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
@@ -1220,6 +1251,7 @@ void CMiniDexed::ProcessSound (void)
 				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
 	
 				m_ReverbSpinLock.Release ();
+				m_SendFXSpinLock.Release ();
 			}
 			// END adding reverb
 	

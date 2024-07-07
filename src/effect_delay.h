@@ -32,6 +32,8 @@ public:
     virtual ~AudioEffectDelay();
 
     virtual unsigned getId();
+
+    virtual void initializeSendFX();
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);
 protected:

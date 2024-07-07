@@ -30,6 +30,12 @@ AudioEffectTalReverb3::~AudioEffectTalReverb3()
     delete this->engine;
 }
 
+void AudioEffectTalReverb3::initializeSendFX()
+{
+    this->setParameter(AudioEffectTalReverb3::Param::DRY, 0);
+    this->setParameter(AudioEffectTalReverb3::Param::WET, 50);
+}
+
 void AudioEffectTalReverb3::setParameter(unsigned param, unsigned value)
 {
 
