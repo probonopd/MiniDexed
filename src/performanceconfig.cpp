@@ -137,7 +137,7 @@ bool CPerformanceConfig::Load (void)
 		m_nInsertFX[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("InsertFXParams%u", nTG+1);
-		m_nInsertFXParams[nTG] = m_Properties.GetString (PropertyName, "");
+		m_sInsertFXParams[nTG] = m_Properties.GetString (PropertyName, "");
 
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_nDetune[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
@@ -209,6 +209,9 @@ bool CPerformanceConfig::Load (void)
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
+	m_nSendFX = m_Properties.GetNumber ("SendFX", 0);
+	m_sSendFXParams = m_Properties.GetString ("SendFXParams", "");
+
 	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
 	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
 	m_nReverbHighDamp = m_Properties.GetNumber ("ReverbHighDamp", 50);
@@ -260,7 +263,7 @@ bool CPerformanceConfig::Save (void)
 		m_Properties.SetNumber (PropertyName, m_nInsertFX[nTG]);
 
 		PropertyName.Format ("InsertFXParams%u", nTG+1);
-		m_Properties.SetString (PropertyName, m_nInsertFXParams[nTG].c_str());
+		m_Properties.SetString (PropertyName, m_sInsertFXParams[nTG].c_str());
 
 		PropertyName.Format ("Detune%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nDetune[nTG]);
@@ -333,6 +336,9 @@ bool CPerformanceConfig::Save (void)
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
+	m_Properties.SetNumber ("SendFX", m_nSendFX);
+	m_Properties.SetString ("SendFXParams", m_sSendFXParams.c_str());
+
 	m_Properties.SetNumber ("ReverbEnable", m_bReverbEnable ? 1 : 0);
 	m_Properties.SetNumber ("ReverbSize", m_nReverbSize);
 	m_Properties.SetNumber ("ReverbHighDamp", m_nReverbHighDamp);
@@ -385,7 +391,7 @@ std::vector<unsigned> CPerformanceConfig::GetInsertFXParams (unsigned nTG) const
 	assert (nTG < CConfig::ToneGenerators);
 
 	std::vector<unsigned> tokens;
-	std::string params = m_nInsertFXParams[nTG];
+	std::string params = m_sInsertFXParams[nTG];
 	if (params.empty()) {
 		return tokens; 
 	}
@@ -490,7 +496,7 @@ void CPerformanceConfig::SetInsertFXParams (std::vector<unsigned> pParams, unsig
 		}
 		params += std::to_string(pParams[i]);
 	}
-	m_nInsertFXParams[nTG] = params;
+	m_sInsertFXParams[nTG] = params;
 }
 
 void CPerformanceConfig::SetDetune (int nValue, unsigned nTG)
@@ -540,6 +546,29 @@ bool CPerformanceConfig::GetCompressorEnable (void) const
 	return m_bCompressorEnable;
 }
 
+unsigned CPerformanceConfig::GetSendFX (void) const
+{
+	return m_nSendFX;
+}
+
+std::vector<unsigned> CPerformanceConfig::GetSendFXParams (void) const
+{
+	std::vector<unsigned> tokens;
+	std::string params = m_sSendFXParams;
+	if (params.empty()) {
+		return tokens; 
+	}
+
+	char delimiter = ',';
+	std::stringstream ss(params);
+	std::string temp;
+	while (getline(ss, temp, delimiter))
+	{
+		tokens.push_back(stoi(temp));
+	}
+	return tokens;
+}
+
 bool CPerformanceConfig::GetReverbEnable (void) const
 {
 	return m_bReverbEnable;
@@ -578,6 +607,24 @@ unsigned CPerformanceConfig::GetReverbLevel (void) const
 void CPerformanceConfig::SetCompressorEnable (bool bValue)
 {
 	m_bCompressorEnable = bValue;
+}
+
+void CPerformanceConfig::SetSendFX (unsigned nValue)
+{
+	m_nSendFX = nValue;
+}
+
+void CPerformanceConfig::SetSendFXParams (std::vector<unsigned> pParams)
+{
+	std::string params = "";
+	for (size_t i = 0; i < pParams.size(); i++)
+	{
+		if (i != 0) {
+			params += ",";
+		}
+		params += std::to_string(pParams[i]);
+	}
+	m_sSendFXParams = params;
 }
 
 void CPerformanceConfig::SetReverbEnable (bool bValue)

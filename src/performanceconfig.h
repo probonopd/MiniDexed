@@ -108,6 +108,8 @@ public:
 
 	// Effects
 	bool GetCompressorEnable (void) const;
+	unsigned GetSendFX (void) const;
+	std::vector<unsigned> GetSendFXParams (void) const;
 	bool GetReverbEnable (void) const;
 	unsigned GetReverbSize (void) const;			// 0 .. 99
 	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
@@ -117,6 +119,8 @@ public:
 	unsigned GetReverbLevel (void) const;			// 0 .. 99
 
 	void SetCompressorEnable (bool bValue);
+	void SetSendFX (unsigned nValue);
+	void SetSendFXParams (std::vector<unsigned> pParams);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
 	void SetReverbHighDamp (unsigned nValue);
@@ -163,7 +167,7 @@ private:
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
 	unsigned m_nInsertFX[CConfig::ToneGenerators];
-	std::string m_nInsertFXParams[CConfig::ToneGenerators];
+	std::string m_sInsertFXParams[CConfig::ToneGenerators];
 	int m_nDetune[CConfig::ToneGenerators];
 	unsigned m_nCutoff[CConfig::ToneGenerators];
 	unsigned m_nResonance[CConfig::ToneGenerators];
@@ -202,6 +206,8 @@ private:
 	std::string NewPerformanceName="";
 	
 	bool m_bCompressorEnable;
+	unsigned m_nSendFX;
+	std::string m_sSendFXParams;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
 	unsigned m_nReverbHighDamp;

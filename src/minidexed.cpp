@@ -1379,6 +1379,13 @@ bool CMiniDexed::DoSavePerformance (void)
 	}
 
 	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
+
+	m_PerformanceConfig.SetSendFX (m_SendFX->getId());
+	std::vector<unsigned> pParams = m_SendFX->getParameters();
+	m_PerformanceConfig.SetSendFXParams (pParams);
+	pParams.clear();
+	pParams.shrink_to_fit();
+
 	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
 	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
 	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
@@ -1825,6 +1832,13 @@ void CMiniDexed::LoadPerformanceParameters(void)
 
 		// Effects
 		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+		
+		setSendFXType(m_PerformanceConfig.GetSendFX ());
+		std::vector<unsigned> pParams = m_PerformanceConfig.GetSendFXParams();
+		m_SendFX->setParameters(pParams);
+		pParams.clear();
+		pParams.shrink_to_fit();
+
 		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
 		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
 		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
