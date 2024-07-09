@@ -66,7 +66,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
 #endif
     {"Insert FX", MenuHandlerInsertFX},
-	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
+	{"Send FX",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
@@ -81,10 +81,10 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
-	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
+	{"Compress", EditGlobalParameter, 0, CMiniDexed::ParameterCompressorEnable},
 	{"Send FX",	MenuHandlerSendFX},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Reverb",	MenuHandler,		s_ReverbMenu},
+	//{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
 	{0}
 };
@@ -126,6 +126,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SendFXMenu[] =
 {
 	{"Type:", EditGlobalParameter, 0, CMiniDexed::ParameterSendFXType},
 	{"Edit:", EditSendFX},
+	{"Level", EditGlobalParameter, 0, CMiniDexed::ParameterSendFXLevel},
 	{0}
 };
 
@@ -306,6 +307,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
 	{0,	7, 1, ToFXType}, // ParameterSendFXType
+	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
@@ -331,7 +333,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// TGParameterMIDIChannel
-	{0, 99, 1},								// TGParameterReverbSend
+	{0, 100, 1},								// TGParameterReverbSend
 	{0,	12,					1},			// TGParameterPitchBendRange
 	{0,	12,					1},			// TGParameterPitchBendStep
 	{0,	1,					1, ToPortaMode},	// TGParameterPortamentoMode
@@ -815,7 +817,10 @@ void CUIMenu::MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		// Create Paramter with type label
 		std::string value;
 		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		value.append(getFXTypeName(fxType));
+		if (pUIMenu->m_nCurrentSelection < 2)
+		{
+			value.append(getFXTypeName(fxType));
+		}
 
 		pUIMenu->m_pUI->DisplayWrite (
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
@@ -1100,8 +1105,8 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
 
-	int fxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
-	pUIMenu->m_pCurrentMenu = getInsertFXMenuItem(fxType);
+	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
+	pUIMenu->m_pCurrentMenu = getInsertFXMenuItem(nFXType);
 
 	switch (Event)
 	{
@@ -1109,6 +1114,10 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventSelect:				// push menu
+		if (nFXType == 0)
+		{
+			break;
+		}
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
@@ -1155,7 +1164,7 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		
 		pUIMenu->m_pUI->DisplayWrite (
 			TG.c_str (),
-			getFXTypeName(fxType).c_str(),
+			getFXTypeName(nFXType).c_str(),
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
 			pUIMenu->m_nCurrentSelection > 0,
 			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
@@ -1246,6 +1255,10 @@ void CUIMenu::EditSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventSelect:				// push menu
+		if (nFXType == 0)
+		{
+			break;
+		}
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;

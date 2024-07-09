@@ -172,7 +172,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup tgmixer
 
 	// BEGIN setup reverb
-	m_SendFX = new AudioEffectNone(pConfig->GetSampleRate());
+	SetParameter (ParameterSendFXType, EFFECT_REVERB);
 	reverb_send_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -182,7 +182,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbLowPass, 30);
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 99);
-	SetParameter (ParameterSendFXType, 0);
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
@@ -614,12 +613,21 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 void CMiniDexed::setSendFXType (unsigned nType)
 {
 	m_SendFXSpinLock.Acquire();
-	delete m_SendFX;
+	if (m_SendFX != NULL)
+	{
+		delete m_SendFX;
+	}
 	m_SendFX = newAudioEffect(nType, m_pConfig->GetSampleRate());
 	m_SendFX->initializeSendFX();
 	m_SendFXSpinLock.Release();
 
 	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::setSendFXLevel (unsigned nValue)
+{
+	nValue = constrain((int)nValue, 0, 100);
+	m_SendFXLevel = (float32_t) nValue / 100.0f;	
 }
 
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
@@ -846,6 +854,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterSendFXType:
 		setSendFXType(nValue);
 		break;
+	
+	case ParameterSendFXLevel:
+		setSendFXLevel(nValue);
+		break;
 
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
@@ -913,7 +925,16 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 int CMiniDexed::GetParameter (TParameter Parameter)
 {
 	assert (Parameter < ParameterUnknown);
-	return m_nParameter[Parameter];
+
+	switch (Parameter)
+	{
+	case ParameterSendFXType:
+		return m_SendFX->getId();
+	case ParameterSendFXLevel:
+		return roundf(m_SendFXLevel * 100);
+	default:
+		return m_nParameter[Parameter];
+	}
 }
 
 void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG)
@@ -1244,10 +1265,10 @@ void CMiniDexed::ProcessSound (void)
 				m_SendFX->process(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], ReverbBuffer[indexL], ReverbBuffer[indexR], nFrames);
 	
 				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+				arm_scale_f32(ReverbBuffer[indexL], m_SendFXLevel, ReverbBuffer[indexL], nFrames);
 				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
 				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+				arm_scale_f32(ReverbBuffer[indexR], m_SendFXLevel, ReverbBuffer[indexR], nFrames);
 				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
 	
 				m_ReverbSpinLock.Release ();
@@ -1385,6 +1406,7 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetSendFXParams (pParams);
 	pParams.clear();
 	pParams.shrink_to_fit();
+	m_PerformanceConfig.SetSendFXLevel (roundf(m_SendFXLevel * 100));
 
 	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
 	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
@@ -1834,10 +1856,11 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
 		
 		setSendFXType(m_PerformanceConfig.GetSendFX ());
-		std::vector<unsigned> pParams = m_PerformanceConfig.GetSendFXParams();
+		std::vector<unsigned> pParams = m_PerformanceConfig.GetSendFXParams ();
 		m_SendFX->setParameters(pParams);
 		pParams.clear();
 		pParams.shrink_to_fit();
+		SetParameter (ParameterSendFXLevel, m_PerformanceConfig.GetSendFXLevel ());
 
 		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
 		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());

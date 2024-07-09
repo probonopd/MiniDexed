@@ -110,6 +110,7 @@ public:
 	bool GetCompressorEnable (void) const;
 	unsigned GetSendFX (void) const;
 	std::vector<unsigned> GetSendFXParams (void) const;
+	unsigned GetSendFXLevel (void) const;
 	bool GetReverbEnable (void) const;
 	unsigned GetReverbSize (void) const;			// 0 .. 99
 	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
@@ -121,6 +122,7 @@ public:
 	void SetCompressorEnable (bool bValue);
 	void SetSendFX (unsigned nValue);
 	void SetSendFXParams (std::vector<unsigned> pParams);
+	void SetSendFXLevel (unsigned nValue);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
 	void SetReverbHighDamp (unsigned nValue);
@@ -208,6 +210,7 @@ private:
 	bool m_bCompressorEnable;
 	unsigned m_nSendFX;
 	std::string m_sSendFXParams;
+	unsigned m_nSendFXLevel;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
 	unsigned m_nReverbHighDamp;

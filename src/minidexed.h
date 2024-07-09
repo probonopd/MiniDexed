@@ -97,7 +97,8 @@ public:
 
 	void setInsertFXType (unsigned nType, unsigned nTG);
 	void setSendFXType (unsigned nType);
-
+	void setSendFXLevel (unsigned nValue);
+	
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
@@ -153,6 +154,7 @@ public:
 	{
 		ParameterCompressorEnable,
 		ParameterSendFXType,
+		ParameterSendFXLevel,
 		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
@@ -338,7 +340,8 @@ private:
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
-	AudioEffect* m_SendFX;
+	AudioEffect* m_SendFX = NULL;
+	float32_t m_SendFXLevel = 1.0f;
 	
 	CSpinLock* m_InsertFXSpinLock[CConfig::ToneGenerators];
 	CSpinLock m_SendFXSpinLock;

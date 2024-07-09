@@ -209,17 +209,26 @@ bool CPerformanceConfig::Load (void)
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
-	m_nSendFX = m_Properties.GetNumber ("SendFX", 0);
-	m_sSendFXParams = m_Properties.GetString ("SendFXParams", "");
-
 	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
 	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
 	m_nReverbHighDamp = m_Properties.GetNumber ("ReverbHighDamp", 50);
 	m_nReverbLowDamp = m_Properties.GetNumber ("ReverbLowDamp", 50);
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
-	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
+	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 100);
 
+	// Set EFFECT_REVERB as Default for backward compatibility
+	// EFFECT_REVERB 7
+	m_nSendFX = m_Properties.GetNumber ("SendFX", 7);
+	m_sSendFXParams = m_Properties.GetString ("SendFXParams", "");
+	m_nSendFXLevel = m_Properties.GetNumber ("SendFXLevel", m_nReverbLevel);
+	if (m_nSendFX == 7 && m_sSendFXParams.empty()) {
+		m_sSendFXParams = std::to_string(m_bReverbEnable == 1 ? 0 : 1) + "," + std::to_string(m_nReverbSize) + ","
+			+ std::to_string(m_nReverbHighDamp) + "," + std::to_string(m_nReverbLowDamp) + ","
+			+ std::to_string(m_nReverbLowPass) + "," + std::to_string(m_nReverbDiffusion) + ","
+			+ std::to_string(100);
+	}
+	
 	return bResult;
 }
 
@@ -338,15 +347,54 @@ bool CPerformanceConfig::Save (void)
 
 	m_Properties.SetNumber ("SendFX", m_nSendFX);
 	m_Properties.SetString ("SendFXParams", m_sSendFXParams.c_str());
+	m_Properties.SetNumber ("SendFXLevel", m_nSendFXLevel);
 
-	m_Properties.SetNumber ("ReverbEnable", m_bReverbEnable ? 1 : 0);
-	m_Properties.SetNumber ("ReverbSize", m_nReverbSize);
-	m_Properties.SetNumber ("ReverbHighDamp", m_nReverbHighDamp);
-	m_Properties.SetNumber ("ReverbLowDamp", m_nReverbLowDamp);
-	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
-	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
-	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
+	// For backward compatibility
+	// EFFECT_REVERB 7
+	if (m_nSendFX == 7)
+	{
+		std::vector<unsigned> tokens;
+		std::string params = m_sSendFXParams;
+		char delimiter = ',';
+		std::stringstream ss(params);
+		std::string temp;
+		while (getline(ss, temp, delimiter))
+		{
+			tokens.push_back(stoi(temp));
+		}
+		
+		for (size_t i = 0; i < tokens.size(); i++)
+		{
+			switch (i)
+			{
+			case 0:
+				m_Properties.SetNumber ("ReverbEnable", tokens[i] ? 1 : 0);
+				break;
+			case 1:
+				m_Properties.SetNumber ("ReverbSize", tokens[i]);
+				break;
+			case 2:
+				m_Properties.SetNumber ("ReverbHighDamp", tokens[i]);
+				break;
+			case 3:
+				m_Properties.SetNumber ("ReverbLowDamp", tokens[i]);
+				break;
+			case 4:
+				m_Properties.SetNumber ("ReverbLowPass", tokens[i]);
+				break;
+			case 5:
+				m_Properties.SetNumber ("ReverbDiffusion", tokens[i]);
+				break;
+			default:
+				break;
+			}
+		}
+		m_Properties.SetNumber ("ReverbLevel", m_nSendFXLevel);
 
+		tokens.clear();
+		tokens.shrink_to_fit();
+	}
+	
 	return m_Properties.Save ();
 }
 
@@ -569,6 +617,12 @@ std::vector<unsigned> CPerformanceConfig::GetSendFXParams (void) const
 	return tokens;
 }
 
+unsigned CPerformanceConfig::GetSendFXLevel (void) const
+{
+	return m_nSendFXLevel;
+}
+
+
 bool CPerformanceConfig::GetReverbEnable (void) const
 {
 	return m_bReverbEnable;
@@ -625,6 +679,11 @@ void CPerformanceConfig::SetSendFXParams (std::vector<unsigned> pParams)
 		params += std::to_string(pParams[i]);
 	}
 	m_sSendFXParams = params;
+}
+
+void CPerformanceConfig::SetSendFXLevel (unsigned nValue)
+{
+	m_nSendFXLevel = nValue;
 }
 
 void CPerformanceConfig::SetReverbEnable (bool bValue)
