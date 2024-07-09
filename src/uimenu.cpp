@@ -221,6 +221,19 @@ CUIMenu::TMenuItem CUIMenu::s_FXTalReverb3[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_FXReverb[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::BYPASS},
+	{"Size", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::SIZE},
+	{"High damp", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::HIGH_DAMP},
+	{"Low damp", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::LOW_DAMP},
+	{"Low pass", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::LOW_PASS},
+	{"Diffusion", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::DIFFUSION},
+	{"Mix", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::MIX},
+	{"Level", EditTGFXParameter, 0, AudioEffectPlateReverb::Param::LEVEL},
+	{0}
+};
+
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
@@ -292,7 +305,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
-	{0,	6, 1, ToFXType}, // ParameterSendFXType
+	{0,	7, 1, ToFXType}, // ParameterSendFXType
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
@@ -313,7 +326,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	6, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	7, 1, ToFXType}, // TGParameterInsertFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -362,7 +375,7 @@ const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNK
 	{0, 100, 1}, // FEEDBACK,
 	{0, 100, 1}, // TONE
 	{0, 1, 1, ToOnOff}, // PING_PONG
-	{0, 100, 1} // MIX
+	{0, 100, 1, ToMix} // MIX
 };
 
 // must match AudioEffectLPF::Param
@@ -382,7 +395,7 @@ const CUIMenu::TParameter CUIMenu::s_TGFXDS1Param[AudioEffectDS1::Param::UNKNOWN
 	{1, 99, 1} // LEVEL
 };
 
-// must match AudioEffectDS1::Param
+// must match AudioEffectBigMuff::Param
 const CUIMenu::TParameter CUIMenu::s_TGFXBigMuffParam[AudioEffectBigMuff::Param::UNKNOWN] =
 {
 	{0, 1, 1, ToOnOff}, // BYPASS
@@ -404,6 +417,19 @@ const CUIMenu::TParameter CUIMenu::s_TGFXTalReverb3Param[AudioEffectTalReverb3::
 	{0, 100, 1}, // STEREO
 	{0, 1, 1, ToOnOff}, // REALSTEREOMODE
 	{0, 1, 1, ToOnOff} // POWER
+};
+
+// must match AudioEffectPlateReverb::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXReverbParam[AudioEffectPlateReverb::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0,	99,	1},	// SIZE
+	{0,	99,	1}, // HIGH_DAMP
+	{0,	99,	1},	// LOW_DAMP
+	{0,	99,	1},	// LOW_PASS
+	{0,	99, 1},	// DIFFUSION
+	{0,	100, 1, ToMix}, // MIX
+	{0,	99, 1},	// LEVEL
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1731,6 +1757,19 @@ string CUIMenu::ToFXType (int nValue)
 	return getFXTypeName(nValue);
 }
 
+string CUIMenu::ToMix (int nValue)
+{
+	switch (nValue)
+	{
+	case 0:
+		return "Dry";
+	case 100:
+		return "Wet";
+	default:
+		return to_string (nValue);
+	}
+}
+
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 {
 	assert (m_nCurrentMenuDepth >= 2);
@@ -2455,6 +2494,9 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	case EFFECT_TALREVERB3:
 		menu = s_FXTalReverb3;
 		break;
+	case EFFECT_REVERB:
+		menu = s_FXReverb;
+		break;
 	case EFFECT_NONE:
 	default:
         menu = s_FXNone;
@@ -2509,6 +2551,9 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 		break;
 	case EFFECT_TALREVERB3:
 		pParam = s_TGFXTalReverb3Param[nParam];
+		break;
+	case EFFECT_REVERB:
+		pParam = s_TGFXReverbParam[nParam];
 		break;
 	default:
 		break;

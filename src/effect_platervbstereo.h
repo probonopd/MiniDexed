@@ -47,6 +47,7 @@
 #include <stdint.h>
 #include <arm_math.h>
 #include "common.h"
+#include "effect_base.h"
 
 /***
  * Loop delay modulation: comment/uncomment to switch sin/cos 
@@ -56,10 +57,35 @@
 //#define TAP1_MODULATED
 #define TAP2_MODULATED
 
-class AudioEffectPlateReverb
+class AudioEffectPlateReverb : public AudioEffect
 {
 public:
+    enum Param
+    {
+        BYPASS,
+        SIZE,
+        HIGH_DAMP,
+        LOW_DAMP,
+        LOW_PASS,
+        DIFFUSION,
+        MIX,
+        LEVEL,
+        UNKNOWN
+    };
+
     AudioEffectPlateReverb(float32_t samplerate);
+    //virtual ~AudioEffectPlateReverb();
+
+    virtual unsigned getId()
+    {
+        return EFFECT_REVERB;
+    }
+
+    virtual void initializeSendFX();
+
+    virtual void setParameter(unsigned param, unsigned value);
+    virtual unsigned getParameter(unsigned param);
+
     void doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR,uint16_t len);
 
     void size(float n)
@@ -105,13 +131,42 @@ public:
     }
 
     float32_t get_size(void) {return rv_time_k;}
-    bool get_bypass(void) {return bypass;}
-    void set_bypass(bool state) {bypass = state;};
-    void tgl_bypass(void) {bypass ^=1;}
     float32_t get_level(void) {return reverb_level;}
+
+protected:
+    virtual size_t getParametersSize()
+    {
+        return sizeof(AudioEffectPlateReverb::Param);
+    }
+    virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
+
 private:
-    bool bypass = false;
     float32_t reverb_level;
+
+    unsigned sizeValue;
+    unsigned hidampValue;
+    unsigned lodampValue;
+    unsigned lowpassValue;
+    unsigned diffusionValue;
+    float32_t mix;
+    float32_t dryMix;
+    float32_t wetMix;
+    
+    void setMix(float32_t mix)
+    {
+        this->mix = mix;
+        if (this->mix <= 0.5f)
+        {
+            this->dryMix = 1.0f;
+            this->wetMix = this->mix * 2;
+        }
+        else
+        {
+            this->dryMix = 1.0f - ((this->mix - 0.5f) * 2);
+            this->wetMix = 1.0f;
+        }
+    }
+
     float32_t input_attn;
 
     float32_t in_allp_k;            // input allpass coeff 

@@ -127,6 +127,7 @@ private:
 	static std::string ToPortaGlissando (int nValue);   
 	static std::string ToPolyMono (int nValue);
 	static std::string ToFXType (int nValue);
+	static std::string ToMix (int nValue);
 
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
@@ -171,6 +172,7 @@ private:
 	static TMenuItem s_FXDS1[];
 	static TMenuItem s_FXBigMuff[];
 	static TMenuItem s_FXTalReverb3[];
+	static TMenuItem s_FXReverb[];
 
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
@@ -190,6 +192,7 @@ private:
 	static const TParameter s_TGFXDS1Param[];
 	static const TParameter s_TGFXBigMuffParam[];
 	static const TParameter s_TGFXTalReverb3Param[];
+	static const TParameter s_TGFXReverbParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 
