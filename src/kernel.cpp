@@ -20,6 +20,7 @@
 #include "kernel.h"
 #include <circle/logger.h>
 #include <circle/synchronize.h>
+#include <circle/gpiopin.h>
 #include <assert.h>
 #include <circle/usb/usbhcidevice.h>
 #include "usbminidexedmidigadget.h"
@@ -92,8 +93,30 @@ bool CKernel::Initialize (void)
 			m_pSPIMaster = nullptr;
 		}
 	}
-	
-	if (m_Config.GetUSBGadgetMode())
+
+	bool bUSBGadgetMode = false;
+	if (m_Config.GetUSBGadget())
+	{
+		unsigned nUSBGadgetPin = m_Config.GetUSBGadgetPin();
+		if (nUSBGadgetPin == 0)
+		{
+			// No hardware config option
+			bUSBGadgetMode = true;
+		}
+		else
+		{
+			// State of USB Gadget Mode determined by state of the pin.
+			// Pulled down = enable USB Gadget mode
+			CGPIOPin usbGadgetPin(nUSBGadgetPin, GPIOModeInputPullUp);
+
+			if (usbGadgetPin.Read() == 0)
+			{
+				bUSBGadgetMode = true;
+			}
+		}
+	}
+
+	if (bUSBGadgetMode)
 	{
 #if RASPPI==5
 #warning No support for USB Gadget Mode on RPI 5 yet
@@ -107,6 +130,7 @@ bool CKernel::Initialize (void)
 		// Run the USB stack in USB Host (default) mode
 		m_pUSB = new CUSBHCIDevice (&mInterrupt, &mTimer, TRUE);
 	}
+	m_Config.SetUSBGadgetMode(bUSBGadgetMode);
 
     if (!m_pUSB->Initialize ())
     {
