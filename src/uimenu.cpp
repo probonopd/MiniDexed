@@ -35,7 +35,7 @@ LOGMODULE ("uimenu");
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
-	{"MiniDexed JN", MenuHandler, s_MainMenu},
+	{"MiniDexed", MenuHandler, s_MainMenu},
 	{0}
 };
 
@@ -653,7 +653,7 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->m_pUI->DisplayWrite (
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-			"",
+			to_string(pUIMenu->m_pMiniDexed->getTempo()).c_str(),
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
 			pUIMenu->m_nCurrentSelection > 0,
 			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
@@ -1195,6 +1195,8 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventUpdate:
 		break;
 
+	case MenuEventPressAndStepDown:
+		nValue -= rParam.Increment * 9;
 	case MenuEventStepDown:
 		nValue -= rParam.Increment;
 		if (nValue < rParam.Minimum)
@@ -1204,6 +1206,8 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pMiniDexed->SetTGFXParameter (nParam, nValue, nTG, nFXType);
 		break;
 
+	case MenuEventPressAndStepUp:
+		nValue += rParam.Increment * 9;
 	case MenuEventStepUp:
 		nValue += rParam.Increment;
 		if (nValue > rParam.Maximum)
@@ -1212,11 +1216,6 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 		pUIMenu->m_pMiniDexed->SetTGFXParameter (nParam, nValue, nTG, nFXType);
 		break;
-
-	case MenuEventPressAndStepDown:
-	case MenuEventPressAndStepUp:
-		pUIMenu->TGShortcutHandler (Event);
-		return;
 
 	default:
 		return;
@@ -1330,6 +1329,8 @@ void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventUpdate:
 		break;
 
+	case MenuEventPressAndStepDown:
+		nValue -= rParam.Increment * 9;
 	case MenuEventStepDown:
 		nValue -= rParam.Increment;
 		if (nValue < rParam.Minimum)
@@ -1339,6 +1340,8 @@ void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_pMiniDexed->SetSendFXParameter (nParam, nValue, nFXType);
 		break;
 
+	case MenuEventPressAndStepUp:
+		nValue += rParam.Increment * 9;
 	case MenuEventStepUp:
 		nValue += rParam.Increment;
 		if (nValue > rParam.Maximum)

@@ -81,6 +81,9 @@ public:
 	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
+	unsigned getTempo(void);
+	void handleClock(void);
+
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
@@ -359,6 +362,10 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
+
+	unsigned m_nClockCounter;
+	unsigned long m_mClockTime;
+	unsigned m_nBPM;
 };
 
 #endif

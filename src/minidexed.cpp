@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <chrono>
 
 LOGMODULE ("minidexed");
 
@@ -60,6 +61,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
+
+	m_nClockCounter = 0;
+	m_mClockTime = 0;
+	m_nBPM = 120;
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
@@ -719,6 +724,35 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 #endif
 
 	m_UI.ParameterChanged ();
+}
+
+unsigned CMiniDexed::getTempo (void)
+{
+	return this->m_nBPM;
+}
+
+void CMiniDexed::handleClock (void)
+{
+	if (m_nClockCounter == 0)
+	{
+		// Set milis
+		auto now = std::chrono::high_resolution_clock::now();
+		m_mClockTime = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+
+	}
+	m_nClockCounter++;
+
+	if (m_nClockCounter > 23) {
+		m_nClockCounter = 0;
+		// Calculate BPM
+		auto now = std::chrono::high_resolution_clock::now();
+		unsigned timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() - m_mClockTime;
+		m_nBPM = roundf(60000 / timeDelta);
+
+		// Set BPM to FXs
+
+		m_UI.ParameterChanged();
+	}
 }
 
 void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
