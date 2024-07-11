@@ -20,7 +20,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         prefix: "Build for testing:"
-        suffix: "Use at your own risk._"
+        suffix: "Use at your own risk."
         format: name
         addTo: pull
         errorNoArtifacts: false
