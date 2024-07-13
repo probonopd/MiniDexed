@@ -22,7 +22,6 @@
 //
 #include "config.h"
 #include "../Synth_Dexed/src/dexed.h"
-#include <circle/gpiopin.h>
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -37,14 +36,9 @@ void CConfig::Load (void)
 {
 	m_Properties.Load ();
 	
-	m_bUSBGadgetMode = m_Properties.GetNumber ("USBGadget", 0) != 0;
-	unsigned usbGadgetPinNumber = m_Properties.GetNumber ("USBGadgetPin", 26); // Default to GPIO pin 26 if not specified
-	CGPIOPin usbGadgetPin(usbGadgetPinNumber, GPIOModeInputPullUp);
-	
-	if (usbGadgetPin.Read() == 0)  // If the pin is pulled down
-	{
-		m_bUSBGadgetMode = true;
-	}
+	m_bUSBGadget = m_Properties.GetNumber ("USBGadget", 0) != 0;
+	m_nUSBGadgetPin = m_Properties.GetNumber ("USBGadgetPin", 0); // Default OFF
+	SetUSBGadgetMode(m_bUSBGadget); // Might get overriden later by USBGadgetPin state
 
 	m_SoundDevice = m_Properties.GetString ("SoundDevice", "pwm");
 
@@ -183,9 +177,24 @@ void CConfig::Load (void)
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
 }
 
+bool CConfig::GetUSBGadget (void) const
+{
+	return m_bUSBGadget;
+}
+
+unsigned CConfig::GetUSBGadgetPin (void) const
+{
+	return m_nUSBGadgetPin;
+}
+
 bool CConfig::GetUSBGadgetMode (void) const
 {
 	return m_bUSBGadgetMode;
+}
+
+void CConfig::SetUSBGadgetMode (bool USBGadgetMode)
+{
+	m_bUSBGadgetMode = USBGadgetMode;
 }
 
 const char *CConfig::GetSoundDevice (void) const

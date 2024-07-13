@@ -102,17 +102,43 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pTG[i]->activate ();
 	}
 		
-	if (pConfig->GetUSBGadgetMode())
+	unsigned nUSBGadgetPin = pConfig->GetUSBGadgetPin();
+	bool bUSBGadget = pConfig->GetUSBGadget();
+	bool bUSBGadgetMode = pConfig->GetUSBGadgetMode();
+		
+	if (bUSBGadgetMode)
 	{
 #if RASPPI==5
 		LOGNOTE ("USB Gadget (Device) Mode NOT supported on RPI 5");
 #else
-		LOGNOTE ("USB In Gadget (Device) Mode");
+		if (nUSBGadgetPin == 0)
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode");
+		}
+		else
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode [USBGadgetPin %d = LOW]", nUSBGadgetPin);
+		}
 #endif
 	}
 	else
 	{
-		LOGNOTE ("USB In Host Mode");
+		if (bUSBGadget)
+		{
+			if (nUSBGadgetPin == 0)
+			{
+				// This shouldn't be possible...
+				LOGNOTE ("USB State Unknown");
+			}
+			else
+			{
+				LOGNOTE ("USB In Host Mode [USBGadgetPin %d = HIGH]", nUSBGadgetPin);
+			}
+		}
+		else
+		{
+			LOGNOTE ("USB In Host Mode");
+		}
 	}
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
