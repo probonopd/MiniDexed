@@ -64,7 +64,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	m_nClockCounter = 0;
 	m_mClockTime = 0;
-	m_nBPM = 120;
+	m_nTempo = 120;
 
 	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
 	{
@@ -96,8 +96,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nAftertouchRange[i]=99;	
 		m_nAftertouchTarget[i]=0;
 
+#ifdef ARM_ALLOW_MULTI_CORE
 		memset(m_OutputLevel[i][0], 0, CConfig::MaxChunkSize * sizeof(float32_t));
 		memset(m_OutputLevel[i][1], 0, CConfig::MaxChunkSize * sizeof(float32_t));
+#endif
 		
 		m_InsertFXSpinLock[i] = new CSpinLock();
 		m_InsertFX[i] = new AudioEffectNone(pConfig->GetSampleRate ());
@@ -610,6 +612,7 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	m_InsertFXSpinLock[nTG]->Acquire();
 	delete m_InsertFX[nTG];
 	m_InsertFX[nTG] = newAudioEffect(nType, m_pConfig->GetSampleRate());
+	m_InsertFX[nTG]->setTempo(m_nTempo);
 	m_InsertFXSpinLock[nTG]->Release();
 
 	m_UI.ParameterChanged ();
@@ -623,6 +626,7 @@ void CMiniDexed::setSendFXType (unsigned nType)
 		delete m_SendFX;
 	}
 	m_SendFX = newAudioEffect(nType, m_pConfig->GetSampleRate());
+	m_SendFX->setTempo(m_nTempo);
 	m_SendFX->initializeSendFX();
 	m_SendFXSpinLock.Release();
 
@@ -728,8 +732,24 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 
 unsigned CMiniDexed::getTempo (void)
 {
-	return this->m_nBPM;
+	return this->m_nTempo;
 }
+
+void CMiniDexed::setTempo(unsigned nValue)
+{
+	m_nTempo = nValue;
+
+	// Set Tempo to FXs
+	m_SendFX->setTempo(m_nTempo);
+	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	{
+		m_InsertFX[nTG]->setTempo(m_nTempo);
+	}
+
+	// Update UI
+	m_UI.ParameterChanged();
+}
+
 
 void CMiniDexed::handleClock (void)
 {
@@ -747,11 +767,11 @@ void CMiniDexed::handleClock (void)
 		// Calculate BPM
 		auto now = std::chrono::high_resolution_clock::now();
 		unsigned timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() - m_mClockTime;
-		m_nBPM = roundf(60000 / timeDelta);
-
-		// Set BPM to FXs
-
-		m_UI.ParameterChanged();
+		unsigned newTempo = roundf(60000 / timeDelta);
+		if (m_nTempo != newTempo)
+		{
+			this->setTempo(newTempo);
+		}
 	}
 }
 
@@ -950,6 +970,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		BankSelectPerformance(nValue);
 		break;
 
+	case ParameterTempo:
+		this->setTempo(nValue);
+		break;
+
 	default:
 		assert (0);
 		break;
@@ -966,6 +990,8 @@ int CMiniDexed::GetParameter (TParameter Parameter)
 		return m_SendFX->getId();
 	case ParameterSendFXLevel:
 		return roundf(m_SendFXLevel * 100);
+	case ParameterTempo:
+		return this->getTempo();
 	default:
 		return m_nParameter[Parameter];
 	}
@@ -1193,9 +1219,17 @@ void CMiniDexed::ProcessSound (void)
 		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
 		m_InsertFXSpinLock[0]->Release();
 
+
+		// Convert dual float array (left, right) to single int16 array (left/right)
+		float32_t tmp_float[nFrames*2];
+		for(uint16_t i=0; i<nFrames;i++)
+		{
+			tmp_float[i*2]=SampleBuffer[0][i];
+			tmp_float[(i*2)+1]=SampleBuffer[1][i];
+		}
 		// Convert single float array (mono) to int16 array
 		int16_t tmp_int[nFrames];
-		arm_float_to_q15(SampleBuffer,tmp_int,nFrames);
+		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{

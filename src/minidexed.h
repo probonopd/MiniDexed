@@ -82,6 +82,7 @@ public:
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	unsigned getTempo(void);
+	void setTempo(unsigned nValue);
 	void handleClock(void);
 
 	void keyup (int16_t pitch, unsigned nTG);
@@ -167,6 +168,7 @@ public:
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
+		ParameterTempo,
 		ParameterUnknown
 	};
 
@@ -250,15 +252,6 @@ private:
 	uint8_t m_uchOPMask[CConfig::ToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
-
-	unsigned getChorusIEnable(uint8_t nTG);
-	void setChorusIEnable(uint8_t nTG, unsigned enable);
-	unsigned getChorusIIEnable(uint8_t nTG);
-	void setChorusIIEnable(uint8_t nTG, unsigned enable);
-	unsigned getChorusIRate(uint8_t nTG);
-	void setChorusIRate(uint8_t nTG, unsigned int rate);
-	unsigned getChorusIIRate(uint8_t nTG);
-	void setChorusIIRate(uint8_t nTG, unsigned int rate);
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	enum TCoreStatus
@@ -365,7 +358,7 @@ private:
 
 	unsigned m_nClockCounter;
 	unsigned long m_mClockTime;
-	unsigned m_nBPM;
+	unsigned m_nTempo; // Tempo in BPM
 };
 
 #endif

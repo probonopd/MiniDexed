@@ -35,6 +35,13 @@ public:
     {
     }
 
+    /**
+     * Set the tempo in BPM.
+     */
+    virtual void setTempo(unsigned tempo)
+    {
+    }
+
     virtual void setParameter(unsigned param, unsigned value)
     {
     }

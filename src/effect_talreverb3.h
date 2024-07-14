@@ -13,8 +13,6 @@
 class AudioEffectTalReverb3 : public AudioEffect
 {
 public:
-    static const unsigned MAX_DELAY_TIME = 1;
-
     enum Param
     {
         BYPASS,

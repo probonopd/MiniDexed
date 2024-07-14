@@ -19,3 +19,5 @@ OPTIMIZE = -O3
 
 include ./Synth_Dexed.mk
 include ./Rules.mk
+
+EXTRACLEAN += moddistortion/*.[od]

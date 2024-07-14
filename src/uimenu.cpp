@@ -53,6 +53,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Tempo", EditGlobalParameter, 0, CMiniDexed::ParameterTempo},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -305,7 +306,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 // must match CMiniDexed::TParameter
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
+	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
 	{0,	7, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
@@ -316,7 +317,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
-	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
+	{0, NUM_PERFORMANCE_BANKS, 1},	// ParameterPerformanceBank
+	{30, 250, 1} // ParameterTempo
 };
 
 // must match CMiniDexed::TTGParameter
@@ -372,8 +374,8 @@ const CUIMenu::TParameter CUIMenu::s_TGFXChorusParam[AudioEffectChorus::Param::U
 const CUIMenu::TParameter CUIMenu::s_TGFXDelayParam[AudioEffectDelay::Param::UNKNOWN] =
 {
 	{0, 1, 1, ToOnOff}, // BYPASS
-	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_L
-	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000, 1}, // TIME_R
+	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000 + AudioEffectDelay::SyncTime::T_UNKNOWN, 1, ToDelayTime}, // TIME_L
+	{0, AudioEffectDelay::MAX_DELAY_TIME * 1000 + AudioEffectDelay::SyncTime::T_UNKNOWN, 1, ToDelayTime}, // TIME_R
 	{0, 100, 1}, // FEEDBACK,
 	{0, 100, 1}, // TONE
 	{0, 1, 1, ToOnOff}, // PING_PONG
@@ -1783,6 +1785,47 @@ string CUIMenu::ToMix (int nValue)
 		return "Wet";
 	default:
 		return to_string (nValue);
+	}
+}
+
+string CUIMenu::ToDelayTime (int nValue)
+{
+	if (nValue < (int) (AudioEffectDelay::MAX_DELAY_TIME * 1000)) {
+		return to_string (nValue);
+	}
+	switch (nValue - AudioEffectDelay::MAX_DELAY_TIME * 1000)
+	{
+	case AudioEffectDelay::SyncTime::T_1_32:
+		return "1/32";
+	case AudioEffectDelay::SyncTime::T_1_24:
+		return "1/24";
+	case AudioEffectDelay::SyncTime::T_1_16:
+		return "1/16";
+	case AudioEffectDelay::SyncTime::T_1_12:
+		return "1/12";
+	case AudioEffectDelay::SyncTime::T_3_32:
+		return "3/32";
+	case AudioEffectDelay::SyncTime::T_1_8:
+		return "1/8";
+	case AudioEffectDelay::SyncTime::T_1_6:
+		return "1/6";
+	case AudioEffectDelay::SyncTime::T_3_16:
+		return "3/16";
+	case AudioEffectDelay::SyncTime::T_1_4:
+		return "1/4";
+	case AudioEffectDelay::SyncTime::T_1_3:
+		return "1/3";
+	case AudioEffectDelay::SyncTime::T_3_8:
+		return "3/8";
+	case AudioEffectDelay::SyncTime::T_1_2:
+		return "1/2";
+	case AudioEffectDelay::SyncTime::T_2_3:
+		return "2/3";
+	case AudioEffectDelay::SyncTime::T_3_4:
+		return "3/4";
+	case AudioEffectDelay::SyncTime::T_1_1:
+	default:
+		return "1/1";
 	}
 }
 

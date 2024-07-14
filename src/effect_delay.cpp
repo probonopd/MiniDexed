@@ -21,9 +21,9 @@ AudioEffectDelay::AudioEffectDelay(float32_t samplerate) : AudioEffect(samplerat
     memset(this->bufferL, 0, this->bufferSize * sizeof(float32_t));
     memset(this->bufferR, 0, this->bufferSize * sizeof(float32_t));
     
-    this->timeL = 0.36f;
-    this->timeR = 0.36f;
-    this->feedback = 0.6f;
+    this->setParameter(AudioEffectDelay::Param::TIME_L, 360);
+    this->setParameter(AudioEffectDelay::Param::TIME_R, 360);
+    this->setParameter(AudioEffectDelay::Param::FEEDBACK, 60);
     this->pingPongMode = false;
     this->setMix(0.5f);
 }
@@ -45,6 +45,13 @@ void AudioEffectDelay::initializeSendFX()
     this->setParameter(AudioEffectDelay::Param::MIX, 100);
 }
 
+void AudioEffectDelay::setTempo(unsigned tempo)
+{
+    this->tempo = (float32_t) tempo;
+    this->setParameter(AudioEffectDelay::Param::TIME_L, timeLValue);
+    this->setParameter(AudioEffectDelay::Param::TIME_R, timeRValue);
+}
+
 void AudioEffectDelay::setParameter(unsigned param, unsigned value)
 {
     switch (param)
@@ -53,10 +60,12 @@ void AudioEffectDelay::setParameter(unsigned param, unsigned value)
         this->setBypass(value == 1);
         break;
     case AudioEffectDelay::Param::TIME_L:
-        this->timeL = (float32_t) value / 1000.0f;
+        this->timeLValue = value;
+        this->timeL = this->calculateTime(value);
         break;
     case AudioEffectDelay::Param::TIME_R:
-        this->timeR = (float32_t) value / 1000.0f;
+        this->timeRValue = value;
+        this->timeR = this->calculateTime(value);
         break;
     case AudioEffectDelay::Param::FEEDBACK:
         this->feedback = (float32_t) value / 100.0f;
@@ -82,9 +91,9 @@ unsigned AudioEffectDelay::getParameter(unsigned param)
     case AudioEffectDelay::Param::BYPASS:
 		return this->getBypass() ? 1 : 0;
     case AudioEffectDelay::Param::TIME_L:
-        return roundf(this->timeL * 1000);
+        return this->timeLValue;
     case AudioEffectDelay::Param::TIME_R:
-        return roundf(this->timeR * 1000);
+        return this->timeRValue;
     case AudioEffectDelay::Param::FEEDBACK:
         return roundf(this->feedback * 100);
     case AudioEffectDelay::Param::TONE:
@@ -96,6 +105,81 @@ unsigned AudioEffectDelay::getParameter(unsigned param)
     default:
         return 0;
     }
+}
+
+float32_t AudioEffectDelay::calculateTime(unsigned value)
+{
+    if (value < AudioEffectDelay::MAX_DELAY_TIME * 1000)
+    {
+        return (float32_t) value / 1000.0f;
+    }
+    float32_t numerator;
+    float32_t denominator;
+    switch (value - AudioEffectDelay::MAX_DELAY_TIME * 1000)
+	{
+	case AudioEffectDelay::SyncTime::T_1_32:
+        numerator = 1.0f;
+        denominator = 32.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_24:
+		numerator = 1.0f;
+        denominator = 24.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_16:
+		numerator = 1.0f;
+        denominator = 16.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_12:
+		numerator = 1.0f;
+        denominator = 12.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_3_32:
+		numerator = 3.0f;
+        denominator = 32.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_8:
+		numerator = 1.0f;
+        denominator = 8.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_6:
+		numerator = 1.0f;
+        denominator = 6.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_3_16:
+		numerator = 3.0f;
+        denominator = 16.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_4:
+		numerator = 1.0f;
+        denominator = 4.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_3:
+		numerator = 1.0f;
+        denominator = 3.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_3_8:
+		numerator = 3.0f;
+        denominator = 8.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_2:
+		numerator = 1.0f;
+        denominator = 2.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_2_3:
+		numerator = 2.0f;
+        denominator = 3.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_3_4:
+		numerator = 3.0f;
+        denominator = 4.0f;
+        break;
+	case AudioEffectDelay::SyncTime::T_1_1:
+	default:
+		numerator = 1.0f;
+        denominator = 1.0f;
+        break;
+	}
+    return 60000.0f / this->tempo * numerator / denominator / 1000.0f;
 }
 
 void AudioEffectDelay::setMix(float32_t mix)
