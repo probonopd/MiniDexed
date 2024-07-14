@@ -41,7 +41,7 @@ void AudioEffect::setParameters(std::vector<unsigned> params)
 
 std::vector<unsigned> AudioEffect::getParameters()
 {
-    size_t len = getParametersSize();
+    size_t len = this->getParametersSize();
     std::vector<unsigned> params;
     for (size_t i = 0; i < len; i++)
     {

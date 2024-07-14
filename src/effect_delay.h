@@ -39,7 +39,7 @@ public:
 protected:
     virtual size_t getParametersSize()
     {
-        return sizeof(AudioEffectDelay::Param);
+        return AudioEffectDelay::Param::UNKNOWN;
     }
     virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
 private:
