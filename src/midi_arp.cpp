@@ -61,13 +61,8 @@ void MidiArp::process(uint16_t len)
 	events.clear();
 	events.shrink_to_fit();
 	
-	printf("Before Send Midi\n");
-	fflush(NULL);
 	struct MidiBuffer buffer = arpeggiator.getMidiBuffer();
 	for (unsigned x = 0; x < buffer.numBufferedEvents + buffer.numBufferedThroughEvents; x++) {
-		printf("Loop x: %d\n", x);
-		fflush(NULL);
-		
 		MidiEvent event = buffer.bufferedEvents[x];
 		unsigned eventType = event.data[0] >> 4;
 		
@@ -95,6 +90,4 @@ void MidiArp::process(uint16_t len)
 			break;
 		}
 	}
-	printf("After Send Midi\n");
-	fflush(NULL);
 }

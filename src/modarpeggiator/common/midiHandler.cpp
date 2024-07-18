@@ -3,15 +3,10 @@
 
 MidiHandler::MidiHandler()
 {
-	printf("MidiHandler constructor\n");
-	fflush(NULL);
 	buffer.bufferedEvents = new MidiEvent[MIDI_BUFFER_SIZE];
 	buffer.bufferedMidiThroughEvents = new MidiEvent[MIDI_BUFFER_SIZE];
 	buffer.midiOutputBuffer = new MidiEvent[MIDI_BUFFER_SIZE];
-
 	emptyMidiBuffer();
-	printf("MidiHandler constructor finished\n");
-	fflush(NULL);
 }
 
 MidiHandler::~MidiHandler()
