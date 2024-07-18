@@ -4,33 +4,21 @@
 MidiHandler::MidiHandler()
 {
 	printf("MidiHandler constructor\n");
-	printf("MidiEvent size: %d\n", sizeof(MidiEvent));
 	fflush(NULL);
-	/*
-	memset(buffer.bufferedEvents, 0, MIDI_BUFFER_SIZE * sizeof(MidiEvent));
-	memset(buffer.bufferedMidiThroughEvents, 0, MIDI_BUFFER_SIZE * sizeof(MidiEvent));
-	memset(buffer.midiOutputBuffer, 0, MIDI_BUFFER_SIZE * sizeof(MidiEvent));
-	*/
-	for (unsigned i = 0; i < MIDI_BUFFER_SIZE; i++) {
-		printf("i: %d\n", i);
-		fflush(NULL);
-		for (unsigned x = 0; x < buffer.bufferedEvents[i].kDataSize; i++) {
-			printf("x: %d\n", x);
-			fflush(NULL);
-			/*
-			buffer.bufferedEvents[i].data[x] = 0;
-			buffer.bufferedMidiThroughEvents[i].data[x] = 0;
-			buffer.midiOutputBuffer[i].data[x] = 0;
-			*/
-		}
-	}
+	buffer.bufferedEvents = new MidiEvent[MIDI_BUFFER_SIZE];
+	buffer.bufferedMidiThroughEvents = new MidiEvent[MIDI_BUFFER_SIZE];
+	buffer.midiOutputBuffer = new MidiEvent[MIDI_BUFFER_SIZE];
+
 	emptyMidiBuffer();
-	//printf("buffer.bufferedEvents: %d\n", buffer.bufferedEvents[0].data);
-	//fflush(NULL);
+	printf("MidiHandler constructor finished\n");
+	fflush(NULL);
 }
 
 MidiHandler::~MidiHandler()
 {
+	delete buffer.bufferedEvents;
+	delete buffer.bufferedMidiThroughEvents;
+	delete buffer.midiOutputBuffer;
 }
 
 void MidiHandler::emptyMidiBuffer()

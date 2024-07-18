@@ -11,7 +11,7 @@ MidiArp::MidiArp(float32_t samplerate, CDexedAdapter* synth)
 	arpeggiator.setSampleRate(samplerate);
 	arpeggiator.setDivision(7);
 
-	arpeggiator.getMidiBuffer();
+	arpeggiator.setBpm(120);
 }
 
 MidiArp::~MidiArp()
@@ -45,6 +45,7 @@ void MidiArp::process(uint16_t len)
 	arpeggiator.emptyMidiBuffer();
 	
 	// Check if host supports Bar-Beat-Tick position
+	arpeggiator.setSyncMode(0);
 	/*
     const TimePosition& position = getTimePosition();
 	if (!position.bbt.valid) {
@@ -60,7 +61,6 @@ void MidiArp::process(uint16_t len)
 	events.clear();
 	events.shrink_to_fit();
 	
-	/*
 	printf("Before Send Midi\n");
 	fflush(NULL);
 	struct MidiBuffer buffer = arpeggiator.getMidiBuffer();
@@ -97,5 +97,4 @@ void MidiArp::process(uint16_t len)
 	}
 	printf("After Send Midi\n");
 	fflush(NULL);
-	*/
 }

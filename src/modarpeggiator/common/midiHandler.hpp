@@ -31,13 +31,13 @@
 struct MidiBuffer {
 	unsigned maxBufferSize = MIDI_BUFFER_SIZE;
 
-	MidiEvent bufferedEvents[MIDI_BUFFER_SIZE];
+	MidiEvent* bufferedEvents;
 	unsigned numBufferedEvents;
 
-	MidiEvent bufferedMidiThroughEvents[MIDI_BUFFER_SIZE];
+	MidiEvent* bufferedMidiThroughEvents;
 	unsigned numBufferedThroughEvents;
 
-	MidiEvent midiOutputBuffer[MIDI_BUFFER_SIZE];
+	MidiEvent* midiOutputBuffer;
 	unsigned numOutputEvents;
 };
 
