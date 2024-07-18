@@ -13,11 +13,14 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        effect_talreverb3.o effect_ds1.o effect_bigmuff.o \
        moddistortion/Distortion_DS1.o moddistortion/Distortion_BigMuff.o \
        moddistortion/HyperbolicTables.o moddistortion/OverSample.o \
-       effect_compressor.o effect_platervbstereo.o uibuttons.o midipin.o
+       effect_compressor.o effect_platervbstereo.o uibuttons.o midipin.o \
+       midi_arp.o modarpeggiator/common/clock.o \
+       modarpeggiator/common/midiHandler.o modarpeggiator/common/pattern.o \
+       modarpeggiator/utils.o modarpeggiator/arpeggiator.o
 
 OPTIMIZE = -O3
 
 include ./Synth_Dexed.mk
 include ./Rules.mk
 
-EXTRACLEAN += moddistortion/*.[od]
+EXTRACLEAN += moddistortion/*.[od] modarpeggiator/*.[od] modarpeggiator/common/*.[od]

@@ -108,7 +108,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
-		
+		m_MidiArp[i] = new MidiArp(pConfig->GetSampleRate(), m_pTG[i]);
+
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 		m_pTG[i]->activate ();
 	}
@@ -416,6 +417,7 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
+				m_MidiArp[nTG]->process(m_nFramesToProcess);
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG][0],m_nFramesToProcess);
 				m_InsertFXSpinLock[nTG]->Acquire();
 				m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
@@ -783,7 +785,8 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_pTG[nTG]->keyup (pitch);
+		m_MidiArp[nTG]->keyup(pitch);
+		//m_pTG[nTG]->keyup (pitch);
 	}
 }
 
@@ -795,7 +798,8 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_pTG[nTG]->keydown (pitch, velocity);
+		m_MidiArp[nTG]->keydown(pitch, velocity);
+		//m_pTG[nTG]->keydown (pitch, velocity);
 	}
 }
 
@@ -1214,6 +1218,7 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		float32_t SampleBuffer[2][nFrames];
+		m_MidiArp[0]->process(nFrames);
 		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
 		m_InsertFXSpinLock[0]->Acquire();
 		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
@@ -1271,6 +1276,7 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
+			m_MidiArp[i]->process(nFrames);
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
 			m_InsertFXSpinLock[i]->Acquire();
 			m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);

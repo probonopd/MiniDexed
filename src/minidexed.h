@@ -41,6 +41,7 @@
 #include <circle/sound/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
+#include "midi_arp.h"
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
@@ -302,6 +303,7 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
+	MidiArp* m_MidiArp[CConfig::ToneGenerators];
 	AudioEffect* m_InsertFX[CConfig::ToneGenerators];
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
   
