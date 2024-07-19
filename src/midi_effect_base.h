@@ -76,7 +76,7 @@ public:
         {
             return;
         }
-        doProcess(len);
+        this->doProcess(len);
     }
 protected:
     bool bypass = false;

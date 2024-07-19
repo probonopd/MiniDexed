@@ -62,7 +62,6 @@ private:
     static const unsigned MIDI_NOTE_OFF = 0b1000;
     static const unsigned MIDI_NOTE_ON = 0b1001;
 
-    CDexedAdapter* synth;
     Arpeggiator arpeggiator;
 	int syncMode;
     std::vector<MidiEvent> events;

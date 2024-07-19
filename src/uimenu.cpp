@@ -75,7 +75,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Arp",		MenuHandler,		s_ModulationMenu},
+	{"Arp",		MenuHandler,		s_Arp},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
