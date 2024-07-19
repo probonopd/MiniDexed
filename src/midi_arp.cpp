@@ -1,12 +1,10 @@
 #include "midi_arp.h"
 #include <stdio.h>
 
-MidiArp::MidiArp(float32_t samplerate, CDexedAdapter* synth)
+MidiArp::MidiArp(float32_t samplerate, CDexedAdapter* synth) : MidiEffect(samplerate, synth)
 {
-    this->samplerate = samplerate;
     this->syncMode = 1;
-	this->synth = synth;
-
+	
     arpeggiator.transmitHostInfo(0, 4, 1, 1, 120.0);
 	arpeggiator.setSampleRate(samplerate);
 	arpeggiator.setDivision(7);
@@ -16,6 +14,79 @@ MidiArp::MidiArp(float32_t samplerate, CDexedAdapter* synth)
 
 MidiArp::~MidiArp()
 {
+}
+
+void MidiArp::setTempo(unsigned tempo)
+{
+	arpeggiator.setBpm(tempo);
+}
+
+void MidiArp::setParameter(unsigned param, unsigned value)
+{
+	switch (param)
+    {
+    case MidiArp::Param::BYPASS:
+        this->setBypass(value == 1);
+        break;
+    case MidiArp::Param::LATCH:
+		this->arpeggiator.setLatchMode(value == 1);
+        break;
+    case MidiArp::Param::SYNC:
+		this->arpeggiator.setSyncMode(value);
+        break;
+    case MidiArp::Param::ARP_MODE:
+        this->arpeggiator.setArpMode(value);
+        break;
+    case MidiArp::Param::DIVISION:
+        this->arpeggiator.setDivision(value);
+        break;
+    case MidiArp::Param::NOTE_LENGTH:
+        this->arpeggiator.setNoteLength(value);
+        break;
+    case MidiArp::Param::VELOCITY:
+        this->arpeggiator.setVelocity(value);
+        break;
+	case MidiArp::Param::OCTAVE_SPREAD:
+        this->arpeggiator.setOctaveSpread(value);
+        break;
+	case MidiArp::Param::OCTAVE_MODE:
+        this->arpeggiator.setOctaveMode(value);
+        break;
+	case MidiArp::Param::PANIC:
+        this->arpeggiator.setPanic(value == 1);
+        break;
+    default:
+        break;
+    }
+}
+
+unsigned MidiArp::getParameter(unsigned param)
+{
+	switch (param)
+    {
+    case MidiArp::Param::BYPASS:
+		return this->getBypass() ? 1 : 0;
+    case MidiArp::Param::LATCH:
+        return this->arpeggiator.getLatchMode() ? 1 : 0;
+    case MidiArp::Param::SYNC:
+        return this->arpeggiator.getSyncMode();
+    case MidiArp::Param::ARP_MODE:
+        return this->arpeggiator.getArpMode();
+    case MidiArp::Param::DIVISION:
+        return this->arpeggiator.getDivision();
+    case MidiArp::Param::NOTE_LENGTH:
+        return this->arpeggiator.getNoteLength();
+    case MidiArp::Param::VELOCITY:
+        return this->arpeggiator.getVelocity();
+	case MidiArp::Param::OCTAVE_SPREAD:
+        return this->arpeggiator.getOctaveSpread();
+	case MidiArp::Param::OCTAVE_MODE:
+        return this->arpeggiator.getOctaveMode();
+	case MidiArp::Param::PANIC:
+        return this->arpeggiator.getPanic();
+    default:
+        return 0;
+    }
 }
 
 void MidiArp::keydown(int16_t pitch, uint8_t velocity)
@@ -40,7 +111,7 @@ void MidiArp::keyup(int16_t pitch)
 	this->events.push_back(event);
 }
 
-void MidiArp::process(uint16_t len)
+void MidiArp::doProcess(uint16_t len)
 {
 	arpeggiator.emptyMidiBuffer();
 	

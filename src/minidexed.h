@@ -192,6 +192,7 @@ public:
 		TGParameterVolume,
 		TGParameterPan,
 		TGParameterInsertFXType,
+		TGParameterMidiFXType,
 		TGParameterMasterTune,
 		TGParameterCutoff,
 		TGParameterResonance,
@@ -229,6 +230,9 @@ public:
 
 	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
 	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
+
+	void SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
+	int GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
 
 	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
 	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
@@ -341,6 +345,7 @@ private:
 	AudioEffect* m_SendFX = NULL;
 	float32_t m_SendFXLevel = 1.0f;
 	
+	CSpinLock* m_MidiArpSpinLock[CConfig::ToneGenerators];
 	CSpinLock* m_InsertFXSpinLock[CConfig::ToneGenerators];
 	CSpinLock m_SendFXSpinLock;
 	CSpinLock m_ReverbSpinLock;

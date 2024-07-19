@@ -108,6 +108,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
+		m_MidiArpSpinLock[i] = new CSpinLock();
 		m_MidiArp[i] = new MidiArp(pConfig->GetSampleRate(), m_pTG[i]);
 
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
@@ -417,8 +418,13 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
+
+				m_MidiArpSpinLock[nTG]->Acquire();
 				m_MidiArp[nTG]->process(m_nFramesToProcess);
+				m_MidiArpSpinLock[nTG]->Release();
+				
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG][0],m_nFramesToProcess);
+				
 				m_InsertFXSpinLock[nTG]->Acquire();
 				m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
 				m_InsertFXSpinLock[nTG]->Release();
@@ -746,6 +752,7 @@ void CMiniDexed::setTempo(unsigned nValue)
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
 		m_InsertFX[nTG]->setTempo(m_nTempo);
+		m_MidiArp[nTG]->setTempo(m_nTempo);
 	}
 
 	// Update UI
@@ -785,8 +792,16 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_MidiArp[nTG]->keyup(pitch);
-		//m_pTG[nTG]->keyup (pitch);
+		if (m_MidiArp[nTG]->getBypass())
+		{
+			m_pTG[nTG]->keyup(pitch);
+		}
+		else
+		{
+			m_MidiArpSpinLock[nTG]->Acquire();
+			m_MidiArp[nTG]->keyup(pitch);
+			m_MidiArpSpinLock[nTG]->Release();
+		}
 	}
 }
 
@@ -798,8 +813,16 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_MidiArp[nTG]->keydown(pitch, velocity);
-		//m_pTG[nTG]->keydown (pitch, velocity);
+		if (m_MidiArp[nTG]->getBypass())
+		{
+			m_pTG[nTG]->keydown (pitch, velocity);
+		}
+		else
+		{
+			m_MidiArpSpinLock[nTG]->Acquire();
+			m_MidiArp[nTG]->keydown(pitch, velocity);
+			m_MidiArpSpinLock[nTG]->Release();
+		}
 	}
 }
 
@@ -1050,7 +1073,10 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 	case TGParameterInsertFXType: setInsertFXType(nValue, nTG); break;
-
+	case TGParameterMidiFXType:
+		// TODO
+		break;
+	
 	default:
 		assert (0);
 		break;
@@ -1075,6 +1101,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
 	case TGParameterInsertFXType:	return m_InsertFX[nTG]->getId();
+	case TGParameterMidiFXType:	return m_MidiArp[nTG]->getId();
 	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
 	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
@@ -1106,6 +1133,20 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 		assert (0);
 		return 0;
 	}
+}
+
+void CMiniDexed::SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_MidiArp[nTG]->getId() == nFXType);
+
+	m_MidiArp[nTG]->setParameter(Parameter, nValue);
+}
+
+int CMiniDexed::GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_MidiArp[nTG]->getId() == nFXType);
+
+	return m_MidiArp[nTG]->getParameter(Parameter);
 }
 
 void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
@@ -1218,12 +1259,16 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		float32_t SampleBuffer[2][nFrames];
+
+		m_MidiArpSpinLock[0]->Acquire();
 		m_MidiArp[0]->process(nFrames);
+		m_MidiArpSpinLock[0]->Release();
+		
 		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
+		
 		m_InsertFXSpinLock[0]->Acquire();
 		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
 		m_InsertFXSpinLock[0]->Release();
-
 
 		// Convert dual float array (left, right) to single int16 array (left/right)
 		float32_t tmp_float[nFrames*2];
@@ -1276,8 +1321,13 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
+			
+			m_MidiArpSpinLock[i]->Acquire();
 			m_MidiArp[i]->process(nFrames);
+			m_MidiArpSpinLock[i]->Release();
+
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
+			
 			m_InsertFXSpinLock[i]->Acquire();
 			m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
 			m_InsertFXSpinLock[i]->Release();

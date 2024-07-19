@@ -99,6 +99,7 @@ private:
 	static void MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGArpParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static CUIMenu::TMenuItem* getInsertFXMenuItem(unsigned type);
 
 	static void MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -175,6 +176,8 @@ private:
 	static TMenuItem s_FXTalReverb3[];
 	static TMenuItem s_FXReverb[];
 
+	static TMenuItem s_Arp[];
+
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];
@@ -194,6 +197,7 @@ private:
 	static const TParameter s_TGFXBigMuffParam[];
 	static const TParameter s_TGFXTalReverb3Param[];
 	static const TParameter s_TGFXReverbParam[];
+	static const TParameter s_ArpParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 

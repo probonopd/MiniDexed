@@ -75,6 +75,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
+	{"Arp",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -236,6 +237,21 @@ CUIMenu::TMenuItem CUIMenu::s_FXReverb[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_Arp[] =
+{
+	{"Bypass", EditTGArpParameter, 0, MidiArp::Param::BYPASS},
+	{"Latch", EditTGArpParameter, 0, MidiArp::Param::LATCH},
+	{"Sync", EditTGArpParameter, 0, MidiArp::Param::SYNC},
+	{"Arp Mode", EditTGArpParameter, 0, MidiArp::Param::ARP_MODE},
+	{"Division", EditTGArpParameter, 0, MidiArp::Param::DIVISION},
+	{"Note Length", EditTGArpParameter, 0, MidiArp::Param::NOTE_LENGTH},
+	{"Velocity", EditTGArpParameter, 0, MidiArp::Param::VELOCITY},
+	{"Oct Spread", EditTGArpParameter, 0, MidiArp::Param::OCTAVE_SPREAD},
+	{"Oct Mode", EditTGArpParameter, 0, MidiArp::Param::OCTAVE_MODE},
+	{"Panic", EditTGArpParameter, 0, MidiArp::Param::PANIC},
+	{0}
+};
+
 // inserting menu items before "OP1" affect OPShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_EditVoiceMenu[] =
 {
@@ -331,6 +347,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
 	{0,	7, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	1, 1}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -434,6 +451,21 @@ const CUIMenu::TParameter CUIMenu::s_TGFXReverbParam[AudioEffectPlateReverb::Par
 	{0,	99, 1},	// DIFFUSION
 	{0,	100, 1, ToMix}, // MIX
 	{0,	99, 1},	// LEVEL
+};
+
+// must match MidiArp::Param
+const CUIMenu::TParameter CUIMenu::s_ArpParam[MidiArp::Param::UNKNOWN] =
+{
+	{0, 1, 1, ToOnOff}, // BYPASS
+	{0, 1, 1}, // LATCH
+	{0, 2, 1}, // SYNC
+	{0, 5, 1}, // ARP_MODE
+	{0, 12, 1}, // DIVISION
+	{0, 100, 1}, // NOTE_LENGTH
+	{0, 127, 1}, // VELOCITY
+	{1, 4, 1}, // OCTAVE_SPREAD
+	{0, 4, 1}, // OCTAVE_MODE
+	{0, 1, 1} // PANIC
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1175,6 +1207,74 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
 	}
+}
+
+void CUIMenu::EditTGArpParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Get TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
+
+	// Get FX type
+	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
+	
+	// Get Param
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	TParameter pParam = s_ArpParam[nParam];
+	const TParameter &rParam = pParam;
+
+	int nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventPressAndStepDown:
+		nValue -= rParam.Increment * 9;
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	case MenuEventPressAndStepUp:
+		nValue += rParam.Increment * 9;
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	// Get value again after change
+	nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
+	CUIMenu::TToString *pToString = rParam.ToString;
+	string Value;
+	if (pToString)
+	{
+		Value = (*pToString) (nValue);
+	}
+	else
+	{
+		Value = to_string (nValue);
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
