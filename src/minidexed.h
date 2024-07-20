@@ -86,6 +86,9 @@ public:
 	void setTempo(unsigned nValue);
 	void handleClock(void);
 
+	bool isPlaying(void);
+	void setPlaying(bool bValue);
+
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
@@ -367,6 +370,7 @@ private:
 	unsigned m_nClockCounter;
 	unsigned long m_mClockTime;
 	unsigned m_nTempo; // Tempo in BPM
+	bool m_bPlaying = false;
 };
 
 #endif

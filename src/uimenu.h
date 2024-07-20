@@ -79,6 +79,7 @@ private:
 	};
 
 private:
+	static void MainMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);

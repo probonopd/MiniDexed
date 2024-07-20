@@ -778,6 +778,16 @@ void CMiniDexed::setTempo(unsigned nValue)
 }
 
 
+bool CMiniDexed::isPlaying(void)
+{
+	return m_bPlaying;
+}
+
+void CMiniDexed::setPlaying(bool bValue)
+{
+	m_bPlaying = bValue;
+}
+
 void CMiniDexed::handleClock (void)
 {
 	if (m_nClockCounter == 0)

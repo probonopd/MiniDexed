@@ -35,7 +35,7 @@ LOGMODULE ("uimenu");
 
 const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 {
-	{"MiniDexed", MenuHandler, s_MainMenu},
+	{"MiniDexed", MainMenuHandler, s_MainMenu},
 	{0}
 };
 
@@ -649,6 +649,81 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 	}
 }
 
+void CUIMenu::MainMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	bool menuChange = false;
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		menuChange = true;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		string strTempo;
+		if (menuChange)
+		{
+			strTempo = "";
+		}
+		else
+		{
+			strTempo = (pUIMenu->m_pMiniDexed->isPlaying() ? ">" : "#") +
+				to_string(pUIMenu->m_pMiniDexed->getTempo());
+		}
+
+		pUIMenu->m_pUI->DisplayWrite (
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			strTempo.c_str(),
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
 void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	switch (Event)
@@ -700,7 +775,7 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->m_pUI->DisplayWrite (
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-			to_string(pUIMenu->m_pMiniDexed->getTempo()).c_str(),
+			"",
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
 			pUIMenu->m_nCurrentSelection > 0,
 			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
