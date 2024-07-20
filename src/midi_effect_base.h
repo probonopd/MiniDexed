@@ -5,13 +5,16 @@
 #ifndef _MIDI_EFFECT_H
 #define _MIDI_EFFECT_H
 
+#include <string>
 #include <vector>
 #include "dexedadapter.h"
 
 class MidiEffect
 {
 public:
-    static const unsigned MIDI_EFFECT_NONE = 0;
+    // ID must be unique for each MidiEffect
+    static const unsigned ID = 0;
+    static constexpr const char* NAME = "None";
     
     MidiEffect(float32_t samplerate, CDexedAdapter* synth)
     {
@@ -23,6 +26,16 @@ public:
     {
     }
 
+    virtual unsigned getId()
+    {
+        return MidiEffect::ID;
+    }
+    
+    virtual std::string getName()
+    {
+        return MidiEffect::NAME;
+    }
+
     void setBypass(bool bypass)
     {
         this->bypass = bypass;
@@ -30,12 +43,7 @@ public:
     
     bool getBypass()
     {
-        return bypass;
-    }
-
-    virtual unsigned getId()
-    {
-        return MIDI_EFFECT_NONE;
+        return this->getId() == MidiEffect::ID ? true : this->bypass;
     }
 
     virtual void setTempo(unsigned tempo)
@@ -70,9 +78,17 @@ public:
         return params;
     }
 
+    virtual void keydown(int16_t pitch, uint8_t velocity)
+    {
+    }
+
+    virtual void keyup(int16_t pitch)
+    {
+    }
+
     void process(uint16_t len)
     {
-        if (this->bypass)
+        if (this->getBypass())
         {
             return;
         }

@@ -41,11 +41,11 @@
 #include <circle/sound/soundbasedevice.h>
 #include <circle/spinlock.h>
 #include "common.h"
-#include "midi_arp.h"
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 #include "effects.h"
+#include "midi_effects.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -101,6 +101,7 @@ public:
 	void setAftertouch (uint8_t value, unsigned nTG);
 
 	void setInsertFXType (unsigned nType, unsigned nTG);
+	void setMidiFXType (unsigned nType, unsigned nTG);
 	void setSendFXType (unsigned nType);
 	void setSendFXLevel (unsigned nValue);
 	
@@ -307,7 +308,7 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
-	MidiArp* m_MidiArp[CConfig::ToneGenerators];
+	MidiEffect* m_MidiArp[CConfig::ToneGenerators];
 	AudioEffect* m_InsertFX[CConfig::ToneGenerators];
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
   

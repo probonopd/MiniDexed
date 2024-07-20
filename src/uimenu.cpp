@@ -75,7 +75,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Arp",		MenuHandler,		s_Arp},
+	{"Midi FX",	MenuHandlerMidiFX},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
 	{0}
@@ -237,18 +237,31 @@ CUIMenu::TMenuItem CUIMenu::s_FXReverb[] =
 	{0}
 };
 
-CUIMenu::TMenuItem CUIMenu::s_Arp[] =
+const CUIMenu::TMenuItem CUIMenu::s_MidiFX[] =
 {
-	{"Bypass", EditTGArpParameter, 0, MidiArp::Param::BYPASS},
-	{"Latch", EditTGArpParameter, 0, MidiArp::Param::LATCH},
-	{"Sync", EditTGArpParameter, 0, MidiArp::Param::SYNC},
-	{"Arp Mode", EditTGArpParameter, 0, MidiArp::Param::ARP_MODE},
-	{"Division", EditTGArpParameter, 0, MidiArp::Param::DIVISION},
-	{"Note Length", EditTGArpParameter, 0, MidiArp::Param::NOTE_LENGTH},
-	{"Velocity", EditTGArpParameter, 0, MidiArp::Param::VELOCITY},
-	{"Oct Spread", EditTGArpParameter, 0, MidiArp::Param::OCTAVE_SPREAD},
-	{"Oct Mode", EditTGArpParameter, 0, MidiArp::Param::OCTAVE_MODE},
-	{"Panic", EditTGArpParameter, 0, MidiArp::Param::PANIC},
+	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterMidiFXType},
+	{"Edit:", EditMidiFX},
+	{0}
+};
+
+CUIMenu::TMenuItem CUIMenu::s_MidiFXNone[] =
+{
+	{"None"},
+	{0}
+};
+
+CUIMenu::TMenuItem CUIMenu::s_MidiFXArp[] =
+{
+	{"Bypass", EditTGMidiFXParameter, 0, MidiArp::Param::BYPASS},
+	{"Latch", EditTGMidiFXParameter, 0, MidiArp::Param::LATCH},
+	{"Sync", EditTGMidiFXParameter, 0, MidiArp::Param::SYNC},
+	{"Arp Mode", EditTGMidiFXParameter, 0, MidiArp::Param::ARP_MODE},
+	{"Division", EditTGMidiFXParameter, 0, MidiArp::Param::DIVISION},
+	{"Note Length", EditTGMidiFXParameter, 0, MidiArp::Param::NOTE_LENGTH},
+	{"Velocity", EditTGMidiFXParameter, 0, MidiArp::Param::VELOCITY},
+	{"Oct Spread", EditTGMidiFXParameter, 0, MidiArp::Param::OCTAVE_SPREAD},
+	{"Oct Mode", EditTGMidiFXParameter, 0, MidiArp::Param::OCTAVE_MODE},
+	{"Panic", EditTGMidiFXParameter, 0, MidiArp::Param::PANIC},
 	{0}
 };
 
@@ -347,7 +360,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
 	{0,	7, 1, ToFXType}, // TGParameterInsertFXType
-	{0,	1, 1}, // TGParameterMidiFXType
+	{0,	1, 1, ToMidiFXType}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -454,18 +467,18 @@ const CUIMenu::TParameter CUIMenu::s_TGFXReverbParam[AudioEffectPlateReverb::Par
 };
 
 // must match MidiArp::Param
-const CUIMenu::TParameter CUIMenu::s_ArpParam[MidiArp::Param::UNKNOWN] =
+const CUIMenu::TParameter CUIMenu::s_TGMidiFXArpParam[MidiArp::Param::UNKNOWN] =
 {
 	{0, 1, 1, ToOnOff}, // BYPASS
-	{0, 1, 1}, // LATCH
+	{0, 1, 1, ToOnOff}, // LATCH
 	{0, 2, 1}, // SYNC
-	{0, 5, 1}, // ARP_MODE
-	{0, 12, 1}, // DIVISION
+	{0, 5, 1, ToArpMode}, // ARP_MODE
+	{0, 12, 1, ToArpDivision}, // DIVISION
 	{0, 100, 1}, // NOTE_LENGTH
 	{0, 127, 1}, // VELOCITY
 	{1, 4, 1}, // OCTAVE_SPREAD
-	{0, 4, 1}, // OCTAVE_MODE
-	{0, 1, 1} // PANIC
+	{0, 4, 1, ToArpOctMode}, // OCTAVE_MODE
+	{0, 1, 1, ToOnOff} // PANIC
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -689,6 +702,93 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 			to_string(pUIMenu->m_pMiniDexed->getTempo()).c_str(),
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
+void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Setup menu when it's open
+	if (!pUIMenu->m_pCurrentMenu)
+	{
+		pUIMenu->m_pCurrentMenu = s_MidiFX;
+	}
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		// Identify TG
+		unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
+		// Create TG label
+		string TG ("TG");
+		TG += to_string (nTG+1);
+
+		// Get current FX type
+		int nFxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
+
+		// Create Paramter with type label
+		std::string value;
+		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+		value.append(getMidiFXTypeName(nFxType));
+
+		pUIMenu->m_pUI->DisplayWrite (
+			TG.c_str (),
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			value.c_str(),
 			pUIMenu->m_nCurrentSelection > 0,
 			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
 	}
@@ -1135,6 +1235,148 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
+void CUIMenu::EditMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
+
+	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
+	pUIMenu->m_pCurrentMenu = getMidiFXMenuItem(nFXType);
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		if (nFXType == MidiEffect::ID)
+		{
+			break;
+		}
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		string TG ("TG");
+		TG += to_string (nTG+1);
+		
+		pUIMenu->m_pUI->DisplayWrite (
+			TG.c_str (),
+			getMidiFXTypeName(nFXType).c_str(),
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
+void CUIMenu::EditTGMidiFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Get TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-3];
+
+	// Get FX type
+	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
+	
+	// Get Param
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	TParameter pParam = getMidiFXParameter(nFXType, nParam);
+	const TParameter &rParam = pParam;
+
+	int nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventPressAndStepDown:
+		nValue -= rParam.Increment * 9;
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	case MenuEventPressAndStepUp:
+		nValue += rParam.Increment * 9;
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
+		break;
+
+	default:
+		return;
+	}
+
+	string TG ("TG");
+	TG += to_string (nTG+1);
+
+	// Get value again after change
+	nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
+	CUIMenu::TToString *pToString = rParam.ToString;
+	string Value;
+	if (pToString)
+	{
+		Value = (*pToString) (nValue);
+	}
+	else
+	{
+		Value = to_string (nValue);
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
 void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2]; 
@@ -1207,74 +1449,6 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
 	}
-}
-
-void CUIMenu::EditTGArpParameter (CUIMenu *pUIMenu, TMenuEvent Event)
-{
-	// Get TG
-	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-2];
-
-	// Get FX type
-	int nFXType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
-	
-	// Get Param
-	unsigned nParam = pUIMenu->m_nCurrentParameter;
-	TParameter pParam = s_ArpParam[nParam];
-	const TParameter &rParam = pParam;
-
-	int nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
-	
-	switch (Event)
-	{
-	case MenuEventUpdate:
-		break;
-
-	case MenuEventPressAndStepDown:
-		nValue -= rParam.Increment * 9;
-	case MenuEventStepDown:
-		nValue -= rParam.Increment;
-		if (nValue < rParam.Minimum)
-		{
-			nValue = rParam.Minimum;
-		}
-		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
-		break;
-
-	case MenuEventPressAndStepUp:
-		nValue += rParam.Increment * 9;
-	case MenuEventStepUp:
-		nValue += rParam.Increment;
-		if (nValue > rParam.Maximum)
-		{
-			nValue = rParam.Maximum;
-		}
-		pUIMenu->m_pMiniDexed->SetMidiFXParameter (nParam, nValue, nTG, nFXType);
-		break;
-
-	default:
-		return;
-	}
-
-	string TG ("TG");
-	TG += to_string (nTG+1);
-
-	// Get value again after change
-	nValue = pUIMenu->m_pMiniDexed->GetMidiFXParameter (nParam, nTG, nFXType);
-	CUIMenu::TToString *pToString = rParam.ToString;
-	string Value;
-	if (pToString)
-	{
-		Value = (*pToString) (nValue);
-	}
-	else
-	{
-		Value = to_string (nValue);
-	}
-
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
@@ -2714,6 +2888,35 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 	case EFFECT_REVERB:
 		pParam = s_TGFXReverbParam[nParam];
 		break;
+	default:
+		break;
+	}
+	return pParam;
+}
+
+CUIMenu::TMenuItem* CUIMenu::getMidiFXMenuItem(unsigned type)
+{
+	CUIMenu::TMenuItem* menu;
+	switch (type)
+	{
+	case MidiArp::ID:
+		menu = s_MidiFXArp;
+		break;
+	case MidiEffect::ID:
+	default:
+        menu = s_MidiFXNone;
+		break;
+	}
+	return menu;
+}
+
+CUIMenu::TParameter CUIMenu::getMidiFXParameter(unsigned type, unsigned nParam)
+{
+	TParameter pParam;
+	switch (type)
+	{
+	case MidiArp::ID:
+		pParam = s_TGMidiFXArpParam[nParam];
 	default:
 		break;
 	}

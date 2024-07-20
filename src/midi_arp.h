@@ -18,7 +18,9 @@
 class MidiArp : public MidiEffect
 {
 public:
-    static const unsigned MIDI_EFFECT_ARP = 1;
+    // ID must be unique for each MidiEffect
+    static const unsigned ID = 1;
+    static constexpr const char* NAME = "Arp";
 
     enum Param
     {
@@ -35,20 +37,65 @@ public:
         UNKNOWN
     };
 
+    enum Mode
+    {
+        UP,
+        DOWN,
+        UP_DOWN,
+        UP_DOWN_ALT,
+        PLAYED,
+        RANDOM,
+        MODE_UNKNOWN
+    };
+
+    enum Division
+    {
+        D_1_1,
+        D_1_2,
+        D_1_3,
+        D_1_4,
+        D_1_4D,
+        D_1_4T,
+        D_1_8,
+        D_1_8D,
+        D_1_8T,
+        D_1_16,
+        D_1_16D,
+        D_1_16T,
+        D_1_32,
+        D_UNKNOWN
+    };
+
+    enum OctMode
+    {
+        OM_UP,
+        OM_DOWN,
+        OM_UP_DOWN,
+        OM_DOWN_UP,
+        OM_UP_CYCLE,
+        OM_UNKNOWN
+    };
+
+
     MidiArp(float32_t samplerate, CDexedAdapter* synth);
     virtual ~MidiArp();
 
     virtual unsigned getId()
     {
-        return MIDI_EFFECT_ARP;
+        return MidiArp::ID;
+    }
+
+    virtual std::string getName()
+    {
+        return MidiArp::NAME;
     }
 
     virtual void setTempo(unsigned tempo);
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);
     
-    void keydown(int16_t pitch, uint8_t velocity);
-    void keyup(int16_t pitch);
+    virtual void keydown(int16_t pitch, uint8_t velocity);
+    virtual void keyup(int16_t pitch);
 
 protected:
     virtual size_t getParametersSize()
@@ -63,7 +110,6 @@ private:
     static const unsigned MIDI_NOTE_ON = 0b1001;
 
     Arpeggiator arpeggiator;
-	int syncMode;
     std::vector<MidiEvent> events;
 };
 

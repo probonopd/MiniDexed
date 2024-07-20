@@ -3,13 +3,18 @@
 
 MidiArp::MidiArp(float32_t samplerate, CDexedAdapter* synth) : MidiEffect(samplerate, synth)
 {
-    this->syncMode = 1;
-	
     arpeggiator.transmitHostInfo(0, 4, 1, 1, 120.0);
 	arpeggiator.setSampleRate(samplerate);
-	arpeggiator.setDivision(7);
-
+	
 	arpeggiator.setBpm(120);
+	
+	this->setParameter(MidiArp::Param::LATCH, 0);
+	this->setParameter(MidiArp::Param::ARP_MODE, 0);
+	this->setParameter(MidiArp::Param::DIVISION, 9);
+	this->setParameter(MidiArp::Param::NOTE_LENGTH, 70);
+	this->setParameter(MidiArp::Param::VELOCITY, 110);
+	this->setParameter(MidiArp::Param::OCTAVE_SPREAD, 1);
+	this->setParameter(MidiArp::Param::OCTAVE_MODE, 4);
 }
 
 MidiArp::~MidiArp()
@@ -41,7 +46,7 @@ void MidiArp::setParameter(unsigned param, unsigned value)
         this->arpeggiator.setDivision(value);
         break;
     case MidiArp::Param::NOTE_LENGTH:
-        this->arpeggiator.setNoteLength(value);
+        this->arpeggiator.setNoteLength((float) value / 100.0f);
         break;
     case MidiArp::Param::VELOCITY:
         this->arpeggiator.setVelocity(value);
@@ -75,7 +80,7 @@ unsigned MidiArp::getParameter(unsigned param)
     case MidiArp::Param::DIVISION:
         return this->arpeggiator.getDivision();
     case MidiArp::Param::NOTE_LENGTH:
-        return this->arpeggiator.getNoteLength();
+        return roundf(this->arpeggiator.getNoteLength() * 100);
     case MidiArp::Param::VELOCITY:
         return this->arpeggiator.getVelocity();
 	case MidiArp::Param::OCTAVE_SPREAD:

@@ -109,7 +109,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
 		m_MidiArpSpinLock[i] = new CSpinLock();
-		m_MidiArp[i] = new MidiArp(pConfig->GetSampleRate(), m_pTG[i]);
+		m_MidiArp[i] = new MidiEffect(pConfig->GetSampleRate(), m_pTG[i]);
 
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 		m_pTG[i]->activate ();
@@ -626,6 +626,24 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	// If the effect type is already set just return
+	if (m_MidiArp[nTG]->getId() == nType) {
+		return;
+	}
+
+	m_MidiArpSpinLock[nTG]->Acquire();
+	delete m_MidiArp[nTG];
+	m_MidiArp[nTG] = newMidiEffect(nType, m_pConfig->GetSampleRate(), m_pTG[nTG]);
+	m_MidiArp[nTG]->setTempo(m_nTempo);
+	m_MidiArpSpinLock[nTG]->Release();
+
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::setSendFXType (unsigned nType)
 {
 	m_SendFXSpinLock.Acquire();
@@ -1073,9 +1091,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 	case TGParameterInsertFXType: setInsertFXType(nValue, nTG); break;
-	case TGParameterMidiFXType:
-		// TODO
-		break;
+	case TGParameterMidiFXType: setMidiFXType(nValue, nTG); break;
 	
 	default:
 		assert (0);
