@@ -1016,6 +1016,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		break;
 
 	case ParameterTempo:
+		nValue=constrain((int)nValue,30,250);
 		this->setTempo(nValue);
 		break;
 
@@ -1562,6 +1563,8 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
+	m_PerformanceConfig.SetTempo (m_nTempo);
+
 	if(m_bSaveAsDeault)
 	{
 		m_PerformanceConfig.SetNewPerformance(0);
@@ -2021,6 +2024,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+		SetParameter (ParameterTempo, m_PerformanceConfig.GetTempo ());
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	

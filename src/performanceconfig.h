@@ -122,6 +122,7 @@ public:
 	unsigned GetReverbLowPass (void) const;			// 0 .. 99
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
 	unsigned GetReverbLevel (void) const;			// 0 .. 99
+	unsigned GetTempo (void) const;
 
 	void SetCompressorEnable (bool bValue);
 	void SetSendFX (unsigned nValue);
@@ -134,6 +135,7 @@ public:
 	void SetReverbLowPass (unsigned nValue);
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
+	void SetTempo (unsigned nValue);
 
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
@@ -224,6 +226,7 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+	unsigned m_nTempo;
 
 	std::string VectorToString (std::vector<unsigned> pParams);
 	std::vector<unsigned> StringToVector (std::string sParams) const;

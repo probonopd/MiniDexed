@@ -223,6 +223,8 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 100);
 
+	m_nTempo = m_Properties.GetNumber ("Tempo", 120);
+
 	// Set EFFECT_REVERB as Default for backward compatibility
 	// EFFECT_REVERB 7
 	m_nSendFX = m_Properties.GetNumber ("SendFX", 7);
@@ -407,6 +409,8 @@ bool CPerformanceConfig::Save (void)
 		tokens.shrink_to_fit();
 	}
 	
+	m_Properties.SetNumber ("Tempo", m_nTempo);
+
 	return m_Properties.Save ();
 }
 
@@ -658,6 +662,11 @@ unsigned CPerformanceConfig::GetReverbLevel (void) const
 	return m_nReverbLevel;
 }
 
+unsigned CPerformanceConfig::GetTempo (void) const
+{
+	return m_nTempo;
+}
+
 void CPerformanceConfig::SetCompressorEnable (bool bValue)
 {
 	m_bCompressorEnable = bValue;
@@ -712,6 +721,12 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
 	m_nReverbLevel = nValue;
 }
+
+void CPerformanceConfig::SetTempo (unsigned nValue)
+{
+	m_nTempo = nValue;
+}
+
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
 {
