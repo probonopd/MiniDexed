@@ -1510,6 +1510,12 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetInsertFXParams (pParams, nTG);
 		pParams.clear();
 		pParams.shrink_to_fit();
+
+		m_PerformanceConfig.SetMidiFX (m_MidiArp[nTG]->getId(), nTG);
+		std::vector<unsigned> pMidiFXParams = m_MidiArp[nTG]->getParameters();
+		m_PerformanceConfig.SetMidiFXParams (pMidiFXParams, nTG);
+		pMidiFXParams.clear();
+		pMidiFXParams.shrink_to_fit();
 				
 		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
 		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
@@ -1967,6 +1973,12 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_InsertFX[nTG]->setParameters(pParams);
 			pParams.clear();
 			pParams.shrink_to_fit();
+
+			setMidiFXType(m_PerformanceConfig.GetMidiFX (nTG), nTG);
+			std::vector<unsigned> pMidiFXParams = m_PerformanceConfig.GetMidiFXParams(nTG);
+			m_MidiArp[nTG]->setParameters(pMidiFXParams);
+			pMidiFXParams.clear();
+			pMidiFXParams.shrink_to_fit();
 			
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);

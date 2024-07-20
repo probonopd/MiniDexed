@@ -51,6 +51,8 @@ public:
 	unsigned GetPan (unsigned nTG) const;			// 0 .. 127
 	unsigned GetInsertFX (unsigned nTG) const;		// 0 .. X
 	std::vector<unsigned> GetInsertFXParams (unsigned nTG) const;
+	unsigned GetMidiFX (unsigned nTG) const;		// 0 .. X
+	std::vector<unsigned> GetMidiFXParams (unsigned nTG) const;
 	int GetDetune (unsigned nTG) const;			// -99 .. 99
 	unsigned GetCutoff (unsigned nTG) const;		// 0 .. 99
 	unsigned GetResonance (unsigned nTG) const;		// 0 .. 99
@@ -81,6 +83,8 @@ public:
 	void SetPan (unsigned nValue, unsigned nTG);
 	void SetInsertFX (unsigned nValue, unsigned nTG);
 	void SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG);
+	void SetMidiFX (unsigned nValue, unsigned nTG);
+	void SetMidiFXParams (std::vector<unsigned> pParams, unsigned nTG);
 	void SetDetune (int nValue, unsigned nTG);
 	void SetCutoff (unsigned nValue, unsigned nTG);
 	void SetResonance (unsigned nValue, unsigned nTG);
@@ -170,6 +174,8 @@ private:
 	unsigned m_nPan[CConfig::ToneGenerators];
 	unsigned m_nInsertFX[CConfig::ToneGenerators];
 	std::string m_sInsertFXParams[CConfig::ToneGenerators];
+	unsigned m_nMidiFX[CConfig::ToneGenerators];
+	std::string m_sMidiFXParams[CConfig::ToneGenerators];
 	int m_nDetune[CConfig::ToneGenerators];
 	unsigned m_nCutoff[CConfig::ToneGenerators];
 	unsigned m_nResonance[CConfig::ToneGenerators];
@@ -218,6 +224,9 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+
+	std::string VectorToString (std::vector<unsigned> pParams);
+	std::vector<unsigned> StringToVector (std::string sParams) const;
 };
 
 #endif
