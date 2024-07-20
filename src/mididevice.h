@@ -65,7 +65,7 @@ private:
 	CConfig *m_pConfig;
 	CUserInterface *m_pUI;
 
-	u8 m_ChannelMap[CConfig::ToneGenerators];
+	u8 m_ChannelMap[CConfig::AllToneGenerators];
 
 	std::string m_DeviceName;
 

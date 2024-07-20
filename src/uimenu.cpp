@@ -51,6 +51,16 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG6",		MenuHandler,	s_TGMenu, 5},
 	{"TG7",		MenuHandler,	s_TGMenu, 6},
 	{"TG8",		MenuHandler,	s_TGMenu, 7},
+#if (RASPPI==4 || RASPPI==5)
+	{"TG9",		MenuHandler,	s_TGMenu, 8},
+	{"TG10",	MenuHandler,	s_TGMenu, 9},
+	{"TG11",	MenuHandler,	s_TGMenu, 10},
+	{"TG12",	MenuHandler,	s_TGMenu, 11},
+	{"TG13",	MenuHandler,	s_TGMenu, 12},
+	{"TG14",	MenuHandler,	s_TGMenu, 13},
+	{"TG15",	MenuHandler,	s_TGMenu, 14},
+	{"TG16",	MenuHandler,	s_TGMenu, 15},
+#endif
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
@@ -334,9 +344,10 @@ const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 };
 
 
-CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
+CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig)
 :	m_pUI (pUI),
 	m_pMiniDexed (pMiniDexed),
+	m_pConfig (pConfig),
 	m_pParentMenu (s_MenuRoot),
 	m_pCurrentMenu (s_MainMenu),
 	m_nCurrentMenuItem (0),
@@ -344,23 +355,27 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 	m_nCurrentParameter (0),
 	m_nCurrentMenuDepth (0)
 {
-#ifndef ARM_ALLOW_MULTI_CORE
-	// If there is just one core, then there is only a single
-	// tone generator so start on the TG1 menu...
-	m_pParentMenu = s_MainMenu;
-	m_pCurrentMenu = s_TGMenu;
-	m_nCurrentMenuItem = 0;
-	m_nCurrentSelection = 0;
-	m_nCurrentParameter = 0;
-	m_nCurrentMenuDepth = 1;
+	assert (m_pConfig);
+	m_nToneGenerators = m_pConfig->GetToneGenerators();
 
-	// Place the "root" menu at the top of the stack
-	m_MenuStackParent[0] = s_MenuRoot;
-	m_MenuStackMenu[0] = s_MainMenu;
-	m_nMenuStackItem[0]	= 0;
-	m_nMenuStackSelection[0] = 0;
-	m_nMenuStackParameter[0] = 0;
-#endif
+	if (m_nToneGenerators == 1)
+	{
+		// If there is just one core, then there is only a single
+		// tone generator so start on the TG1 menu...
+		m_pParentMenu = s_MainMenu;
+		m_pCurrentMenu = s_TGMenu;
+		m_nCurrentMenuItem = 0;
+		m_nCurrentSelection = 0;
+		m_nCurrentParameter = 0;
+		m_nCurrentMenuDepth = 1;
+
+		// Place the "root" menu at the top of the stack
+		m_MenuStackParent[0] = s_MenuRoot;
+		m_MenuStackMenu[0] = s_MainMenu;
+		m_nMenuStackItem[0]	= 0;
+		m_nMenuStackSelection[0] = 0;
+		m_nMenuStackParameter[0] = 0;
+	}
 }
 
 void CUIMenu::EventHandler (TMenuEvent Event)
@@ -383,28 +398,31 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		break;
 
 	case MenuEventHome:
-#ifdef ARM_ALLOW_MULTI_CORE
-		m_pParentMenu = s_MenuRoot;
-		m_pCurrentMenu = s_MainMenu;
-		m_nCurrentMenuItem = 0;
-		m_nCurrentSelection = 0;
-		m_nCurrentParameter = 0;
-		m_nCurrentMenuDepth = 0;
-#else
-		// "Home" is the TG0 menu if only one TG active
-		m_pParentMenu = s_MainMenu;
-		m_pCurrentMenu = s_TGMenu;
-		m_nCurrentMenuItem = 0;
-		m_nCurrentSelection = 0;
-		m_nCurrentParameter = 0;
-		m_nCurrentMenuDepth = 1;
-		// Place the "root" menu at the top of the stack
-		m_MenuStackParent[0] = s_MenuRoot;
-		m_MenuStackMenu[0] = s_MainMenu;
-		m_nMenuStackItem[0] = 0;
-		m_nMenuStackSelection[0] = 0;
-		m_nMenuStackParameter[0] = 0;
-#endif
+		if (m_nToneGenerators == 1)
+		{
+			// "Home" is the TG0 menu if only one TG active
+			m_pParentMenu = s_MainMenu;
+			m_pCurrentMenu = s_TGMenu;
+			m_nCurrentMenuItem = 0;
+			m_nCurrentSelection = 0;
+			m_nCurrentParameter = 0;
+			m_nCurrentMenuDepth = 1;
+			// Place the "root" menu at the top of the stack
+			m_MenuStackParent[0] = s_MenuRoot;
+			m_MenuStackMenu[0] = s_MainMenu;
+			m_nMenuStackItem[0] = 0;
+			m_nMenuStackSelection[0] = 0;
+			m_nMenuStackParameter[0] = 0;
+		}
+		else
+		{
+			m_pParentMenu = s_MenuRoot;
+			m_pCurrentMenu = s_MainMenu;
+			m_nCurrentMenuItem = 0;
+			m_nCurrentSelection = 0;
+			m_nCurrentParameter = 0;
+			m_nCurrentMenuDepth = 0;
+		}
 		EventHandler (MenuEventUpdate);
 		break;
 
@@ -453,7 +471,30 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventStepDown:
-		if (pUIMenu->m_nCurrentSelection > 0)
+		if (pUIMenu->m_nCurrentSelection == 0)
+		{
+			// If in main mennu, wrap around
+			if (pUIMenu->m_pCurrentMenu == s_MainMenu)
+			{
+				// Find last entry with a name
+				while (pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name)
+				{
+					pUIMenu->m_nCurrentSelection++;
+				}
+			}
+		}
+		else if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		// Might need to trim menu if number of TGs is configured to be less than the maximum supported
+		while ((pUIMenu->m_pCurrentMenu == s_MainMenu) && (pUIMenu->m_nCurrentSelection > 0) &&
+			  	(	// Skip any unused menus
+			   		(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem == s_TGMenu) &&
+			   		(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter >= pUIMenu->m_nToneGenerators) &&
+			   		(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter < CConfig::AllToneGenerators)
+				)
+			  )
 		{
 			pUIMenu->m_nCurrentSelection--;
 		}
@@ -463,7 +504,27 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 		++pUIMenu->m_nCurrentSelection;
 		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
 		{
-			pUIMenu->m_nCurrentSelection--;
+			if (pUIMenu->m_pCurrentMenu == s_MainMenu)
+			{
+				// If in main mennu, wrap around
+				pUIMenu->m_nCurrentSelection = 0;
+			}
+			else
+			{
+				// Return to last known good item
+				pUIMenu->m_nCurrentSelection--;
+			}
+		}
+		// Might need to trim menu if number of TGs is configured to be less than the maximum supported
+		while ((pUIMenu->m_pCurrentMenu == s_MainMenu) && (pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name) &&
+			   	(	// Skip any unused TG menus
+					(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem == s_TGMenu) &&
+					(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter >= pUIMenu->m_nToneGenerators) &&
+					(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter < CConfig::AllToneGenerators)
+				)
+			  )
+		{
+			pUIMenu->m_nCurrentSelection++;
 		}
 		break;
 
@@ -1151,7 +1212,7 @@ void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 	assert (m_nCurrentMenuDepth >= 2);
 	assert (m_MenuStackMenu[0] = s_MainMenu);
 	unsigned nTG = m_nMenuStackSelection[0];
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (m_nMenuStackItem[1] == nTG);
 	assert (m_nMenuStackParameter[1] == nTG);
 
@@ -1166,7 +1227,7 @@ void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 		nTG++;
 	}
 
-	if (nTG < CConfig::ToneGenerators)
+	if (nTG < m_nToneGenerators)
 	{
 		m_nMenuStackSelection[0] = nTG;
 		m_nMenuStackItem[1] = nTG;
@@ -1262,51 +1323,53 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 		if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
 			nTG = m_nMenuStackSelection[0];
 		}
-		assert (nTG < CConfig::ToneGenerators);
-
-		int nPgm = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
-
-		assert (Event == MenuEventPgmDown || Event == MenuEventPgmUp);
-		if (Event == MenuEventPgmDown)
+		assert (nTG < CConfig::AllToneGenerators);
+		if (nTG < m_nToneGenerators)
 		{
-			//LOGNOTE("PgmDown");
-			if (--nPgm < 0)
+			int nPgm = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterProgram, nTG);
+
+			assert (Event == MenuEventPgmDown || Event == MenuEventPgmUp);
+			if (Event == MenuEventPgmDown)
 			{
-				// Switch down a voice bank and set to the last voice
-				nPgm = CSysExFileLoader::VoicesPerBank-1;
-				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
-				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+				//LOGNOTE("PgmDown");
+				if (--nPgm < 0)
+				{
+					// Switch down a voice bank and set to the last voice
+					nPgm = CSysExFileLoader::VoicesPerBank-1;
+					int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+					nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nVB);
+					m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+				}
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
 			}
-			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
-		}
-		else
-		{
-			//LOGNOTE("PgmUp");
-			if (++nPgm > (int) CSysExFileLoader::VoicesPerBank-1)
+			else
 			{
-				// Switch up a voice bank and reset to voice 0
-				nPgm = 0;
-				int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-				nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
-				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+				//LOGNOTE("PgmUp");
+				if (++nPgm > (int) CSysExFileLoader::VoicesPerBank-1)
+				{
+					// Switch up a voice bank and reset to voice 0
+					nPgm = 0;
+					int nVB = m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+					nVB = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nVB);
+					m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nVB, nTG);
+				}
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
 			}
-			m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterProgram, nPgm, nTG);
-		}
 
-		// Skip empty voices.
-		// Use same criteria in EditProgramNumber () too.
-		string voiceName = m_pMiniDexed->GetVoiceName (nTG);
-		if (voiceName == "EMPTY     "
-			|| voiceName == "          "
-			|| voiceName == "----------"
-			|| voiceName == "~~~~~~~~~~" )
-		{
-			if (Event == MenuEventPgmUp) {
-				PgmUpDownHandler (MenuEventPgmUp);
-			}
-			if (Event == MenuEventPgmDown) {
-				PgmUpDownHandler (MenuEventPgmDown);
+			// Skip empty voices.
+			// Use same criteria in EditProgramNumber () too.
+			string voiceName = m_pMiniDexed->GetVoiceName (nTG);
+			if (voiceName == "EMPTY     "
+				|| voiceName == "          "
+				|| voiceName == "----------"
+				|| voiceName == "~~~~~~~~~~" )
+			{
+				if (Event == MenuEventPgmUp) {
+					PgmUpDownHandler (MenuEventPgmUp);
+				}
+				if (Event == MenuEventPgmDown) {
+					PgmUpDownHandler (MenuEventPgmDown);
+				}
 			}
 		}
 	}
@@ -1317,7 +1380,7 @@ void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 	// This will update the menus to position it for the next TG up or down
 	unsigned nTG = 0;
 	
-	if (CConfig::ToneGenerators <= 1) {
+	if (m_nToneGenerators <= 1) {
 		// Nothing to do if only a single TG
 		return;
 	}
@@ -1328,7 +1391,7 @@ void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 		nTG = m_nMenuStackSelection[0];
 	}
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (Event == MenuEventTGDown || Event == MenuEventTGUp);
 	if (Event == MenuEventTGDown)
 	{
@@ -1340,7 +1403,7 @@ void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 	else
 	{
 		//LOGNOTE("TGUp");
-		if (nTG < CConfig::ToneGenerators - 1) {
+		if (nTG < m_nToneGenerators - 1) {
 			nTG++;
 		}
 	}

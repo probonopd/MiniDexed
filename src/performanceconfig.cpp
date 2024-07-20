@@ -45,8 +45,20 @@ CPerformanceConfig::~CPerformanceConfig (void)
 {
 }
 
-bool CPerformanceConfig::Init (void)
+bool CPerformanceConfig::Init (unsigned nToneGenerators)
 {
+	// Different versions of Pi allow different TG configurations.
+	// On loading, performances will load up to the number of
+	// supported/active TGs.
+	//
+	// On saving, the active/supported number of TGs is used.
+	//
+	// This means that if an 8TG performance is loaded into
+	// a 16 TG system and then saved, the saved performance
+	// will include all 16 TG configurations.
+	//
+	m_nToneGenerators = nToneGenerators;
+
 	// Check intermal performance directory exists
 	DIR Directory;
 	FRESULT Result;
@@ -95,7 +107,7 @@ bool CPerformanceConfig::Load (void)
 
 	bool bResult = false;
 
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		CString PropertyName;
 
@@ -217,7 +229,7 @@ bool CPerformanceConfig::Save (void)
 {
 	m_Properties.RemoveAll ();
 
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
 	{
 		CString PropertyName;
 
@@ -333,145 +345,145 @@ bool CPerformanceConfig::Save (void)
 
 unsigned CPerformanceConfig::GetBankNumber (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nBankNumber[nTG];
 }
 
 unsigned CPerformanceConfig::GetVoiceNumber (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nVoiceNumber[nTG];
 }
 
 unsigned CPerformanceConfig::GetMIDIChannel (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nMIDIChannel[nTG];
 }
 
 unsigned CPerformanceConfig::GetVolume (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nVolume[nTG];
 }
 
 unsigned CPerformanceConfig::GetPan (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPan[nTG];
 }
 
 int CPerformanceConfig::GetDetune (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nDetune[nTG];
 }
 
 unsigned CPerformanceConfig::GetCutoff (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nCutoff[nTG];
 }
 
 unsigned CPerformanceConfig::GetResonance (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nResonance[nTG];
 }
 
 unsigned CPerformanceConfig::GetNoteLimitLow (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nNoteLimitLow[nTG];
 }
 
 unsigned CPerformanceConfig::GetNoteLimitHigh (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nNoteLimitHigh[nTG];
 }
 
 int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nNoteShift[nTG];
 }
 
 unsigned CPerformanceConfig::GetReverbSend (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nReverbSend[nTG];
 }
 
 void CPerformanceConfig::SetBankNumber (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nBankNumber[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetVoiceNumber (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nVoiceNumber[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetMIDIChannel (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nMIDIChannel[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetVolume (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nVolume[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetPan (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPan[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetDetune (int nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nDetune[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetCutoff (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nCutoff[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetResonance (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nResonance[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetNoteLimitLow (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nNoteLimitLow[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetNoteLimitHigh (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nNoteLimitHigh[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetNoteShift (int nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nNoteShift[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nReverbSend[nTG] = nValue;
 }
 
@@ -557,71 +569,71 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPitchBendRange[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetPitchBendRange (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPitchBendRange[nTG];
 }
 
 
 void CPerformanceConfig::SetPitchBendStep (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPitchBendStep[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetPitchBendStep (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPitchBendStep[nTG];
 }
 
 
 void CPerformanceConfig::SetPortamentoMode (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPortamentoMode[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetPortamentoMode (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPortamentoMode[nTG];
 }
 
 
 void CPerformanceConfig::SetPortamentoGlissando (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPortamentoGlissando[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetPortamentoGlissando (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPortamentoGlissando[nTG];
 }
 
 
 void CPerformanceConfig::SetPortamentoTime (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nPortamentoTime[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetPortamentoTime (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nPortamentoTime[nTG];
 }
 
 void CPerformanceConfig::SetMonoMode (bool bValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_bMonoMode[nTG] = bValue;
 }
 
@@ -632,103 +644,103 @@ bool CPerformanceConfig::GetMonoMode (unsigned nTG) const
 
 void CPerformanceConfig::SetModulationWheelRange (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nModulationWheelRange[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetModulationWheelRange (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nModulationWheelRange[nTG];
 }
 
 void CPerformanceConfig::SetModulationWheelTarget (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nModulationWheelTarget[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetModulationWheelTarget (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nModulationWheelTarget[nTG];
 }
 
 void CPerformanceConfig::SetFootControlRange (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nFootControlRange[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetFootControlRange (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nFootControlRange[nTG];
 }
 
 void CPerformanceConfig::SetFootControlTarget (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nFootControlTarget[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetFootControlTarget (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nFootControlTarget[nTG];
 }
 
 void CPerformanceConfig::SetBreathControlRange (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nBreathControlRange[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetBreathControlRange (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nBreathControlRange[nTG];
 }
 
 void CPerformanceConfig::SetBreathControlTarget (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nBreathControlTarget[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetBreathControlTarget (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nBreathControlTarget[nTG];
 }
 
 void CPerformanceConfig::SetAftertouchRange (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nAftertouchRange[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetAftertouchRange (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nAftertouchRange[nTG];
 }
 
 void CPerformanceConfig::SetAftertouchTarget (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nAftertouchTarget[nTG] = nValue;
 }
 
 unsigned CPerformanceConfig::GetAftertouchTarget (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nAftertouchTarget[nTG];
 }
 
 void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nVoiceDataTxt[nTG] = "";
 	char nDtoH[]="0123456789ABCDEF";
 	for (int i = 0; i < NUM_VOICE_PARAM; i++)
@@ -744,7 +756,7 @@ void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)
 
 uint8_t *CPerformanceConfig::GetVoiceDataFromTxt (unsigned nTG) 
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	static uint8_t pData[NUM_VOICE_PARAM];
 	std::string nHtoD="0123456789ABCDEF";
 	 

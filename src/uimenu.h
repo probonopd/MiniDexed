@@ -25,6 +25,7 @@
 
 #include <string>
 #include <circle/timer.h>
+#include "config.h"
 
 class CMiniDexed;
 class CUserInterface;
@@ -53,7 +54,7 @@ public:
 	};
 
 public:
-	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
+	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
 
 	void EventHandler (TMenuEvent Event);
 	
@@ -128,6 +129,9 @@ private:
 private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;
+	CConfig *m_pConfig;
+	
+	unsigned m_nToneGenerators;
 
 	const TMenuItem *m_pParentMenu;
 	const TMenuItem *m_pCurrentMenu;

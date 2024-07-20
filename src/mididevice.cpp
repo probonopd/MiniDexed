@@ -65,7 +65,7 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	m_pConfig (pConfig),
 	m_pUI (pUI)
 {
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
 	}
@@ -78,13 +78,13 @@ CMIDIDevice::~CMIDIDevice (void)
 
 void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_ChannelMap[nTG] = ucChannel;
 }
 
 u8 CMIDIDevice::GetChannel (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_ChannelMap[nTG];
 }
 
@@ -238,8 +238,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			break;
 		}
 
-		// Process MIDI for each Tone Generator
-		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		// Process MIDI for each active Tone Generator
+		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{

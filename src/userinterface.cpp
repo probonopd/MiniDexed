@@ -38,7 +38,7 @@ CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManag
 	m_pUIButtons (0),
 	m_pRotaryEncoder (0),
 	m_bSwitchPressed (false),
-	m_Menu (this, pMiniDexed)
+	m_Menu (this, pMiniDexed, pConfig)
 {
 }
 
