@@ -45,7 +45,7 @@ void CConfig::Load (void)
 	{
 		m_nToneGenerators = DefToneGenerators;
 	}
-	if (m_nPolyphony >= MaxNotes)
+	if (m_nPolyphony > MaxNotes)
 	{
 		m_nPolyphony = DefaultNotes;
 	}
