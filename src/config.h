@@ -70,11 +70,11 @@ public:
 	static const unsigned MaxNotes = 8;
 	static const unsigned DefaultNotes = 8;
 #elif RASPPI == 4
-	static const unsigned MaxNotes = 24;
-	static const unsigned DefaultNotes = 16;
+	static const unsigned MaxNotes = 32;
+	static const unsigned DefaultNotes = 24;
 #elif RASPPI == 5
 	static const unsigned MaxNotes = 32;
-	static const unsigned DefaultNotes = 16;
+	static const unsigned DefaultNotes = 32;
 #else
 	static const unsigned MaxNotes = 16;
 	static const unsigned DefaultNotes = 16;

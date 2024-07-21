@@ -122,7 +122,7 @@ bool CPerformanceConfig::Load (void)
 		}
 
 		PropertyName.Format ("MIDIChannel%u", nTG+1);
-		unsigned nMIDIChannel = m_Properties.GetNumber (PropertyName, 255);
+		unsigned nMIDIChannel = m_Properties.GetNumber (PropertyName, 42);
 		if (nMIDIChannel == 0)
 		{
 			m_nMIDIChannel[nTG] = CMIDIDevice::Disabled;
@@ -131,6 +131,11 @@ bool CPerformanceConfig::Load (void)
 		{
 			m_nMIDIChannel[nTG] = nMIDIChannel-1;
 			bResult = true;
+		}
+		else if (nMIDIChannel == 42)
+		{
+			// Property didn't exist in the file, so disable this TG
+			m_nMIDIChannel[nTG] = CMIDIDevice::Disabled;
 		}
 		else
 		{
