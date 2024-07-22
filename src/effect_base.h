@@ -16,6 +16,7 @@
 #define EFFECT_BIGMUFF 5
 #define EFFECT_TALREVERB3 6
 #define EFFECT_REVERB 7
+#define EFFECT_MVERB 8
 
 class AudioEffect
 {

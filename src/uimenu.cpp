@@ -237,6 +237,21 @@ CUIMenu::TMenuItem CUIMenu::s_FXReverb[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_FXMVerb[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectMVerb::Param::BYPASS},
+	{"Damp Fq", EditTGFXParameter, 0, AudioEffectMVerb::Param::DAMPINGFREQ},
+	{"Density", EditTGFXParameter, 0, AudioEffectMVerb::Param::DENSITY},
+	{"Band Fq", EditTGFXParameter, 0, AudioEffectMVerb::Param::BANDWIDTHFREQ},
+	{"Decay", EditTGFXParameter, 0, AudioEffectMVerb::Param::DECAY},
+	{"Predelay", EditTGFXParameter, 0, AudioEffectMVerb::Param::PREDELAY},
+	{"Size", EditTGFXParameter, 0, AudioEffectMVerb::Param::SIZE},
+	{"Gain", EditTGFXParameter, 0, AudioEffectMVerb::Param::GAIN},
+	{"Mix", EditTGFXParameter, 0, AudioEffectMVerb::Param::MIX},
+	{"Early Mix", EditTGFXParameter, 0, AudioEffectMVerb::Param::EARLYMIX},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_MidiFX[] =
 {
 	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterMidiFXType},
@@ -336,7 +351,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
-	{0,	7, 1, ToFXType}, // ParameterSendFXType
+	{0,	8, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
@@ -359,7 +374,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	7, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	8, 1, ToFXType}, // TGParameterInsertFXType
 	{0,	1, 1, ToMidiFXType}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
@@ -464,6 +479,21 @@ const CUIMenu::TParameter CUIMenu::s_TGFXReverbParam[AudioEffectPlateReverb::Par
 	{0,	99, 1},	// DIFFUSION
 	{0,	100, 1, ToMix}, // MIX
 	{0,	99, 1},	// LEVEL
+};
+
+// must match AudioEffectPlateReverb::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXMVerbParam[AudioEffectMVerb::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0,	100, 1},	// DAMPINGFREQ
+	{0,	100, 1},	// DENSITY
+	{0,	100, 1},	// BANDWIDTHFREQ
+	{0,	100, 1},	// DECAY
+	{0,	100, 1},	// PREDELAY
+	{0,	100, 1},	// SIZE
+	{0,	100, 1},	// GAIN
+	{0,	100, 1, ToMix}, // MIX
+	{0,	100, 1}, // EARLYMIX
 };
 
 // must match MidiArp::Param
@@ -2905,6 +2935,9 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	case EFFECT_REVERB:
 		menu = s_FXReverb;
 		break;
+	case EFFECT_MVERB:
+		menu = s_FXMVerb;
+		break;
 	case EFFECT_NONE:
 	default:
         menu = s_FXNone;
@@ -2962,6 +2995,9 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 		break;
 	case EFFECT_REVERB:
 		pParam = s_TGFXReverbParam[nParam];
+		break;
+	case EFFECT_MVERB:
+		pParam = s_TGFXMVerbParam[nParam];
 		break;
 	default:
 		break;
