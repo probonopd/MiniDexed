@@ -15,6 +15,7 @@
 #include "effect_talreverb3.h"
 #include "effect_platervbstereo.h"
 #include "effect_mverb.h"
+#include "effect_3bandeq.h"
 
 inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 {
@@ -36,6 +37,8 @@ inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 		return new AudioEffectPlateReverb(samplerate);
 	case EFFECT_MVERB:
 		return new AudioEffectMVerb(samplerate);
+	case EFFECT_3BANDEQ:
+		return new AudioEffect3BandEQ(samplerate);
 	case EFFECT_NONE:
 	default:
 		return new AudioEffectNone(samplerate);
@@ -54,6 +57,7 @@ inline std::string getFXTypeName(int nValue)
 	case EFFECT_TALREVERB3: return "TalRvrb3";
 	case EFFECT_REVERB: return "Reverb";
 	case EFFECT_MVERB: return "MVerb";
+	case EFFECT_3BANDEQ: return "3Band EQ";
 	case EFFECT_NONE:
 	default: return "None";
 	}

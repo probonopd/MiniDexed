@@ -252,6 +252,18 @@ CUIMenu::TMenuItem CUIMenu::s_FXMVerb[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_FX3BandEQ[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::BYPASS},
+	{"Low", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::EQ_LOW},
+	{"Mid", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::EQ_MID},
+	{"High", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::EQ_HIGH},
+	{"Master", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::MASTER},
+	{"Low Mid FQ", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::LOW_MID_FQ},
+	{"Mid High FQ", EditTGFXParameter, 0, AudioEffect3BandEQ::Param::MID_HIGH_FQ},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_MidiFX[] =
 {
 	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterMidiFXType},
@@ -351,7 +363,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
-	{0,	8, 1, ToFXType}, // ParameterSendFXType
+	{0,	9, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
@@ -374,7 +386,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	8, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	9, 1, ToFXType}, // TGParameterInsertFXType
 	{0,	1, 1, ToMidiFXType}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
@@ -481,7 +493,7 @@ const CUIMenu::TParameter CUIMenu::s_TGFXReverbParam[AudioEffectPlateReverb::Par
 	{0,	99, 1},	// LEVEL
 };
 
-// must match AudioEffectPlateReverb::Param
+// must match AudioEffectMVerb::Param
 const CUIMenu::TParameter CUIMenu::s_TGFXMVerbParam[AudioEffectMVerb::Param::UNKNOWN] =
 {
 	{0,	1, 1, ToOnOff}, // BYPASS
@@ -494,6 +506,18 @@ const CUIMenu::TParameter CUIMenu::s_TGFXMVerbParam[AudioEffectMVerb::Param::UNK
 	{0,	100, 1},	// GAIN
 	{0,	100, 1, ToMix}, // MIX
 	{0,	100, 1}, // EARLYMIX
+};
+
+// must match AudioEffect3BandEQ::Param
+const CUIMenu::TParameter CUIMenu::s_TGFX3BandEQParam[AudioEffect3BandEQ::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0, 100, 1},	// LOW
+	{0, 100, 1},	// MID
+	{0, 100, 1},	// HIGH
+	{0, 100, 1},	// MASTER
+	{0, 1000, 10},	// LOW_MID_FQ
+	{1000,	20000, 10},	// MID_HIGH_FQ
 };
 
 // must match MidiArp::Param
@@ -2938,6 +2962,9 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	case EFFECT_MVERB:
 		menu = s_FXMVerb;
 		break;
+	case EFFECT_3BANDEQ:
+		menu = s_FX3BandEQ;
+		break;
 	case EFFECT_NONE:
 	default:
         menu = s_FXNone;
@@ -2998,6 +3025,9 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 		break;
 	case EFFECT_MVERB:
 		pParam = s_TGFXMVerbParam[nParam];
+		break;
+	case EFFECT_3BANDEQ:
+		pParam = s_TGFX3BandEQParam[nParam];
 		break;
 	default:
 		break;

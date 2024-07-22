@@ -183,6 +183,7 @@ private:
 	static TMenuItem s_FXTalReverb3[];
 	static TMenuItem s_FXReverb[];
 	static TMenuItem s_FXMVerb[];
+	static TMenuItem s_FX3BandEQ[];
 
 	static TMenuItem s_MidiFXNone[];
 	static TMenuItem s_MidiFXArp[];
@@ -207,6 +208,7 @@ private:
 	static const TParameter s_TGFXTalReverb3Param[];
 	static const TParameter s_TGFXReverbParam[];
 	static const TParameter s_TGFXMVerbParam[];
+	static const TParameter s_TGFX3BandEQParam[];
 	static const TParameter s_TGMidiFXArpParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
