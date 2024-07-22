@@ -46,7 +46,7 @@
 
 #include <stdint.h>
 #include <arm_math.h>
-#include "common.h"
+#include "../common.h"
 #include "effect_base.h"
 
 /***

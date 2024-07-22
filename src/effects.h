@@ -6,16 +6,16 @@
 #define _EFFECTS_H
 
 #include <string>
-#include "effect_base.h"
-#include "effect_chorus.h"
-#include "effect_delay.h"
-#include "effect_lpf.h"
-#include "effect_ds1.h"
-#include "effect_bigmuff.h" 
-#include "effect_talreverb3.h"
-#include "effect_platervbstereo.h"
-#include "effect_mverb.h"
-#include "effect_3bandeq.h"
+#include "effect_audio/effect_base.h"
+#include "effect_audio/effect_chorus.h"
+#include "effect_audio/effect_delay.h"
+#include "effect_audio/effect_lpf.h"
+#include "effect_audio/effect_ds1.h"
+#include "effect_audio/effect_bigmuff.h" 
+#include "effect_audio/effect_talreverb3.h"
+#include "effect_audio/effect_platervbstereo.h"
+#include "effect_audio/effect_mverb.h"
+#include "effect_audio/effect_3bandeq.h"
 
 inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 {

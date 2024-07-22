@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-#include "dexedadapter.h"
+#include "../dexedadapter.h"
 
 class MidiEffect
 {

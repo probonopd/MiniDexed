@@ -1,8 +1,8 @@
 #ifndef _MIDI_EFFECTS_H
 #define _MIDI_EFFECTS_H
 
-#include "midi_effect_base.h"
-#include "midi_arp.h"
+#include "effect_midi/midi_effect_base.h"
+#include "effect_midi/midi_arp.h"
 
 inline MidiEffect* newMidiEffect(unsigned type, float32_t samplerate, CDexedAdapter* synth)
 {
