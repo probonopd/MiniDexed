@@ -79,6 +79,7 @@ private:
 	};
 
 private:
+	static void MainMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -92,6 +93,12 @@ private:
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
+
+	static void MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMidiFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGMidiFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getMidiFXMenuItem(unsigned type);	
+	static CUIMenu::TParameter getMidiFXParameter(unsigned type, unsigned param);
 
 	static CUIMenu::TMenuItem* getFXMenuItem(unsigned type);	
 	static CUIMenu::TParameter getFXParameter(unsigned type, unsigned param);
@@ -129,7 +136,7 @@ private:
 	static std::string ToFXType (int nValue);
 	static std::string ToMix (int nValue);
 	static std::string ToDelayTime (int nValue);
-	
+		
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
 
@@ -165,6 +172,7 @@ private:
 	static const TMenuItem s_SendFXMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_InsertFX[];
+	static const TMenuItem s_MidiFX[];
 	
 	static TMenuItem s_FXNone[];
 	static TMenuItem s_FXChorus[];
@@ -174,6 +182,11 @@ private:
 	static TMenuItem s_FXBigMuff[];
 	static TMenuItem s_FXTalReverb3[];
 	static TMenuItem s_FXReverb[];
+	static TMenuItem s_FXMVerb[];
+	static TMenuItem s_FX3BandEQ[];
+
+	static TMenuItem s_MidiFXNone[];
+	static TMenuItem s_MidiFXArp[];
 
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
@@ -194,6 +207,9 @@ private:
 	static const TParameter s_TGFXBigMuffParam[];
 	static const TParameter s_TGFXTalReverb3Param[];
 	static const TParameter s_TGFXReverbParam[];
+	static const TParameter s_TGFXMVerbParam[];
+	static const TParameter s_TGFX3BandEQParam[];
+	static const TParameter s_TGMidiFXArpParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 

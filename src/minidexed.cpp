@@ -108,7 +108,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
 		assert (m_pTG[i]);
-		
+		m_MidiArpSpinLock[i] = new CSpinLock();
+		m_MidiArp[i] = new MidiEffect(pConfig->GetSampleRate(), m_pTG[i]);
+
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 		m_pTG[i]->activate ();
 	}
@@ -416,7 +418,13 @@ void CMiniDexed::Run (unsigned nCore)
 			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
 			{
 				assert (m_pTG[nTG]);
+
+				m_MidiArpSpinLock[nTG]->Acquire();
+				m_MidiArp[nTG]->process(m_nFramesToProcess);
+				m_MidiArpSpinLock[nTG]->Release();
+				
 				m_pTG[nTG]->getSamples (m_OutputLevel[nTG][0],m_nFramesToProcess);
+				
 				m_InsertFXSpinLock[nTG]->Acquire();
 				m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
 				m_InsertFXSpinLock[nTG]->Release();
@@ -618,6 +626,24 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+
+	// If the effect type is already set just return
+	if (m_MidiArp[nTG]->getId() == nType) {
+		return;
+	}
+
+	m_MidiArpSpinLock[nTG]->Acquire();
+	delete m_MidiArp[nTG];
+	m_MidiArp[nTG] = newMidiEffect(nType, m_pConfig->GetSampleRate(), m_pTG[nTG]);
+	m_MidiArp[nTG]->setTempo(m_nTempo);
+	m_MidiArpSpinLock[nTG]->Release();
+
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::setSendFXType (unsigned nType)
 {
 	m_SendFXSpinLock.Acquire();
@@ -744,12 +770,23 @@ void CMiniDexed::setTempo(unsigned nValue)
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
 		m_InsertFX[nTG]->setTempo(m_nTempo);
+		m_MidiArp[nTG]->setTempo(m_nTempo);
 	}
 
 	// Update UI
 	m_UI.ParameterChanged();
 }
 
+
+bool CMiniDexed::isPlaying(void)
+{
+	return m_bPlaying;
+}
+
+void CMiniDexed::setPlaying(bool bValue)
+{
+	m_bPlaying = bValue;
+}
 
 void CMiniDexed::handleClock (void)
 {
@@ -783,7 +820,16 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_pTG[nTG]->keyup (pitch);
+		if (m_MidiArp[nTG]->getBypass())
+		{
+			m_pTG[nTG]->keyup(pitch);
+		}
+		else
+		{
+			m_MidiArpSpinLock[nTG]->Acquire();
+			m_MidiArp[nTG]->keyup(pitch);
+			m_MidiArpSpinLock[nTG]->Release();
+		}
 	}
 }
 
@@ -795,7 +841,16 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
-		m_pTG[nTG]->keydown (pitch, velocity);
+		if (m_MidiArp[nTG]->getBypass())
+		{
+			m_pTG[nTG]->keydown (pitch, velocity);
+		}
+		else
+		{
+			m_MidiArpSpinLock[nTG]->Acquire();
+			m_MidiArp[nTG]->keydown(pitch, velocity);
+			m_MidiArpSpinLock[nTG]->Release();
+		}
 	}
 }
 
@@ -971,6 +1026,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		break;
 
 	case ParameterTempo:
+		nValue=constrain((int)nValue,30,250);
 		this->setTempo(nValue);
 		break;
 
@@ -1046,7 +1102,8 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 	case TGParameterInsertFXType: setInsertFXType(nValue, nTG); break;
-
+	case TGParameterMidiFXType: setMidiFXType(nValue, nTG); break;
+	
 	default:
 		assert (0);
 		break;
@@ -1071,6 +1128,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterReverbSend:	return m_nReverbSend[nTG];
 	case TGParameterInsertFXType:	return m_InsertFX[nTG]->getId();
+	case TGParameterMidiFXType:	return m_MidiArp[nTG]->getId();
 	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
 	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];
@@ -1102,6 +1160,20 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 		assert (0);
 		return 0;
 	}
+}
+
+void CMiniDexed::SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_MidiArp[nTG]->getId() == nFXType);
+
+	m_MidiArp[nTG]->setParameter(Parameter, nValue);
+}
+
+int CMiniDexed::GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
+	assert (nTG < CConfig::ToneGenerators);
+	assert (m_MidiArp[nTG]->getId() == nFXType);
+
+	return m_MidiArp[nTG]->getParameter(Parameter);
 }
 
 void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
@@ -1214,11 +1286,16 @@ void CMiniDexed::ProcessSound (void)
 		}
 
 		float32_t SampleBuffer[2][nFrames];
+
+		m_MidiArpSpinLock[0]->Acquire();
+		m_MidiArp[0]->process(nFrames);
+		m_MidiArpSpinLock[0]->Release();
+		
 		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
+		
 		m_InsertFXSpinLock[0]->Acquire();
 		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
 		m_InsertFXSpinLock[0]->Release();
-
 
 		// Convert dual float array (left, right) to single int16 array (left/right)
 		float32_t tmp_float[nFrames*2];
@@ -1271,7 +1348,13 @@ void CMiniDexed::ProcessSound (void)
 		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
 		{
 			assert (m_pTG[i]);
+			
+			m_MidiArpSpinLock[i]->Acquire();
+			m_MidiArp[i]->process(nFrames);
+			m_MidiArpSpinLock[i]->Release();
+
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
+			
 			m_InsertFXSpinLock[i]->Acquire();
 			m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
 			m_InsertFXSpinLock[i]->Release();
@@ -1438,6 +1521,12 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetInsertFXParams (pParams, nTG);
 		pParams.clear();
 		pParams.shrink_to_fit();
+
+		m_PerformanceConfig.SetMidiFX (m_MidiArp[nTG]->getId(), nTG);
+		std::vector<unsigned> pMidiFXParams = m_MidiArp[nTG]->getParameters();
+		m_PerformanceConfig.SetMidiFXParams (pMidiFXParams, nTG);
+		pMidiFXParams.clear();
+		pMidiFXParams.shrink_to_fit();
 				
 		m_PerformanceConfig.SetDetune (m_nMasterTune[nTG], nTG);
 		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
@@ -1483,6 +1572,8 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
+
+	m_PerformanceConfig.SetTempo (m_nTempo);
 
 	if(m_bSaveAsDeault)
 	{
@@ -1895,6 +1986,12 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_InsertFX[nTG]->setParameters(pParams);
 			pParams.clear();
 			pParams.shrink_to_fit();
+
+			setMidiFXType(m_PerformanceConfig.GetMidiFX (nTG), nTG);
+			std::vector<unsigned> pMidiFXParams = m_PerformanceConfig.GetMidiFXParams(nTG);
+			m_MidiArp[nTG]->setParameters(pMidiFXParams);
+			pMidiFXParams.clear();
+			pMidiFXParams.shrink_to_fit();
 			
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
@@ -1937,6 +2034,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+		SetParameter (ParameterTempo, m_PerformanceConfig.GetTempo ());
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	

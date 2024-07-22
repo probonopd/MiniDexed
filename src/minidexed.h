@@ -45,6 +45,7 @@
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
 #include "effects.h"
+#include "midi_effects.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -85,6 +86,9 @@ public:
 	void setTempo(unsigned nValue);
 	void handleClock(void);
 
+	bool isPlaying(void);
+	void setPlaying(bool bValue);
+
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
@@ -100,6 +104,7 @@ public:
 	void setAftertouch (uint8_t value, unsigned nTG);
 
 	void setInsertFXType (unsigned nType, unsigned nTG);
+	void setMidiFXType (unsigned nType, unsigned nTG);
 	void setSendFXType (unsigned nType);
 	void setSendFXLevel (unsigned nValue);
 	
@@ -191,6 +196,7 @@ public:
 		TGParameterVolume,
 		TGParameterPan,
 		TGParameterInsertFXType,
+		TGParameterMidiFXType,
 		TGParameterMasterTune,
 		TGParameterCutoff,
 		TGParameterResonance,
@@ -228,6 +234,9 @@ public:
 
 	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
 	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
+
+	void SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
+	int GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
 
 	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
 	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
@@ -302,6 +311,7 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
 	int m_nNoteShift[CConfig::ToneGenerators];
 
+	MidiEffect* m_MidiArp[CConfig::ToneGenerators];
 	AudioEffect* m_InsertFX[CConfig::ToneGenerators];
 	unsigned m_nReverbSend[CConfig::ToneGenerators];
   
@@ -339,6 +349,7 @@ private:
 	AudioEffect* m_SendFX = NULL;
 	float32_t m_SendFXLevel = 1.0f;
 	
+	CSpinLock* m_MidiArpSpinLock[CConfig::ToneGenerators];
 	CSpinLock* m_InsertFXSpinLock[CConfig::ToneGenerators];
 	CSpinLock m_SendFXSpinLock;
 	CSpinLock m_ReverbSpinLock;
@@ -359,6 +370,7 @@ private:
 	unsigned m_nClockCounter;
 	unsigned long m_mClockTime;
 	unsigned m_nTempo; // Tempo in BPM
+	bool m_bPlaying = false;
 };
 
 #endif

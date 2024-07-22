@@ -1,7 +1,8 @@
 /* 
  * Tal Reverb 3 Port
  * Ported from https://github.com/DISTRHO/DISTRHO-Ports/tree/master/ports-juce5/tal-reverb-3
- *  
+ * Original https://tal-software.com/
+ * 
  * Javier Nonis (https://github.com/jnonis) - 2024
  */
 #include <circle/logger.h>
