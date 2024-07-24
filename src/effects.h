@@ -16,6 +16,8 @@
 #include "effect_audio/effect_platervbstereo.h"
 #include "effect_audio/effect_mverb.h"
 #include "effect_audio/effect_3bandeq.h"
+#include "effect_audio/effect_phaser.h"
+#include "effect_audio/effect_aphaser.h"
 
 inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 {
@@ -39,6 +41,10 @@ inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 		return new AudioEffectMVerb(samplerate);
 	case EFFECT_3BANDEQ:
 		return new AudioEffect3BandEQ(samplerate);
+	case EFFECT_PHASER:
+		return new AudioEffectPhaser(samplerate);
+	case EFFECT_APHASER:
+		return new AudioEffectAPhaser(samplerate);
 	case EFFECT_NONE:
 	default:
 		return new AudioEffectNone(samplerate);
@@ -58,6 +64,8 @@ inline std::string getFXTypeName(int nValue)
 	case EFFECT_REVERB: return "Reverb";
 	case EFFECT_MVERB: return "MVerb";
 	case EFFECT_3BANDEQ: return "3Band EQ";
+	case EFFECT_PHASER: return "Phaser";
+	case EFFECT_APHASER: return "A Phaser";
 	case EFFECT_NONE:
 	default: return "None";
 	}

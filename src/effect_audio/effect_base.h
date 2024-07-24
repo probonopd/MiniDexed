@@ -18,6 +18,8 @@
 #define EFFECT_REVERB 7
 #define EFFECT_MVERB 8
 #define EFFECT_3BANDEQ 9
+#define EFFECT_PHASER 10
+#define EFFECT_APHASER 11
 
 class AudioEffect
 {

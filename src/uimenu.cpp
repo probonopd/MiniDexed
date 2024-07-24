@@ -264,6 +264,42 @@ CUIMenu::TMenuItem CUIMenu::s_FX3BandEQ[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_FXPhaser[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectPhaser::Param::BYPASS},
+	{"Mix", EditTGFXParameter, 0, AudioEffectPhaser::Param::WETDRY},
+	{"Pan", EditTGFXParameter, 0, AudioEffectPhaser::Param::PAN},
+	{"Freq", EditTGFXParameter, 0, AudioEffectPhaser::Param::PH_FREQ},
+	{"Random", EditTGFXParameter, 0, AudioEffectPhaser::Param::PH_RND},
+	{"Type", EditTGFXParameter, 0, AudioEffectPhaser::Param::TYPE},
+	{"Stereo", EditTGFXParameter, 0, AudioEffectPhaser::Param::STDL},
+	{"Depth", EditTGFXParameter, 0, AudioEffectPhaser::Param::PH_DEPTH},
+	{"Feedback", EditTGFXParameter, 0, AudioEffectPhaser::Param::FB},
+	{"Stages", EditTGFXParameter, 0, AudioEffectPhaser::Param::STAGES},
+	{"L/R Cross", EditTGFXParameter, 0, AudioEffectPhaser::Param::LRCR},
+	{"Sub", EditTGFXParameter, 0, AudioEffectPhaser::Param::SUB},
+	{"Phase", EditTGFXParameter, 0, AudioEffectPhaser::Param::PHASE},
+	{0}
+};
+
+CUIMenu::TMenuItem CUIMenu::s_FXAPhaser[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectAPhaser::Param::BYPASS},
+	{"Mix", EditTGFXParameter, 0, AudioEffectAPhaser::Param::WETDRY},
+	{"Pan", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PAN},
+	{"Freq", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_FREQ},
+	{"Random", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_RND},
+	{"Type", EditTGFXParameter, 0, AudioEffectAPhaser::Param::TYPE},
+	{"Stereo", EditTGFXParameter, 0, AudioEffectAPhaser::Param::STDL},
+	{"Depth", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_DEPTH},
+	{"Feedback", EditTGFXParameter, 0, AudioEffectAPhaser::Param::FB},
+	{"Stages", EditTGFXParameter, 0, AudioEffectAPhaser::Param::STAGES},
+	{"L/R Cross", EditTGFXParameter, 0, AudioEffectAPhaser::Param::LRCR},
+	{"Sub", EditTGFXParameter, 0, AudioEffectAPhaser::Param::SUB},
+	{"Phase", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PHASE},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_MidiFX[] =
 {
 	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterMidiFXType},
@@ -363,7 +399,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
-	{0,	9, 1, ToFXType}, // ParameterSendFXType
+	{0,	11, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
@@ -386,7 +422,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	9, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	11, 1, ToFXType}, // TGParameterInsertFXType
 	{0,	1, 1, ToMidiFXType}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
@@ -518,6 +554,42 @@ const CUIMenu::TParameter CUIMenu::s_TGFX3BandEQParam[AudioEffect3BandEQ::Param:
 	{0, 100, 1},	// MASTER
 	{0, 1000, 10},	// LOW_MID_FQ
 	{1000,	20000, 10},	// MID_HIGH_FQ
+};
+
+// must match AudioEffectPhaser::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXPhaserParam[AudioEffectPhaser::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0, 127, 1}, // WETDRY
+	{0, 127, 1}, // PAN
+	{1, 600, 1}, // PH_FREQ
+	{0, 127, 1}, // PH_RND
+	{0, 11, 1},	// TYPE
+	{0,	127, 1}, // STDL
+	{0,	127, 1}, // PH_DEPTH
+	{0,	127, 1}, // FB
+	{0,	12, 1}, // STAGES
+	{0,	127, 1}, // LRCR
+	{0,	1, 1, ToOnOff}, // SUB
+	{0,	127, 1}, // PHASE
+};
+
+// must match AudioEffectAPhaser::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXAPhaserParam[AudioEffectPhaser::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0, 127, 1}, // WETDRY
+	{0, 127, 1}, // PAN
+	{1, 600, 1}, // PH_FREQ
+	{0, 127, 1}, // PH_RND
+	{0, 11, 1},	// TYPE
+	{0,	127, 1}, // STDL
+	{0,	127, 1}, // PH_DEPTH
+	{0,	127, 1}, // FB
+	{0,	12, 1}, // STAGES
+	{0,	127, 1}, // LRCR
+	{0,	1, 1, ToOnOff}, // SUB
+	{0,	127, 1}, // PHASE
 };
 
 // must match MidiArp::Param
@@ -2965,6 +3037,12 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	case EFFECT_3BANDEQ:
 		menu = s_FX3BandEQ;
 		break;
+	case EFFECT_PHASER:
+		menu = s_FXPhaser;
+		break;
+	case EFFECT_APHASER:
+		menu = s_FXAPhaser;
+		break;
 	case EFFECT_NONE:
 	default:
         menu = s_FXNone;
@@ -3028,6 +3106,12 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 		break;
 	case EFFECT_3BANDEQ:
 		pParam = s_TGFX3BandEQParam[nParam];
+		break;
+	case EFFECT_PHASER:
+		pParam = s_TGFXPhaserParam[nParam];
+		break;
+	case EFFECT_APHASER:
+		pParam = s_TGFXAPhaserParam[nParam];
 		break;
 	default:
 		break;
