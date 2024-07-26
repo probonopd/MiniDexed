@@ -63,6 +63,11 @@ public:
         return EFFECT_PHASER;
     }
 
+    virtual void initializeSendFX()
+    {
+        this->setParameter(AudioEffectPhaser::Param::WETDRY, 127);
+    }
+
     virtual void setParameter(unsigned param, unsigned value)
     {
         switch (param)

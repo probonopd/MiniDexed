@@ -63,6 +63,11 @@ public:
         return EFFECT_APHASER;
     }
 
+    virtual void initializeSendFX()
+    {
+        this->setParameter(AudioEffectAPhaser::Param::WETDRY, 127);
+    }
+
     virtual void setParameter(unsigned param, unsigned value)
     {
         switch (param)
