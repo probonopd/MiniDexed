@@ -69,7 +69,12 @@ AudioEffectDS1::~AudioEffectDS1()
 
 unsigned AudioEffectDS1::getId()
 {
-    return EFFECT_DS1;
+    return AudioEffectDS1::ID;
+}
+
+std::string AudioEffectDS1::getName()
+{
+    return AudioEffectDS1::NAME;
 }
 
 void AudioEffectDS1::setParameter(unsigned param, unsigned value)

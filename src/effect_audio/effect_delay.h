@@ -15,6 +15,9 @@
 class AudioEffectDelay : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 2;
+    static constexpr const char* NAME = "Delay";
     static const unsigned MAX_DELAY_TIME = 1;
 
     enum Param
@@ -53,6 +56,7 @@ public:
     virtual ~AudioEffectDelay();
 
     virtual unsigned getId();
+    virtual std::string getName();
 
     virtual void initializeSendFX();
     virtual void setTempo(unsigned tempo);

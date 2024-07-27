@@ -4,11 +4,23 @@
 #include "effect_midi/midi_effect_base.h"
 #include "effect_midi/midi_arp.h"
 
+class MidiEffects
+{
+public:
+	enum Types
+	{
+		NONE = MidiEffect::ID,
+		ARP = MidiArp::ID,
+		UNKNOWN
+	};
+};
+
+
 inline MidiEffect* newMidiEffect(unsigned type, float32_t samplerate, CDexedAdapter* synth)
 {
     switch (type)
 	{
-	case MidiArp::ID:
+	case MidiEffects::Types::ARP:
 		return new MidiArp(samplerate, synth);
 	default:
 		return new MidiEffect(samplerate, synth);
@@ -19,9 +31,9 @@ inline std::string getMidiFXTypeName(int type)
 {
 	switch (type)
 	{
-	case MidiArp::ID:
+	case MidiEffects::Types::ARP:
         return MidiArp::NAME;
-	case MidiEffect::ID:
+	case MidiEffects::Types::NONE:
 	default:
         return MidiEffect::NAME;
 	}

@@ -13,6 +13,10 @@
 class AudioEffectBigMuff : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 5;
+    static constexpr const char* NAME = "Big Muff";
+
     static const unsigned TAMANHO_DO_BUFFER = 256;
     static constexpr float32_t INPUT_GAIN  = 1;
     static constexpr float32_t OUTPUT_GAIN = 1;
@@ -30,6 +34,7 @@ public:
     virtual ~AudioEffectBigMuff();
 
     virtual unsigned getId();
+    virtual std::string getName();
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);
 protected:

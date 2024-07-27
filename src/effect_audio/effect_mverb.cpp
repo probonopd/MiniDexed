@@ -105,11 +105,11 @@ unsigned AudioEffectMVerb::getParameter(unsigned param)
 
 void AudioEffectMVerb::doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
 {
-    const float32_t* inputs[2];
+    const float* inputs[2];
     inputs[0] = inblockL;
     inputs[1] = inblockR;
 
-    float32_t* outputs[2];
+    float* outputs[2];
     outputs[0] = outblockL;
     outputs[1] = outblockR;
 

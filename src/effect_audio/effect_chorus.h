@@ -13,6 +13,10 @@
 class AudioEffectChorus : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 1;
+    static constexpr const char* NAME = "YKChorus";
+
     enum Param
     {
         BYPASS,
@@ -27,6 +31,7 @@ public:
     virtual ~AudioEffectChorus();
 
     virtual unsigned getId();
+    virtual std::string getName();
 
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);

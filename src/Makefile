@@ -10,7 +10,6 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        mididevice.o midikeyboard.o serialmididevice.o pckeyboard.o \
        sysexfileloader.o performanceconfig.o perftimer.o \
        uibuttons.o midipin.o effect_compressor.o \
-       effect_audio/effect_base.o \
        effect_audio/effect_chorus.o \
        effect_audio/effect_delay.o \
        effect_audio/effect_platervbstereo.o \

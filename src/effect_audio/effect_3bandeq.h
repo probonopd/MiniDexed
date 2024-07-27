@@ -13,6 +13,10 @@
 class AudioEffect3BandEQ : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 9;
+    static constexpr const char* NAME = "3Band EQ";
+
     static constexpr float kAMP_DB = 8.656170245f;
     static constexpr float kDC_ADD = 1e-30f;
     static constexpr float kPI     = 3.141592654f;
@@ -64,7 +68,12 @@ public:
 
     virtual unsigned getId()
     {
-        return EFFECT_3BANDEQ;
+        return AudioEffect3BandEQ::ID;
+    }
+
+    virtual std::string getName()
+    {
+        return AudioEffect3BandEQ::NAME;
     }
 
     virtual void setParameter(unsigned param, unsigned value)

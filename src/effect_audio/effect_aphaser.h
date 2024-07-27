@@ -13,6 +13,10 @@
 class AudioEffectAPhaser : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 11;
+    static constexpr const char* NAME = "A Phaser";
+
     enum Param
     {
         BYPASS,
@@ -60,7 +64,12 @@ public:
 
     virtual unsigned getId()
     {
-        return EFFECT_APHASER;
+        return AudioEffectAPhaser::ID;
+    }
+
+    virtual std::string getName()
+    {
+        return AudioEffectAPhaser::NAME;
     }
 
     virtual void initializeSendFX()

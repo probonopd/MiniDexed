@@ -102,7 +102,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 #endif
 		
 		m_InsertFXSpinLock[i] = new CSpinLock();
-		m_InsertFX[i] = new AudioEffectNone(pConfig->GetSampleRate ());
+		m_InsertFX[i] = new AudioEffect(pConfig->GetSampleRate ());
 		m_nReverbSend[i] = 0;
 		m_uchOPMask[i] = 0b111111;	// All operators on
 
@@ -181,7 +181,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// END setup tgmixer
 
 	// BEGIN setup reverb
-	SetParameter (ParameterSendFXType, EFFECT_REVERB);
+	SetParameter (ParameterSendFXType, AudioEffectPlateReverb::ID);
 	reverb_send_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
@@ -626,6 +626,12 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+std::string CMiniDexed::getInsertFXName (unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_InsertFX[nTG]->getName();
+}
+
 void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
@@ -644,6 +650,12 @@ void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
+std::string CMiniDexed::getMidiFXName (unsigned nTG)
+{
+	assert (nTG < CConfig::ToneGenerators);
+	return m_MidiArp[nTG]->getName();
+}
+
 void CMiniDexed::setSendFXType (unsigned nType)
 {
 	m_SendFXSpinLock.Acquire();
@@ -657,6 +669,11 @@ void CMiniDexed::setSendFXType (unsigned nType)
 	m_SendFXSpinLock.Release();
 
 	m_UI.ParameterChanged ();
+}
+
+std::string CMiniDexed::getSendFXName ()
+{
+	return m_SendFX->getName();
 }
 
 void CMiniDexed::setSendFXLevel (unsigned nValue)

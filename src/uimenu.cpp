@@ -399,7 +399,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
-	{0,	11, 1, ToFXType}, // ParameterSendFXType
+	{0,	AudioEffects::Types::UNKNOWN - 1, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
@@ -422,8 +422,8 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	CSysExFileLoader::VoicesPerBank-1,	1},			// TGParameterProgram
 	{0,	127,					8, ToVolume},		// TGParameterVolume
 	{0,	127,					8, ToPan},		// TGParameterPan
-	{0,	11, 1, ToFXType}, // TGParameterInsertFXType
-	{0,	1, 1, ToMidiFXType}, // TGParameterMidiFXType
+	{0,	AudioEffects::Types::UNKNOWN - 1, 1, ToFXType}, // TGParameterInsertFXType
+	{0,	MidiEffects::Types::UNKNOWN - 1, 1, ToMidiFXType}, // TGParameterMidiFXType
 	{-99,	99,					1},			// TGParameterMasterTune
 	{0,	99,					1},			// TGParameterCutoff
 	{0,	99,					1},			// TGParameterResonance
@@ -1065,13 +1065,13 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		string TG ("TG");
 		TG += to_string (nTG+1);
 
-		// Get current FX type
-		int fxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterInsertFXType, nTG);
+		// Get current FX Name
+		std::string fxName = pUIMenu->m_pMiniDexed->getInsertFXName(nTG);
 
 		// Create Paramter with type label
 		std::string value;
 		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		value.append(getFXTypeName(fxType));
+		value.append(fxName);
 
 		pUIMenu->m_pUI->DisplayWrite (
 			TG.c_str (),
@@ -1146,15 +1146,15 @@ void CUIMenu::MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Get current FX type
-		int fxType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterSendFXType);
+		// Get current FX Name
+		std::string fxName = pUIMenu->m_pMiniDexed->getSendFXName();
 
 		// Create Paramter with type label
 		std::string value;
 		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
 		if (pUIMenu->m_nCurrentSelection < 2)
 		{
-			value.append(getFXTypeName(fxType));
+			value.append(fxName);
 		}
 
 		pUIMenu->m_pUI->DisplayWrite (
@@ -1638,10 +1638,12 @@ void CUIMenu::EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		string TG ("TG");
 		TG += to_string (nTG+1);
+
+		string fxName = pUIMenu->m_pMiniDexed->getInsertFXName(nTG);
 		
 		pUIMenu->m_pUI->DisplayWrite (
 			TG.c_str (),
-			getFXTypeName(nFXType).c_str(),
+			fxName.c_str(),
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
 			pUIMenu->m_nCurrentSelection > 0,
 			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
@@ -1776,8 +1778,10 @@ void CUIMenu::EditSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
+		string fxName = pUIMenu->m_pMiniDexed->getSendFXName();
+
 		pUIMenu->m_pUI->DisplayWrite (
-			getFXTypeName(nFXType).c_str(),
+			fxName.c_str(),
 			"",
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
 			pUIMenu->m_nCurrentSelection > 0,
@@ -2242,65 +2246,6 @@ string CUIMenu::ToPolyMono (int nValue)
 	case 0:		return "Poly";
 	case 1:		return "Mono";
 	default:	return to_string (nValue);
-	}
-}
-
-string CUIMenu::ToFXType (int nValue)
-{
-	return getFXTypeName(nValue);
-}
-
-string CUIMenu::ToMix (int nValue)
-{
-	switch (nValue)
-	{
-	case 0:
-		return "Dry";
-	case 100:
-		return "Wet";
-	default:
-		return to_string (nValue);
-	}
-}
-
-string CUIMenu::ToDelayTime (int nValue)
-{
-	if (nValue < (int) (AudioEffectDelay::MAX_DELAY_TIME * 1000)) {
-		return to_string (nValue);
-	}
-	switch (nValue - AudioEffectDelay::MAX_DELAY_TIME * 1000)
-	{
-	case AudioEffectDelay::SyncTime::T_1_32:
-		return "1/32";
-	case AudioEffectDelay::SyncTime::T_1_24:
-		return "1/24";
-	case AudioEffectDelay::SyncTime::T_1_16:
-		return "1/16";
-	case AudioEffectDelay::SyncTime::T_1_12:
-		return "1/12";
-	case AudioEffectDelay::SyncTime::T_3_32:
-		return "3/32";
-	case AudioEffectDelay::SyncTime::T_1_8:
-		return "1/8";
-	case AudioEffectDelay::SyncTime::T_1_6:
-		return "1/6";
-	case AudioEffectDelay::SyncTime::T_3_16:
-		return "3/16";
-	case AudioEffectDelay::SyncTime::T_1_4:
-		return "1/4";
-	case AudioEffectDelay::SyncTime::T_1_3:
-		return "1/3";
-	case AudioEffectDelay::SyncTime::T_3_8:
-		return "3/8";
-	case AudioEffectDelay::SyncTime::T_1_2:
-		return "1/2";
-	case AudioEffectDelay::SyncTime::T_2_3:
-		return "2/3";
-	case AudioEffectDelay::SyncTime::T_3_4:
-		return "3/4";
-	case AudioEffectDelay::SyncTime::T_1_1:
-	default:
-		return "1/1";
 	}
 }
 
@@ -3010,40 +2955,40 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	CUIMenu::TMenuItem* menu;
 	switch (type)
 	{
-	case EFFECT_CHORUS:
+	case AudioEffects::Types::CHORUS:
 		menu = s_FXChorus;
 		break;
-	case EFFECT_DELAY:
+	case AudioEffects::Types::DELAY:
 		menu = s_FXDelay;
 		break;
-	case EFFECT_LPF:
+	case AudioEffects::Types::LPF:
 		menu = s_FXLPFilter;
 		break;
-	case EFFECT_DS1:
+	case AudioEffects::Types::DS1:
 		menu = s_FXDS1;
 		break;
-	case EFFECT_BIGMUFF:
+	case AudioEffects::Types::BIGMUFF:
 		menu = s_FXBigMuff;
 		break;
-	case EFFECT_TALREVERB3:
+	case AudioEffects::Types::TALREVERB3:
 		menu = s_FXTalReverb3;
 		break;
-	case EFFECT_REVERB:
+	case AudioEffects::Types::REVERB:
 		menu = s_FXReverb;
 		break;
-	case EFFECT_MVERB:
+	case AudioEffects::Types::MVERB:
 		menu = s_FXMVerb;
 		break;
-	case EFFECT_3BANDEQ:
+	case AudioEffects::Types::EQ3BAND:
 		menu = s_FX3BandEQ;
 		break;
-	case EFFECT_PHASER:
+	case AudioEffects::Types::PHASER:
 		menu = s_FXPhaser;
 		break;
-	case EFFECT_APHASER:
+	case AudioEffects::Types::APHASER:
 		menu = s_FXAPhaser;
 		break;
-	case EFFECT_NONE:
+	case AudioEffects::Types::NONE:
 	default:
         menu = s_FXNone;
 		break;
@@ -3080,37 +3025,37 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 	TParameter pParam;
 	switch (type)
 	{
-	case EFFECT_CHORUS:
+	case AudioEffects::Types::CHORUS:
 		pParam = s_TGFXChorusParam[nParam];
 		break;
-	case EFFECT_DELAY:
+	case AudioEffects::Types::DELAY:
 		pParam = s_TGFXDelayParam[nParam];
 		break;
-	case EFFECT_LPF:
+	case AudioEffects::Types::LPF:
 		pParam = s_TGFXLPFParam[nParam];
 		break;
-	case EFFECT_DS1:
+	case AudioEffects::Types::DS1:
 		pParam = s_TGFXDS1Param[nParam];
 		break;
-	case EFFECT_BIGMUFF:
+	case AudioEffects::Types::BIGMUFF:
 		pParam = s_TGFXBigMuffParam[nParam];
 		break;
-	case EFFECT_TALREVERB3:
+	case AudioEffects::Types::TALREVERB3:
 		pParam = s_TGFXTalReverb3Param[nParam];
 		break;
-	case EFFECT_REVERB:
+	case AudioEffects::Types::REVERB:
 		pParam = s_TGFXReverbParam[nParam];
 		break;
-	case EFFECT_MVERB:
+	case AudioEffects::Types::MVERB:
 		pParam = s_TGFXMVerbParam[nParam];
 		break;
-	case EFFECT_3BANDEQ:
+	case AudioEffects::Types::EQ3BAND:
 		pParam = s_TGFX3BandEQParam[nParam];
 		break;
-	case EFFECT_PHASER:
+	case AudioEffects::Types::PHASER:
 		pParam = s_TGFXPhaserParam[nParam];
 		break;
-	case EFFECT_APHASER:
+	case AudioEffects::Types::APHASER:
 		pParam = s_TGFXAPhaserParam[nParam];
 		break;
 	default:
@@ -3124,10 +3069,10 @@ CUIMenu::TMenuItem* CUIMenu::getMidiFXMenuItem(unsigned type)
 	CUIMenu::TMenuItem* menu;
 	switch (type)
 	{
-	case MidiArp::ID:
+	case MidiEffects::Types::ARP:
 		menu = s_MidiFXArp;
 		break;
-	case MidiEffect::ID:
+	case MidiEffects::Types::NONE:
 	default:
         menu = s_MidiFXNone;
 		break;
@@ -3140,7 +3085,7 @@ CUIMenu::TParameter CUIMenu::getMidiFXParameter(unsigned type, unsigned nParam)
 	TParameter pParam;
 	switch (type)
 	{
-	case MidiArp::ID:
+	case MidiEffects::Types::ARP:
 		pParam = s_TGMidiFXArpParam[nParam];
 	default:
 		break;

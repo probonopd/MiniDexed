@@ -13,6 +13,9 @@
 class AudioEffectDS1 : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 4;
+    static constexpr const char* NAME = "DS1";
     static const unsigned TAMANHO_DO_BUFFER = 256;
     static constexpr float32_t INPUT_GAIN  = 1;
     static constexpr float32_t OUTPUT_GAIN = 1;
@@ -30,6 +33,7 @@ public:
     virtual ~AudioEffectDS1();
 
     virtual unsigned getId();
+    virtual std::string getName();
     virtual void setParameter(unsigned param, unsigned value);
     virtual unsigned getParameter(unsigned param);
 protected:

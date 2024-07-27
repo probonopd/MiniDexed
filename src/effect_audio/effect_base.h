@@ -7,30 +7,43 @@
 
 #include <arm_math.h>
 #include <vector>
-
-#define EFFECT_NONE 0
-#define EFFECT_CHORUS 1
-#define EFFECT_DELAY 2
-#define EFFECT_LPF 3
-#define EFFECT_DS1 4
-#define EFFECT_BIGMUFF 5
-#define EFFECT_TALREVERB3 6
-#define EFFECT_REVERB 7
-#define EFFECT_MVERB 8
-#define EFFECT_3BANDEQ 9
-#define EFFECT_PHASER 10
-#define EFFECT_APHASER 11
+#include <string>
 
 class AudioEffect
 {
 public:
-    AudioEffect(float32_t samplerate);
-    virtual ~AudioEffect();
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 0;
+    static constexpr const char* NAME = "None";
 
-    void setBypass(bool bypass);
-    bool getBypass();
+    AudioEffect(float32_t samplerate)
+    {
+    this->samplerate = samplerate;
+    }
 
-    virtual unsigned getId();
+    virtual ~AudioEffect()
+    {
+    }
+
+    void setBypass(bool bypass)
+    {
+        this->bypass = bypass;
+    }
+
+    bool getBypass()
+    {
+        return this->getId() == AudioEffect::ID ? true : this->bypass;
+    }
+
+    virtual unsigned getId()
+    {
+        return AudioEffect::ID;
+    }
+
+    virtual std::string getName()
+    {
+        return AudioEffect::NAME;
+    }
     
     /**
      * Set default parameters for the FX when is used as Send FX.
@@ -55,10 +68,49 @@ public:
         return 0;
     }
 
-    void setParameters(std::vector<unsigned> params);
-    std::vector<unsigned> getParameters();
-    void process(const float32_t* inblockL, float32_t* outblockL, uint16_t len);
-    void process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
+    void setParameters(std::vector<unsigned> params)
+    {
+        for (size_t i = 0; i < params.size(); i++)
+        {
+            this->setParameter(i, params[i]);
+        }
+    }
+
+    std::vector<unsigned> getParameters()
+    {
+        size_t len = this->getParametersSize();
+        std::vector<unsigned> params;
+        for (size_t i = 0; i < len; i++)
+        {
+            params.push_back(getParameter(i));
+        }
+        return params;
+    }
+
+    void process(const float32_t* inblock, float32_t* outblock, uint16_t len)
+    {
+        // Mono process
+        // Dummy buffer for right channel
+        float32_t dummyBuffer[len];
+        memset(dummyBuffer, 0, len * sizeof(float32_t));
+        process(inblock, dummyBuffer, outblock, dummyBuffer, len);
+    }
+
+    void process(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
+    {
+        if (this->getBypass()) {
+            if (inblockL != outblockL)
+            {
+                memcpy(outblockL, inblockL, len * sizeof(float32_t));
+            }
+            if (inblockR != outblockR) {
+                memcpy(outblockR, inblockR, len * sizeof(float32_t));
+            }
+            return;
+        }
+        doProcess(inblockL, inblockR, outblockL, outblockR, len);
+    }
+
 protected:
     bool bypass = false;
     float32_t samplerate;
@@ -67,18 +119,10 @@ protected:
     {
         return 0;
     }
-    virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
-};
 
-class AudioEffectNone : public AudioEffect
-{
-public:
-    AudioEffectNone(float32_t samplerate);
-    virtual ~AudioEffectNone();
-
-    virtual unsigned getId();
-protected:
-    virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len);
+    virtual void doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
+    {
+    }
 };
 
 #endif // _EFFECT_BASE_H

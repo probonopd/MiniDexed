@@ -14,6 +14,10 @@
 class AudioEffectTalReverb3 : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 6;
+    static constexpr const char* NAME = "TalRvrb3";
+
     enum Param
     {
         BYPASS,
@@ -34,7 +38,12 @@ public:
 
     virtual unsigned getId()
     {
-        return EFFECT_TALREVERB3;
+        return AudioEffectTalReverb3::ID;
+    }
+
+    virtual std::string getName()
+    {
+        return AudioEffectTalReverb3::NAME;
     }
 
     virtual void initializeSendFX();

@@ -103,8 +103,11 @@ public:
 	void setAftertouch (uint8_t value, unsigned nTG);
 
 	void setInsertFXType (unsigned nType, unsigned nTG);
+	std::string getInsertFXName (unsigned nTG);
 	void setMidiFXType (unsigned nType, unsigned nTG);
+	std::string getMidiFXName (unsigned nTG);
 	void setSendFXType (unsigned nType);
+	std::string getSendFXName ();
 	void setSendFXLevel (unsigned nValue);
 	
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127

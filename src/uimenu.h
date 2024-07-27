@@ -133,10 +133,7 @@ private:
 	static std::string ToPortaMode (int nValue);  
 	static std::string ToPortaGlissando (int nValue);   
 	static std::string ToPolyMono (int nValue);
-	static std::string ToFXType (int nValue);
-	static std::string ToMix (int nValue);
-	static std::string ToDelayTime (int nValue);
-		
+			
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
 

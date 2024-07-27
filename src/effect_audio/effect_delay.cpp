@@ -37,7 +37,12 @@ AudioEffectDelay::~AudioEffectDelay()
 
 unsigned AudioEffectDelay::getId()
 {
-    return EFFECT_DELAY;
+    return AudioEffectDelay::ID;
+}
+
+std::string AudioEffectDelay::getName()
+{
+    return AudioEffectDelay::NAME;
 }
 
 void AudioEffectDelay::initializeSendFX()

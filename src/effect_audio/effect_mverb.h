@@ -14,6 +14,10 @@
 class AudioEffectMVerb : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 8;
+    static constexpr const char* NAME = "MVerb";
+
     enum Param
     {
         BYPASS,
@@ -34,7 +38,12 @@ public:
 
     virtual unsigned getId()
     {
-        return EFFECT_MVERB;
+        return AudioEffectMVerb::ID;
+    }
+    
+    virtual std::string getName()
+    {
+        return AudioEffectMVerb::NAME;
     }
 
     virtual void initializeSendFX();

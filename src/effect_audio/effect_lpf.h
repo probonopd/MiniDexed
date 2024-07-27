@@ -10,6 +10,9 @@
 class AudioEffectLPF : public AudioEffect
 {
 public:
+    // ID must be unique for each AudioEffect
+    static const unsigned ID = 3;
+    static constexpr const char* NAME = "LP Filter";
     static constexpr float32_t MIN_CUTOFF = 0.00001f;
 	static constexpr float32_t MAX_CUTOFF = 8000.0f;
     static constexpr float32_t MIN_RES = 0.0f;
@@ -51,8 +54,13 @@ public:
 
     virtual unsigned getId()
     {
-        return EFFECT_LPF;
+        return AudioEffectLPF::ID;
     }
+
+	virtual std::string getName()
+	{
+		return AudioEffectLPF::NAME;
+	}
 
 	virtual void setParameter(unsigned param, unsigned value)
 	{

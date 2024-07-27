@@ -25,7 +25,12 @@ AudioEffectChorus::~AudioEffectChorus()
 
 unsigned AudioEffectChorus::getId()
 {
-    return EFFECT_CHORUS;
+    return AudioEffectChorus::ID;
+}
+
+std::string AudioEffectChorus::getName()
+{
+    return AudioEffectChorus::NAME;
 }
 
 void AudioEffectChorus::setParameter(unsigned param, unsigned value)

@@ -74,7 +74,12 @@ AudioEffectBigMuff::~AudioEffectBigMuff()
 
 unsigned AudioEffectBigMuff::getId()
 {
-    return EFFECT_BIGMUFF;
+    return AudioEffectBigMuff::ID;
+}
+
+std::string AudioEffectBigMuff::getName()
+{
+    return AudioEffectBigMuff::NAME;
 }
 
 void AudioEffectBigMuff::setParameter(unsigned param, unsigned value)
