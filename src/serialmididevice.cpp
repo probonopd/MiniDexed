@@ -28,11 +28,15 @@
 
 LOGMODULE("serialmididevice");
 
+// There are several UART options - see circle/include/serial.h
+// 0 corresponds to GP14/GP15 on all RPi versions.
+#define SERIAL_MIDI_DEVICE 0
+
 CSerialMIDIDevice::CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem *pInterrupt,
 				      CConfig *pConfig, CUserInterface *pUI)
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_pConfig (pConfig),
-	m_Serial (pInterrupt, TRUE),
+	m_Serial (pInterrupt, TRUE, SERIAL_MIDI_DEVICE),
 	m_nSerialState (0),
 	m_nSysEx (0),
 	m_SendBuffer (&m_Serial)
@@ -71,7 +75,7 @@ void CSerialMIDIDevice::Process (void)
 		return;
 	}
 
-        if (m_pConfig->GetMIDIDumpEnabled ())
+/*        if (m_pConfig->GetMIDIDumpEnabled ())
 	{
 		printf("Incoming MIDI data:");
 		for (uint16_t i = 0; i < nResult; i++)
@@ -81,7 +85,7 @@ void CSerialMIDIDevice::Process (void)
 			printf(" 0x%02x",Buffer[i]);
 		}
 		printf("\n");
-	}
+	}*/
 
 	// Process MIDI messages
 	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message

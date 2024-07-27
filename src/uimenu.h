@@ -91,6 +91,7 @@ private:
 	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
@@ -169,6 +170,7 @@ private:
 	bool m_bPerformanceDeleteMode=false;
 	bool m_bConfirmDeletePerformance=false;
 	unsigned m_nSelectedPerformanceID =0;
+	unsigned m_nSelectedPerformanceBankID =0;
 	bool m_bSplashShow=false;
 
 };

@@ -20,7 +20,10 @@
 #include "kernel.h"
 #include <circle/logger.h>
 #include <circle/synchronize.h>
+#include <circle/gpiopin.h>
 #include <assert.h>
+#include <circle/usb/usbhcidevice.h>
+#include "usbminidexedmidigadget.h"
 
 LOGMODULE ("kernel");
 
@@ -31,6 +34,7 @@ CKernel::CKernel (void)
 	m_Config (&mFileSystem),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
+	m_pSPIMaster (nullptr),
 	m_pDexed (0)
 {
 	s_pThis = this;
@@ -63,8 +67,77 @@ bool CKernel::Initialize (void)
 	}
 
 	m_Config.Load ();
+	
+	unsigned nSPIMaster = m_Config.GetSPIBus();
+	unsigned nSPIMode = m_Config.GetSPIMode();
+	unsigned long nSPIClock = 1000 * m_Config.GetSPIClockKHz();
+#if RASPPI<4
+	// By default older RPI versions use SPI 0.
+	// It is possible to build circle to support SPI 1 for
+	// devices that use the 40-pin header, but that isn't
+	// enabled at present...
+	if (nSPIMaster == 0)
+#else
+	// RPI 4+ has several possible SPI Bus Configurations.
+	// As mentioned above, SPI 1 is not built by default.
+	// See circle/include/circle/spimaster.h
+	if (nSPIMaster == 0 || nSPIMaster == 3 || nSPIMaster == 4 || nSPIMaster == 5 || nSPIMaster == 6)
+#endif
+	{
+		unsigned nCPHA = (nSPIMode & 1) ? 1 : 0;
+		unsigned nCPOL = (nSPIMode & 2) ? 1 : 0;
+		m_pSPIMaster = new CSPIMaster (nSPIClock, nCPOL, nCPHA, nSPIMaster);
+		if (!m_pSPIMaster->Initialize())
+		{
+			delete (m_pSPIMaster);
+			m_pSPIMaster = nullptr;
+		}
+	}
 
-	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster,
+	bool bUSBGadgetMode = false;
+	if (m_Config.GetUSBGadget())
+	{
+		unsigned nUSBGadgetPin = m_Config.GetUSBGadgetPin();
+		if (nUSBGadgetPin == 0)
+		{
+			// No hardware config option
+			bUSBGadgetMode = true;
+		}
+		else
+		{
+			// State of USB Gadget Mode determined by state of the pin.
+			// Pulled down = enable USB Gadget mode
+			CGPIOPin usbGadgetPin(nUSBGadgetPin, GPIOModeInputPullUp);
+
+			if (usbGadgetPin.Read() == 0)
+			{
+				bUSBGadgetMode = true;
+			}
+		}
+	}
+
+	if (bUSBGadgetMode)
+	{
+#if RASPPI==5
+#warning No support for USB Gadget Mode on RPI 5 yet
+#else
+		// Run the USB stack in USB Gadget (device) mode
+		m_pUSB = new CUSBMiniDexedMIDIGadget (&mInterrupt);
+#endif
+	}
+	else
+	{
+		// Run the USB stack in USB Host (default) mode
+		m_pUSB = new CUSBHCIDevice (&mInterrupt, &mTimer, TRUE);
+	}
+	m_Config.SetUSBGadgetMode(bUSBGadgetMode);
+
+    if (!m_pUSB->Initialize ())
+    {
+		return FALSE;
+    }
+	
+	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster, m_pSPIMaster,
 				   &mFileSystem);
 	assert (m_pDexed);
 
@@ -82,7 +155,7 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 
 	while (42 == 42)
 	{
-		boolean bUpdated = mUSBHCI.UpdatePlugAndPlay ();
+		boolean bUpdated = m_pUSB->UpdatePlugAndPlay ();
 
 		m_pDexed->Process(bUpdated);
 

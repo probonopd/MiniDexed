@@ -31,17 +31,18 @@
 LOGMODULE ("minidexed");
 
 CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem)
+			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, FATFS *pFileSystem)
 :
 #ifdef ARM_ALLOW_MULTI_CORE
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
-	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
+	m_UI (this, pGPIOManager, pI2CMaster, pSPIMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig, &m_UI),
 	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
 	m_bUseSerial (false),
+	m_bQuadDAC8Chan (false),
 	m_pSoundDevice (0),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -53,8 +54,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
+	m_bSetNewPerformanceBank (false),
+	m_bSetFirstPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
 
@@ -97,6 +101,45 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 		m_pTG[i]->activate ();
 	}
+		
+	unsigned nUSBGadgetPin = pConfig->GetUSBGadgetPin();
+	bool bUSBGadget = pConfig->GetUSBGadget();
+	bool bUSBGadgetMode = pConfig->GetUSBGadgetMode();
+		
+	if (bUSBGadgetMode)
+	{
+#if RASPPI==5
+		LOGNOTE ("USB Gadget (Device) Mode NOT supported on RPI 5");
+#else
+		if (nUSBGadgetPin == 0)
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode");
+		}
+		else
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode [USBGadgetPin %d = LOW]", nUSBGadgetPin);
+		}
+#endif
+	}
+	else
+	{
+		if (bUSBGadget)
+		{
+			if (nUSBGadgetPin == 0)
+			{
+				// This shouldn't be possible...
+				LOGNOTE ("USB State Unknown");
+			}
+			else
+			{
+				LOGNOTE ("USB In Host Mode [USBGadgetPin %d = HIGH]", nUSBGadgetPin);
+			}
+		}
+		else
+		{
+			LOGNOTE ("USB In Host Mode");
+		}
+	}
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
@@ -109,13 +152,32 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	if (strcmp (pDeviceName, "i2s") == 0)
 	{
 		LOGNOTE ("I2S mode");
-
-		m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-							  pConfig->GetChunkSize (), false,
-							  pI2CMaster, pConfig->GetDACI2CAddress ());
+#if RASPPI==5
+		// Quad DAC 8-channel mono only an option for RPI 5
+		m_bQuadDAC8Chan = pConfig->GetQuadDAC8Chan ();
+#endif
+		if (m_bQuadDAC8Chan) {
+			LOGNOTE ("Configured for Quad DAC 8-channel Mono audio");
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  8);  // 8 channels - L+R x4 across 4 I2S lanes
+		}
+		else
+		{
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  2);  // 2 channels - L+R
+		}
 	}
 	else if (strcmp (pDeviceName, "hdmi") == 0)
 	{
+#if RASPPI==5
+		LOGNOTE ("HDMI mode NOT supported on RPI 5.");
+#else
 		LOGNOTE ("HDMI mode");
 
 		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
@@ -124,6 +186,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		// The channels are swapped by default in the HDMI sound driver.
 		// TODO: Remove this line, when this has been fixed in the driver.
 		m_bChannelsSwapped = !m_bChannelsSwapped;
+#endif
 	}
 	else
 	{
@@ -161,6 +224,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
+		
+	SetParameter (ParameterPerformanceBank, 0);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -218,6 +283,7 @@ bool CMiniDexed::Initialize (void)
 		reverb_send_mixer->gain(i,mapfloat(m_nReverbSend[i],0,99,0.0f,1.0f));
 	}
 
+	m_PerformanceConfig.Init();
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters(); 
@@ -227,25 +293,31 @@ bool CMiniDexed::Initialize (void)
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
 	}
 	
-	// load performances file list, and attempt to create the performance folder
-	if (!m_PerformanceConfig.ListPerformances()) 
-	{
-		LOGERR ("Cannot create internal Performance folder, new performances can't be created");
-	}
-	
 	// setup and start the sound device
-	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
+	int Channels = 1;	// 16-bit Mono
+#ifdef ARM_ALLOW_MULTI_CORE
+	if (m_bQuadDAC8Chan)
+	{
+		Channels = 8;	// 16-bit 8-channel mono
+	}
+	else
+	{
+		Channels = 2;	// 16-bit Stereo
+	}
+#endif
+	// Need 2 x ChunkSize / Channel queue frames as the audio driver uses
+	// two DMA channels each of ChunkSize and one single single frame
+	// contains a sample for each of all the channels.
+	//
+	// See discussion here: https://github.com/rsta2/circle/discussions/453
+	if (!m_pSoundDevice->AllocateQueueFrames (2 * m_pConfig->GetChunkSize () / Channels))
 	{
 		LOGERR ("Cannot allocate sound queue");
 
 		return false;
 	}
 
-#ifndef ARM_ALLOW_MULTI_CORE
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
-#else
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
-#endif
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, Channels);
 
 	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
 
@@ -296,14 +368,30 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
+	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	{
+		DoSetNewPerformanceBank ();
+		if (m_nSetNewPerformanceBankID == GetActualPerformanceBankID())
+		{
+			m_bSetNewPerformanceBank = false;
+		}
+		
+		// If there is no pending SetNewPerformance already, then see if we need to find the first performance to load
+		// NB: If called from the UI, then there will not be a SetNewPerformance, so load the first existing one.
+		//     If called from MIDI, there will probably be a SetNewPerformance alongside the Bank select.
+		if (!m_bSetNewPerformance && m_bSetFirstPerformance)
+		{
+			DoSetFirstPerformance();
+		}
+	}
+	
+	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
 	{
 		DoSetNewPerformance ();
 		if (m_nSetNewPerformanceID == GetActualPerformanceID())
 		{
 			m_bSetNewPerformance = false;
 		}
-		
 	}
 	
 	if(m_bDeletePerformance)
@@ -383,6 +471,11 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
+CPerformanceConfig *CMiniDexed::GetPerformanceConfig (void)
+{
+	return &m_PerformanceConfig;
+}
+
 void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
 	nBank=constrain((int)nBank,0,16383);
@@ -393,6 +486,20 @@ void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 	{
 		// Only change if we have the bank loaded
 		m_nVoiceBankID[nTG] = nBank;
+
+		m_UI.ParameterChanged ();
+	}
+}
+
+void CMiniDexed::BankSelectPerformance (unsigned nBank)
+{
+	nBank=constrain((int)nBank,0,16383);
+
+	if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
+	{
+		// Only change if we have the bank loaded
+		m_nVoiceBankIDPerformance = nBank;
+		SetNewPerformanceBank (nBank);
 
 		m_UI.ParameterChanged ();
 	}
@@ -413,6 +520,12 @@ void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 	m_nVoiceBankIDMSB[nTG] = nBankMSB;
 }
 
+void CMiniDexed::BankSelectMSBPerformance (unsigned nBankMSB)
+{
+	nBankMSB=constrain((int)nBankMSB,0,127);
+	m_nVoiceBankIDMSBPerformance = nBankMSB;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	nBankLSB=constrain((int)nBankLSB,0,127);
@@ -424,6 +537,18 @@ void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 
 	// Now should have both MSB and LSB so enable the BankSelect
 	BankSelect(nBank, nTG);
+}
+
+void CMiniDexed::BankSelectLSBPerformance (unsigned nBankLSB)
+{
+	nBankLSB=constrain((int)nBankLSB,0,127);
+
+	unsigned nBank = m_nVoiceBankIDPerformance;
+	unsigned nBankMSB = m_nVoiceBankIDMSBPerformance;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	// Now should have both MSB and LSB so enable the BankSelect
+	BankSelectPerformance(nBank);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -480,10 +605,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
 		// Program Change messages change Performances.
-		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
-
-		// GetLastPerformance actually returns 1-indexed, number of performances
-		if (nProgram < nLastPerformance - 1)
+		if (m_PerformanceConfig.IsValidPerformance(nProgram))
 		{
 			SetNewPerformance(nProgram);
 		}
@@ -791,6 +913,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		// Nothing more to do
 		break;
 
+	case ParameterPerformanceBank:
+		BankSelectPerformance(nValue);
+		break;
+
 	default:
 		assert (0);
 		break;
@@ -1057,85 +1183,130 @@ void CMiniDexed::ProcessSound (void)
 
 		assert (CConfig::ToneGenerators == 8);
 
-		uint8_t indexL=0, indexR=1;
-		
-		// BEGIN TG mixing
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
+		if (m_bQuadDAC8Chan) {
+			// No mixing is performed by MiniDexed, sound is output in 8 channels.
+			// Note: one TG per audio channel; output=mono; no processing.
+			const int Channels = 8;  // One TG per channel
+			float32_t tmp_float[nFrames*Channels];
+			int16_t tmp_int[nFrames*Channels];
 
-		if(nMasterVolume > 0.0)
-		{
-			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+			if(nMasterVolume > 0.0)
 			{
-				tg_mixer->doAddMix(i,m_OutputLevel[i]);
-				reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
-			}
-			// END TG mixing
-	
-			// BEGIN create SampleBuffer for holding audio data
-			float32_t SampleBuffer[2][nFrames];
-			// END create SampleBuffer for holding audio data
-
-			// get the mix of all TGs
-			tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
-
-			// BEGIN adding reverb
-			if (m_nParameter[ParameterReverbEnable])
-			{
-				float32_t ReverbBuffer[2][nFrames];
-				float32_t ReverbSendBuffer[2][nFrames];
-
-				arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-				arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-	
-				m_ReverbSpinLock.Acquire ();
-	
-       		         	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-	
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
-	
-				m_ReverbSpinLock.Release ();
-			}
-			// END adding reverb
-	
-			// swap stereo channels if needed prior to writing back out
-			if (m_bChannelsSwapped)
-			{
-				indexL=1;
-				indexR=0;
-			}
-
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			for(uint16_t i=0; i<nFrames;i++)
-			{
-				if(nMasterVolume >0.0 && nMasterVolume <1.0)
+				// Convert dual float array (8 chan) to single int16 array (8 chan)
+				for(uint16_t i=0; i<nFrames;i++)
 				{
-					tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					// TGs will alternate on L/R channels for each output
+					// reading directly from the TG OutputLevel buffer with
+					// no additional processing.
+					for (uint8_t tg = 0; tg < Channels; tg++)
+					{
+						if(nMasterVolume >0.0 && nMasterVolume <1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+						}
+						else if(nMasterVolume == 1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
+						}
+					}
 				}
-				else if(nMasterVolume == 1.0)
-				{
-					tmp_float[i*2]=SampleBuffer[indexL][i];
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
-				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*Channels);
 			}
-			arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames*Channels);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
 		}
 		else
-			arm_fill_q15(0, tmp_int, nFrames * 2);
-
-		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
-			LOGERR ("Sound data dropped");
-		}
+			// Mix everything down to stereo		
+			uint8_t indexL=0, indexR=1;
+
+			// BEGIN TG mixing
+			float32_t tmp_float[nFrames*2];
+			int16_t tmp_int[nFrames*2];
+
+			if(nMasterVolume > 0.0)
+			{
+				for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+				{
+					tg_mixer->doAddMix(i,m_OutputLevel[i]);
+					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+				}
+				// END TG mixing
+
+				// BEGIN create SampleBuffer for holding audio data
+				float32_t SampleBuffer[2][nFrames];
+				// END create SampleBuffer for holding audio data
+
+				// get the mix of all TGs
+				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
+
+				// BEGIN adding reverb
+				if (m_nParameter[ParameterReverbEnable])
+				{
+					float32_t ReverbBuffer[2][nFrames];
+					float32_t ReverbSendBuffer[2][nFrames];
+
+					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+
+					m_ReverbSpinLock.Acquire ();
+
+					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+					reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+
+					// scale down and add left reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+					arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+					// scale down and add right reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+					arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+
+					m_ReverbSpinLock.Release ();
+				}
+				// END adding reverb
+
+				// swap stereo channels if needed prior to writing back out
+				if (m_bChannelsSwapped)
+				{
+					indexL=1;
+					indexR=0;
+				}
+
+				// Convert dual float array (left, right) to single int16 array (left/right)
+				for(uint16_t i=0; i<nFrames;i++)
+				{
+					if(nMasterVolume >0.0 && nMasterVolume <1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					}
+					else if(nMasterVolume == 1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i];
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+					}
+				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			}
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames * 2);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
+		} // End of Stereo mixing
 
 		if (m_bProfileEnabled)
 		{
@@ -1172,10 +1343,17 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
-	m_bSavePerformance = true;
-	m_bSaveAsDeault=bSaveAsDeault;
+	if (m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bSavePerformance = true;
+		m_bSaveAsDeault=bSaveAsDeault;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoSavePerformance (void)
@@ -1492,6 +1670,16 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
+unsigned CMiniDexed::GetPerformanceBank()
+{
+	return m_PerformanceConfig.GetPerformanceBank();
+}
+
+unsigned CMiniDexed::GetLastPerformanceBank()
+{
+	return m_PerformanceConfig.GetLastPerformanceBank();
+}
+
 unsigned CMiniDexed::GetActualPerformanceID()
 {
 	return m_PerformanceConfig.GetActualPerformanceID();
@@ -1502,12 +1690,36 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
+unsigned CMiniDexed::GetActualPerformanceBankID()
+{
+	return m_PerformanceConfig.GetActualPerformanceBankID();
+}
+
+void CMiniDexed::SetActualPerformanceBankID(unsigned nBankID)
+{
+	m_PerformanceConfig.SetActualPerformanceBankID(nBankID);
+}
+
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
 	m_nSetNewPerformanceID = nID;
 
 	return true;
+}
+
+bool CMiniDexed::SetNewPerformanceBank(unsigned nBankID)
+{
+	m_bSetNewPerformanceBank = true;
+	m_nSetNewPerformanceBankID = nBankID;
+
+	return true;
+}
+
+void CMiniDexed::SetFirstPerformance(void)
+{
+	m_bSetFirstPerformance = true;
+	return;
 }
 
 bool CMiniDexed::DoSetNewPerformance (void)
@@ -1529,6 +1741,25 @@ bool CMiniDexed::DoSetNewPerformance (void)
 		m_bLoadPerformanceBusy = false;
 		return false;
 	}
+}
+
+bool CMiniDexed::DoSetNewPerformanceBank (void)
+{
+	m_bLoadPerformanceBankBusy = true;
+	
+	unsigned nBankID = m_nSetNewPerformanceBankID;
+	m_PerformanceConfig.SetNewPerformanceBank(nBankID);
+	
+	m_bLoadPerformanceBankBusy = false;
+	return true;
+}
+
+void CMiniDexed::DoSetFirstPerformance(void)
+{
+	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
+	SetNewPerformance(nID);
+	m_bSetFirstPerformance = false;
+	return;
 }
 
 bool CMiniDexed::SavePerformanceNewFile ()
@@ -1622,21 +1853,39 @@ void CMiniDexed::SetNewPerformanceName(std::string nName)
 	m_PerformanceConfig.SetNewPerformanceName(nName);
 }
 
+bool CMiniDexed::IsValidPerformance(unsigned nID)
+{
+	return m_PerformanceConfig.IsValidPerformance(nID);
+}
+
+bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
+{
+	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
+}
+
 void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 {
 	assert (nTG < CConfig::ToneGenerators);
 	assert (m_pTG[nTG]);
-	char Name[10];
+	char Name[11];
 	strncpy(Name, VoiceName.c_str(),10);
+	Name[10] = '\0';
 	m_pTG[nTG]->getName (Name);
 }
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
 {
-	m_bDeletePerformance = true;
-	m_nDeletePerformanceID = nID;
+	if (m_PerformanceConfig.IsValidPerformance(nID) && m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bDeletePerformance = true;
+		m_nDeletePerformanceID = nID;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoDeletePerformance(void)

@@ -28,6 +28,10 @@
 #include <circle/sysconfig.h>
 #include <string>
 
+#define SPI_INACTIVE	255
+#define SPI_DEF_CLOCK	15000	// kHz
+#define SPI_DEF_MODE	0		// Default mode (0,1,2,3)
+
 class CConfig		// Configuration for MiniDexed
 {
 public:
@@ -62,6 +66,12 @@ public:
 	~CConfig (void);
 
 	void Load (void);
+	
+	// USB Mode
+	bool GetUSBGadget (void) const;
+	unsigned GetUSBGadgetPin (void) const;
+	bool GetUSBGadgetMode (void) const;	// true if in USB gadget mode depending on USBGadget and USBGadgetPin
+	void SetUSBGadgetMode (bool USBGadgetMode);
 
 	// Sound device
 	const char *GetSoundDevice (void) const;
@@ -77,9 +87,10 @@ public:
 	const char *GetMIDIThruOut (void) const;	// "" if not specified
 	bool GetMIDIRXProgramChange (void) const;	// true if not specified
 	bool GetIgnoreAllNotesOff (void) const;
-	bool GetMIDIAutoVoiceDumpOnPC (void) const; // true if not specified
+	bool GetMIDIAutoVoiceDumpOnPC (void) const; // false if not specified
 	bool GetHeaderlessSysExVoices (void) const; // false if not specified
 	bool GetExpandPCAcrossBanks (void) const; // true if not specified
+	bool GetQuadDAC8Chan (void) const; // false if not specified
 
 	// HD44780 LCD
 	// GPIO pin numbers are chip numbers, not header positions
@@ -99,6 +110,22 @@ public:
 	unsigned GetSSD1306LCDHeight (void) const;
 	bool     GetSSD1306LCDRotate (void) const;
 	bool     GetSSD1306LCDMirror (void) const;
+
+	// SPI support
+	unsigned GetSPIBus (void) const;
+	unsigned GetSPIMode (void) const;
+	unsigned GetSPIClockKHz (void) const;
+
+	// ST7789 LCD
+	bool     GetST7789Enabled (void) const;
+	unsigned GetST7789Data (void) const;
+	unsigned GetST7789Select (void) const;
+	unsigned GetST7789Reset (void) const;
+	unsigned GetST7789Backlight (void) const;
+	unsigned GetST7789Width (void) const;
+	unsigned GetST7789Height (void) const;
+	unsigned GetST7789Rotation (void) const;
+	bool     GetST7789SmallFont (void) const;
 
 	unsigned GetLCDColumns (void) const;
 	unsigned GetLCDRows (void) const;
@@ -167,6 +194,10 @@ public:
 
 private:
 	CPropertiesFatFsFile m_Properties;
+	
+	bool m_bUSBGadget;
+	unsigned m_nUSBGadgetPin;
+	bool m_bUSBGadgetMode;
 
 	std::string m_SoundDevice;
 	unsigned m_nSampleRate;
@@ -183,6 +214,7 @@ private:
 	bool m_bMIDIAutoVoiceDumpOnPC;
 	bool m_bHeaderlessSysExVoices;
 	bool m_bExpandPCAcrossBanks;
+	bool m_bQuadDAC8Chan;
 
 	bool m_bLCDEnabled;
 	unsigned m_nLCDPinEnable;
@@ -199,7 +231,21 @@ private:
 	unsigned m_nSSD1306LCDHeight;
 	bool     m_bSSD1306LCDRotate;
 	bool     m_bSSD1306LCDMirror;
-	
+
+	unsigned m_nSPIBus;
+	unsigned m_nSPIMode;
+	unsigned m_nSPIClockKHz;
+
+	bool     m_bST7789Enabled;
+	unsigned m_nST7789Data;
+	unsigned m_nST7789Select;
+	unsigned m_nST7789Reset;
+	unsigned m_nST7789Backlight;
+	unsigned m_nST7789Width;
+	unsigned m_nST7789Height;
+	unsigned m_nST7789Rotation;
+	unsigned m_bST7789SmallFont;
+
 	unsigned m_nLCDColumns;
 	unsigned m_nLCDRows;
 	

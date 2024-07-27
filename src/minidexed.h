@@ -36,6 +36,7 @@
 #include <circle/interrupt.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
+#include <circle/spimaster.h>
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
 #include <circle/spinlock.h>
@@ -51,7 +52,7 @@ class CMiniDexed
 {
 public:
 	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem);
+		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, FATFS *pFileSystem);
 
 	bool Initialize (void);
 
@@ -62,10 +63,14 @@ public:
 #endif
 
 	CSysExFileLoader *GetSysExFileLoader (void);
+	CPerformanceConfig *GetPerformanceConfig (void);
 
 	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectPerformance    (unsigned nBank);
 	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
+	void BankSelectMSBPerformance (unsigned nBankMSB);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
+	void BankSelectLSBPerformance (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
@@ -117,17 +122,27 @@ public:
 	std::string GetPerformanceFileName(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
 	unsigned GetLastPerformance();
+	unsigned GetPerformanceBank();
+	unsigned GetLastPerformanceBank();
 	unsigned GetActualPerformanceID();
 	void SetActualPerformanceID(unsigned nID);
+	unsigned GetActualPerformanceBankID();
+	void SetActualPerformanceBankID(unsigned nBankID);
 	bool SetNewPerformance(unsigned nID);
+	bool SetNewPerformanceBank(unsigned nBankID);
+	void SetFirstPerformance(void);
+	void DoSetFirstPerformance(void);
 	bool SavePerformanceNewFile ();
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
+	bool IsValidPerformance(unsigned nID);
+	bool IsValidPerformanceBank(unsigned nBankID);
 
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
@@ -141,6 +156,7 @@ public:
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
+		ParameterPerformanceBank,
 		ParameterUnknown
 	};
 
@@ -238,6 +254,8 @@ private:
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
 	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
+	unsigned m_nVoiceBankIDPerformance;
+	unsigned m_nVoiceBankIDMSBPerformance;
 	unsigned m_nProgram[CConfig::ToneGenerators];
 	unsigned m_nVolume[CConfig::ToneGenerators];
 	unsigned m_nPan[CConfig::ToneGenerators];
@@ -280,6 +298,7 @@ private:
 	CPCKeyboard m_PCKeyboard;
 	CSerialMIDIDevice m_SerialMIDI;
 	bool m_bUseSerial;
+	bool m_bQuadDAC8Chan;
 
 	CSoundBaseDevice *m_pSoundDevice;
 	bool m_bChannelsSwapped;
@@ -305,9 +324,13 @@ private:
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;	
+	bool m_bSetNewPerformanceBank;
+	unsigned m_nSetNewPerformanceBankID;	
+	bool m_bSetFirstPerformance;
 	bool	m_bDeletePerformance;
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
+	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
 };
 

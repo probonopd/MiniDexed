@@ -30,6 +30,9 @@
 #include <circle/spinlock.h>
 #include "userinterface.h"
 
+#define MAX_DX7_SYSEX_LENGTH 4104
+#define MAX_MIDI_MESSAGE MAX_DX7_SYSEX_LENGTH
+
 class CMiniDexed;
 
 class CMIDIDevice
