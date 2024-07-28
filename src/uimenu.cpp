@@ -286,17 +286,18 @@ CUIMenu::TMenuItem CUIMenu::s_FXAPhaser[] =
 {
 	{"Bypass", EditTGFXParameter, 0, AudioEffectAPhaser::Param::BYPASS},
 	{"Mix", EditTGFXParameter, 0, AudioEffectAPhaser::Param::WETDRY},
-	{"Pan", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PAN},
+	{"Distortion", EditTGFXParameter, 0, AudioEffectAPhaser::Param::DISTORTION},
 	{"Freq", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_FREQ},
 	{"Random", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_RND},
 	{"Type", EditTGFXParameter, 0, AudioEffectAPhaser::Param::TYPE},
 	{"Stereo", EditTGFXParameter, 0, AudioEffectAPhaser::Param::STDL},
-	{"Depth", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_DEPTH},
+	{"Width", EditTGFXParameter, 0, AudioEffectAPhaser::Param::WIDTH},
 	{"Feedback", EditTGFXParameter, 0, AudioEffectAPhaser::Param::FB},
 	{"Stages", EditTGFXParameter, 0, AudioEffectAPhaser::Param::STAGES},
-	{"L/R Cross", EditTGFXParameter, 0, AudioEffectAPhaser::Param::LRCR},
+	{"Offset", EditTGFXParameter, 0, AudioEffectAPhaser::Param::OFFSET},
 	{"Sub", EditTGFXParameter, 0, AudioEffectAPhaser::Param::SUB},
-	{"Phase", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PHASE},
+	{"Depth", EditTGFXParameter, 0, AudioEffectAPhaser::Param::PH_DEPTH},
+	{"Hyper", EditTGFXParameter, 0, AudioEffectAPhaser::Param::HYPER},
 	{0}
 };
 
@@ -575,21 +576,22 @@ const CUIMenu::TParameter CUIMenu::s_TGFXPhaserParam[AudioEffectPhaser::Param::U
 };
 
 // must match AudioEffectAPhaser::Param
-const CUIMenu::TParameter CUIMenu::s_TGFXAPhaserParam[AudioEffectPhaser::Param::UNKNOWN] =
+const CUIMenu::TParameter CUIMenu::s_TGFXAPhaserParam[AudioEffectAPhaser::Param::UNKNOWN] =
 {
 	{0,	1, 1, ToOnOff}, // BYPASS
 	{0, 127, 1}, // WETDRY
-	{0, 127, 1}, // PAN
+	{0, 127, 1}, // DISTORTION
 	{1, 600, 1}, // PH_FREQ
 	{0, 127, 1}, // PH_RND
 	{0, 11, 1},	// TYPE
 	{0,	127, 1}, // STDL
-	{0,	127, 1}, // PH_DEPTH
+	{0,	127, 1}, // WIDTH
 	{0,	127, 1}, // FB
 	{0,	12, 1}, // STAGES
-	{0,	127, 1}, // LRCR
+	{0,	127, 1}, // OFFSET
 	{0,	1, 1, ToOnOff}, // SUB
-	{0,	127, 1}, // PHASE
+	{0,	127, 1}, // PH_DEPTH
+	{0,	1, 1, ToOnOff}, // HYPER
 };
 
 // must match MidiArp::Param

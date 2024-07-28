@@ -21,17 +21,18 @@ public:
     {
         BYPASS,
         WETDRY,
-        PAN,
+        DISTORTION,
         PH_FREQ,
         PH_RND,
         TYPE,
         STDL,
-        PH_DEPTH,
+        WIDTH,
         FB,
         STAGES,
-        LRCR,
+        OFFSET,
         SUB,
-        PHASE,
+        PH_DEPTH,
+        HYPER,
         UNKNOWN
     };
 
@@ -41,20 +42,6 @@ public:
         this->init_params = true;
         
         this->phaser->setpreset(0);
-        /*
-        this->setParameter(AudioEffectAPhaser::Param::WETDRY, 64);
-        this->setParameter(AudioEffectAPhaser::Param::PAN, 64);
-        this->setParameter(AudioEffectAPhaser::Param::PH_FREQ, 11);
-        this->setParameter(AudioEffectAPhaser::Param::PH_RND, 0);
-        this->setParameter(AudioEffectAPhaser::Param::TYPE, 0);
-        this->setParameter(AudioEffectAPhaser::Param::STDL, 64);
-        this->setParameter(AudioEffectAPhaser::Param::PH_DEPTH, 110);
-        this->setParameter(AudioEffectAPhaser::Param::FB, 64);
-        this->setParameter(AudioEffectAPhaser::Param::STAGES, 4);
-        this->setParameter(AudioEffectAPhaser::Param::LRCR, 0);
-        this->setParameter(AudioEffectAPhaser::Param::SUB, 0);
-        this->setParameter(AudioEffectAPhaser::Param::PHASE, 20);
-        */
     }
 
     virtual ~AudioEffectAPhaser()
@@ -88,7 +75,7 @@ public:
         case AudioEffectAPhaser::Param::WETDRY:
             this->phaser->changepar(0, value);
             break;
-        case AudioEffectAPhaser::Param::PAN:
+        case AudioEffectAPhaser::Param::DISTORTION:
             this->phaser->changepar(1, value);
             break;
         case AudioEffectAPhaser::Param::PH_FREQ:
@@ -103,7 +90,7 @@ public:
         case AudioEffectAPhaser::Param::STDL:
             this->phaser->changepar(5, value);
             break;
-        case AudioEffectAPhaser::Param::PH_DEPTH:
+        case AudioEffectAPhaser::Param::WIDTH:
             this->phaser->changepar(6, value);
             break;
         case AudioEffectAPhaser::Param::FB:
@@ -112,14 +99,17 @@ public:
         case AudioEffectAPhaser::Param::STAGES:
             this->phaser->changepar(8, value);
             break;
-        case AudioEffectAPhaser::Param::LRCR:
+        case AudioEffectAPhaser::Param::OFFSET:
             this->phaser->changepar(9, value);
             break;
         case AudioEffectAPhaser::Param::SUB:
             this->phaser->changepar(10, value);
             break;
-        case AudioEffectAPhaser::Param::PHASE:
+        case AudioEffectAPhaser::Param::PH_DEPTH:
             this->phaser->changepar(11, value);
+            break;
+        case AudioEffectAPhaser::Param::HYPER:
+            this->phaser->changepar(12, value);
             break;
         default:
             break;
@@ -134,7 +124,7 @@ public:
             return this->getBypass() ? 1 : 0;
         case AudioEffectAPhaser::Param::WETDRY:
             return this->phaser->getpar(0);
-        case AudioEffectAPhaser::Param::PAN:
+        case AudioEffectAPhaser::Param::DISTORTION:
             return this->phaser->getpar(1);
         case AudioEffectAPhaser::Param::PH_FREQ:
             return this->phaser->getpar(2);
@@ -144,18 +134,20 @@ public:
             return this->phaser->getpar(4);
         case AudioEffectAPhaser::Param::STDL:
             return this->phaser->getpar(5);
-        case AudioEffectAPhaser::Param::PH_DEPTH:
+        case AudioEffectAPhaser::Param::WIDTH:
             return this->phaser->getpar(6);
         case AudioEffectAPhaser::Param::FB:
             return this->phaser->getpar(7);
         case AudioEffectAPhaser::Param::STAGES:
             return this->phaser->getpar(8);
-        case AudioEffectAPhaser::Param::LRCR:
+        case AudioEffectAPhaser::Param::OFFSET:
             return this->phaser->getpar(9);
         case AudioEffectAPhaser::Param::SUB:
             return this->phaser->getpar(10);
-        case AudioEffectAPhaser::Param::PHASE:
+        case AudioEffectAPhaser::Param::PH_DEPTH:
             return this->phaser->getpar(11);
+        case AudioEffectAPhaser::Param::HYPER:
+            return this->phaser->getpar(12);
         default:
             return 0;
         }
