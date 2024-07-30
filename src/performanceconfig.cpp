@@ -382,7 +382,7 @@ bool CPerformanceConfig::Save (void)
 			switch (i)
 			{
 			case 0:
-				m_Properties.SetNumber ("ReverbEnable", tokens[i] ? 1 : 0);
+				m_Properties.SetNumber ("ReverbEnable", tokens[i] ? 0 : 1);
 				break;
 			case 1:
 				m_Properties.SetNumber ("ReverbSize", tokens[i]);
