@@ -32,13 +32,13 @@ template<typename T>
 class MVerb
 {
 private:
-    Allpass<T, 96000> allpass[4];
-    StaticAllpassFourTap<T, 96000> allpassFourTap[4];
+    Allpass<T, 1024> allpass[4];
+    StaticAllpassFourTap<T, 5120> allpassFourTap[4];
     StateVariable<T,4> bandwidthFilter[2];
     StateVariable<T,4> damping[2];
-    StaticDelayLine<T, 96000> predelay;
-    StaticDelayLineFourTap<T, 96000> staticDelayLine[4];
-    StaticDelayLineEightTap<T, 96000> earlyReflectionsDelayLine[2];
+    StaticDelayLine<T, 1024> predelay;
+    StaticDelayLineFourTap<T, 7200> staticDelayLine[4];
+    StaticDelayLineEightTap<T, 5120> earlyReflectionsDelayLine[2];
     T SampleRate, DampingFreq, Density1, Density2, BandwidthFreq, PreDelayTime, Decay, Gain, Mix, EarlyMix, Size;
     T MixSmooth, EarlyLateSmooth, BandwidthSmooth, DampingSmooth, PredelaySmooth, SizeSmooth, DensitySmooth, DecaySmooth;
     T PreviousLeftTank, PreviousRightTank;
