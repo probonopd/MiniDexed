@@ -3002,9 +3002,11 @@ CUIMenu::TMenuItem* CUIMenu::getInsertFXMenuItem(unsigned type)
 {
 	CUIMenu::TMenuItem* menu = getFXMenuItem(type);
 	
-	for (size_t i = 0; i < sizeof(menu); i++)
+	unsigned i = 0;
+	while(menu[i].Name != NULL)
 	{
 		menu[i].Handler = EditTGFXParameter;
+		i++;
 	}
 	
 	return menu;
@@ -3014,9 +3016,11 @@ CUIMenu::TMenuItem* CUIMenu::getSendFXMenuItem(unsigned type)
 {
 	CUIMenu::TMenuItem* menu = getFXMenuItem(type);
 	
-	for (size_t i = 0; i < sizeof(menu); i++)
+	unsigned i = 0;
+	while(menu[i].Name != NULL)
 	{
 		menu[i].Handler = EditSendFXParameter;
+		i++;
 	}
 	
 	return menu;
