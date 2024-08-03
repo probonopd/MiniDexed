@@ -716,6 +716,11 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed)
 #endif
 }
 
+void CUIMenu::SetStepCount (unsigned StepCount)
+{
+	m_nStepCount = StepCount;
+}
+
 void CUIMenu::EventHandler (TMenuEvent Event)
 {
 	switch (Event)
@@ -1535,7 +1540,7 @@ void CUIMenu::EditTGMidiFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 		nValue -= rParam.Increment * 9;
 	case MenuEventStepDown:
-		nValue -= rParam.Increment;
+		nValue -= rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue < rParam.Minimum)
 		{
 			nValue = rParam.Minimum;
@@ -1546,7 +1551,7 @@ void CUIMenu::EditTGMidiFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepUp:
 		nValue += rParam.Increment * 9;
 	case MenuEventStepUp:
-		nValue += rParam.Increment;
+		nValue += rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue > rParam.Maximum)
 		{
 			nValue = rParam.Maximum;
@@ -1679,7 +1684,7 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 		nValue -= rParam.Increment * 9;
 	case MenuEventStepDown:
-		nValue -= rParam.Increment;
+		nValue -= rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue < rParam.Minimum)
 		{
 			nValue = rParam.Minimum;
@@ -1690,7 +1695,7 @@ void CUIMenu::EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepUp:
 		nValue += rParam.Increment * 9;
 	case MenuEventStepUp:
-		nValue += rParam.Increment;
+		nValue += rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue > rParam.Maximum)
 		{
 			nValue = rParam.Maximum;
@@ -1815,7 +1820,7 @@ void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepDown:
 		nValue -= rParam.Increment * 9;
 	case MenuEventStepDown:
-		nValue -= rParam.Increment;
+		nValue -= rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue < rParam.Minimum)
 		{
 			nValue = rParam.Minimum;
@@ -1826,7 +1831,7 @@ void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventPressAndStepUp:
 		nValue += rParam.Increment * 9;
 	case MenuEventStepUp:
-		nValue += rParam.Increment;
+		nValue += rParam.Increment * pUIMenu->m_nStepCount;
 		if (nValue > rParam.Maximum)
 		{
 			nValue = rParam.Maximum;

@@ -56,6 +56,7 @@ public:
 	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed);
 
 	void EventHandler (TMenuEvent Event);
+	void SetStepCount (unsigned StepCount);
 	
 private:
 	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -224,6 +225,7 @@ private:
 	unsigned m_nSelectedPerformanceID =0;
 	unsigned m_nSelectedPerformanceBankID =0;
 	bool m_bSplashShow=false;
+	int m_nStepCount = 1;
 
 };
 
