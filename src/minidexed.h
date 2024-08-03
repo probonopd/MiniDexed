@@ -250,7 +250,9 @@ private:
 
 	int m_nParameter[ParameterUnknown];			// global (non-TG) parameters
 
+public:
 	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
+private:
 
 	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
 	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
