@@ -184,7 +184,8 @@ private:
 	static TMenuItem s_FX3BandEQ[];
 	static TMenuItem s_FXPhaser[];
 	static TMenuItem s_FXAPhaser[];
-
+	static TMenuItem s_FXFlanger[];
+	
 	static TMenuItem s_MidiFXNone[];
 	static TMenuItem s_MidiFXArp[];
 
@@ -211,6 +212,7 @@ private:
 	static const TParameter s_TGFX3BandEQParam[];
 	static const TParameter s_TGFXPhaserParam[];
 	static const TParameter s_TGFXAPhaserParam[];
+	static const TParameter s_TGFXFlangerParam[];
 	static const TParameter s_TGMidiFXArpParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];

@@ -18,7 +18,7 @@
 #include "effect_audio/effect_3bandeq.h"
 #include "effect_audio/effect_phaser.h"
 #include "effect_audio/effect_aphaser.h"
-
+#include "effect_audio/effect_flanger.h"
 
 class AudioEffects
 {
@@ -37,6 +37,7 @@ public:
 		EQ3BAND = AudioEffect3BandEQ::ID,
 		PHASER = AudioEffectPhaser::ID,
 		APHASER = AudioEffectAPhaser::ID,
+		FLANGER = AudioEffectFlanger::ID,
 		UNKNOWN
 	};
 };
@@ -67,6 +68,8 @@ inline AudioEffect* newAudioEffect(unsigned type, float32_t samplerate)
 		return new AudioEffectPhaser(samplerate);
 	case AudioEffects::Types::APHASER:
 		return new AudioEffectAPhaser(samplerate);
+	case AudioEffects::Types::FLANGER:
+		return new AudioEffectFlanger(samplerate);
 	case AudioEffects::Types::NONE:
 	default:
 		return new AudioEffect(samplerate);
@@ -99,6 +102,8 @@ inline std::string ToFXType(int nValue)
 		return AudioEffectPhaser::NAME;
 	case AudioEffects::Types::APHASER:
 		return AudioEffectAPhaser::NAME;
+	case AudioEffects::Types::FLANGER:
+		return AudioEffectFlanger::NAME;
 	case AudioEffects::Types::NONE:
 	default:
 		return AudioEffect::NAME;

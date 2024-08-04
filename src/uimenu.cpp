@@ -301,6 +301,25 @@ CUIMenu::TMenuItem CUIMenu::s_FXAPhaser[] =
 	{0}
 };
 
+CUIMenu::TMenuItem CUIMenu::s_FXFlanger[] =
+{
+	{"Bypass", EditTGFXParameter, 0, AudioEffectFlanger::Param::BYPASS},
+	{"Mix", EditTGFXParameter, 0, AudioEffectFlanger::Param::MIX},
+	{"Pan", EditTGFXParameter, 0, AudioEffectFlanger::Param::PAN},
+	{"Freq", EditTGFXParameter, 0, AudioEffectFlanger::Param::FL_FREQ},
+	{"Random", EditTGFXParameter, 0, AudioEffectFlanger::Param::FL_RND},
+	{"Type", EditTGFXParameter, 0, AudioEffectFlanger::Param::TYPE},
+	{"Stereo", EditTGFXParameter, 0, AudioEffectFlanger::Param::STDL},
+	{"Depth", EditTGFXParameter, 0, AudioEffectFlanger::Param::FL_DEPTH},
+	{"Delay", EditTGFXParameter, 0, AudioEffectFlanger::Param::DELAY},
+	{"Feedback", EditTGFXParameter, 0, AudioEffectFlanger::Param::FB},
+	{"L/R Cross", EditTGFXParameter, 0, AudioEffectFlanger::Param::LRCR},
+	{"Mode", EditTGFXParameter, 0, AudioEffectFlanger::Param::MODE},
+	{"Sub", EditTGFXParameter, 0, AudioEffectFlanger::Param::SUB},
+	{"Awesome", EditTGFXParameter, 0, AudioEffectFlanger::Param::AWESOME},
+	{0}
+};
+
 const CUIMenu::TMenuItem CUIMenu::s_MidiFX[] =
 {
 	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterMidiFXType},
@@ -592,6 +611,25 @@ const CUIMenu::TParameter CUIMenu::s_TGFXAPhaserParam[AudioEffectAPhaser::Param:
 	{0,	1, 1, ToOnOff}, // SUB
 	{0,	127, 1}, // PH_DEPTH
 	{0,	1, 1, ToOnOff}, // HYPER
+};
+
+// must match AudioEffectFlanger::Param
+const CUIMenu::TParameter CUIMenu::s_TGFXFlangerParam[AudioEffectFlanger::Param::UNKNOWN] =
+{
+	{0,	1, 1, ToOnOff}, // BYPASS
+	{0, 127, 1}, // MIX
+	{0, 127, 1}, // PAN
+	{1, 600, 1}, // FL_FREQ
+	{0, 127, 1}, // FL_RND
+	{0, 11, 1},	// TYPE
+	{0,	127, 1}, // STDL
+	{0,	127, 1}, // FL_DEPTH
+	{0,	127, 1}, // DELAY
+	{0,	127, 1}, // FB
+	{0,	127, 1}, // LRCR
+	{0,	1, 1, ToOnOff}, // MODE
+	{0,	1, 1, ToOnOff}, // SUB
+	{0,	1, 1, ToOnOff}, // AWESOME
 };
 
 // must match MidiArp::Param
@@ -2995,6 +3033,9 @@ CUIMenu::TMenuItem* CUIMenu::getFXMenuItem(unsigned type)
 	case AudioEffects::Types::APHASER:
 		menu = s_FXAPhaser;
 		break;
+	case AudioEffects::Types::FLANGER:
+		menu = s_FXFlanger;
+		break;
 	case AudioEffects::Types::NONE:
 	default:
         menu = s_FXNone;
@@ -3068,6 +3109,9 @@ CUIMenu::TParameter CUIMenu::getFXParameter(unsigned type, unsigned nParam)
 		break;
 	case AudioEffects::Types::APHASER:
 		pParam = s_TGFXAPhaserParam[nParam];
+		break;
+	case AudioEffects::Types::FLANGER:
+		pParam = s_TGFXFlangerParam[nParam];
 		break;
 	default:
 		break;

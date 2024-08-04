@@ -24,6 +24,8 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        effect_audio/rkrlv2/EffectLFO.o \
        effect_audio/rkrlv2/Phaser.o \
        effect_audio/rkrlv2/APhaser.o \
+       effect_audio/rkrlv2/delayline.o \
+       effect_audio/rkrlv2/Chorus.o \
        effect_midi/midi_arp.o \
        effect_midi/modarpeggiator/common/clock.o \
        effect_midi/modarpeggiator/common/midiHandler.o \
