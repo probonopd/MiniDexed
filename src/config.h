@@ -35,18 +35,49 @@
 class CConfig		// Configuration for MiniDexed
 {
 public:
+// Set maximum, minimum and default numbers of tone generators, depending on Pi version.
+// Actual number in can be changed via config settings for some Pis.
 #ifndef ARM_ALLOW_MULTI_CORE
-	static const unsigned ToneGenerators = 1;
+	// Pi V1 or Zero (single core)
+	static const unsigned MinToneGenerators = 1;
+	static const unsigned AllToneGenerators = 1;
+	static const unsigned DefToneGenerators = AllToneGenerators;
 #else
+#if (RASPPI==4 || RASPPI==5)
+	// Pi 4 and 5 quad core
+	// These are max values, default is to support 8 in total with optional 16 TGs
 	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
 	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
-	static const unsigned ToneGenerators = TGsCore1 + 2*TGsCore23;
+	static const unsigned TGsCore1Opt = 2;		// process optional additional 2 TGs on core 1
+	static const unsigned TGsCore23Opt = 3;		// process optional additional 3 TGs on core 2 and 3 each
+	static const unsigned MinToneGenerators = TGsCore1 + 2*TGsCore23;
+	static const unsigned AllToneGenerators = TGsCore1 + TGsCore1Opt + 2*TGsCore23 + 2*TGsCore23Opt;
+	static const unsigned DefToneGenerators = MinToneGenerators;
+#else
+	// Pi 2 or 3 quad core
+	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
+	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
+	static const unsigned TGsCore1Opt = 0;
+	static const unsigned TGsCore23Opt = 0;
+	static const unsigned MinToneGenerators = TGsCore1 + 2*TGsCore23;
+	static const unsigned AllToneGenerators = MinToneGenerators;
+	static const unsigned DefToneGenerators = AllToneGenerators;
 #endif
-
+#endif
+	
+// Set maximum polyphony, depending on PI version.  This can be changed via config settings
 #if RASPPI == 1
-	static const unsigned MaxNotes = 8;		// polyphony
+	static const unsigned MaxNotes = 8;
+	static const unsigned DefaultNotes = 8;
+#elif RASPPI == 4
+	static const unsigned MaxNotes = 32;
+	static const unsigned DefaultNotes = 24;
+#elif RASPPI == 5
+	static const unsigned MaxNotes = 32;
+	static const unsigned DefaultNotes = 32;
 #else
 	static const unsigned MaxNotes = 16;
+	static const unsigned DefaultNotes = 16;
 #endif
 
 	static const unsigned MaxChunkSize = 4096;
@@ -66,6 +97,12 @@ public:
 	~CConfig (void);
 
 	void Load (void);
+	
+	// TGs and Polyphony
+	unsigned GetToneGenerators (void) const;
+	unsigned GetPolyphony (void) const;
+	unsigned GetTGsCore1 (void) const;
+	unsigned GetTGsCore23 (void) const;
 	
 	// USB Mode
 	bool GetUSBGadget (void) const;
@@ -194,6 +231,9 @@ public:
 
 private:
 	CPropertiesFatFsFile m_Properties;
+	
+	unsigned m_nToneGenerators;
+	unsigned m_nPolyphony;
 	
 	bool m_bUSBGadget;
 	unsigned m_nUSBGadgetPin;
