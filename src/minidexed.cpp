@@ -807,17 +807,17 @@ void CMiniDexed::handleClock (void)
 	{
 		// Set milis
 		auto now = std::chrono::high_resolution_clock::now();
-		m_mClockTime = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+		m_mClockTime = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
 
 	}
 	m_nClockCounter++;
 
-	if (m_nClockCounter > 23) {
+	if (m_nClockCounter > 24) {
 		m_nClockCounter = 0;
 		// Calculate BPM
 		auto now = std::chrono::high_resolution_clock::now();
-		unsigned timeDelta = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() - m_mClockTime;
-		unsigned newTempo = roundf(60000 / timeDelta);
+		unsigned long timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count() - m_mClockTime;
+		unsigned newTempo = roundf(60000000 / timeDelta);
 		if (m_nTempo != newTempo)
 		{
 			this->setTempo(newTempo);
