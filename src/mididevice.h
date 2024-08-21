@@ -66,6 +66,10 @@ private:
 	CUserInterface *m_pUI;
 
 	u8 m_ChannelMap[CConfig::AllToneGenerators];
+	
+	unsigned m_nMIDISystemCCVol;
+	unsigned m_nMIDISystemCCPan;
+	unsigned m_nMIDISystemCCDetune;
 
 	std::string m_DeviceName;
 

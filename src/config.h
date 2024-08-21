@@ -117,6 +117,7 @@ public:
 	unsigned GetDACI2CAddress (void) const;		// 0 for auto probing
 	bool GetChannelsSwapped (void) const;
 	unsigned GetEngineType (void) const;
+	bool GetQuadDAC8Chan (void) const; // false if not specified
 
 	// MIDI
 	unsigned GetMIDIBaudRate (void) const;
@@ -127,7 +128,9 @@ public:
 	bool GetMIDIAutoVoiceDumpOnPC (void) const; // false if not specified
 	bool GetHeaderlessSysExVoices (void) const; // false if not specified
 	bool GetExpandPCAcrossBanks (void) const; // true if not specified
-	bool GetQuadDAC8Chan (void) const; // false if not specified
+	unsigned GetMIDISystemCCVol (void) const;
+	unsigned GetMIDISystemCCPan (void) const;
+	unsigned GetMIDISystemCCDetune (void) const;
 
 	// HD44780 LCD
 	// GPIO pin numbers are chip numbers, not header positions
@@ -245,6 +248,7 @@ private:
 	unsigned m_nDACI2CAddress;
 	bool m_bChannelsSwapped;
 	unsigned m_EngineType;
+	bool m_bQuadDAC8Chan;
 
 	unsigned m_nMIDIBaudRate;
 	std::string m_MIDIThruIn;
@@ -254,7 +258,9 @@ private:
 	bool m_bMIDIAutoVoiceDumpOnPC;
 	bool m_bHeaderlessSysExVoices;
 	bool m_bExpandPCAcrossBanks;
-	bool m_bQuadDAC8Chan;
+	unsigned m_nMIDISystemCCVol;
+	unsigned m_nMIDISystemCCPan;
+	unsigned m_nMIDISystemCCDetune;
 
 	bool m_bLCDEnabled;
 	unsigned m_nLCDPinEnable;

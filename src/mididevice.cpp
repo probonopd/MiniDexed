@@ -53,6 +53,21 @@ LOGMODULE ("mididevice");
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
+// MIDI "System" level (i.e. all TG) custom CC maps
+// Note: Even if number of TGs is not 8, there are only 8
+//       available to be used in the mappings here.
+#define NUM_MIDI_CC_MAPS 8
+const unsigned MIDISystemCCMap[NUM_MIDI_CC_MAPS][8] = {
+	{0,0,0,0,0,0,0,0}, // 0 = disabled
+	{16,17,18,19,80,81,82,83}, // 1 = General Purpose Controllers 1-8
+	{20,21,22,23,24,25,26,27},
+	{52,53,54,55,56,57,58,59},
+	{102,103,104,105,106,107,108,109},
+	{110,111,112,113,114,115,116,117},
+	{3,9,14,15,28,29,30,31},
+	{35,41,46,47,60,61,62,63}
+};
+
 #define MIDI_SYSTEM_EXCLUSIVE_BEGIN	0xF0
 #define MIDI_SYSTEM_EXCLUSIVE_END	0xF7
 #define MIDI_TIMING_CLOCK	0xF8
@@ -69,6 +84,10 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	{
 		m_ChannelMap[nTG] = Disabled;
 	}
+
+	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
+	m_nMIDISystemCCPan = m_pConfig->GetMIDISystemCCPan();
+	m_nMIDISystemCCDetune = m_pConfig->GetMIDISystemCCDetune();
 }
 
 CMIDIDevice::~CMIDIDevice (void)
@@ -371,6 +390,38 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							if (!m_pConfig->GetIgnoreAllNotesOff () && m_ChannelMap[nTG] != OmniMode)
 							{
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
+							}
+							break;
+
+						default:
+							// Check for "system" CC mappings if enabled that can control any TG
+							if (m_pConfig->GetToneGenerators() >= 8) {
+								// This only makes sense when there are at least 8 TGs.
+								// Note: If more than 8 TGs then only 8 TGs are controllable this way.
+								for (unsigned tg=0; tg<8; tg++) {
+									if (m_nMIDISystemCCVol != 0) {
+										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
+											m_pSynthesizer->SetVolume (pMessage[2], tg);
+										}
+									}
+									if (m_nMIDISystemCCPan != 0) {
+										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCPan][tg]) {
+											m_pSynthesizer->SetPan (pMessage[2], tg);
+										}
+									}
+									if (m_nMIDISystemCCDetune != 0) {
+										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCDetune][tg]) {
+											if (pMessage[2] == 0)
+											{
+												m_pSynthesizer->SetMasterTune (0, tg);
+											}
+											else
+											{
+												m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), tg);
+											}
+										}
+									}
+								}
 							}
 							break;
 						}
