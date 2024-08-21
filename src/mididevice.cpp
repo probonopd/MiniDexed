@@ -258,7 +258,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		}
 
 		// Process MIDI for each active Tone Generator
-		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++)
+		bool bSystemCCHandled = false;
+		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
@@ -398,15 +399,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							if (m_pConfig->GetToneGenerators() >= 8) {
 								// This only makes sense when there are at least 8 TGs.
 								// Note: If more than 8 TGs then only 8 TGs are controllable this way.
-								for (unsigned tg=0; tg<8; tg++) {
+								for (unsigned tg=0; tg<8 && !bSystemCCHandled; tg++) {
 									if (m_nMIDISystemCCVol != 0) {
 										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
 											m_pSynthesizer->SetVolume (pMessage[2], tg);
+											// Only need to process this once per MIDI msg for the first TG to receive it
+											bSystemCCHandled = true;
 										}
 									}
 									if (m_nMIDISystemCCPan != 0) {
 										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCPan][tg]) {
 											m_pSynthesizer->SetPan (pMessage[2], tg);
+											bSystemCCHandled = true;
 										}
 									}
 									if (m_nMIDISystemCCDetune != 0) {
@@ -419,6 +423,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 											{
 												m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), tg);
 											}
+											bSystemCCHandled = true;
 										}
 									}
 								}
