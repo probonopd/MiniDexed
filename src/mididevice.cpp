@@ -283,6 +283,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 		// Process MIDI for each active Tone Generator
 		bool bSystemCCHandled = false;
+		bool bSystemCCChecked = false;
 		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
@@ -423,8 +424,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							// Also, if successfully handled, then no need to process other TGs,
 							// so it is possible to break out of the main TG loop too.
 							// Note: We handle this here so we get the TG MIDI channel checking.
-							if (!bSystemCCHandled) {
+							if (!bSystemCCChecked) {
 								bSystemCCHandled = HandleMIDISystemCC(pMessage[1], pMessage[2]);
+								bSystemCCChecked = true;
 							}
 							break;
 						}
