@@ -88,6 +88,30 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
 	m_nMIDISystemCCPan = m_pConfig->GetMIDISystemCCPan();
 	m_nMIDISystemCCDetune = m_pConfig->GetMIDISystemCCDetune();
+
+	m_MIDISystemCCBitmap[0] = 0;
+	m_MIDISystemCCBitmap[1] = 0;
+	m_MIDISystemCCBitmap[2] = 0;
+	m_MIDISystemCCBitmap[3] = 0;
+
+	for (int tg=0; tg<8; tg++)
+	{
+		if (m_nMIDISystemCCVol != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCVol][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+		if (m_nMIDISystemCCPan != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCPan][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+		if (m_nMIDISystemCCDetune != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCDetune][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+	}
+	if (m_pConfig->GetMIDIDumpEnabled ()) {
+		LOGNOTE("MIDI System CC Map: %08X %08X %08X %08X", m_MIDISystemCCBitmap[3],m_MIDISystemCCBitmap[2],m_MIDISystemCCBitmap[1],m_MIDISystemCCBitmap[0]);
+	}
 }
 
 CMIDIDevice::~CMIDIDevice (void)
@@ -395,38 +419,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 
 						default:
-							// Check for "system" CC mappings if enabled that can control any TG
-							if (m_pConfig->GetToneGenerators() >= 8) {
-								// This only makes sense when there are at least 8 TGs.
-								// Note: If more than 8 TGs then only 8 TGs are controllable this way.
-								for (unsigned tg=0; tg<8 && !bSystemCCHandled; tg++) {
-									if (m_nMIDISystemCCVol != 0) {
-										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
-											m_pSynthesizer->SetVolume (pMessage[2], tg);
-											// Only need to process this once per MIDI msg for the first TG to receive it
-											bSystemCCHandled = true;
-										}
-									}
-									if (m_nMIDISystemCCPan != 0) {
-										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCPan][tg]) {
-											m_pSynthesizer->SetPan (pMessage[2], tg);
-											bSystemCCHandled = true;
-										}
-									}
-									if (m_nMIDISystemCCDetune != 0) {
-										if (pMessage[1] == MIDISystemCCMap[m_nMIDISystemCCDetune][tg]) {
-											if (pMessage[2] == 0)
-											{
-												m_pSynthesizer->SetMasterTune (0, tg);
-											}
-											else
-											{
-												m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), tg);
-											}
-											bSystemCCHandled = true;
-										}
-									}
-								}
+							// Check for system-level, cross-TG MIDI Controls, but only do it once.
+							// Also, if successfully handled, then no need to process other TGs,
+							// so it is possible to break out of the main TG loop too.
+							// Note: We handle this here so we get the TG MIDI channel checking.
+							if (!bSystemCCHandled) {
+								bSystemCCHandled = HandleMIDISystemCC(pMessage[1], pMessage[2]);
 							}
 							break;
 						}
@@ -472,6 +470,52 @@ void CMIDIDevice::AddDevice (const char *pDeviceName)
 	assert (!m_DeviceName.empty ());
 
 	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
+}
+
+bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
+{
+	// This only makes sense when there are at least 8 TGs.
+	// Note: If more than 8 TGs then only 8 TGs are controllable this way.
+	if (m_pConfig->GetToneGenerators() < 8) {
+		return false;
+	}
+
+	// Quickly reject any CCs not in the configured maps
+	if ((m_MIDISystemCCBitmap[ucCC>>5] & (1<<(ucCC%32))) == 0) {
+		// Not in the map
+		return false;
+	}
+
+	// Not looking for duplicate CCs so return once handled
+	for (unsigned tg=0; tg<8; tg++) {
+		if (m_nMIDISystemCCVol != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
+				m_pSynthesizer->SetVolume (ucCCval, tg);
+				return true;
+			}
+		}
+		if (m_nMIDISystemCCPan != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCPan][tg]) {
+				m_pSynthesizer->SetPan (ucCCval, tg);
+				return true;
+			}
+		}
+		if (m_nMIDISystemCCDetune != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCDetune][tg]) {
+				if (ucCCval == 0)
+				{
+					m_pSynthesizer->SetMasterTune (0, tg);
+				}
+				else
+				{
+					m_pSynthesizer->SetMasterTune (maplong (ucCCval, 1, 127, -99, 99), tg);
+				}
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
