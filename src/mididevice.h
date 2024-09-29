@@ -60,12 +60,21 @@ protected:
 	void MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
 	void AddDevice (const char *pDeviceName);
 	void HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG);
+
+private:
+	bool HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval);
+
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
 	CUserInterface *m_pUI;
 
 	u8 m_ChannelMap[CConfig::AllToneGenerators];
+	
+	unsigned m_nMIDISystemCCVol;
+	unsigned m_nMIDISystemCCPan;
+	unsigned m_nMIDISystemCCDetune;
+	u32	 m_MIDISystemCCBitmap[4]; // to allow for 128 bit entries
 
 	std::string m_DeviceName;
 

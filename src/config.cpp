@@ -108,6 +108,10 @@ void CConfig::Load (void)
 	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 0) != 0;
 	m_bHeaderlessSysExVoices = m_Properties.GetNumber ("HeaderlessSysExVoices", 0) != 0;
 	m_bExpandPCAcrossBanks = m_Properties.GetNumber ("ExpandPCAcrossBanks", 1) != 0;
+	
+	m_nMIDISystemCCVol = m_Properties.GetNumber ("MIDISystemCCVol", 0);
+	m_nMIDISystemCCPan = m_Properties.GetNumber ("MIDISystemCCPan", 0);
+	m_nMIDISystemCCDetune = m_Properties.GetNumber ("MIDISystemCCDetune", 0);
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -283,6 +287,11 @@ unsigned CConfig::GetEngineType (void) const
 	return m_EngineType;
 }
 
+bool CConfig::GetQuadDAC8Chan (void) const
+{
+	return m_bQuadDAC8Chan;
+}
+
 unsigned CConfig::GetMIDIBaudRate (void) const
 {
 	return m_nMIDIBaudRate;
@@ -323,9 +332,19 @@ bool CConfig::GetExpandPCAcrossBanks (void) const
 	return m_bExpandPCAcrossBanks;
 }
 
-bool CConfig::GetQuadDAC8Chan (void) const
+unsigned CConfig::GetMIDISystemCCVol (void) const
 {
-	return m_bQuadDAC8Chan;
+	return m_nMIDISystemCCVol;
+}
+
+unsigned CConfig::GetMIDISystemCCPan (void) const
+{
+	return m_nMIDISystemCCPan;
+}
+
+unsigned CConfig::GetMIDISystemCCDetune (void) const
+{
+	return m_nMIDISystemCCDetune;
 }
 
 bool CConfig::GetLCDEnabled (void) const
