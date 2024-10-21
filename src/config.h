@@ -194,12 +194,16 @@ public:
 	// GPIO pin numbers are chip numbers, not header positions
 	unsigned GetButtonPinPgmUp (void) const;
 	unsigned GetButtonPinPgmDown (void) const;
+	unsigned GetButtonPinBankUp (void) const;
+	unsigned GetButtonPinBankDown (void) const;
 	unsigned GetButtonPinTGUp (void) const;
 	unsigned GetButtonPinTGDown (void) const;
 
 	// Action type for buttons: "click", "doubleclick", "longpress", ""
 	const char *GetButtonActionPgmUp (void) const;
 	const char *GetButtonActionPgmDown (void) const;
+	const char *GetButtonActionBankUp (void) const;
+	const char *GetButtonActionBankDown (void) const;
 	const char *GetButtonActionTGUp (void) const;
 	const char *GetButtonActionTGDown (void) const;
 
@@ -215,6 +219,8 @@ public:
 	// MIDI Button Program and TG Selection
 	unsigned GetMIDIButtonPgmUp (void) const;
 	unsigned GetMIDIButtonPgmDown (void) const;
+	unsigned GetMIDIButtonBankUp (void) const;
+	unsigned GetMIDIButtonBankDown (void) const;
 	unsigned GetMIDIButtonTGUp (void) const;
 	unsigned GetMIDIButtonTGDown (void) const;
 	
@@ -303,6 +309,8 @@ private:
 	unsigned m_nButtonPinShortcut;
 	unsigned m_nButtonPinPgmUp;
 	unsigned m_nButtonPinPgmDown;
+	unsigned m_nButtonPinBankUp;
+	unsigned m_nButtonPinBankDown;
 	unsigned m_nButtonPinTGUp;
 	unsigned m_nButtonPinTGDown;
 
@@ -313,6 +321,8 @@ private:
 	std::string m_ButtonActionHome;
 	std::string m_ButtonActionPgmUp;
 	std::string m_ButtonActionPgmDown;
+	std::string m_ButtonActionBankUp;
+	std::string m_ButtonActionBankDown;
 	std::string m_ButtonActionTGUp;
 	std::string m_ButtonActionTGDown;
 	
@@ -328,6 +338,8 @@ private:
 	unsigned m_nMIDIButtonHome;
 	unsigned m_nMIDIButtonPgmUp;
 	unsigned m_nMIDIButtonPgmDown;
+	unsigned m_nMIDIButtonBankUp;
+	unsigned m_nMIDIButtonBankDown;
 	unsigned m_nMIDIButtonTGUp;
 	unsigned m_nMIDIButtonTGDown;
 

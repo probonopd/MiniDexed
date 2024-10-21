@@ -367,6 +367,14 @@ void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 		m_Menu.EventHandler (CUIMenu::MenuEventPgmDown);
 		break;
 
+	case CUIButton::BtnEventBankUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventBankUp);
+		break;
+
+	case CUIButton::BtnEventBankDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventBankDown);
+		break;
+
 	case CUIButton::BtnEventTGUp:
 		m_Menu.EventHandler (CUIMenu::MenuEventTGUp);
 		break;

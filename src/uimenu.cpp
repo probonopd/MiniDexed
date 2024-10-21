@@ -431,6 +431,11 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 		PgmUpDownHandler(Event);
 		break;
 
+	case MenuEventBankUp:
+	case MenuEventBankDown:
+		BankUpDownHandler(Event);
+		break;
+
 	case MenuEventTGUp:
 	case MenuEventTGDown:
 		TGUpDownHandler(Event);
@@ -1375,6 +1380,87 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 	}
 }
 
+void CUIMenu::BankUpDownHandler (TMenuEvent Event)
+{
+	if (m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceSelectChannel) != CMIDIDevice::Disabled)
+	{
+		// Bank Up/Down acts on performances
+		unsigned nLastPerformanceBank = m_pMiniDexed->GetLastPerformanceBank();
+		unsigned nPerformanceBank = m_nSelectedPerformanceBankID;
+		unsigned nStartBank = nPerformanceBank;
+		//LOGNOTE("Performance Bank actual=%d, last=%d", nPerformanceBank, nLastPerformanceBank);
+		if (Event == MenuEventBankDown)
+		{
+			do
+			{
+				if (nPerformanceBank == 0)
+				{
+					// Wrap around
+					nPerformanceBank = nLastPerformanceBank;
+				}
+				else if (nPerformanceBank > 0)
+				{
+					--nPerformanceBank;
+				}
+			} while ((m_pMiniDexed->IsValidPerformanceBank(nPerformanceBank) != true) && (nPerformanceBank != nStartBank));
+			m_nSelectedPerformanceBankID = nPerformanceBank;
+			// Switch to the new bank and select the first performance voice
+			m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nPerformanceBank);
+			m_pMiniDexed->SetFirstPerformance();
+			//LOGNOTE("Performance Bank new=%d, last=%d", m_nSelectedPerformanceBankID, nLastPerformanceBank);
+		}
+		else // MenuEventBankUp
+		{
+			do
+			{
+				if (nPerformanceBank == nLastPerformanceBank)
+				{
+					// Wrap around
+					nPerformanceBank = 0;
+				}
+				else if (nPerformanceBank < nLastPerformanceBank)
+				{
+					++nPerformanceBank;
+				}
+			} while ((m_pMiniDexed->IsValidPerformanceBank(nPerformanceBank) != true) && (nPerformanceBank != nStartBank));
+			m_nSelectedPerformanceBankID = nPerformanceBank;
+			m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nPerformanceBank);
+			m_pMiniDexed->SetFirstPerformance();
+			//LOGNOTE("Performance Bank new=%d, last=%d", m_nSelectedPerformanceBankID, nLastPerformanceBank);
+		}
+	}
+	else
+	{
+		// Bank Up/Down acts on voices within a TG.
+	
+		// If we're not in the root menu, then see if we are already in a TG menu,
+		// then find the current TG number. Otherwise assume TG1 (nTG=0).
+		unsigned nTG = 0;
+		if (m_MenuStackMenu[0] == s_MainMenu && (m_pCurrentMenu == s_TGMenu) || (m_MenuStackMenu[1] == s_TGMenu)) {
+			nTG = m_nMenuStackSelection[0];
+		}
+		assert (nTG < CConfig::AllToneGenerators);
+		if (nTG < m_nToneGenerators)
+		{
+			int nBank = m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterVoiceBank, nTG);
+
+			assert (Event == MenuEventBankDown || Event == MenuEventBankUp);
+			if (Event == MenuEventBankDown)
+			{
+				//LOGNOTE("BankDown");
+				nBank = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankDown(nBank);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBank, nTG);
+			}
+			else
+			{
+				//LOGNOTE("BankUp");
+				nBank = m_pMiniDexed->GetSysExFileLoader ()->GetNextBankUp(nBank);
+				m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterVoiceBank, nBank, nTG);
+			}
+		}
+	}
+}
+	
 void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 {
 	// This will update the menus to position it for the next TG up or down

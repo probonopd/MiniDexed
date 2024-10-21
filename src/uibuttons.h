@@ -27,8 +27,8 @@
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
 #define DEBOUNCE_TIME 20
-#define MAX_GPIO_BUTTONS 9  // 5 UI buttons, 4 Program/TG Select buttons
-#define MAX_MIDI_BUTTONS 9
+#define MAX_GPIO_BUTTONS 11  // 5 UI buttons, 6 Program/Bank/TG Select buttons
+#define MAX_MIDI_BUTTONS 11
 #define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
 
 class CUIButtons;
@@ -54,9 +54,11 @@ public:
 		BtnEventHome = 5,
 		BtnEventPgmUp = 6,
 		BtnEventPgmDown = 7,
-		BtnEventTGUp = 8,
-		BtnEventTGDown = 9,
-		BtnEventUnknown = 10
+		BtnEventBankUp = 8,
+		BtnEventBankDown = 9,
+		BtnEventTGUp = 10,
+		BtnEventTGDown = 11,
+		BtnEventUnknown = 12
 	};
 	
 	CUIButton (void);
@@ -152,6 +154,10 @@ private:
 	CUIButton::BtnTrigger m_pgmUpAction;
 	unsigned m_pgmDownPin;
 	CUIButton::BtnTrigger m_pgmDownAction;
+	unsigned m_BankUpPin;
+	CUIButton::BtnTrigger m_BankUpAction;
+	unsigned m_BankDownPin;
+	CUIButton::BtnTrigger m_BankDownAction;
 	unsigned m_TGUpPin;
 	CUIButton::BtnTrigger m_TGUpAction;
 	unsigned m_TGDownPin;
@@ -167,6 +173,8 @@ private:
 	
 	unsigned m_pgmUpMidi;
 	unsigned m_pgmDownMidi;
+	unsigned m_BankUpMidi;
+	unsigned m_BankDownMidi;
 	unsigned m_TGUpMidi;
 	unsigned m_TGDownMidi;
 
