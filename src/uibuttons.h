@@ -111,20 +111,7 @@ public:
 	typedef void BtnEventHandler (CUIButton::BtnEvent Event, void *param);
 
 public:
-	CUIButtons (
-			unsigned prevPin, const char *prevAction,
-			unsigned nextPin, const char *nextAction,
-			unsigned backPin, const char *backAction,
-			unsigned selectPin, const char *selectAction,
-			unsigned homePin, const char *homeAction,
-			unsigned pgmUpPin, const char *pgmUpAction,
-			unsigned pgmDownPin, const char *pgmDownAction,
-			unsigned TGUpPin, const char *TGUpAction,
-			unsigned TGDownPin, const char *TGDownAction,
-			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi,
-			unsigned pgmUpMidi, unsigned pgmDownMidi, unsigned TGUpMidi, unsigned TGDownMidi
-	);
+	CUIButtons (CConfig *pConfig);
 	~CUIButtons (void);
 	
 	boolean Initialize (void);
@@ -138,6 +125,8 @@ public:
 	void BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 	
 private:
+	CConfig *m_pConfig;
+
 	// Array of normal GPIO buttons and "MIDI buttons"
 	CUIButton m_buttons[MAX_BUTTONS];
 	

@@ -162,37 +162,7 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
-	m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
-									m_pConfig->GetButtonActionPrev (),
-									m_pConfig->GetButtonPinNext (),
-									m_pConfig->GetButtonActionNext (),
-									m_pConfig->GetButtonPinBack (),
-									m_pConfig->GetButtonActionBack (),
-									m_pConfig->GetButtonPinSelect (),
-									m_pConfig->GetButtonActionSelect (),
-									m_pConfig->GetButtonPinHome (),
-									m_pConfig->GetButtonActionHome (),
-									m_pConfig->GetButtonPinPgmUp (),
-									m_pConfig->GetButtonActionPgmUp (),
-									m_pConfig->GetButtonPinPgmDown (),
-									m_pConfig->GetButtonActionPgmDown (),
-									m_pConfig->GetButtonPinTGUp (),
-									m_pConfig->GetButtonActionTGUp (),
-									m_pConfig->GetButtonPinTGDown (),
-									m_pConfig->GetButtonActionTGDown (),
-									m_pConfig->GetDoubleClickTimeout (),
-									m_pConfig->GetLongPressTimeout (),
-									m_pConfig->GetMIDIButtonNotes (),
-									m_pConfig->GetMIDIButtonPrev (),
-									m_pConfig->GetMIDIButtonNext (),
-									m_pConfig->GetMIDIButtonBack (),
-									m_pConfig->GetMIDIButtonSelect (),
-									m_pConfig->GetMIDIButtonHome (),
-									m_pConfig->GetMIDIButtonPgmUp (),
-									m_pConfig->GetMIDIButtonPgmDown (),
-									m_pConfig->GetMIDIButtonTGUp (),
-									m_pConfig->GetMIDIButtonTGDown ()
-								  );
+	m_pUIButtons = new CUIButtons (	m_pConfig );
 	assert (m_pUIButtons);
 
 	if (!m_pUIButtons->Initialize ())

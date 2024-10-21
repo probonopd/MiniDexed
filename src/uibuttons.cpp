@@ -257,50 +257,8 @@ CUIButton::BtnTrigger CUIButton::triggerTypeFromString(const char* triggerString
 }
 
 
-CUIButtons::CUIButtons (
-			unsigned prevPin, const char *prevAction,
-			unsigned nextPin, const char *nextAction,
-			unsigned backPin, const char *backAction,
-			unsigned selectPin, const char *selectAction,
-			unsigned homePin, const char *homeAction,
-			unsigned pgmUpPin, const char *pgmUpAction,
-			unsigned pgmDownPin, const char *pgmDownAction,
-			unsigned TGUpPin, const char *TGUpAction,
-			unsigned TGDownPin, const char *TGDownAction,
-			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi,
-			unsigned pgmUpMidi, unsigned pgmDownMidi, unsigned TGUpMidi, unsigned TGDownMidi
-)
-:	m_doubleClickTimeout(doubleClickTimeout),
-	m_longPressTimeout(longPressTimeout),
-	m_prevPin(prevPin),
-	m_prevAction(CUIButton::triggerTypeFromString(prevAction)),
-	m_nextPin(nextPin),
-	m_nextAction(CUIButton::triggerTypeFromString(nextAction)),
-	m_backPin(backPin),
-	m_backAction(CUIButton::triggerTypeFromString(backAction)),
-	m_selectPin(selectPin),
-	m_selectAction(CUIButton::triggerTypeFromString(selectAction)),
-	m_homePin(homePin),
-	m_homeAction(CUIButton::triggerTypeFromString(homeAction)),
-	m_pgmUpPin(pgmUpPin),
-	m_pgmUpAction(CUIButton::triggerTypeFromString(pgmUpAction)),
-	m_pgmDownPin(pgmDownPin),
-	m_pgmDownAction(CUIButton::triggerTypeFromString(pgmDownAction)),
-	m_TGUpPin(TGUpPin),
-	m_TGUpAction(CUIButton::triggerTypeFromString(TGUpAction)),
-	m_TGDownPin(TGDownPin),
-	m_TGDownAction(CUIButton::triggerTypeFromString(TGDownAction)),
-	m_notesMidi(notesMidi),
-	m_prevMidi(ccToMidiPin(prevMidi)),
-	m_nextMidi(ccToMidiPin(nextMidi)),
-	m_backMidi(ccToMidiPin(backMidi)),
-	m_selectMidi(ccToMidiPin(selectMidi)),
-	m_homeMidi(ccToMidiPin(homeMidi)),
-	m_pgmUpMidi(ccToMidiPin(pgmUpMidi)),
-	m_pgmDownMidi(ccToMidiPin(pgmDownMidi)),
-	m_TGUpMidi(ccToMidiPin(TGUpMidi)),
-	m_TGDownMidi(ccToMidiPin(TGDownMidi)),
+CUIButtons::CUIButtons (CConfig *pConfig)
+:	m_pConfig(pConfig),
 	m_eventHandler (0),
 	m_lastTick (0)
 {
@@ -312,6 +270,40 @@ CUIButtons::~CUIButtons (void)
 
 boolean CUIButtons::Initialize (void)
 {
+	assert (m_pConfig);
+
+	// Read the button configuration
+	m_doubleClickTimeout = m_pConfig->GetDoubleClickTimeout ();
+	m_longPressTimeout = m_pConfig->GetLongPressTimeout ();
+	m_prevPin = m_pConfig->GetButtonPinPrev ();
+	m_prevAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionPrev ());
+	m_nextPin = m_pConfig->GetButtonPinNext ();
+	m_nextAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionNext ());
+	m_backPin = m_pConfig->GetButtonPinBack ();
+	m_backAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionBack ());
+	m_selectPin = m_pConfig->GetButtonPinSelect ();
+	m_selectAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionSelect ());
+	m_homePin = m_pConfig->GetButtonPinHome ();
+	m_homeAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionHome ());
+	m_pgmUpPin = m_pConfig->GetButtonPinPgmUp ();
+	m_pgmUpAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionPgmUp ());
+	m_pgmDownPin = m_pConfig->GetButtonPinPgmDown ();
+	m_pgmDownAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionPgmDown ());
+	m_TGUpPin = m_pConfig->GetButtonPinTGUp ();
+	m_TGUpAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGUp ());
+	m_TGDownPin = m_pConfig->GetButtonPinTGDown ();
+	m_TGDownAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGDown ());
+	m_notesMidi = m_pConfig->GetMIDIButtonNotes ();
+	m_prevMidi = m_pConfig->GetMIDIButtonPrev ();
+	m_nextMidi = m_pConfig->GetMIDIButtonNext ();
+	m_backMidi = m_pConfig->GetMIDIButtonBack ();
+	m_selectMidi = m_pConfig->GetMIDIButtonSelect ();
+	m_homeMidi = m_pConfig->GetMIDIButtonHome ();
+	m_pgmUpMidi = m_pConfig->GetMIDIButtonPgmUp ();
+	m_pgmDownMidi = m_pConfig->GetMIDIButtonPgmDown ();
+	m_TGUpMidi = m_pConfig->GetMIDIButtonTGUp ();
+	m_TGDownMidi = m_pConfig->GetMIDIButtonTGDown ();
+	
 	// First sanity check and convert the timeouts:
 	// Internally values are in tenths of a millisecond, but config values
 	// are in milliseconds
