@@ -297,18 +297,18 @@ boolean CUIButtons::Initialize (void)
 	m_TGUpAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGUp ());
 	m_TGDownPin = m_pConfig->GetButtonPinTGDown ();
 	m_TGDownAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGDown ());
-	m_notesMidi = m_pConfig->GetMIDIButtonNotes ();
-	m_prevMidi = m_pConfig->GetMIDIButtonPrev ();
-	m_nextMidi = m_pConfig->GetMIDIButtonNext ();
-	m_backMidi = m_pConfig->GetMIDIButtonBack ();
-	m_selectMidi = m_pConfig->GetMIDIButtonSelect ();
-	m_homeMidi = m_pConfig->GetMIDIButtonHome ();
-	m_pgmUpMidi = m_pConfig->GetMIDIButtonPgmUp ();
-	m_pgmDownMidi = m_pConfig->GetMIDIButtonPgmDown ();
-	m_BankUpMidi = m_pConfig->GetMIDIButtonBankUp ();
-	m_BankDownMidi = m_pConfig->GetMIDIButtonBankDown ();
-	m_TGUpMidi = m_pConfig->GetMIDIButtonTGUp ();
-	m_TGDownMidi = m_pConfig->GetMIDIButtonTGDown ();
+	m_notesMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNotes ());
+	m_prevMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPrev ());
+	m_nextMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNext ());
+	m_backMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBack ());
+	m_selectMidi = ccToMidiPin( m_pConfig->GetMIDIButtonSelect ());
+	m_homeMidi = ccToMidiPin( m_pConfig->GetMIDIButtonHome ());
+	m_pgmUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPgmUp ());
+	m_pgmDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPgmDown ());
+	m_BankUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBankUp ());
+	m_BankDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBankDown ());
+	m_TGUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonTGUp ());
+	m_TGDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonTGDown ());
 	
 	// First sanity check and convert the timeouts:
 	// Internally values are in tenths of a millisecond, but config values
