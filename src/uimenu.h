@@ -55,11 +55,45 @@ public:
 		MenuEventUnknown
 	};
 
+	typedef std::string TToString (int nValue);
+
+	enum TCPageType
+	{
+		PageMain,
+		PageEffect,
+		PageTG,
+		PageVoice,
+		PageOP,
+	};
+
+	enum TCParameterType
+	{
+		ParameterNone,
+		ParameterGlobal,
+		ParameterTG,
+		ParameterVoice,
+		ParameterOP,
+	};
+
+	struct TCParameterInfo {
+		TCParameterType Type;
+		unsigned Parameter;
+		const char* Name;
+		const char* Short;
+		u8 OP;
+		int Min;
+		int Max;
+		int Increment;
+		TToString *ToString;
+	};
+
 public:
 	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
 
 	void EventHandler (TMenuEvent Event);
 	
+	const void GetParameterInfos (CUIMenu::TCParameterInfo pParamInfo[8]);
+
 private:
 	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 
@@ -69,9 +103,8 @@ private:
 		TMenuHandler *Handler;
 		const TMenuItem *MenuItem;
 		unsigned Parameter;
+		const char *Short;
 	};
-
-	typedef std::string TToString (int nValue);
 
 	struct TParameter
 	{
@@ -129,6 +162,7 @@ private:
 	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 	 
+	const void GetParameterInfo (TCParameterInfo *pParam);
 private:
 	CUserInterface *m_pUI;
 	CMiniDexed *m_pMiniDexed;

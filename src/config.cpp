@@ -204,7 +204,9 @@ void CConfig::Load (void)
 	m_MIDIButtonActionBankDown = m_Properties.GetString ("MIDIButtonActionBankDown", "");
 	m_MIDIButtonActionTGUp = m_Properties.GetString ("MIDIButtonActionTGUp", "");
 	m_MIDIButtonActionTGDown = m_Properties.GetString ("MIDIButtonActionTGDown", "");
-	
+
+	m_bDAWControllerEnabled = m_Properties.GetNumber ("DAWControllerEnabled", 0) != 0;
+
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
@@ -749,6 +751,11 @@ const char *CConfig::GetMIDIButtonActionTGUp (void) const
 const char *CConfig::GetMIDIButtonActionTGDown (void) const
 {
 	return m_MIDIButtonActionTGDown.c_str();
+}
+
+bool CConfig::GetDAWControllerEnabled (void) const
+{
+	return m_bDAWControllerEnabled;
 }
 
 bool CConfig::GetEncoderEnabled (void) const

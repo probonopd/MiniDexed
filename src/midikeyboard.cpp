@@ -29,15 +29,20 @@ CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserI
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_nSysExIdx (0),
 	m_nInstance (nInstance),
-	m_pMIDIDevice (0)
+	m_pMIDIDevice (0),
+	m_pDAWController (0)
 {
 	m_DeviceName.Format ("umidi%u", nInstance+1);
 
 	AddDevice (m_DeviceName);
+
+	if (pConfig->GetDAWControllerEnabled ())
+		m_pDAWController = new CDAWController (pSynthesizer, this, pConfig, pUI);
 }
 
 CMIDIKeyboard::~CMIDIKeyboard (void)
 {
+	delete m_pDAWController;
 }
 
 void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
@@ -69,6 +74,9 @@ void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
 			m_pMIDIDevice->RegisterPacketHandler (MIDIPacketHandler, this);
 
 			m_pMIDIDevice->RegisterRemovedHandler (DeviceRemovedHandler, this);
+
+			if (m_pDAWController)
+				m_pDAWController->OnConnect();
 		}
 	}
 }
@@ -83,6 +91,13 @@ void CMIDIKeyboard::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 	memcpy (Entry.pMessage, pMessage, nLength);
 
 	m_SendQueue.push (Entry);
+}
+
+void CMIDIKeyboard::SendDebounce (const u8 *pMessage, size_t nLength, unsigned nCable)
+{
+	TSendQueueEntry Entry = m_SendQueue.back ();
+	if (Entry.nLength != nLength || Entry.nCable != nCable || memcmp (Entry.pMessage, pMessage, nLength) != 0)
+		Send (pMessage, nLength, nCable);
 }
 
 // Most packets will be passed straight onto the main MIDI message handler
@@ -122,6 +137,10 @@ void CMIDIKeyboard::USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsign
 				m_SysEx[m_nSysExIdx++] = pPacket[i];
 				//printf ("SysEx End    Idx=%d\n", m_nSysExIdx);
 				MIDIMessageHandler (m_SysEx, m_nSysExIdx, nCable);
+
+				if (m_pDAWController)
+					m_pDAWController->MIDISysexHandler (m_SysEx, m_nSysExIdx, nCable);
+
 				// Reset ready for next time
 				m_nSysExIdx = 0;
 			}
@@ -159,4 +178,29 @@ void CMIDIKeyboard::DeviceRemovedHandler (CDevice *pDevice, void *pContext)
 	assert (pThis != 0);
 
 	pThis->m_pMIDIDevice = 0;
+}
+
+void CMIDIKeyboard::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			   bool bArrowDown, bool bArrowUp)
+{
+	if (m_pMIDIDevice && m_pDAWController)
+		m_pDAWController->DisplayWrite (pMenu, pParam, pValue, bArrowDown, bArrowUp);
+}
+
+void CMIDIKeyboard::UpdateDAWState (void)
+{
+	if (m_pMIDIDevice && m_pDAWController)
+		m_pDAWController->UpdateState ();
+}
+
+void CMIDIKeyboard::UpdateDAWMenu (CUIMenu::TCPageType Type, s8 ucPage, u8 ucOP, u8 ucTG)
+{
+	if (m_pMIDIDevice && m_pDAWController)
+		m_pDAWController->UpdateMenu (Type, ucPage, ucOP, ucTG);
+}
+
+void CMIDIKeyboard::MIDIListener (u8 ucCable, u8 ucChannel, u8 ucType, u8 ucP1, u8 ucP2)
+{
+	if (m_pDAWController)
+		m_pDAWController->MIDIListener (ucCable, ucChannel, ucType, ucP1, ucP2);
 }
