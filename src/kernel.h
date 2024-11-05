@@ -35,7 +35,7 @@ enum TShutdownMode
 	ShutdownReboot
 };
 
-class CKernel : public CStdlibAppStdio
+class CKernel : public CStdlibAppNetwork
 {
 public:
 	CKernel (void);

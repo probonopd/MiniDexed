@@ -43,6 +43,10 @@
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
+//#include <circle/net/netsubsystem.h>
+//#include <wlan/bcm4343.h>
+//#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
+#include "rtpmididevice.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -60,7 +64,6 @@ public:
 #ifdef ARM_ALLOW_MULTI_CORE
 	void Run (unsigned nCore);
 #endif
-
 	CSysExFileLoader *GetSysExFileLoader (void);
 
 	void BankSelect    (unsigned nBank, unsigned nTG);
@@ -211,12 +214,15 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+	//bool InitNetwork();
+	void UpdateNetwork();
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::ToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
+	const char* GetNetworkDeviceShortName() const;
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	enum TCoreStatus
@@ -309,6 +315,19 @@ private:
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
+	bool m_bNetworkReady;
+	//CWPASupplicant m_WPASupplicant;
+	// Networking
+	//CNetSubSystem &mNet;
+	/*
+	CNetSubSystem* m_pNet;
+	CNetDevice* m_pNetDevice;
+	CBcm4343Device m_WLAN;
+	CWPASupplicant m_WPASupplicant;
+	bool m_bNetworkReady;
+	CBcmRandomNumberGenerator m_Random;
+	*/
+	CRTPMIDIDevice m_RTPMIDI;
 };
 
 #endif

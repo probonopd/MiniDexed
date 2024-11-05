@@ -27,6 +27,19 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <circle/net/netsubsystem.h>
+#include <circle/sched/scheduler.h>
+#include "circle_stdlib_app.h"
+//#include "mididevice.h"
+
+/*
+#define DRIVE		"SD:"
+#define FIRMWARE_PATH	DRIVE "/firmware/"		// firmware files must be provided here
+#define CONFIG_FILE	DRIVE "/wpa_supplicant.conf"
+
+const char WLANFirmwarePath[] = "SD:firmware/";
+const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
+*/
 
 LOGMODULE ("minidexed");
 
@@ -54,7 +67,17 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	/*
+	m_pNet(nullptr),
+	m_pNetDevice(nullptr),
+	m_WLAN(WLANFirmwarePath),
+	m_WPASupplicant(WLANConfigFile),
+	m_bNetworkReady(false),
+	*/
+	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+	m_bNetworkReady(false),
+	m_RTPMIDI (this, pConfig, &m_UI)
 {
 	assert (m_pConfig);
 
@@ -267,7 +290,14 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
+	//InitNetwork();
+	UpdateNetwork();
 	
+	//CMIDIDevice->InitializeRTP();
+	if (m_RTPMIDI.Initialize ())
+	{
+		LOGNOTE ("RTP MIDI interface enabled");
+	}
 	return true;
 }
 
@@ -325,6 +355,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	{
 		m_GetChunkTimer.Dump ();
 	}
+
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -1802,3 +1833,111 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 	}
 	
 }
+
+void CMiniDexed::UpdateNetwork()
+/*{
+	CNetSubSystem* const pNet = CNetSubSystem::Get();
+	if (!m_bNetworkReady){
+		
+		m_bNetworkReady = true;
+		CString IPString;
+		pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+	}
+	if (!pNet)
+		return;
+	
+}*/
+
+{
+	CNetSubSystem* const pNet = CNetSubSystem::Get();
+	if (!pNet)
+		return;
+
+	bool bNetIsRunning = pNet->IsRunning();
+	//bNetIsRunning &= m_WPASupplicant.IsConnected();
+
+	if (!m_bNetworkReady)
+	{
+		m_bNetworkReady = true;
+
+		CString IPString;
+		pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+
+		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+	}
+	else if (m_bNetworkReady && !bNetIsRunning)
+	{
+		m_bNetworkReady = false;
+		LOGNOTE("Network disconnected.");
+
+	}
+}
+/*
+void CMiniDexed::UpdateNetwork()
+{
+	if (!m_pNet)
+		return;
+
+	bool bNetIsRunning = m_pNet->IsRunning();
+	if (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0)
+		bNetIsRunning &= m_pNetDevice->IsLinkUp();
+	else if (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0)
+		bNetIsRunning &= m_WPASupplicant.IsConnected();
+
+	if (!m_bNetworkReady && bNetIsRunning)
+	{
+		m_bNetworkReady = true;
+
+		CString IPString;
+		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+
+		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+	}
+	else if (m_bNetworkReady && !bNetIsRunning)
+	{
+		m_bNetworkReady = false;
+		LOGNOTE("Network disconnected.");
+	}
+}
+
+bool CMiniDexed::InitNetwork()
+{
+	assert(m_pNet == nullptr);
+
+	TNetDeviceType NetDeviceType = NetDeviceTypeWLAN;
+
+	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	{
+		LOGNOTE("Initializing Wi-Fi");
+
+		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("wlan and wpasupplicant initialized");
+			//NetDeviceType = NetDeviceTypeWLAN;
+			
+		}
+		else
+			LOGERR("Failed to initialize Wi-Fi");
+	}
+	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+	{
+		LOGNOTE("Initializing Ethernet");
+		//NetDeviceType = NetDeviceTypeEthernet;
+	}
+
+
+	LOGNOTE("creating network with wifi and dhcp");
+	m_pNet = new CNetSubSystem(0, 0, 0, 0, "minidexed", NetDeviceType);
+	if (!m_pNet->Initialize(true))
+	{
+		LOGERR("Failed to initialize network subsystem");
+		delete m_pNet;
+		m_pNet = nullptr;
+	}
+	m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+	
+
+	return m_pNet != nullptr;
+}
+*/

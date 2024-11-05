@@ -168,6 +168,10 @@ public:
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
 
+	// Network
+	bool GetNetworkEnabled (void) const;
+	const char *GetNetworkType (void) const;
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -252,6 +256,10 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	// Network
+	bool m_bNetworkEnabled;
+	std::string m_NetworkType;
 };
 
 #endif

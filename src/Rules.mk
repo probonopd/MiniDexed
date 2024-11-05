@@ -11,7 +11,8 @@ include $(CIRCLEHOME)/Rules.mk
 
 INCLUDE += \
 	   -I $(CIRCLE_STDLIB_DIR)/include \
-	   -I $(NEWLIBDIR)/include
+	   -I $(NEWLIBDIR)/include \
+	   -I $(NET_DIR)
 
 LIBS += \
  	$(NEWLIBDIR)/lib/libm.a \
@@ -28,6 +29,9 @@ LIBS += \
  	$(CIRCLEHOME)/addon/fatfs/libfatfs.a \
  	$(CIRCLEHOME)/lib/fs/libfs.a \
   	$(CIRCLEHOME)/lib/sched/libsched.a \
-	$(CIRCLEHOME)/lib/libcircle.a
+	$(CIRCLEHOME)/lib/libcircle.a \
+	$(CIRCLEHOME)/addon/wlan/hostap/wpa_supplicant/libwpa_supplicant.a \
+	$(CIRCLEHOME)/addon/wlan/libwlan.a \
+	$(CIRCLEHOME)/lib/net/libnet.a
 
 -include $(DEPS)

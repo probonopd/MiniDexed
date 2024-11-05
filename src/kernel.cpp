@@ -24,12 +24,17 @@
 #include <circle/usb/usbhcidevice.h>
 #include "usbminidexedmidigadget.h"
 
+#define NET_DEVICE_TYPE		NetDeviceTypeWLAN		// or: NetDeviceTypeWLAN
+
 LOGMODULE ("kernel");
 
 CKernel *CKernel::s_pThis = 0;
 
 CKernel::CKernel (void)
-:	CStdlibAppStdio ("minidexed"),
+:	
+	//CStdlibAppStdio ("minidexed"),
+	CStdlibAppNetwork ("minidexed", CSTDLIBAPP_DEFAULT_PARTITION,
+			     0, 0, 0, 0, NET_DEVICE_TYPE),
 	m_Config (&mFileSystem),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
@@ -47,7 +52,7 @@ CKernel::~CKernel(void)
 
 bool CKernel::Initialize (void)
 {
-	if (!CStdlibAppStdio::Initialize ())
+	if (!CStdlibAppNetwork::Initialize ())
 	{
 		return FALSE;
 	}
@@ -109,7 +114,7 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 			mScreen.Update ();
 		}
 
-		m_CPUThrottle.Update ();
+		m_CPUThrottle.Update ();		
 	}
 
 	return ShutdownHalt;
