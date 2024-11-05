@@ -162,16 +162,7 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
-	m_pUIButtons = new CUIButtons (	m_pConfig );
-	assert (m_pUIButtons);
-
-	if (!m_pUIButtons->Initialize ())
-	{
-		return false;
-	}
-
-	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-	UISetMIDIButtonChannel (m_pConfig->GetMIDIButtonCh ());
+	InitButtonsWithConfig (m_pConfig);
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -196,6 +187,17 @@ bool CUserInterface::Initialize (void)
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
 
 	return true;
+}
+
+void CUserInterface::InitButtonsWithConfig (CConfig *pConfig)
+{
+	delete m_pUIButtons;
+	m_pUIButtons = new CUIButtons (pConfig);
+	assert (m_pUIButtons);
+
+	m_pUIButtons->Initialize ();
+	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+	UISetMIDIButtonChannel (pConfig->GetMIDIButtonCh ());
 }
 
 void CUserInterface::Process (void)
@@ -396,7 +398,7 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 	pThis->UIButtonsEventHandler (Event);
 }
 
-void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
+void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiType, unsigned nMidiData1, unsigned nMidiData2)
 {
 	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
 	{
@@ -411,7 +413,7 @@ void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsi
 	
 	if (m_pUIButtons)
 	{
-		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
+		m_pUIButtons->BtnMIDICmdHandler (nMidiType, nMidiData1, nMidiData2);
 	}
 }
 

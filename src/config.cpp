@@ -204,7 +204,9 @@ void CConfig::Load (void)
 	m_MIDIButtonActionBankDown = m_Properties.GetString ("MIDIButtonActionBankDown", "");
 	m_MIDIButtonActionTGUp = m_Properties.GetString ("MIDIButtonActionTGUp", "");
 	m_MIDIButtonActionTGDown = m_Properties.GetString ("MIDIButtonActionTGDown", "");
-	
+
+	m_bDAWControllerEnabled = m_Properties.GetNumber ("DAWControllerEnabled", 0) != 0;
+
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
@@ -666,6 +668,36 @@ unsigned CConfig::GetMIDIButtonHome (void) const
 	return m_nMIDIButtonHome;
 }
 
+void CConfig::SetMIDIButtonCh (unsigned v)
+{
+	m_nMIDIButtonCh = v;
+} 
+
+void CConfig::SetMIDIButtonPrev (unsigned v)
+{
+	m_nMIDIButtonPrev = v;
+}
+
+void CConfig::SetMIDIButtonNext (unsigned v)
+{
+	m_nMIDIButtonNext = v;
+}
+
+void CConfig::SetMIDIButtonBack (unsigned v)
+{
+	m_nMIDIButtonBack = v;
+}
+
+void CConfig::SetMIDIButtonSelect (unsigned v)
+{
+	m_nMIDIButtonSelect = v;
+}
+
+void CConfig::SetMIDIButtonHome (unsigned v)
+{
+	m_nMIDIButtonHome = v;
+}
+
 const char *CConfig::GetMIDIButtonActionPrev (void) const
 {
 	return m_MIDIButtonActionPrev.c_str();
@@ -689,6 +721,31 @@ const char *CConfig::GetMIDIButtonActionSelect (void) const
 const char *CConfig::GetMIDIButtonActionHome (void) const
 {
 	return m_MIDIButtonActionHome.c_str();
+}
+
+void CConfig::SetMIDIButtonActionPrev (const char *v)
+{
+	m_MIDIButtonActionPrev = v;
+}
+
+void CConfig::SetMIDIButtonActionNext (const char *v)
+{
+	m_MIDIButtonActionNext = v;
+}
+
+void CConfig::SetMIDIButtonActionBack (const char *v)
+{
+	m_MIDIButtonActionBack = v;
+}
+
+void CConfig::SetMIDIButtonActionSelect (const char *v)
+{
+	m_MIDIButtonActionSelect = v;
+}
+
+void CConfig::SetMIDIButtonActionHome (const char *v)
+{
+	m_MIDIButtonActionHome = v;
 }
 
 unsigned CConfig::GetMIDIButtonPgmUp (void) const
@@ -749,6 +806,11 @@ const char *CConfig::GetMIDIButtonActionTGUp (void) const
 const char *CConfig::GetMIDIButtonActionTGDown (void) const
 {
 	return m_MIDIButtonActionTGDown.c_str();
+}
+
+bool CConfig::GetDAWControllerEnabled (void) const
+{
+	return m_bDAWControllerEnabled;
 }
 
 bool CConfig::GetEncoderEnabled (void) const
