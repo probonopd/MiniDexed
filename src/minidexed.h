@@ -232,6 +232,11 @@ public:
 
 	void setMasterVolume (float32_t vol);
 
+	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			   bool bArrowDown, bool bArrowUp);
+
+	void UpdateDAWState ();
+
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];

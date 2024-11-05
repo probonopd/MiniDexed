@@ -1059,6 +1059,24 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 		assert (0);
 		break;
 	}
+
+	switch (Parameter)
+	{
+	case TGParameterCutoff:
+	case TGParameterEnabled:
+	case TGParameterMasterTune:
+	case TGParameterMIDIChannel:
+	case TGParameterPan:
+	case TGParameterProgram:
+	case TGParameterResonance:
+	case TGParameterReverbSend:
+	case TGParameterPortamentoTime:
+	case TGParameterPortamentoMode:
+			UpdateDAWState ();
+	break;
+	default:
+		break;
+	}
 }
 
 int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
@@ -1799,6 +1817,25 @@ void CMiniDexed::setMasterVolume (float32_t vol)
 	nMasterVolume=vol;
 }
 
+void CMiniDexed::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			       bool bArrowDown, bool bArrowUp)
+{
+	m_UI.DisplayWrite (pMenu, pParam, pValue, bArrowDown, bArrowUp);
+
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i]->DisplayWrite (pMenu, pParam, pValue, bArrowDown, bArrowUp);
+	}
+}
+
+void CMiniDexed::UpdateDAWState ()
+{
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i]->UpdateDAWState ();
+	}
+}
+
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
 {
 	return m_PerformanceConfig.GetPerformanceFileName(nID);
@@ -1962,6 +1999,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 			}
 			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
+			setEnabled(1, nTG);
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 					
 			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
@@ -1985,6 +2023,8 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+		UpdateDAWState ();
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
