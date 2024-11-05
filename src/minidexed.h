@@ -38,6 +38,9 @@
 #include <circle/i2cmaster.h>
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
+#include <circle/sched/scheduler.h>
+////#include <circle/net/netsubsystem.h>
+//#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
@@ -46,7 +49,8 @@
 //#include <circle/net/netsubsystem.h>
 //#include <wlan/bcm4343.h>
 //#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
-#include "rtpmididevice.h"
+#include "udpmididevice.h"
+#include "net/ftpdaemon.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -316,6 +320,7 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
 	bool m_bNetworkReady;
+	//CNetSubSystem* m_pNet;
 	//CWPASupplicant m_WPASupplicant;
 	// Networking
 	//CNetSubSystem &mNet;
@@ -327,7 +332,8 @@ private:
 	bool m_bNetworkReady;
 	CBcmRandomNumberGenerator m_Random;
 	*/
-	CRTPMIDIDevice m_RTPMIDI;
+	CUDPMIDIDevice m_UDPMIDI;
+	CFTPDaemon* m_pFTPDaemon;
 };
 
 #endif

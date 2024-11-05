@@ -28,15 +28,17 @@
 #include <stdio.h>
 #include <assert.h>
 #include <circle/net/netsubsystem.h>
-#include <circle/sched/scheduler.h>
-#include "circle_stdlib_app.h"
+//#include <circle/sched/scheduler.h>
+//#include "circle_stdlib_app.h"
 //#include "mididevice.h"
 
-/*
+
 #define DRIVE		"SD:"
 #define FIRMWARE_PATH	DRIVE "/firmware/"		// firmware files must be provided here
 #define CONFIG_FILE	DRIVE "/wpa_supplicant.conf"
-
+#define FTPUSERNAME "admin"
+#define FTPPASSWORD "admin"
+/*
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 */
@@ -77,7 +79,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	*/
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	m_bNetworkReady(false),
-	m_RTPMIDI (this, pConfig, &m_UI)
+	m_UDPMIDI (this, pConfig, &m_UI)
 {
 	assert (m_pConfig);
 
@@ -291,18 +293,24 @@ bool CMiniDexed::Initialize (void)
 	}
 #endif
 	//InitNetwork();
-	UpdateNetwork();
+	
 	
 	//CMIDIDevice->InitializeRTP();
-	if (m_RTPMIDI.Initialize ())
+	m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+	if (!m_pFTPDaemon->Initialize())
 	{
-		LOGNOTE ("RTP MIDI interface enabled");
+		LOGERR("Failed to init FTP daemon");
+		delete m_pFTPDaemon;
+		m_pFTPDaemon = nullptr;
 	}
+	else
+		LOGNOTE("FTP daemon initialized");
 	return true;
 }
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
+	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
 	ProcessSound ();
 #endif
@@ -355,7 +363,9 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	{
 		m_GetChunkTimer.Dump ();
 	}
-
+	UpdateNetwork();
+	// Allow other tasks to run
+	pScheduler->Yield();
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -629,6 +639,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	{
 		m_SerialMIDI.SetChannel (uchChannel, nTG);
 	}
+	m_UDPMIDI.SetChannel (uchChannel, nTG);
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	unsigned nActiveTGs = 0;
@@ -1860,11 +1871,15 @@ void CMiniDexed::UpdateNetwork()
 	if (!m_bNetworkReady)
 	{
 		m_bNetworkReady = true;
-
 		CString IPString;
 		pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
 		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+
+		if (m_UDPMIDI.Initialize ())
+		{
+			LOGNOTE ("RTP MIDI interface enabled");
+		}
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{

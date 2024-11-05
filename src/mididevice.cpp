@@ -169,6 +169,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 
 	m_MIDISpinLock.Acquire ();
+	printf ("MIDI-DEBUG: SPINLOCK ACQUIRED\n");
 
 	u8 ucStatus  = pMessage[0];
 	u8 ucChannel = ucStatus & 0x0F;
@@ -213,8 +214,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		}
 
 		// Process MIDI for each Tone Generator
+		printf ("MIDI-DEBUG: EACH TONEGENERATOR LOOP\n");
 		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 		{
+			printf ("%u TONE GENERATOR", nTG);
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
 				// MIDI SYSEX per MIDI channel
@@ -227,12 +230,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 			else
 			{
+				printf ("NOT AN SYSEX");
+				
 				if (   m_ChannelMap[nTG] == ucChannel
 				    || m_ChannelMap[nTG] == OmniMode)
 				{
 					switch (ucType)
 					{
 					case MIDI_NOTE_ON:
+						printf ("MIDI-DEBUG: CASE MIDI NOTE ON\n");
 						if (nLength < 3)
 						{
 							break;
@@ -242,12 +248,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						{
 							if (pMessage[2] <= 127)
 							{
+								printf ("MIDI-DEBUG: KEYDOWN EVENT\n");
 								m_pSynthesizer->keydown (pMessage[1],
 											 pMessage[2], nTG);
 							}
 						}
 						else
 						{
+							printf ("MIDI-DEBUG: KEYUP EVENT\n");
+							//printf ("MIDI-RTP: %02X\n", m_pSynthesizer);
 							m_pSynthesizer->keyup (pMessage[1], nTG);
 						}
 						break;
@@ -257,7 +266,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						{
 							break;
 						}
-		
+						printf ("MIDI-DEBUG: MIDI NOTE OFF\n");
 						m_pSynthesizer->keyup (pMessage[1], nTG);
 						break;
 		
@@ -379,6 +388,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		}
 	}
 	m_MIDISpinLock.Release ();
+	printf ("MIDI-DEBUG: SPINLOCK RELEASED\n");
 }
 
 void CMIDIDevice::AddDevice (const char *pDeviceName)

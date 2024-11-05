@@ -50,12 +50,12 @@ private:
 
 private:
 	// do not change this order
-	CConfig		m_Config;
+	CConfig			m_Config;
 	CCPUThrottle	m_CPUThrottle;
 	CGPIOManager	m_GPIOManager;
-	CI2CMaster	m_I2CMaster;
-	CMiniDexed	*m_pDexed;
-	CUSBController *m_pUSB;
+	CI2CMaster		m_I2CMaster;
+	CMiniDexed		*m_pDexed;
+	CUSBController 	*m_pUSB;
 
 	static CKernel *s_pThis;
 };
