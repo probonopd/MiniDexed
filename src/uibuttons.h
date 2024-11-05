@@ -41,7 +41,9 @@ public:
 		BtnTriggerNone = 0,
 		BtnTriggerClick = 1,
 		BtnTriggerDoubleClick = 2,
-		BtnTriggerLongPress = 3
+		BtnTriggerLongPress = 3,
+		BtnTriggerDec = 4,
+		BtnTriggerInc = 5,
 	};
 
 	enum BtnEvent
@@ -68,6 +70,8 @@ public:
 	void setClickEvent(BtnEvent clickEvent);
 	void setDoubleClickEvent(BtnEvent doubleClickEvent);
 	void setLongPressEvent(BtnEvent longPressEvent);
+	void setDecEvent(BtnEvent DecEvent);
+	void setIncEvent(BtnEvent IncEvent);
 
 	unsigned getPinNumber(void);
 	
@@ -98,6 +102,10 @@ private:
 	BtnEvent m_doubleClickEvent;
 	// Event to fire on long press
 	BtnEvent m_longPressEvent;
+	// Event to fire on dec
+	BtnEvent m_decEvent;
+	// Event to fire on inc
+	BtnEvent m_incEvent;
 	
 	// Timeout for double click in tenths of a millisecond
 	unsigned m_doubleClickTimeout;
