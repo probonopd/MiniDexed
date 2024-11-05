@@ -162,55 +162,7 @@ bool CUserInterface::Initialize (void)
 		LOGDBG ("LCD initialized");
 	}
 
-	m_pUIButtons = new CUIButtons (	m_pConfig->GetButtonPinPrev (),
-									m_pConfig->GetButtonActionPrev (),
-									m_pConfig->GetButtonPinNext (),
-									m_pConfig->GetButtonActionNext (),
-									m_pConfig->GetButtonPinBack (),
-									m_pConfig->GetButtonActionBack (),
-									m_pConfig->GetButtonPinSelect (),
-									m_pConfig->GetButtonActionSelect (),
-									m_pConfig->GetButtonPinHome (),
-									m_pConfig->GetButtonActionHome (),
-									m_pConfig->GetButtonPinPgmUp (),
-									m_pConfig->GetButtonActionPgmUp (),
-									m_pConfig->GetButtonPinPgmDown (),
-									m_pConfig->GetButtonActionPgmDown (),
-									m_pConfig->GetButtonPinTGUp (),
-									m_pConfig->GetButtonActionTGUp (),
-									m_pConfig->GetButtonPinTGDown (),
-									m_pConfig->GetButtonActionTGDown (),
-									m_pConfig->GetDoubleClickTimeout (),
-									m_pConfig->GetLongPressTimeout (),
-									m_pConfig->GetMIDIButtonNotes (),
-									m_pConfig->GetMIDIButtonPrev (),
-									m_pConfig->GetMIDIButtonActionPrev (),
-									m_pConfig->GetMIDIButtonNext (),
-									m_pConfig->GetMIDIButtonActionNext (),
-									m_pConfig->GetMIDIButtonBack (),
-									m_pConfig->GetMIDIButtonActionBack (),
-									m_pConfig->GetMIDIButtonSelect (),
-									m_pConfig->GetMIDIButtonActionSelect (),
-									m_pConfig->GetMIDIButtonHome (),
-									m_pConfig->GetMIDIButtonActionHome (),
-									m_pConfig->GetMIDIButtonPgmUp (),
-									m_pConfig->GetMIDIButtonActionPgmUp (),
-									m_pConfig->GetMIDIButtonPgmDown (),
-									m_pConfig->GetMIDIButtonActionPgmDown (),
-									m_pConfig->GetMIDIButtonTGUp (),
-									m_pConfig->GetMIDIButtonActionTGUp (),
-									m_pConfig->GetMIDIButtonTGDown (),
-									m_pConfig->GetMIDIButtonActionTGDown ()
-								  );
-	assert (m_pUIButtons);
-
-	if (!m_pUIButtons->Initialize ())
-	{
-		return false;
-	}
-
-	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
-	UISetMIDIButtonChannel (m_pConfig->GetMIDIButtonCh ());
+	InitButtonsWithConfig (m_pConfig);
 
 	LOGDBG ("Button User Interface initialized");
 
@@ -235,6 +187,56 @@ bool CUserInterface::Initialize (void)
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
 
 	return true;
+}
+
+void CUserInterface::InitButtonsWithConfig (CConfig *pConfig)
+{
+	delete m_pUIButtons;
+	m_pUIButtons = new CUIButtons (	pConfig->GetButtonPinPrev (),
+									pConfig->GetButtonActionPrev (),
+									pConfig->GetButtonPinNext (),
+									pConfig->GetButtonActionNext (),
+									pConfig->GetButtonPinBack (),
+									pConfig->GetButtonActionBack (),
+									pConfig->GetButtonPinSelect (),
+									pConfig->GetButtonActionSelect (),
+									pConfig->GetButtonPinHome (),
+									pConfig->GetButtonActionHome (),
+									pConfig->GetButtonPinPgmUp (),
+									pConfig->GetButtonActionPgmUp (),
+									pConfig->GetButtonPinPgmDown (),
+									pConfig->GetButtonActionPgmDown (),
+									pConfig->GetButtonPinTGUp (),
+									pConfig->GetButtonActionTGUp (),
+									pConfig->GetButtonPinTGDown (),
+									pConfig->GetButtonActionTGDown (),
+									pConfig->GetDoubleClickTimeout (),
+									pConfig->GetLongPressTimeout (),
+									pConfig->GetMIDIButtonNotes (),
+									pConfig->GetMIDIButtonPrev (),
+									pConfig->GetMIDIButtonActionPrev (),
+									pConfig->GetMIDIButtonNext (),
+									pConfig->GetMIDIButtonActionNext (),
+									pConfig->GetMIDIButtonBack (),
+									pConfig->GetMIDIButtonActionBack (),
+									pConfig->GetMIDIButtonSelect (),
+									pConfig->GetMIDIButtonActionSelect (),
+									pConfig->GetMIDIButtonHome (),
+									pConfig->GetMIDIButtonActionHome (),
+									pConfig->GetMIDIButtonPgmUp (),
+									pConfig->GetMIDIButtonActionPgmUp (),
+									pConfig->GetMIDIButtonPgmDown (),
+									pConfig->GetMIDIButtonActionPgmDown (),
+									pConfig->GetMIDIButtonTGUp (),
+									pConfig->GetMIDIButtonActionTGUp (),
+									pConfig->GetMIDIButtonTGDown (),
+									pConfig->GetMIDIButtonActionTGDown ()
+								  );
+	assert (m_pUIButtons);
+
+	m_pUIButtons->Initialize ();
+	m_pUIButtons->RegisterEventHandler (UIButtonsEventStub, this);
+	UISetMIDIButtonChannel (pConfig->GetMIDIButtonCh ());
 }
 
 void CUserInterface::Process (void)
@@ -427,7 +429,7 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 	pThis->UIButtonsEventHandler (Event);
 }
 
-void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
+void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiType, unsigned nMidiData1, unsigned nMidiData2)
 {
 	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
 	{
@@ -442,7 +444,7 @@ void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsi
 	
 	if (m_pUIButtons)
 	{
-		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
+		m_pUIButtons->BtnMIDICmdHandler (nMidiType, nMidiData1, nMidiData2);
 	}
 }
 
