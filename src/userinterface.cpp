@@ -184,14 +184,23 @@ bool CUserInterface::Initialize (void)
 									m_pConfig->GetLongPressTimeout (),
 									m_pConfig->GetMIDIButtonNotes (),
 									m_pConfig->GetMIDIButtonPrev (),
+									m_pConfig->GetMIDIButtonActionPrev (),
 									m_pConfig->GetMIDIButtonNext (),
+									m_pConfig->GetMIDIButtonActionNext (),
 									m_pConfig->GetMIDIButtonBack (),
+									m_pConfig->GetMIDIButtonActionBack (),
 									m_pConfig->GetMIDIButtonSelect (),
+									m_pConfig->GetMIDIButtonActionSelect (),
 									m_pConfig->GetMIDIButtonHome (),
+									m_pConfig->GetMIDIButtonActionHome (),
 									m_pConfig->GetMIDIButtonPgmUp (),
+									m_pConfig->GetMIDIButtonActionPgmUp (),
 									m_pConfig->GetMIDIButtonPgmDown (),
+									m_pConfig->GetMIDIButtonActionPgmDown (),
 									m_pConfig->GetMIDIButtonTGUp (),
-									m_pConfig->GetMIDIButtonTGDown ()
+									m_pConfig->GetMIDIButtonActionTGUp (),
+									m_pConfig->GetMIDIButtonTGDown (),
+									m_pConfig->GetMIDIButtonActionTGDown ()
 								  );
 	assert (m_pUIButtons);
 

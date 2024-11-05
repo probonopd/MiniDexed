@@ -206,18 +206,32 @@ public:
 	// MIDI Button Navigation
 	unsigned GetMIDIButtonCh   (void) const;
 	unsigned GetMIDIButtonNotes (void) const;
+
 	unsigned GetMIDIButtonPrev (void) const;
 	unsigned GetMIDIButtonNext (void) const;
 	unsigned GetMIDIButtonBack (void) const;
 	unsigned GetMIDIButtonSelect (void) const;
 	unsigned GetMIDIButtonHome (void) const;
 
+	// Action type for Midi buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
+	const char *GetMIDIButtonActionPrev (void) const;
+	const char *GetMIDIButtonActionNext (void) const;
+	const char *GetMIDIButtonActionBack (void) const;
+	const char *GetMIDIButtonActionSelect (void) const;
+	const char *GetMIDIButtonActionHome (void) const;
+
 	// MIDI Button Program and TG Selection
 	unsigned GetMIDIButtonPgmUp (void) const;
 	unsigned GetMIDIButtonPgmDown (void) const;
 	unsigned GetMIDIButtonTGUp (void) const;
 	unsigned GetMIDIButtonTGDown (void) const;
-	
+
+	// Action type for buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
+	const char *GetMIDIButtonActionPgmUp (void) const;
+	const char *GetMIDIButtonActionPgmDown (void) const;
+	const char *GetMIDIButtonActionTGUp (void) const;
+	const char *GetMIDIButtonActionTGDown (void) const;
+
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
 	bool GetEncoderEnabled (void) const;
@@ -330,6 +344,16 @@ private:
 	unsigned m_nMIDIButtonPgmDown;
 	unsigned m_nMIDIButtonTGUp;
 	unsigned m_nMIDIButtonTGDown;
+
+	std::string m_MIDIButtonActionPrev;
+	std::string m_MIDIButtonActionNext;
+	std::string m_MIDIButtonActionBack;
+	std::string m_MIDIButtonActionSelect;
+	std::string m_MIDIButtonActionHome;
+	std::string m_MIDIButtonActionPgmUp;
+	std::string m_MIDIButtonActionPgmDown;
+	std::string m_MIDIButtonActionTGUp;
+	std::string m_MIDIButtonActionTGDown;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
