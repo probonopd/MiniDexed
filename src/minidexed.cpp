@@ -27,15 +27,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-#include <circle/net/netsubsystem.h>
+//#include <circle/net/netsubsystem.h>
 //#include <circle/sched/scheduler.h>
 //#include "circle_stdlib_app.h"
 //#include "mididevice.h"
 
 
-#define DRIVE		"SD:"
-#define FIRMWARE_PATH	DRIVE "/firmware/"		// firmware files must be provided here
-#define CONFIG_FILE	DRIVE "/wpa_supplicant.conf"
+const char WLANFirmwarePath[] = "SD:firmware/";
+const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
 #define FTPPASSWORD "admin"
 /*
@@ -78,6 +77,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bNetworkReady(false),
 	*/
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+	m_pNet(nullptr),
+	m_pNetDevice(nullptr),
+	m_WLAN(WLANFirmwarePath),
+	m_WPASupplicant(WLANConfigFile),
 	m_bNetworkReady(false),
 	m_UDPMIDI (this, pConfig, &m_UI)
 {
@@ -292,19 +295,10 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	//InitNetwork();
+	InitNetwork();
 	
 	
 	//CMIDIDevice->InitializeRTP();
-	m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
-	if (!m_pFTPDaemon->Initialize())
-	{
-		LOGERR("Failed to init FTP daemon");
-		delete m_pFTPDaemon;
-		m_pFTPDaemon = nullptr;
-	}
-	else
-		LOGNOTE("FTP daemon initialized");
 	return true;
 }
 
@@ -1861,18 +1855,18 @@ void CMiniDexed::UpdateNetwork()
 }*/
 
 {
-	CNetSubSystem* const pNet = CNetSubSystem::Get();
-	if (!pNet)
+	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+	if (!m_pNet)
 		return;
 
-	bool bNetIsRunning = pNet->IsRunning();
-	//bNetIsRunning &= m_WPASupplicant.IsConnected();
+	bool bNetIsRunning = m_pNet->IsRunning();
+	bNetIsRunning &= m_WPASupplicant.IsConnected();
 
-	if (!m_bNetworkReady)
+	if (!m_bNetworkReady && bNetIsRunning)
 	{
 		m_bNetworkReady = true;
 		CString IPString;
-		pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
 		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
 
@@ -1880,6 +1874,15 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE ("RTP MIDI interface enabled");
 		}
+			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+		if (!m_pFTPDaemon->Initialize())
+		{
+			LOGERR("Failed to init FTP daemon");
+			delete m_pFTPDaemon;
+			m_pFTPDaemon = nullptr;
+		}
+	else
+		LOGNOTE("FTP daemon initialized");
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{
@@ -1914,13 +1917,13 @@ void CMiniDexed::UpdateNetwork()
 		m_bNetworkReady = false;
 		LOGNOTE("Network disconnected.");
 	}
-}
+}*/
 
 bool CMiniDexed::InitNetwork()
 {
 	assert(m_pNet == nullptr);
 
-	TNetDeviceType NetDeviceType = NetDeviceTypeWLAN;
+	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
 	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
 	{
@@ -1929,7 +1932,7 @@ bool CMiniDexed::InitNetwork()
 		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
 		{
 			LOGNOTE("wlan and wpasupplicant initialized");
-			//NetDeviceType = NetDeviceTypeWLAN;
+			NetDeviceType = NetDeviceTypeWLAN;
 			
 		}
 		else
@@ -1938,21 +1941,31 @@ bool CMiniDexed::InitNetwork()
 	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
 	{
 		LOGNOTE("Initializing Ethernet");
-		//NetDeviceType = NetDeviceTypeEthernet;
+		NetDeviceType = NetDeviceTypeEthernet;
 	}
 
+	if (NetDeviceType != NetDeviceTypeUnknown)
+		{
+			if (m_pConfig->GetNetworkDHCP())
+				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
+			else
+				m_pNet = new CNetSubSystem(
+					m_pConfig->GetNetworkIPAddress().Get(),
+					m_pConfig->GetNetworkSubnetMask().Get(),
+					m_pConfig->GetNetworkDefaultGateway().Get(),
+					m_pConfig->GetNetworkDNSServer().Get(),
+					m_pConfig->GetNetworkHostname(),
+					NetDeviceType
+				);
 
-	LOGNOTE("creating network with wifi and dhcp");
-	m_pNet = new CNetSubSystem(0, 0, 0, 0, "minidexed", NetDeviceType);
-	if (!m_pNet->Initialize(true))
-	{
-		LOGERR("Failed to initialize network subsystem");
-		delete m_pNet;
-		m_pNet = nullptr;
-	}
-	m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
-	
+			if (!m_pNet->Initialize())
+			{
+				LOGERR("Failed to initialize network subsystem");
+				delete m_pNet;
+				m_pNet = nullptr;
+			}
 
+			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+		}
 	return m_pNet != nullptr;
 }
-*/

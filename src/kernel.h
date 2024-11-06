@@ -25,6 +25,7 @@
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
 #include <circle/usb/usbcontroller.h>
+#include <circle/sched/scheduler.h>
 #include "config.h"
 #include "minidexed.h"
 
@@ -35,7 +36,7 @@ enum TShutdownMode
 	ShutdownReboot
 };
 
-class CKernel : public CStdlibAppNetwork
+class CKernel : public CStdlibAppStdio
 {
 public:
 	CKernel (void);
@@ -54,6 +55,7 @@ private:
 	CCPUThrottle	m_CPUThrottle;
 	CGPIOManager	m_GPIOManager;
 	CI2CMaster		m_I2CMaster;
+	//CScheduler 		m_Scheduler;
 	CMiniDexed		*m_pDexed;
 	CUSBController 	*m_pUSB;
 

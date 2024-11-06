@@ -14,10 +14,17 @@ else
     export TOOLCHAIN_PREFIX="arm-none-eabi-"
 fi
 
+SDHOST=$([ "${RPI}" == 3 ] && echo "" || echo "")
+
 # Define system options
-OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o USE_SDHOST -o SCREEN_DMA_BURST_LENGTH=1"
+OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o SCREEN_DMA_BURST_LENGTH=1"
 if [ "${RPI}" -gt "1" ]; then
     OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
+fi
+
+# For wireless access
+if [ "${RPI}" == "3" ]; then
+    OPTIONS="${OPTIONS} -o USE_SDHOST"
 fi
 
 # USB Vendor and Device ID for use with USB Gadget Mode

@@ -39,8 +39,9 @@
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
 #include <circle/sched/scheduler.h>
-////#include <circle/net/netsubsystem.h>
-//#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
+#include <circle/net/netsubsystem.h>
+#include <wlan/bcm4343.h>
+#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
@@ -218,7 +219,7 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-	//bool InitNetwork();
+	bool InitNetwork();
 	void UpdateNetwork();
 
 private:
@@ -319,7 +320,6 @@ private:
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
-	bool m_bNetworkReady;
 	//CNetSubSystem* m_pNet;
 	//CWPASupplicant m_WPASupplicant;
 	// Networking
@@ -332,8 +332,15 @@ private:
 	bool m_bNetworkReady;
 	CBcmRandomNumberGenerator m_Random;
 	*/
+	// Networking
+	CNetSubSystem* m_pNet;
+	CNetDevice* m_pNetDevice;
+	CBcm4343Device m_WLAN;
+	CWPASupplicant m_WPASupplicant;
+	bool m_bNetworkReady;
 	CUDPMIDIDevice m_UDPMIDI;
 	CFTPDaemon* m_pFTPDaemon;
+	
 };
 
 #endif

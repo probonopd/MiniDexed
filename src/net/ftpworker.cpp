@@ -43,10 +43,10 @@ constexpr unsigned int SocketTimeout = 20;
 constexpr unsigned int NumRetries = 3;
 
 #ifndef MT32_PI_VERSION
-#define MT32_PI_VERSION "(version unknown)"
+#define MT32_PI_VERSION "alpha version"
 #endif
 
-const char MOTDBanner[] = "Welcome to the mt32-pi " MT32_PI_VERSION " embedded FTP server!";
+const char MOTDBanner[] = "Welcome to the minidexed " MT32_PI_VERSION " embedded FTP server!";
 
 enum class TDirectoryListEntryType
 {

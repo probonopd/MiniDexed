@@ -26,7 +26,7 @@
 #include "udpmididevice.h"
 #include <assert.h>
 
-//#define VIRTUALCABLE 24
+#define VIRTUALCABLE 24
 
 LOGMODULE("rtpmididevice");
 
@@ -51,7 +51,7 @@ CUDPMIDIDevice::CUDPMIDIDevice (CMiniDexed *pSynthesizer,
 
 CUDPMIDIDevice::~CUDPMIDIDevice (void)
 {
-	m_pSynthesizer = 0;
+	//m_pSynthesizer = 0;
 }
 
 boolean CUDPMIDIDevice::Initialize (void)
@@ -80,10 +80,7 @@ boolean CUDPMIDIDevice::Initialize (void)
 
 void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 {
-	LOGNOTE("Recieved RTPUDP MIDI Data");
-	printf ("MIDI-RTP: %02X %02X\n",
-				(unsigned) pData[0], (unsigned) pData[1]);
-	MIDIMessageHandler(pData, nSize);
+	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
 }
 
 void CUDPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
@@ -99,8 +96,5 @@ void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const c
 
 void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 {
-	LOGNOTE("Recieved UDP MIDI Data");
-	printf ("MIDI-UDP: %02X %02X\n",
-				(unsigned) pData[0], (unsigned) pData[1]);
-	MIDIMessageHandler(pData, nSize);
+	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
 }
