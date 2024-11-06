@@ -14,8 +14,6 @@ else
     export TOOLCHAIN_PREFIX="arm-none-eabi-"
 fi
 
-SDHOST=$([ "${RPI}" == 3 ] && echo "" || echo "")
-
 # Define system options
 OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o SCREEN_DMA_BURST_LENGTH=1"
 if [ "${RPI}" -gt "1" ]; then

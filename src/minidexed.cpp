@@ -69,14 +69,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSetNewPerformance (false),
 	m_bDeletePerformance (false),
 	m_bLoadPerformanceBusy(false),
-	/*
-	m_pNet(nullptr),
-	m_pNetDevice(nullptr),
-	m_WLAN(WLANFirmwarePath),
-	m_WPASupplicant(WLANConfigFile),
-	m_bNetworkReady(false),
-	*/
-	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
 	m_WLAN(WLANFirmwarePath),
@@ -1840,20 +1833,6 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 }
 
 void CMiniDexed::UpdateNetwork()
-/*{
-	CNetSubSystem* const pNet = CNetSubSystem::Get();
-	if (!m_bNetworkReady){
-		
-		m_bNetworkReady = true;
-		CString IPString;
-		pNet->GetConfig()->GetIPAddress()->Format(&IPString);
-		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
-	}
-	if (!pNet)
-		return;
-	
-}*/
-
 {
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet)
@@ -1891,33 +1870,6 @@ void CMiniDexed::UpdateNetwork()
 
 	}
 }
-/*
-void CMiniDexed::UpdateNetwork()
-{
-	if (!m_pNet)
-		return;
-
-	bool bNetIsRunning = m_pNet->IsRunning();
-	if (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0)
-		bNetIsRunning &= m_pNetDevice->IsLinkUp();
-	else if (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0)
-		bNetIsRunning &= m_WPASupplicant.IsConnected();
-
-	if (!m_bNetworkReady && bNetIsRunning)
-	{
-		m_bNetworkReady = true;
-
-		CString IPString;
-		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
-
-		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
-	}
-	else if (m_bNetworkReady && !bNetIsRunning)
-	{
-		m_bNetworkReady = false;
-		LOGNOTE("Network disconnected.");
-	}
-}*/
 
 bool CMiniDexed::InitNetwork()
 {

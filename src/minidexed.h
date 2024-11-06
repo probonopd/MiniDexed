@@ -47,9 +47,6 @@
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
-//#include <circle/net/netsubsystem.h>
-//#include <wlan/bcm4343.h>
-//#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
 #include "udpmididevice.h"
 #include "net/ftpdaemon.h"
 
@@ -320,19 +317,7 @@ private:
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
-	//CNetSubSystem* m_pNet;
-	//CWPASupplicant m_WPASupplicant;
-	// Networking
-	//CNetSubSystem &mNet;
-	/*
-	CNetSubSystem* m_pNet;
-	CNetDevice* m_pNetDevice;
-	CBcm4343Device m_WLAN;
-	CWPASupplicant m_WPASupplicant;
-	bool m_bNetworkReady;
-	CBcmRandomNumberGenerator m_Random;
-	*/
-	// Networking
+
 	CNetSubSystem* m_pNet;
 	CNetDevice* m_pNetDevice;
 	CBcm4343Device m_WLAN;
