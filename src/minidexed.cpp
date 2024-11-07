@@ -1853,15 +1853,25 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE ("RTP MIDI interface enabled");
 		}
-			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+
+		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+
 		if (!m_pFTPDaemon->Initialize())
 		{
 			LOGERR("Failed to init FTP daemon");
 			delete m_pFTPDaemon;
 			m_pFTPDaemon = nullptr;
 		}
-	else
-		LOGNOTE("FTP daemon initialized");
+		else 
+		{
+			LOGNOTE("FTP daemon initialized");
+		}
+
+		m_UI.DisplayWrite ("IP",
+			      "Network",
+			      IPString,
+			      0,
+				  1);
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{
