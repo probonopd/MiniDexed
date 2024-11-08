@@ -59,13 +59,13 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false),
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
 	m_WLAN(WLANFirmwarePath),
 	m_WPASupplicant(WLANConfigFile),
 	m_bNetworkReady(false),
-	m_UDPMIDI (this, pConfig, &m_UI)
+	m_UDPMIDI (this, pConfig, &m_UI),
+	m_bLoadPerformanceBusy(false)
 {
 	assert (m_pConfig);
 
