@@ -60,7 +60,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSetNewPerformance (false),
 	m_bDeletePerformance (false),
 	m_bLoadPerformanceBusy(false),
-
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
 	m_WLAN(WLANFirmwarePath),
