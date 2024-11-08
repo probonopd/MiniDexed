@@ -309,6 +309,15 @@ private:
 
 	CSpinLock m_ReverbSpinLock;
 
+	// Network
+	CNetSubSystem* m_pNet;
+	CNetDevice* m_pNetDevice;
+	CBcm4343Device m_WLAN;
+	CWPASupplicant m_WPASupplicant;
+	bool m_bNetworkReady;
+	CUDPMIDIDevice m_UDPMIDI;
+	CFTPDaemon* m_pFTPDaemon;
+
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
@@ -318,13 +327,7 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bSaveAsDeault;
 
-	CNetSubSystem* m_pNet;
-	CNetDevice* m_pNetDevice;
-	CBcm4343Device m_WLAN;
-	CWPASupplicant m_WPASupplicant;
-	bool m_bNetworkReady;
-	CUDPMIDIDevice m_UDPMIDI;
-	CFTPDaemon* m_pFTPDaemon;
+
 	
 };
 
