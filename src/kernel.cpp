@@ -33,12 +33,9 @@ CKernel *CKernel::s_pThis = 0;
 CKernel::CKernel (void)
 :	
 	CStdlibAppStdio ("minidexed"),
-	//CStdlibAppNetwork ("minidexed", CSTDLIBAPP_DEFAULT_PARTITION,
-	//		     0, 0, 0, 0, NET_DEVICE_TYPE),
 	m_Config (&mFileSystem),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
-	//m_Scheduler(),
 	m_pDexed (0)
 {
 	s_pThis = this;
@@ -115,7 +112,7 @@ CStdlibApp::TShutdownMode CKernel::Run (void)
 			mScreen.Update ();
 		}
 
-		m_CPUThrottle.Update ();		
+		m_CPUThrottle.Update ();
 	}
 
 	return ShutdownHalt;

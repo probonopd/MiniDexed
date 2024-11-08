@@ -55,7 +55,6 @@ private:
 	CCPUThrottle	m_CPUThrottle;
 	CGPIOManager	m_GPIOManager;
 	CI2CMaster		m_I2CMaster;
-	//CScheduler 		m_Scheduler;
 	CMiniDexed		*m_pDexed;
 	CUSBController 	*m_pUSB;
 

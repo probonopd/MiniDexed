@@ -47,7 +47,7 @@ public:
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
-    CBcmRandomNumberGenerator m_Random;
+	CBcmRandomNumberGenerator m_Random;
 	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
 	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
 
