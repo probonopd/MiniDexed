@@ -35,18 +35,8 @@ CUDPMIDIDevice::CUDPMIDIDevice (CMiniDexed *pSynthesizer,
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_pSynthesizer (pSynthesizer),
 	m_pConfig (pConfig)
-	
-	
-	//m_Serial (pInterrupt, TRUE),
-	//m_nSerialState (0),
-	//m_nSysEx (0),
-	//m_SendBuffer (&m_Serial)
 {
 	AddDevice ("udp");
-	/*for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
-	{
-		m_ChannelMap[nTG] = Disabled;
-	}*/
 }
 
 CUDPMIDIDevice::~CUDPMIDIDevice (void)
@@ -86,7 +76,6 @@ void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 void CUDPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
 {
 	LOGNOTE("RTP Device connected");
-	//AddDevice ("udp1");
 }
 
 void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName)

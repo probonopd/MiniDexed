@@ -27,20 +27,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
-//#include <circle/net/netsubsystem.h>
-//#include <circle/sched/scheduler.h>
-//#include "circle_stdlib_app.h"
-//#include "mididevice.h"
-
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
 #define FTPPASSWORD "admin"
-/*
-const char WLANFirmwarePath[] = "SD:firmware/";
-const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
-*/
 
 LOGMODULE ("minidexed");
 
@@ -289,9 +280,7 @@ bool CMiniDexed::Initialize (void)
 	}
 #endif
 	InitNetwork();
-	
-	
-	//CMIDIDevice->InitializeRTP();
+
 	return true;
 }
 
@@ -1849,10 +1838,7 @@ void CMiniDexed::UpdateNetwork()
 
 		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
 
-		if (m_UDPMIDI.Initialize ())
-		{
-			LOGNOTE ("RTP MIDI interface enabled");
-		}
+		m_UDPMIDI.Initialize();
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
 

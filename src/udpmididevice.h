@@ -30,11 +30,6 @@
 #include "net/applemidi.h"
 #include "net/udpmidi.h"
 
-//#include <circle/interrupt.h>
-//#include <circle/serial.h>
-//#include <circle/writebuffer.h>
-//#include <circle/types.h>
-
 class CMiniDexed;
 
 class CUDPMIDIDevice : CAppleMIDIHandler, CUDPMIDIHandler, public CMIDIDevice
@@ -48,26 +43,11 @@ public:
 	virtual void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName) override;
 	virtual void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName) override;
 	virtual void OnUDPMIDIDataReceived(const u8* pData, size_t nSize) override;
-    //void OnAppleMIDIDataReceived(const u8* pData, size_t nSize);
-	//void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName);
-	//void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName);
-
-	//void Process (void);
-
-	//void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
 
 private:
 	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
-	//u8 m_ChannelMap[CConfig::ToneGenerators];
-	//CSerialDevice m_Serial;
-	//unsigned m_nSerialState;
-	//unsigned m_nSysEx;
-	//u8 m_SerialMessage[MAX_MIDI_MESSAGE];
-
-	//CWriteBufferDevice m_SendBuffer;
     CBcmRandomNumberGenerator m_Random;
-	//CAppleMIDIHandler* m_MIDIHandler;
 	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
 	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
 
