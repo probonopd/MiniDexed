@@ -34,4 +34,6 @@ LIBS += \
 	$(CIRCLEHOME)/addon/wlan/libwlan.a \
 	$(CIRCLEHOME)/lib/net/libnet.a
 
+EXTRACLEAN += $(NET_DIR)/*.d $(NET_DIR)/*.o
+
 -include $(DEPS)
