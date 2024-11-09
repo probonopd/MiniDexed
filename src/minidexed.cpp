@@ -32,6 +32,7 @@ const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
 #define FTPPASSWORD "admin"
+#define MDNSSERVICENAME "MiniDexed"
 
 LOGMODULE ("minidexed");
 
@@ -62,6 +63,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_WPASupplicant(WLANConfigFile),
 	m_bNetworkReady(false),
 	m_UDPMIDI (this, pConfig, &m_UI),
+	m_pmDNSPublisher (),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -2188,10 +2190,14 @@ void CMiniDexed::UpdateNetwork()
 	if (!m_pNet)
 		return;
 
+	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
-	bNetIsRunning &= m_WPASupplicant.IsConnected();
-
-	if (!m_bNetworkReady && bNetIsRunning)
+	if ((strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+		bNetIsRunning &= m_pNetDevice->IsLinkUp();
+	else if ((strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+		bNetIsRunning &= m_WPASupplicant.IsConnected();
+	
+	if (!m_bNetworkReady && (m_pNet->IsRunning()))
 	{
 		m_bNetworkReady = true;
 		CString IPString;
@@ -2199,7 +2205,6 @@ void CMiniDexed::UpdateNetwork()
 
 		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
 		
-
 		m_UDPMIDI.Initialize();
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
@@ -2236,8 +2241,18 @@ void CMiniDexed::UpdateNetwork()
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{
-		m_bNetworkReady = false;
+		//m_bNetworkReady = false;
+		m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
 		LOGNOTE("Network disconnected.");
+	}
+	else if (m_bNetworkReady && bNetIsRunning)
+	{
+		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		LOGNOTE("Network connection reestablished.");
 
 	}
 }
