@@ -1878,7 +1878,13 @@ void CMiniDexed::UpdateNetwork()
 	}
 	else if (m_bNetworkReady && bNetIsRunning)
 	{
+		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
 		LOGNOTE("Network connection reestablished.");
+
 	}
 }
 
