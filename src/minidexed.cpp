@@ -2236,7 +2236,7 @@ bool CMiniDexed::InitNetwork()
 
 	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
 	{
-		LOGNOTE("Initializing Wi-Fi");
+		LOGNOTE("Initializing WLAN");
 
 		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
 		{
@@ -2245,7 +2245,7 @@ bool CMiniDexed::InitNetwork()
 			
 		}
 		else
-			LOGERR("Failed to initialize Wi-Fi");
+			LOGERR("Failed to initialize WLAN");
 	}
 	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
 	{
