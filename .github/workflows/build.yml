@@ -19,6 +19,12 @@ jobs:
     - name: Get specific commits of git submodules
       run: |
            sh -ex ./submod.sh
+    - name: Apply patches
+      run: |
+           # Put git hash in startup message
+           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+           # https://github.com/rsta2/circle/discussions/427#discussioncomment-11198505
+           sed -i -e 's|TTLShort = 120|TTLShort = 15|g' circle-stdlib/libs/circle/include/circle/net/mdnspublisher.h
     - name: Install toolchains
       run: |
            set -ex
@@ -27,6 +33,12 @@ jobs:
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
            tar xf *-arm-none-eabi.tar.xz
            mkdir -p kernels
+    - name: Build for Raspberry Pi 5
+      run: |
+           set -ex
+           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
+           RPI=5 bash -ex build.sh
+           cp ./src/kernel*.img ./kernels/
     - name: Build for Raspberry Pi 4
       run: |
            set -ex
@@ -51,7 +63,7 @@ jobs:
            export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
            RPI=1 bash -ex build.sh
            cp ./src/kernel*.img ./kernels/
-    - name: Get Raspberry Pi boot files
+    - name: Get Raspberry Pi boot files and WLAN firmware
       run: |
            set -ex
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
@@ -68,12 +80,18 @@ jobs:
            cd sdcard
            cp ../kernels/* . || true
            cd -
+           # WLAN firmware
+           cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
+           mkdir -p sdcard/firmware
+           cd sdcard/firmware
+           make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
+           cd -
     - name: Get performance files
       run: |
            git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
            cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
            cd sdcard
-           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
+           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y%m%d)-$(git rev-parse --short HEAD).zip *
            echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
            cd -
     - uses: actions/upload-artifact@v3

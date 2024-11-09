@@ -273,6 +273,23 @@ std::string CSysExFileLoader::GetBankName (unsigned nBankID)
 	return "NO NAME";
 }
 
+std::string CSysExFileLoader::GetVoiceName (unsigned nBankID, unsigned nVoiceID)
+{
+	if ((nBankID <= MaxVoiceBankID) && (nVoiceID < VoicesPerBank))
+	{
+		if (IsValidBank(nBankID))
+		{
+			// The name is the last 10 characters of the voice data
+			char sVoiceName[11];
+			strncpy (sVoiceName, (char *)((char *)&(m_pVoiceBank[nBankID]->Voice[nVoiceID]) + SizePackedVoice - 10), 10);
+			sVoiceName[10] = 0;
+			std::string result(sVoiceName);
+			return result;
+		}
+	}
+	return "INIT VOICE";
+}
+
 unsigned CSysExFileLoader::GetNextBankUp (unsigned nBankID)
 {
 	// Find the next loaded bank "up" from the provided bank ID
