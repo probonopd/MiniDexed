@@ -22,7 +22,7 @@ jobs:
     - name: Apply patches
       run: |
            # Put git hash in startup message
-           sed -i "s/Loading.../$(git rev-parse --short=7 HEAD)/g" src/userinterface.c
+           sed -i "s/Loading.../$(git rev-parse --short=7 HEAD)/g" src/userinterface.cpp
            # https://github.com/rsta2/circle/discussions/427#discussioncomment-11198505
            sed -i -e 's|TTLShort = 120|TTLShort = 15|g' circle-stdlib/libs/circle/include/circle/net/mdnspublisher.h
     - name: Install toolchains
