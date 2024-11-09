@@ -19,6 +19,7 @@ jobs:
     - name: Get specific commits of git submodules
       run: |
            sh -ex ./submod.sh
+           sed -i -e 's|int E;|int32_t E;|g' Synth_Dexed/src/compressor.h # https://codeberg.org/dcoredump/Synth_Dexed/pulls/9
     - name: Install toolchains
       run: |
            set -ex
