@@ -2219,7 +2219,7 @@ void CMiniDexed::UpdateNetwork()
 
 		CmDNSPublisher *pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (pmDNSPublisher);
-		static const char ServiceName[] = "minidexed-rtpmidi";
+		static const char ServiceName[] = "MiniDexed";
 		static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// TXT record strings
 		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004, ppText))
