@@ -23,6 +23,7 @@
 #ifndef _config_h
 #define _config_h
 
+#include <circle/net/ipaddress.h>
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #include <circle/sysconfig.h>
@@ -232,6 +233,16 @@ public:
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
 
+	// Network
+	bool GetNetworkEnabled (void) const;
+	const char *GetNetworkType (void) const;
+	bool GetNetworkDHCP (void) const;
+	const char *GetNetworkHostname (void) const;
+	CIPAddress GetNetworkIPAddress (void) const;
+	CIPAddress GetNetworkSubnetMask (void) const;
+	CIPAddress GetNetworkDefaultGateway (void) const;
+	CIPAddress GetNetworkDNSServer (void) const;
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -339,6 +350,16 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	// Network
+	bool m_bNetworkEnabled;
+	bool m_bNetworkDHCP;
+	std::string m_NetworkType;
+	std::string m_NetworkHostname;
+	CIPAddress m_INetworkIPAddress;
+	CIPAddress m_INetworkSubnetMask;
+	CIPAddress m_INetworkDefaultGateway;
+	CIPAddress m_INetworkDNSServer;
 };
 
 #endif

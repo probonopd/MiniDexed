@@ -193,6 +193,16 @@ void CConfig::Load (void)
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
+	
+	// Network
+	m_bNetworkEnabled  = m_Properties.GetNumber ("NetworkEnabled", 0) != 0;
+	m_bNetworkDHCP  = m_Properties.GetNumber ("NetworkDHCP", 0) != 0;
+	m_NetworkType = m_Properties.GetString ("NetworkType", "wifi");
+	m_NetworkHostname = m_Properties.GetString ("NetworkHostname", "minidexed");
+	m_INetworkIPAddress = m_Properties.GetIPAddress("NetworkIPAddress") != 0;
+	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
+	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
+	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
 }
 
 unsigned CConfig::GetToneGenerators (void) const
@@ -679,4 +689,45 @@ bool CConfig::GetPerformanceSelectToLoad (void) const
 unsigned CConfig::GetPerformanceSelectChannel (void) const
 {
 	return m_bPerformanceSelectChannel;
+}
+
+// Network
+bool CConfig::GetNetworkEnabled (void) const
+{
+	return m_bNetworkEnabled;
+}
+
+bool CConfig::GetNetworkDHCP (void) const
+{
+	return m_bNetworkDHCP;
+}
+
+const char *CConfig::GetNetworkType (void) const
+{
+	return m_NetworkType.c_str();
+}
+
+const char *CConfig::GetNetworkHostname (void) const
+{
+	return m_NetworkHostname.c_str();
+}
+
+CIPAddress CConfig::GetNetworkIPAddress (void) const
+{	
+	return m_INetworkIPAddress;
+}
+
+CIPAddress CConfig::GetNetworkSubnetMask (void) const
+{
+	return m_INetworkSubnetMask;
+}
+
+CIPAddress CConfig::GetNetworkDefaultGateway (void) const
+{
+	return m_INetworkDefaultGateway;
+}
+
+CIPAddress CConfig::GetNetworkDNSServer (void) const
+{
+	return m_INetworkDNSServer;
 }

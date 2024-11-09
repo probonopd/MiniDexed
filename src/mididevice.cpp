@@ -273,7 +273,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				{
 					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
 					{
-						//printf("Performance Select Channel %d\n", nPerfCh);
 						m_pSynthesizer->ProgramChangePerformance (pMessage[1]);
 					}
 				}
@@ -328,7 +327,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						{
 							break;
 						}
-		
 						m_pSynthesizer->keyup (pMessage[1], nTG);
 						break;
 		

@@ -28,6 +28,11 @@
 #include <stdio.h>
 #include <assert.h>
 
+const char WLANFirmwarePath[] = "SD:firmware/";
+const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
+#define FTPUSERNAME "admin"
+#define FTPPASSWORD "admin"
+
 LOGMODULE ("minidexed");
 
 CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
@@ -51,6 +56,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
+	m_pNet(nullptr),
+	m_pNetDevice(nullptr),
+	m_WLAN(WLANFirmwarePath),
+	m_WPASupplicant(WLANConfigFile),
+	m_bNetworkReady(false),
+	m_UDPMIDI (this, pConfig, &m_UI),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -344,12 +355,14 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	
+	InitNetwork();
+
 	return true;
 }
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
+	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
 	ProcessSound ();
 #endif
@@ -418,6 +431,9 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	{
 		m_GetChunkTimer.Dump ();
 	}
+	UpdateNetwork();
+	// Allow other tasks to run
+	pScheduler->Yield();
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -750,6 +766,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	{
 		m_SerialMIDI.SetChannel (uchChannel, nTG);
 	}
+	m_UDPMIDI.SetChannel (uchChannel, nTG);
 
 #ifdef ARM_ALLOW_MULTI_CORE
 /* This doesn't appear to be used anywhere...
@@ -2163,4 +2180,101 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 		break;
 	}
 	
+}
+
+void CMiniDexed::UpdateNetwork()
+{
+	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+	if (!m_pNet)
+		return;
+
+	bool bNetIsRunning = m_pNet->IsRunning();
+	bNetIsRunning &= m_WPASupplicant.IsConnected();
+
+	if (!m_bNetworkReady && bNetIsRunning)
+	{
+		m_bNetworkReady = true;
+		CString IPString;
+		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+
+		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+
+		m_UDPMIDI.Initialize();
+
+		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+
+		if (!m_pFTPDaemon->Initialize())
+		{
+			LOGERR("Failed to init FTP daemon");
+			delete m_pFTPDaemon;
+			m_pFTPDaemon = nullptr;
+		}
+		else 
+		{
+			LOGNOTE("FTP daemon initialized");
+		}
+
+		m_UI.DisplayWrite ("IP",
+			      "Network",
+			      IPString,
+			      0,
+				  1);
+	}
+	else if (m_bNetworkReady && !bNetIsRunning)
+	{
+		m_bNetworkReady = false;
+		LOGNOTE("Network disconnected.");
+
+	}
+}
+
+bool CMiniDexed::InitNetwork()
+{
+	assert(m_pNet == nullptr);
+
+	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
+
+	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	{
+		LOGNOTE("Initializing Wi-Fi");
+
+		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("wlan and wpasupplicant initialized");
+			NetDeviceType = NetDeviceTypeWLAN;
+			
+		}
+		else
+			LOGERR("Failed to initialize Wi-Fi");
+	}
+	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+	{
+		LOGNOTE("Initializing Ethernet");
+		NetDeviceType = NetDeviceTypeEthernet;
+	}
+
+	if (NetDeviceType != NetDeviceTypeUnknown)
+		{
+			if (m_pConfig->GetNetworkDHCP())
+				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
+			else
+				m_pNet = new CNetSubSystem(
+					m_pConfig->GetNetworkIPAddress().Get(),
+					m_pConfig->GetNetworkSubnetMask().Get(),
+					m_pConfig->GetNetworkDefaultGateway().Get(),
+					m_pConfig->GetNetworkDNSServer().Get(),
+					m_pConfig->GetNetworkHostname(),
+					NetDeviceType
+				);
+
+			if (!m_pNet->Initialize())
+			{
+				LOGERR("Failed to initialize network subsystem");
+				delete m_pNet;
+				m_pNet = nullptr;
+			}
+
+			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+		}
+	return m_pNet != nullptr;
 }

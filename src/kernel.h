@@ -26,6 +26,7 @@
 #include <circle/i2cmaster.h>
 #include <circle/spimaster.h>
 #include <circle/usb/usbcontroller.h>
+#include <circle/sched/scheduler.h>
 #include "config.h"
 #include "minidexed.h"
 
