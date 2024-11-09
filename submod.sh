@@ -6,13 +6,13 @@ git submodule update --init --recursive
 #
 # Use fixed master branch of circle-stdlib then re-update
 cd circle-stdlib/
-git checkout 3bd135d
+git checkout 695ab4a
 git submodule update --init --recursive
 cd -
 #
 # Optional update submodules explicitly
 cd circle-stdlib/libs/circle
-git checkout fff3764
+git checkout tags/Step48
 cd -
 cd circle-stdlib/libs/circle-newlib
 #git checkout develop
