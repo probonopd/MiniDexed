@@ -1835,7 +1835,8 @@ void CMiniDexed::UpdateNetwork()
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
-		LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+		
 
 		m_UDPMIDI.Initialize();
 
@@ -1852,11 +1853,17 @@ void CMiniDexed::UpdateNetwork()
 			LOGNOTE("FTP daemon initialized");
 		}
 
-		m_UI.DisplayWrite ("IP",
-			      "Network",
-			      IPString,
-			      0,
-				  1);
+		m_UI.DisplayWrite ("IP", "Network", IPString, 0, 1);
+
+		CmDNSPublisher *pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		assert (pmDNSPublisher);
+		static const char ServiceName[] = "minidexed-rtpmidi";
+		static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// TXT record strings
+		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004, ppText))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{

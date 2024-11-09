@@ -27,11 +27,6 @@
 #include "config.h"
 #include "net/applemidi.h"
 
-#include <circle/interrupt.h>
-#include <circle/serial.h>
-#include <circle/writebuffer.h>
-#include <circle/types.h>
-
 class CMiniDexed;
 
 class CRTPMIDIDevice : CAppleMIDIHandler, CMIDIDevice
@@ -44,26 +39,11 @@ public:
 	virtual void OnAppleMIDIDataReceived(const u8* pData, size_t nSize) override;
 	virtual void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName) override;
 	virtual void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName) override;
-    //void OnAppleMIDIDataReceived(const u8* pData, size_t nSize);
-	//void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName);
-	//void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName);
-
-	//void Process (void);
-
-	//void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
 
 private:
 	CConfig *m_pConfig;
-
-	//CSerialDevice m_Serial;
-	//unsigned m_nSerialState;
-	//unsigned m_nSysEx;
-	//u8 m_SerialMessage[MAX_MIDI_MESSAGE];
-
-	//CWriteBufferDevice m_SendBuffer;
     CBcmRandomNumberGenerator m_Random;
-	//CAppleMIDIHandler* m_MIDIHandler;
-	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
+	CAppleMIDIParticipant* m_pAppleMIDIParticipant;
 };
 
 #endif
