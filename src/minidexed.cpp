@@ -32,6 +32,7 @@ const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
 #define FTPPASSWORD "admin"
+#define MDNSSERVICENAME "MiniDexed"
 
 LOGMODULE ("minidexed");
 
@@ -61,6 +62,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_WPASupplicant(WLANConfigFile),
 	m_bNetworkReady(false),
 	m_UDPMIDI (this, pConfig, &m_UI),
+	m_pmDNSPublisher (),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -1826,10 +1828,14 @@ void CMiniDexed::UpdateNetwork()
 	if (!m_pNet)
 		return;
 
+	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
-	bNetIsRunning &= m_WPASupplicant.IsConnected();
-
-	if (!m_bNetworkReady && bNetIsRunning)
+	if ((strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+		bNetIsRunning &= m_pNetDevice->IsLinkUp();
+	else if ((strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+		bNetIsRunning &= m_WPASupplicant.IsConnected();
+	
+	if (!m_bNetworkReady && (m_pNet->IsRunning()))
 	{
 		m_bNetworkReady = true;
 		CString IPString;
@@ -1837,7 +1843,6 @@ void CMiniDexed::UpdateNetwork()
 
 		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
 		
-
 		m_UDPMIDI.Initialize();
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
@@ -1855,21 +1860,25 @@ void CMiniDexed::UpdateNetwork()
 
 		m_UI.DisplayWrite ("IP", "Network", IPString, 0, 1);
 
-		CmDNSPublisher *pmDNSPublisher = new CmDNSPublisher (m_pNet);
-		assert (pmDNSPublisher);
-		static const char ServiceName[] = "minidexed-rtpmidi";
-		static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// TXT record strings
-		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeAppleMIDI,
-						     5004, ppText))
+		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		assert (m_pmDNSPublisher);
+		
+		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
+		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{
-		m_bNetworkReady = false;
+		//m_bNetworkReady = false;
+		m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
 		LOGNOTE("Network disconnected.");
-
+	}
+	else if (m_bNetworkReady && bNetIsRunning)
+	{
+		LOGNOTE("Network connection reestablished.");
 	}
 }
 

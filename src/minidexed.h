@@ -318,6 +318,7 @@ private:
 	bool m_bNetworkReady;
 	CUDPMIDIDevice m_UDPMIDI;
 	CFTPDaemon* m_pFTPDaemon;
+	CmDNSPublisher *m_pmDNSPublisher;
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
