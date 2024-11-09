@@ -2226,6 +2226,13 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
+		static const char *ppText2[] = {"FTP Server", nullptr};	// TXT record strings
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeFTP,
+						     21, ppText2))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
 	}
 	else if (m_bNetworkReady && !bNetIsRunning)
 	{
