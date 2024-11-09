@@ -19,6 +19,10 @@ jobs:
     - name: Get specific commits of git submodules
       run: |
            sh -ex ./submod.sh
+    - name: Apply patches
+      run: |
+           # https://github.com/rsta2/circle/discussions/427#discussioncomment-11198505
+           sed -i -e 's|TTLShort = 120|TTLShort = 15|g' circle-stdlib/libs/circle/net/mdnspublisher.h
     - name: Install toolchains
       run: |
            set -ex
