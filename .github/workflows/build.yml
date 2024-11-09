@@ -57,7 +57,7 @@ jobs:
            export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
            RPI=1 bash -ex build.sh
            cp ./src/kernel*.img ./kernels/
-    - name: Get Raspberry Pi boot files
+    - name: Get Raspberry Pi boot files and WLAN firmware
       run: |
            set -ex
            export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
@@ -73,6 +73,12 @@ jobs:
            echo "usbspeed=full" > sdcard/cmdline.txt
            cd sdcard
            cp ../kernels/* . || true
+           cd -
+           # WLAN firmware
+           cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
+           mkdir -p sdcard/firmware
+           cd sdcard/firmware
+           make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
            cd -
     - name: Get performance files
       run: |
