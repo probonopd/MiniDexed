@@ -26,24 +26,21 @@
 #include "rtpmididevice.h"
 #include <assert.h>
 
+#define VIRTUALCABLE 24
+
 LOGMODULE("rtpmididevice");
 
 CRTPMIDIDevice::CRTPMIDIDevice (CMiniDexed *pSynthesizer,
 				      CConfig *pConfig, CUserInterface *pUI)
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_pConfig (pConfig)
-	
-	//m_Serial (pInterrupt, TRUE),
-	//m_nSerialState (0),
-	//m_nSysEx (0),
-	//m_SendBuffer (&m_Serial)
 {
 	AddDevice ("rtpdummy");
 }
 
 CRTPMIDIDevice::~CRTPMIDIDevice (void)
 {
-	//m_nSerialState = 255;
+
 }
 
 boolean CRTPMIDIDevice::Initialize (void)
@@ -63,10 +60,7 @@ boolean CRTPMIDIDevice::Initialize (void)
 
 void CRTPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 {
-	LOGNOTE("Recieved RTP MIDI Data");
-	printf ("MIDI-RTP: %02X %02X\n",
-				(unsigned) pData[0], (unsigned) pData[1]);
-	MIDIMessageHandler(pData, nSize);
+	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
 }
 
 void CRTPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
