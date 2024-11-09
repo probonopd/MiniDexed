@@ -53,6 +53,21 @@ LOGMODULE ("mididevice");
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
+// MIDI "System" level (i.e. all TG) custom CC maps
+// Note: Even if number of TGs is not 8, there are only 8
+//       available to be used in the mappings here.
+#define NUM_MIDI_CC_MAPS 8
+const unsigned MIDISystemCCMap[NUM_MIDI_CC_MAPS][8] = {
+	{0,0,0,0,0,0,0,0}, // 0 = disabled
+	{16,17,18,19,80,81,82,83}, // 1 = General Purpose Controllers 1-8
+	{20,21,22,23,24,25,26,27},
+	{52,53,54,55,56,57,58,59},
+	{102,103,104,105,106,107,108,109},
+	{110,111,112,113,114,115,116,117},
+	{3,9,14,15,28,29,30,31},
+	{35,41,46,47,60,61,62,63}
+};
+
 #define MIDI_SYSTEM_EXCLUSIVE_BEGIN	0xF0
 #define MIDI_SYSTEM_EXCLUSIVE_END	0xF7
 #define MIDI_TIMING_CLOCK	0xF8
@@ -65,9 +80,37 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	m_pConfig (pConfig),
 	m_pUI (pUI)
 {
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
+	}
+
+	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
+	m_nMIDISystemCCPan = m_pConfig->GetMIDISystemCCPan();
+	m_nMIDISystemCCDetune = m_pConfig->GetMIDISystemCCDetune();
+
+	m_MIDISystemCCBitmap[0] = 0;
+	m_MIDISystemCCBitmap[1] = 0;
+	m_MIDISystemCCBitmap[2] = 0;
+	m_MIDISystemCCBitmap[3] = 0;
+
+	for (int tg=0; tg<8; tg++)
+	{
+		if (m_nMIDISystemCCVol != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCVol][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+		if (m_nMIDISystemCCPan != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCPan][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+		if (m_nMIDISystemCCDetune != 0) {
+			u8 cc = MIDISystemCCMap[m_nMIDISystemCCDetune][tg];
+			m_MIDISystemCCBitmap[cc>>5] |= (1<<(cc%32));
+		}
+	}
+	if (m_pConfig->GetMIDIDumpEnabled ()) {
+		LOGNOTE("MIDI System CC Map: %08X %08X %08X %08X", m_MIDISystemCCBitmap[3],m_MIDISystemCCBitmap[2],m_MIDISystemCCBitmap[1],m_MIDISystemCCBitmap[0]);
 	}
 }
 
@@ -78,13 +121,13 @@ CMIDIDevice::~CMIDIDevice (void)
 
 void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_ChannelMap[nTG] = ucChannel;
 }
 
 u8 CMIDIDevice::GetChannel (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_ChannelMap[nTG];
 }
 
@@ -184,9 +227,35 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	else
 	{
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
+		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
 		{
 		case MIDI_CONTROL_CHANGE:
+			// Check for performance PC messages
+			if (nPerfCh != Disabled)
+			{
+				if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
+				{
+					if (pMessage[1] == MIDI_CC_BANK_SELECT_MSB)
+					{
+						m_pSynthesizer->BankSelectMSBPerformance (pMessage[2]);
+					}
+					else if (pMessage[1] == MIDI_CC_BANK_SELECT_LSB)
+					{
+						m_pSynthesizer->BankSelectLSBPerformance (pMessage[2]);
+					}
+					else
+					{
+						// Ignore any other CC messages at this time
+					}
+				}
+			}
+			if (nLength == 3)
+			{
+				m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+			}
+			break;
+
 		case MIDI_NOTE_OFF:
 		case MIDI_NOTE_ON:
 			if (nLength < 3)
@@ -195,11 +264,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
 			break;
+
 		case MIDI_PROGRAM_CHANGE:
 			// Check for performance PC messages
 			if( m_pConfig->GetMIDIRXProgramChange() )
 			{
-				unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 				if( nPerfCh != Disabled)
 				{
 					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
@@ -211,8 +280,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			break;
 		}
 
-		// Process MIDI for each Tone Generator
-		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		// Process MIDI for each active Tone Generator
+		bool bSystemCCHandled = false;
+		bool bSystemCCChecked = false;
+		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
 		{
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
@@ -345,6 +416,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
 							break;
+
+						default:
+							// Check for system-level, cross-TG MIDI Controls, but only do it once.
+							// Also, if successfully handled, then no need to process other TGs,
+							// so it is possible to break out of the main TG loop too.
+							// Note: We handle this here so we get the TG MIDI channel checking.
+							if (!bSystemCCChecked) {
+								bSystemCCHandled = HandleMIDISystemCC(pMessage[1], pMessage[2]);
+								bSystemCCChecked = true;
+							}
+							break;
 						}
 						break;
 		
@@ -388,6 +470,52 @@ void CMIDIDevice::AddDevice (const char *pDeviceName)
 	assert (!m_DeviceName.empty ());
 
 	s_DeviceMap.insert (std::pair<std::string, CMIDIDevice *> (pDeviceName, this));
+}
+
+bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
+{
+	// This only makes sense when there are at least 8 TGs.
+	// Note: If more than 8 TGs then only 8 TGs are controllable this way.
+	if (m_pConfig->GetToneGenerators() < 8) {
+		return false;
+	}
+
+	// Quickly reject any CCs not in the configured maps
+	if ((m_MIDISystemCCBitmap[ucCC>>5] & (1<<(ucCC%32))) == 0) {
+		// Not in the map
+		return false;
+	}
+
+	// Not looking for duplicate CCs so return once handled
+	for (unsigned tg=0; tg<8; tg++) {
+		if (m_nMIDISystemCCVol != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
+				m_pSynthesizer->SetVolume (ucCCval, tg);
+				return true;
+			}
+		}
+		if (m_nMIDISystemCCPan != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCPan][tg]) {
+				m_pSynthesizer->SetPan (ucCCval, tg);
+				return true;
+			}
+		}
+		if (m_nMIDISystemCCDetune != 0) {
+			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCDetune][tg]) {
+				if (ucCCval == 0)
+				{
+					m_pSynthesizer->SetMasterTune (0, tg);
+				}
+				else
+				{
+					m_pSynthesizer->SetMasterTune (maplong (ucCCval, 1, 127, -99, 99), tg);
+				}
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)

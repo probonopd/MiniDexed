@@ -60,6 +60,7 @@ public:
 	void Load (bool bHeaderlessSysExVoices = false);
 
 	std::string GetBankName (unsigned nBankID);	// 0 .. MaxVoiceBankID
+	std::string GetVoiceName (unsigned nBankID, unsigned nVoice); // 0 .. MaxVoiceBankID, 0 .. VoicesPerBank-1
 	unsigned GetNumHighestBank (); // 0 .. MaxVoiceBankID
 	bool     IsValidBank (unsigned nBankID);
 	unsigned GetNextBankUp (unsigned nBankID);

@@ -37,21 +37,22 @@ const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 LOGMODULE ("minidexed");
 
 CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem)
+			CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, FATFS *pFileSystem)
 :
 #ifdef ARM_ALLOW_MULTI_CORE
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
-	m_UI (this, pGPIOManager, pI2CMaster, pConfig),
+	m_UI (this, pGPIOManager, pI2CMaster, pSPIMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig, &m_UI),
 	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
 	m_bUseSerial (false),
+	m_bQuadDAC8Chan (false),
 	m_pSoundDevice (0),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
-	m_nActiveTGsLog2 (0),
+//	m_nActiveTGsLog2 (0),
 #endif
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
@@ -66,12 +67,19 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
+	m_bSetNewPerformanceBank (false),
+	m_bSetFirstPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false)
+	m_bLoadPerformanceBusy(false),
+	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
+		
+	m_nToneGenerators = m_pConfig->GetToneGenerators();
+	m_nPolyphony = m_pConfig->GetPolyphony();
+	LOGNOTE("Tone Generators=%d, Polyphony=%d", m_nToneGenerators, m_nPolyphony);
 
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	for (unsigned i = 0; i < CConfig::AllToneGenerators; i++)
 	{
 		m_nVoiceBankID[i] = 0;
 		m_nVoiceBankIDMSB[i] = 0;
@@ -102,22 +110,57 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nAftertouchTarget[i]=0;
 		
 		m_nReverbSend[i] = 0;
-		m_uchOPMask[i] = 0b111111;	// All operators on
 
-		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
-		assert (m_pTG[i]);
-		
-		m_pTG[i]->setEngineType(pConfig->GetEngineType ());
-		m_pTG[i]->activate ();
+		// Active the required number of active TGs
+		if (i<m_nToneGenerators)
+		{
+			m_uchOPMask[i] = 0b111111;	// All operators on
+
+			m_pTG[i] = new CDexedAdapter (m_nPolyphony, pConfig->GetSampleRate ());
+			assert (m_pTG[i]);
+
+			m_pTG[i]->setEngineType(pConfig->GetEngineType ());
+			m_pTG[i]->activate ();
+		}
 	}
+
+	unsigned nUSBGadgetPin = pConfig->GetUSBGadgetPin();
+	bool bUSBGadget = pConfig->GetUSBGadget();
+	bool bUSBGadgetMode = pConfig->GetUSBGadgetMode();
 		
-	if (pConfig->GetUSBGadgetMode())
+	if (bUSBGadgetMode)
 	{
-		LOGNOTE ("USB In Gadget (Device) Mode");
+#if RASPPI==5
+		LOGNOTE ("USB Gadget (Device) Mode NOT supported on RPI 5");
+#else
+		if (nUSBGadgetPin == 0)
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode");
+		}
+		else
+		{
+			LOGNOTE ("USB In Gadget (Device) Mode [USBGadgetPin %d = LOW]", nUSBGadgetPin);
+		}
+#endif
 	}
 	else
 	{
-		LOGNOTE ("USB In Host Mode");
+		if (bUSBGadget)
+		{
+			if (nUSBGadgetPin == 0)
+			{
+				// This shouldn't be possible...
+				LOGNOTE ("USB State Unknown");
+			}
+			else
+			{
+				LOGNOTE ("USB In Host Mode [USBGadgetPin %d = HIGH]", nUSBGadgetPin);
+			}
+		}
+		else
+		{
+			LOGNOTE ("USB In Host Mode");
+		}
 	}
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
@@ -131,13 +174,37 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	if (strcmp (pDeviceName, "i2s") == 0)
 	{
 		LOGNOTE ("I2S mode");
-
-		m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
-							  pConfig->GetChunkSize (), false,
-							  pI2CMaster, pConfig->GetDACI2CAddress ());
+#if RASPPI==5
+		// Quad DAC 8-channel mono only an option for RPI 5
+		m_bQuadDAC8Chan = pConfig->GetQuadDAC8Chan ();
+#endif
+		if (m_bQuadDAC8Chan && (m_nToneGenerators != 8))
+		{
+			LOGNOTE("ERROR: Quad DAC Mode is only valid when number of TGs = 8.  Defaulting to non-Quad DAC mode,");
+			m_bQuadDAC8Chan = false;
+		}
+		if (m_bQuadDAC8Chan) {
+			LOGNOTE ("Configured for Quad DAC 8-channel Mono audio");
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  8);  // 8 channels - L+R x4 across 4 I2S lanes
+		}
+		else
+		{
+			m_pSoundDevice = new CI2SSoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
+								  pConfig->GetChunkSize (), false,
+								  pI2CMaster, pConfig->GetDACI2CAddress (),
+								  CI2SSoundBaseDevice::DeviceModeTXOnly,
+								  2);  // 2 channels - L+R
+		}
 	}
 	else if (strcmp (pDeviceName, "hdmi") == 0)
 	{
+#if RASPPI==5
+		LOGNOTE ("HDMI mode NOT supported on RPI 5.");
+#else
 		LOGNOTE ("HDMI mode");
 
 		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
@@ -146,6 +213,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		// The channels are swapped by default in the HDMI sound driver.
 		// TODO: Remove this line, when this has been fixed in the driver.
 		m_bChannelsSwapped = !m_bChannelsSwapped;
+#endif
 	}
 	else
 	{
@@ -165,11 +233,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	setMasterVolume(1.0);
 
 	// BEGIN setup tg_mixer
-	tg_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
+	tg_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
 
 	// BEGIN setup reverb
-	reverb_send_mixer = new AudioStereoMixer<CConfig::ToneGenerators>(pConfig->GetChunkSize()/2);
+	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
 	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
@@ -183,6 +251,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
+		
+	SetParameter (ParameterPerformanceBank, 0);
 };
 
 bool CMiniDexed::Initialize (void)
@@ -218,7 +288,7 @@ bool CMiniDexed::Initialize (void)
 		LOGNOTE("Program Change: Disabled");
 	}
 
-	for (unsigned i = 0; i < CConfig::ToneGenerators; i++)
+	for (unsigned i = 0; i < m_nToneGenerators; i++)
 	{
 		assert (m_pTG[i]);
 
@@ -240,6 +310,7 @@ bool CMiniDexed::Initialize (void)
 		reverb_send_mixer->gain(i,mapfloat(m_nReverbSend[i],0,99,0.0f,1.0f));
 	}
 
+	m_PerformanceConfig.Init(m_nToneGenerators);
 	if (m_PerformanceConfig.Load ())
 	{
 		LoadPerformanceParameters(); 
@@ -249,25 +320,31 @@ bool CMiniDexed::Initialize (void)
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
 	}
 	
-	// load performances file list, and attempt to create the performance folder
-	if (!m_PerformanceConfig.ListPerformances()) 
-	{
-		LOGERR ("Cannot create internal Performance folder, new performances can't be created");
-	}
-	
 	// setup and start the sound device
-	if (!m_pSoundDevice->AllocateQueueFrames (m_pConfig->GetChunkSize ()))
+	int Channels = 1;	// 16-bit Mono
+#ifdef ARM_ALLOW_MULTI_CORE
+	if (m_bQuadDAC8Chan)
+	{
+		Channels = 8;	// 16-bit 8-channel mono
+	}
+	else
+	{
+		Channels = 2;	// 16-bit Stereo
+	}
+#endif
+	// Need 2 x ChunkSize / Channel queue frames as the audio driver uses
+	// two DMA channels each of ChunkSize and one single single frame
+	// contains a sample for each of all the channels.
+	//
+	// See discussion here: https://github.com/rsta2/circle/discussions/453
+	if (!m_pSoundDevice->AllocateQueueFrames (2 * m_pConfig->GetChunkSize () / Channels))
 	{
 		LOGERR ("Cannot allocate sound queue");
 
 		return false;
 	}
 
-#ifndef ARM_ALLOW_MULTI_CORE
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 1);	// 16-bit Mono
-#else
-	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, 2);	// 16-bit Stereo
-#endif
+	m_pSoundDevice->SetWriteFormat (SoundFormatSigned16, Channels);
 
 	m_nQueueSizeFrames = m_pSoundDevice->GetQueueSizeFrames ();
 
@@ -320,14 +397,30 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_bSavePerformanceNewFile = false;
 	}
 	
-	if (m_bSetNewPerformance && !m_bLoadPerformanceBusy)
+	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	{
+		DoSetNewPerformanceBank ();
+		if (m_nSetNewPerformanceBankID == GetActualPerformanceBankID())
+		{
+			m_bSetNewPerformanceBank = false;
+		}
+		
+		// If there is no pending SetNewPerformance already, then see if we need to find the first performance to load
+		// NB: If called from the UI, then there will not be a SetNewPerformance, so load the first existing one.
+		//     If called from MIDI, there will probably be a SetNewPerformance alongside the Bank select.
+		if (!m_bSetNewPerformance && m_bSetFirstPerformance)
+		{
+			DoSetFirstPerformance();
+		}
+	}
+	
+	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
 	{
 		DoSetNewPerformance ();
 		if (m_nSetNewPerformanceID == GetActualPerformanceID())
 		{
 			m_bSetNewPerformance = false;
 		}
-		
 	}
 	
 	if(m_bDeletePerformance)
@@ -392,12 +485,16 @@ void CMiniDexed::Run (unsigned nCore)
 
 			// process the TGs, assigned to this core (2 or 3)
 
-			assert (m_nFramesToProcess <= CConfig::MaxChunkSize);
-			unsigned nTG = CConfig::TGsCore1 + (nCore-2)*CConfig::TGsCore23;
-			for (unsigned i = 0; i < CConfig::TGsCore23; i++, nTG++)
+			assert (m_nFramesToProcess <= m_pConfig->MaxChunkSize);
+			unsigned nTG = m_pConfig->GetTGsCore1() + (nCore-2)*m_pConfig->GetTGsCore23();
+			for (unsigned i = 0; i < m_pConfig->GetTGsCore23(); i++, nTG++)
 			{
-				assert (m_pTG[nTG]);
-				m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
+				assert (nTG < CConfig::AllToneGenerators);
+				if (nTG < m_pConfig->GetToneGenerators())
+				{
+					assert (m_pTG[nTG]);
+					m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
+				}
 			}
 		}
 	}
@@ -410,11 +507,17 @@ CSysExFileLoader *CMiniDexed::GetSysExFileLoader (void)
 	return &m_SysExFileLoader;
 }
 
+CPerformanceConfig *CMiniDexed::GetPerformanceConfig (void)
+{
+	return &m_PerformanceConfig;
+}
+
 void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 {
 	nBank=constrain((int)nBank,0,16383);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
 	
 	if (GetSysExFileLoader ()->IsValidBank(nBank))
 	{
@@ -425,11 +528,27 @@ void CMiniDexed::BankSelect (unsigned nBank, unsigned nTG)
 	}
 }
 
+void CMiniDexed::BankSelectPerformance (unsigned nBank)
+{
+	nBank=constrain((int)nBank,0,16383);
+
+	if (GetPerformanceConfig ()->IsValidPerformanceBank(nBank))
+	{
+		// Only change if we have the bank loaded
+		m_nVoiceBankIDPerformance = nBank;
+		SetNewPerformanceBank (nBank);
+
+		m_UI.ParameterChanged ();
+	}
+}
+
 void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 {
 	nBankMSB=constrain((int)nBankMSB,0,127);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	// MIDI Spec 1.0 "BANK SELECT" states:
 	//   "The transmitter must transmit the MSB and LSB as a pair,
 	//   and the Program Change must be sent immediately after
@@ -440,17 +559,37 @@ void CMiniDexed::BankSelectMSB (unsigned nBankMSB, unsigned nTG)
 	m_nVoiceBankIDMSB[nTG] = nBankMSB;
 }
 
+void CMiniDexed::BankSelectMSBPerformance (unsigned nBankMSB)
+{
+	nBankMSB=constrain((int)nBankMSB,0,127);
+	m_nVoiceBankIDMSBPerformance = nBankMSB;
+}
+
 void CMiniDexed::BankSelectLSB (unsigned nBankLSB, unsigned nTG)
 {
 	nBankLSB=constrain((int)nBankLSB,0,127);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	unsigned nBank = m_nVoiceBankID[nTG];
 	unsigned nBankMSB = m_nVoiceBankIDMSB[nTG];
 	nBank = (nBankMSB << 7) + nBankLSB;
 
 	// Now should have both MSB and LSB so enable the BankSelect
 	BankSelect(nBank, nTG);
+}
+
+void CMiniDexed::BankSelectLSBPerformance (unsigned nBankLSB)
+{
+	nBankLSB=constrain((int)nBankLSB,0,127);
+
+	unsigned nBank = m_nVoiceBankIDPerformance;
+	unsigned nBankMSB = m_nVoiceBankIDMSBPerformance;
+	nBank = (nBankMSB << 7) + nBankLSB;
+
+	// Now should have both MSB and LSB so enable the BankSelect
+	BankSelectPerformance(nBank);
 }
 
 void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
@@ -480,7 +619,9 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 		nProgram=constrain((int)nProgram,0,31);
 	}
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nProgram[nTG] = nProgram;
 
 	uint8_t Buffer[156];
@@ -507,10 +648,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 	if (m_nParameter[ParameterPerformanceSelectChannel] != CMIDIDevice::Disabled)
 	{
 		// Program Change messages change Performances.
-		unsigned nLastPerformance = m_PerformanceConfig.GetLastPerformance();
-
-		// GetLastPerformance actually returns 1-indexed, number of performances
-		if (nProgram < nLastPerformance - 1)
+		if (m_PerformanceConfig.IsValidPerformance(nProgram))
 		{
 			SetNewPerformance(nProgram);
 		}
@@ -522,7 +660,9 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 {
 	nVolume=constrain((int)nVolume,0,127);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nVolume[nTG] = nVolume;
 
 	assert (m_pTG[nTG]);
@@ -535,7 +675,9 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 {
 	nPan=constrain((int)nPan,0,127);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nPan[nTG] = nPan;
 	
 	tg_mixer->pan(nTG,mapfloat(nPan,0,127,0.0f,1.0f));
@@ -548,7 +690,9 @@ void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
 {
 	nReverbSend=constrain((int)nReverbSend,0,99);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nReverbSend[nTG] = nReverbSend;
 
 	reverb_send_mixer->gain(nTG,mapfloat(nReverbSend,0,99,0.0f,1.0f));
@@ -560,7 +704,9 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 {
 	nMasterTune=constrain((int)nMasterTune,-99,99);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nMasterTune[nTG] = nMasterTune;
 
 	assert (m_pTG[nTG]);
@@ -573,7 +719,9 @@ void CMiniDexed::SetCutoff (int nCutoff, unsigned nTG)
 {
 	nCutoff = constrain (nCutoff, 0, 99);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nCutoff[nTG] = nCutoff;
 
 	assert (m_pTG[nTG]);
@@ -586,7 +734,9 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 {
 	nResonance = constrain (nResonance, 0, 99);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	m_nResonance[nTG] = nResonance;
 
 	assert (m_pTG[nTG]);
@@ -599,7 +749,9 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (uchChannel < CMIDIDevice::ChannelUnknown);
 
 	m_nMIDIChannel[nTG] = uchChannel;
@@ -619,6 +771,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	m_UDPMIDI.SetChannel (uchChannel, nTG);
 
 #ifdef ARM_ALLOW_MULTI_CORE
+/* This doesn't appear to be used anywhere...
 	unsigned nActiveTGs = 0;
 	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
 	{
@@ -631,6 +784,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	assert (nActiveTGs <= 8);
 	static const unsigned Log2[] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
 	m_nActiveTGsLog2 = Log2[nActiveTGs];
+*/
 #endif
 
 	m_UI.ParameterChanged ();
@@ -638,7 +792,9 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 
 void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	pitch = ApplyNoteLimits (pitch, nTG);
@@ -650,7 +806,9 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 
 void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	pitch = ApplyNoteLimits (pitch, nTG);
@@ -662,7 +820,8 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 
 int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return -1;  // Not an active TG
 
 	if (   pitch < (int16_t) m_nNoteLimitLow[nTG]
 	    || pitch > (int16_t) m_nNoteLimitHigh[nTG])
@@ -683,14 +842,18 @@ int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
 
 void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setSustain (sustain);
 }
 
 void CMiniDexed::panic(uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	if (value == 0) {
 		m_pTG[nTG]->panic ();
@@ -699,7 +862,9 @@ void CMiniDexed::panic(uint8_t value, unsigned nTG)
 
 void CMiniDexed::notesOff(uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	if (value == 0) {
 		m_pTG[nTG]->notesOff ();
@@ -708,7 +873,9 @@ void CMiniDexed::notesOff(uint8_t value, unsigned nTG)
 
 void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setModWheel (value);
 }
@@ -716,35 +883,45 @@ void CMiniDexed::setModWheel (uint8_t value, unsigned nTG)
 
 void CMiniDexed::setFootController (uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setFootController (value);
 }
 
 void CMiniDexed::setBreathController (uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setBreathController (value);
 }
 
 void CMiniDexed::setAftertouch (uint8_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setAftertouch (value);
 }
 
 void CMiniDexed::setPitchbend (int16_t value, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setPitchbend (value);
 }
 
 void CMiniDexed::ControllersRefresh (unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->ControllersRefresh ();
 }
@@ -759,7 +936,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	switch (Parameter)
 	{
 	case ParameterCompressorEnable:
-		for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+		for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
 		{
 			assert (m_pTG[nTG]);
 			m_pTG[nTG]->setCompressor (!!nValue);
@@ -819,6 +996,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		// Nothing more to do
 		break;
 
+	case ParameterPerformanceBank:
+		BankSelectPerformance(nValue);
+		break;
+
 	default:
 		assert (0);
 		break;
@@ -833,7 +1014,8 @@ int CMiniDexed::GetParameter (TParameter Parameter)
 
 void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
 
 	switch (Parameter)
 	{
@@ -888,7 +1070,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 
 	switch (Parameter)
 	{
@@ -939,7 +1121,9 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	assert (nOP <= 6);
 
@@ -972,7 +1156,9 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 
 uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return 0;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	assert (nOP <= 6);
 
@@ -996,13 +1182,15 @@ std::string CMiniDexed::GetVoiceName (unsigned nTG)
 {
 	char VoiceName[11];
 	memset (VoiceName, 0, sizeof VoiceName);
+	VoiceName[0] = 32; // space
+	assert (nTG < CConfig::AllToneGenerators);
 
-	assert (nTG < CConfig::ToneGenerators);
-	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setName (VoiceName);
-
+	if (nTG < m_nToneGenerators)
+	{
+		assert (m_pTG[nTG]);
+		m_pTG[nTG]->setName (VoiceName);
+	}
 	std::string Result (VoiceName);
-
 	return Result;
 }
 
@@ -1044,6 +1232,7 @@ void CMiniDexed::ProcessSound (void)
 void CMiniDexed::ProcessSound (void)
 {
 	assert (m_pSoundDevice);
+	assert (m_pConfig);
 
 	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail ();
 	if (nFrames >= m_nQueueSizeFrames/2)
@@ -1064,7 +1253,7 @@ void CMiniDexed::ProcessSound (void)
 
 		// process the TGs assigned to core 1
 		assert (nFrames <= CConfig::MaxChunkSize);
-		for (unsigned i = 0; i < CConfig::TGsCore1; i++)
+		for (unsigned i = 0; i < m_pConfig->GetTGsCore1(); i++)
 		{
 			assert (m_pTG[i]);
 			m_pTG[i]->getSamples (m_OutputLevel[i], nFrames);
@@ -1083,87 +1272,133 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
-		assert (CConfig::ToneGenerators == 8);
+		if (m_bQuadDAC8Chan) {
+			// This is only supported when there are 8 TGs
+			assert (m_nToneGenerators == 8);
 
-		uint8_t indexL=0, indexR=1;
-		
-		// BEGIN TG mixing
-		float32_t tmp_float[nFrames*2];
-		int16_t tmp_int[nFrames*2];
+			// No mixing is performed by MiniDexed, sound is output in 8 channels.
+			// Note: one TG per audio channel; output=mono; no processing.
+			const int Channels = 8;  // One TG per channel
+			float32_t tmp_float[nFrames*Channels];
+			int16_t tmp_int[nFrames*Channels];
 
-		if(nMasterVolume > 0.0)
-		{
-			for (uint8_t i = 0; i < CConfig::ToneGenerators; i++)
+			if(nMasterVolume > 0.0)
 			{
-				tg_mixer->doAddMix(i,m_OutputLevel[i]);
-				reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
-			}
-			// END TG mixing
-	
-			// BEGIN create SampleBuffer for holding audio data
-			float32_t SampleBuffer[2][nFrames];
-			// END create SampleBuffer for holding audio data
-
-			// get the mix of all TGs
-			tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
-
-			// BEGIN adding reverb
-			if (m_nParameter[ParameterReverbEnable])
-			{
-				float32_t ReverbBuffer[2][nFrames];
-				float32_t ReverbSendBuffer[2][nFrames];
-
-				arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-				arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-	
-				m_ReverbSpinLock.Acquire ();
-	
-       		         	reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-	
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
-	
-				m_ReverbSpinLock.Release ();
-			}
-			// END adding reverb
-	
-			// swap stereo channels if needed prior to writing back out
-			if (m_bChannelsSwapped)
-			{
-				indexL=1;
-				indexR=0;
-			}
-
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			for(uint16_t i=0; i<nFrames;i++)
-			{
-				if(nMasterVolume >0.0 && nMasterVolume <1.0)
+				// Convert dual float array (8 chan) to single int16 array (8 chan)
+				for(uint16_t i=0; i<nFrames;i++)
 				{
-					tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					// TGs will alternate on L/R channels for each output
+					// reading directly from the TG OutputLevel buffer with
+					// no additional processing.
+					for (uint8_t tg = 0; tg < Channels; tg++)
+					{
+						if(nMasterVolume >0.0 && nMasterVolume <1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+						}
+						else if(nMasterVolume == 1.0)
+						{
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
+						}
+					}
 				}
-				else if(nMasterVolume == 1.0)
-				{
-					tmp_float[i*2]=SampleBuffer[indexL][i];
-					tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
-				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*Channels);
 			}
-			arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames*Channels);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
 		}
 		else
-			arm_fill_q15(0, tmp_int, nFrames * 2);
-
-		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
-			LOGERR ("Sound data dropped");
-		}
+			// Mix everything down to stereo		
+			uint8_t indexL=0, indexR=1;
+
+			// BEGIN TG mixing
+			float32_t tmp_float[nFrames*2];
+			int16_t tmp_int[nFrames*2];
+
+			if(nMasterVolume > 0.0)
+			{
+				for (uint8_t i = 0; i < m_nToneGenerators; i++)
+				{
+					tg_mixer->doAddMix(i,m_OutputLevel[i]);
+					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+				}
+				// END TG mixing
+
+				// BEGIN create SampleBuffer for holding audio data
+				float32_t SampleBuffer[2][nFrames];
+				// END create SampleBuffer for holding audio data
+
+				// get the mix of all TGs
+				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
+
+				// BEGIN adding reverb
+				if (m_nParameter[ParameterReverbEnable])
+				{
+					float32_t ReverbBuffer[2][nFrames];
+					float32_t ReverbSendBuffer[2][nFrames];
+
+					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+
+					m_ReverbSpinLock.Acquire ();
+
+					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+					reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
+
+					// scale down and add left reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+					arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+					// scale down and add right reverb buffer by reverb level 
+					arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+					arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+
+					m_ReverbSpinLock.Release ();
+				}
+				// END adding reverb
+
+				// swap stereo channels if needed prior to writing back out
+				if (m_bChannelsSwapped)
+				{
+					indexL=1;
+					indexR=0;
+				}
+
+				// Convert dual float array (left, right) to single int16 array (left/right)
+				for(uint16_t i=0; i<nFrames;i++)
+				{
+					if(nMasterVolume >0.0 && nMasterVolume <1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+					}
+					else if(nMasterVolume == 1.0)
+					{
+						tmp_float[i*2]=SampleBuffer[indexL][i];
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+					}
+				}
+				arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
+			}
+			else
+			{
+				arm_fill_q15(0, tmp_int, nFrames * 2);
+			}
+
+			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
+			{
+				LOGERR ("Sound data dropped");
+			}
+		} // End of Stereo mixing
 
 		if (m_bProfileEnabled)
 		{
@@ -1200,15 +1435,22 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
-	m_bSavePerformance = true;
-	m_bSaveAsDeault=bSaveAsDeault;
+	if (m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bSavePerformance = true;
+		m_bSaveAsDeault=bSaveAsDeault;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoSavePerformance (void)
 {
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_PerformanceConfig.SetBankNumber (m_nVoiceBankID[nTG], nTG);
 		m_PerformanceConfig.SetVoiceNumber (m_nProgram[nTG], nTG);
@@ -1227,8 +1469,14 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
-		m_pTG[nTG]->getVoiceData(m_nRawVoiceData);  
- 		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
+		if (nTG < m_pConfig->GetToneGenerators())
+		{
+			m_pTG[nTG]->getVoiceData(m_nRawVoiceData);
+		} else {
+			// Not an active TG so provide default voice by asking for an invalid voice ID.
+			m_SysExFileLoader.GetVoice(CSysExFileLoader::MaxVoiceBankID, CSysExFileLoader::VoicesPerBank+1, m_nRawVoiceData);
+		}
+		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
 		m_PerformanceConfig.SetMonoMode (m_bMonoMode[nTG], nTG); 
 				
 		m_PerformanceConfig.SetModulationWheelRange (m_nModulationWheelRange[nTG], nTG);
@@ -1262,7 +1510,9 @@ bool CMiniDexed::DoSavePerformance (void)
 
 void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_bMonoMode[nTG]= mono != 0; 
 	m_pTG[nTG]->setMonoMode(constrain(mono, 0, 1));
@@ -1273,7 +1523,9 @@ void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 void CMiniDexed::setPitchbendRange(uint8_t range, uint8_t nTG)
 {
 	range = constrain (range, 0, 12);
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_nPitchBendRange[nTG] = range;
 	
@@ -1285,7 +1537,9 @@ void CMiniDexed::setPitchbendRange(uint8_t range, uint8_t nTG)
 void CMiniDexed::setPitchbendStep(uint8_t step, uint8_t nTG)
 {
 	step= constrain (step, 0, 12);
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_nPitchBendStep[nTG] = step;
 	
@@ -1298,7 +1552,9 @@ void CMiniDexed::setPortamentoMode(uint8_t mode, uint8_t nTG)
 {
 	mode= constrain (mode, 0, 1);
 
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_nPortamentoMode[nTG] = mode;
 	
@@ -1310,7 +1566,9 @@ void CMiniDexed::setPortamentoMode(uint8_t mode, uint8_t nTG)
 void CMiniDexed::setPortamentoGlissando(uint8_t glissando, uint8_t nTG)
 {
 	glissando = constrain (glissando, 0, 1);
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_nPortamentoGlissando[nTG] = glissando;
 	
@@ -1322,7 +1580,9 @@ void CMiniDexed::setPortamentoGlissando(uint8_t glissando, uint8_t nTG)
 void CMiniDexed::setPortamentoTime(uint8_t time, uint8_t nTG)
 {
 	time = constrain (time, 0, 99);
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 	m_nPortamentoTime[nTG] = time;
 	
@@ -1333,7 +1593,9 @@ void CMiniDexed::setPortamentoTime(uint8_t time, uint8_t nTG)
 
 void CMiniDexed::setModWheelRange(uint8_t range, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nModulationWheelRange[nTG] = range;
@@ -1346,7 +1608,9 @@ void CMiniDexed::setModWheelRange(uint8_t range, uint8_t nTG)
 
 void CMiniDexed::setModWheelTarget(uint8_t target, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nModulationWheelTarget[nTG] = target;
@@ -1358,7 +1622,9 @@ void CMiniDexed::setModWheelTarget(uint8_t target, uint8_t nTG)
 
 void CMiniDexed::setFootControllerRange(uint8_t range, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nFootControlRange[nTG]=range;
@@ -1371,7 +1637,9 @@ void CMiniDexed::setFootControllerRange(uint8_t range, uint8_t nTG)
 
 void CMiniDexed::setFootControllerTarget(uint8_t target, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nFootControlTarget[nTG] = target;
@@ -1383,7 +1651,9 @@ void CMiniDexed::setFootControllerTarget(uint8_t target, uint8_t nTG)
 
 void CMiniDexed::setBreathControllerRange(uint8_t range, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nBreathControlRange[nTG]=range;
@@ -1396,7 +1666,9 @@ void CMiniDexed::setBreathControllerRange(uint8_t range, uint8_t nTG)
 
 void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nBreathControlTarget[nTG]=target;
@@ -1408,7 +1680,9 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 
 void CMiniDexed::setAftertouchRange(uint8_t range, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nAftertouchRange[nTG]=range;
@@ -1421,7 +1695,9 @@ void CMiniDexed::setAftertouchRange(uint8_t range, uint8_t nTG)
 
 void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_nAftertouchTarget[nTG]=target;
@@ -1433,7 +1709,9 @@ void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
 
 void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	uint8_t voice[161];
@@ -1454,7 +1732,9 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 
 void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	m_pTG[nTG]->setVoiceDataElement(constrain(data, 0, 155),constrain(number, 0, 99));
@@ -1464,7 +1744,9 @@ void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 
 int16_t CMiniDexed::checkSystemExclusive(const uint8_t* pMessage,const  uint16_t nLength, uint8_t nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return 0;  // Not an active TG
+
 	assert (m_pTG[nTG]);
 
 	return(m_pTG[nTG]->checkSystemExclusive(pMessage, nLength));
@@ -1475,10 +1757,17 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	uint8_t checksum = 0;
 	uint8_t data[155];
 
-	assert (nTG < CConfig::ToneGenerators);
-	assert (m_pTG[nTG]);
-
-	m_pTG[nTG]->getVoiceData(data);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG < m_nToneGenerators)
+	{
+		assert (m_pTG[nTG]);
+		m_pTG[nTG]->getVoiceData(data);
+	}
+	else
+	{
+		// Not an active TG so grab a default voice
+		m_SysExFileLoader.GetVoice(CSysExFileLoader::MaxVoiceBankID, CSysExFileLoader::VoicesPerBank+1, data);
+	}
 
 	dest[0] = 0xF0; // SysEx start
 	dest[1] = 0x43; // ID=Yamaha
@@ -1520,6 +1809,16 @@ unsigned CMiniDexed::GetLastPerformance()
 	return m_PerformanceConfig.GetLastPerformance();
 }
 
+unsigned CMiniDexed::GetPerformanceBank()
+{
+	return m_PerformanceConfig.GetPerformanceBank();
+}
+
+unsigned CMiniDexed::GetLastPerformanceBank()
+{
+	return m_PerformanceConfig.GetLastPerformanceBank();
+}
+
 unsigned CMiniDexed::GetActualPerformanceID()
 {
 	return m_PerformanceConfig.GetActualPerformanceID();
@@ -1530,12 +1829,36 @@ void CMiniDexed::SetActualPerformanceID(unsigned nID)
 	m_PerformanceConfig.SetActualPerformanceID(nID);
 }
 
+unsigned CMiniDexed::GetActualPerformanceBankID()
+{
+	return m_PerformanceConfig.GetActualPerformanceBankID();
+}
+
+void CMiniDexed::SetActualPerformanceBankID(unsigned nBankID)
+{
+	m_PerformanceConfig.SetActualPerformanceBankID(nBankID);
+}
+
 bool CMiniDexed::SetNewPerformance(unsigned nID)
 {
 	m_bSetNewPerformance = true;
 	m_nSetNewPerformanceID = nID;
 
 	return true;
+}
+
+bool CMiniDexed::SetNewPerformanceBank(unsigned nBankID)
+{
+	m_bSetNewPerformanceBank = true;
+	m_nSetNewPerformanceBankID = nBankID;
+
+	return true;
+}
+
+void CMiniDexed::SetFirstPerformance(void)
+{
+	m_bSetFirstPerformance = true;
+	return;
 }
 
 bool CMiniDexed::DoSetNewPerformance (void)
@@ -1557,6 +1880,25 @@ bool CMiniDexed::DoSetNewPerformance (void)
 		m_bLoadPerformanceBusy = false;
 		return false;
 	}
+}
+
+bool CMiniDexed::DoSetNewPerformanceBank (void)
+{
+	m_bLoadPerformanceBankBusy = true;
+	
+	unsigned nBankID = m_nSetNewPerformanceBankID;
+	m_PerformanceConfig.SetNewPerformanceBank(nBankID);
+	
+	m_bLoadPerformanceBankBusy = false;
+	return true;
+}
+
+void CMiniDexed::DoSetFirstPerformance(void)
+{
+	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
+	SetNewPerformance(nID);
+	m_bSetFirstPerformance = false;
+	return;
 }
 
 bool CMiniDexed::SavePerformanceNewFile ()
@@ -1588,7 +1930,7 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 
 void CMiniDexed::LoadPerformanceParameters(void)
 {
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 		{
 			
 			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
@@ -1650,21 +1992,41 @@ void CMiniDexed::SetNewPerformanceName(std::string nName)
 	m_PerformanceConfig.SetNewPerformanceName(nName);
 }
 
+bool CMiniDexed::IsValidPerformance(unsigned nID)
+{
+	return m_PerformanceConfig.IsValidPerformance(nID);
+}
+
+bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
+{
+	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
+}
+
 void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
 	assert (m_pTG[nTG]);
-	char Name[10];
+	char Name[11];
 	strncpy(Name, VoiceName.c_str(),10);
+	Name[10] = '\0';
 	m_pTG[nTG]->getName (Name);
 }
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
 {
-	m_bDeletePerformance = true;
-	m_nDeletePerformanceID = nID;
+	if (m_PerformanceConfig.IsValidPerformance(nID) && m_PerformanceConfig.GetInternalFolderOk())
+	{
+		m_bDeletePerformance = true;
+		m_nDeletePerformanceID = nID;
 
-	return true;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMiniDexed::DoDeletePerformance(void)
@@ -1860,12 +2222,19 @@ void CMiniDexed::UpdateNetwork()
 
 		m_UI.DisplayWrite ("IP", "Network", IPString, 0, 1);
 
-		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
-		assert (m_pmDNSPublisher);
-		
-		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
-		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
-						     5004))
+		CmDNSPublisher *pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		assert (pmDNSPublisher);
+		static const char ServiceName[] = "MiniDexed";
+		static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// TXT record strings
+		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004, ppText))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		static const char *ppText2[] = {"FTP Server", nullptr};	// TXT record strings
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!pmDNSPublisher->PublishService (ServiceName, ServiceTypeFTP,
+						     21, ppText2))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
@@ -1896,7 +2265,7 @@ bool CMiniDexed::InitNetwork()
 
 	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
 	{
-		LOGNOTE("Initializing Wi-Fi");
+		LOGNOTE("Initializing WLAN");
 
 		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
 		{
@@ -1905,7 +2274,7 @@ bool CMiniDexed::InitNetwork()
 			
 		}
 		else
-			LOGERR("Failed to initialize Wi-Fi");
+			LOGERR("Failed to initialize WLAN");
 	}
 	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
 	{
