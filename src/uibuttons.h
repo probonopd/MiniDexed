@@ -41,7 +41,9 @@ public:
 		BtnTriggerNone = 0,
 		BtnTriggerClick = 1,
 		BtnTriggerDoubleClick = 2,
-		BtnTriggerLongPress = 3
+		BtnTriggerLongPress = 3,
+		BtnTriggerDec = 4,
+		BtnTriggerInc = 5,
 	};
 
 	enum BtnEvent
@@ -68,6 +70,8 @@ public:
 	void setClickEvent(BtnEvent clickEvent);
 	void setDoubleClickEvent(BtnEvent doubleClickEvent);
 	void setLongPressEvent(BtnEvent longPressEvent);
+	void setDecEvent(BtnEvent DecEvent);
+	void setIncEvent(BtnEvent IncEvent);
 
 	unsigned getPinNumber(void);
 	
@@ -98,6 +102,10 @@ private:
 	BtnEvent m_doubleClickEvent;
 	// Event to fire on long press
 	BtnEvent m_longPressEvent;
+	// Event to fire on dec
+	BtnEvent m_decEvent;
+	// Event to fire on inc
+	BtnEvent m_incEvent;
 	
 	// Timeout for double click in tenths of a millisecond
 	unsigned m_doubleClickTimeout;
@@ -122,8 +130,16 @@ public:
 			unsigned TGUpPin, const char *TGUpAction,
 			unsigned TGDownPin, const char *TGDownAction,
 			unsigned doubleClickTimeout, unsigned longPressTimeout,
-			unsigned notesMidi, unsigned prevMidi, unsigned nextMidi, unsigned backMidi, unsigned selectMidi, unsigned homeMidi,
-			unsigned pgmUpMidi, unsigned pgmDownMidi, unsigned TGUpMidi, unsigned TGDownMidi
+			unsigned notesMidi,
+			unsigned prevMidi, const char *prevMidiAction,
+			unsigned nextMidi, const char *nextMidiAction,
+			unsigned backMidi, const char *backMidiAction,
+			unsigned selectMidi, const char *selectMidiAction,
+			unsigned homeMidi, const char *homeMidiAction,
+			unsigned pgmUpMidi, const char *pgmUpMidiAction,
+			unsigned pgmDownMidi, const char *pgmDownMidiAction,
+			unsigned TGUpMidi, const char *TGUpMidiAction,
+			unsigned TGDownMidi, const char *TGDownMidiAction
 	);
 	~CUIButtons (void);
 	
@@ -170,16 +186,26 @@ private:
 	
 	// MIDI button configuration
 	unsigned m_notesMidi;
+
 	unsigned m_prevMidi;
+	CUIButton::BtnTrigger m_prevMidiAction;
 	unsigned m_nextMidi;
+	CUIButton::BtnTrigger m_nextMidiAction;
 	unsigned m_backMidi;
+	CUIButton::BtnTrigger m_backMidiAction;
 	unsigned m_selectMidi;
+	CUIButton::BtnTrigger m_selectMidiAction;
 	unsigned m_homeMidi;
+	CUIButton::BtnTrigger m_homeMidiAction;
 	
 	unsigned m_pgmUpMidi;
+	CUIButton::BtnTrigger m_pgmUpMidiAction;
 	unsigned m_pgmDownMidi;
+	CUIButton::BtnTrigger m_pgmDownMidiAction;
 	unsigned m_TGUpMidi;
+	CUIButton::BtnTrigger m_TGUpMidiAction;
 	unsigned m_TGDownMidi;
+	CUIButton::BtnTrigger m_TGDownMidiAction;
 
 	BtnEventHandler *m_eventHandler;
 	void *m_eventParam;
