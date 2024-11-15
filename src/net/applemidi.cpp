@@ -803,7 +803,7 @@ bool CAppleMIDIParticipant::SendAcceptInvitationPacket(CSocket* pSocket, CIPAddr
 	};
 
 	// TODO: configurable name
-	strncpy(AcceptPacket.Name, "minidexed", sizeof(AcceptPacket.Name));
+	strncpy(AcceptPacket.Name, "MiniDexed", sizeof(AcceptPacket.Name));
 
 #ifdef APPLEMIDI_DEBUG
 	LOGNOTE("--> Accept invitation");
