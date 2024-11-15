@@ -2201,6 +2201,7 @@ void CMiniDexed::UpdateNetwork()
 		return;
 
 	//add wired network check as well
+	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
 	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
@@ -2212,7 +2213,9 @@ void CMiniDexed::UpdateNetwork()
 		m_bNetworkInit = true;
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
-	
+
+		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+		
 		m_UDPMIDI.Initialize();
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
