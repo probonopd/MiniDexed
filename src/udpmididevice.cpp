@@ -28,7 +28,7 @@
 
 #define VIRTUALCABLE 24
 
-LOGMODULE("rtpmididevice");
+LOGMODULE("udpmididevice");
 
 CUDPMIDIDevice::CUDPMIDIDevice (CMiniDexed *pSynthesizer,
 				      CConfig *pConfig, CUserInterface *pUI)
@@ -50,11 +50,11 @@ boolean CUDPMIDIDevice::Initialize (void)
 	if (!m_pAppleMIDIParticipant->Initialize())
 	{
 		LOGERR("Failed to init RTP listener");
-		return false; //continue without rtp midi
+		delete m_pAppleMIDIParticipant;
+		m_pAppleMIDIParticipant = nullptr;
 	}
 	else
 		LOGNOTE("RTP Listener initialized");
-		return true;
 	m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
 	if (!m_pUDPMIDIReceiver->Initialize())
 	{
@@ -64,6 +64,7 @@ boolean CUDPMIDIDevice::Initialize (void)
 	}
 	else
 		LOGNOTE("UDP MIDI receiver initialized");
+	return true;
 }
 
 // Methods to handle MIDI events

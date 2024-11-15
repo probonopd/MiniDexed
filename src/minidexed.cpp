@@ -62,8 +62,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_WLAN(WLANFirmwarePath),
 	m_WPASupplicant(WLANConfigFile),
 	m_bNetworkReady(false),
+	m_bNetworkInit(false),
 	m_UDPMIDI (this, pConfig, &m_UI),
-	m_pmDNSPublisher (),
+	//m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -367,12 +368,14 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
 	ProcessSound ();
+	pScheduler->Yield();
 #endif
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
 		assert (m_pMIDIKeyboard[i]);
 		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
+		pScheduler->Yield();
 	}
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
@@ -380,6 +383,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bUseSerial)
 	{
 		m_SerialMIDI.Process ();
+		pScheduler->Yield();
 	}
 
 	m_UI.Process ();
@@ -389,12 +393,14 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		DoSavePerformance ();
 
 		m_bSavePerformance = false;
+		pScheduler->Yield();
 	}
 
 	if (m_bSavePerformanceNewFile)
 	{
 		DoSavePerformanceNewFile ();
 		m_bSavePerformanceNewFile = false;
+		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -412,6 +418,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			DoSetFirstPerformance();
 		}
+		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -421,17 +428,20 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			m_bSetNewPerformance = false;
 		}
+		pScheduler->Yield();
 	}
 	
 	if(m_bDeletePerformance)
 	{
 		DoDeletePerformance ();
 		m_bDeletePerformance = false;
+		pScheduler->Yield();
 	}
 		
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
+		pScheduler->Yield();
 	}
 	UpdateNetwork();
 	// Allow other tasks to run
@@ -2192,19 +2202,17 @@ void CMiniDexed::UpdateNetwork()
 
 	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
-	if ((strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
-	else if ((strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= m_WPASupplicant.IsConnected();
 	
-	if (!m_bNetworkReady && (m_pNet->IsRunning()))
+	if (!m_bNetworkInit)
 	{
-		m_bNetworkReady = true;
+		m_bNetworkInit = true;
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
-
-		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
-		
+	
 		m_UDPMIDI.Initialize();
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
@@ -2219,39 +2227,37 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE("FTP daemon initialized");
 		}
-
 		m_UI.DisplayWrite ("IP", "Network", IPString, 0, 1);
 
-		CmDNSPublisher *pmDNSPublisher = new CmDNSPublisher (m_pNet);
-		assert (pmDNSPublisher);
-		static const char ServiceName[] = "MiniDexed";
-		static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// TXT record strings
-		if (!pmDNSPublisher->PublishService (ServiceName, CmDNSPublisher::ServiceTypeAppleMIDI,
-						     5004, ppText))
-		{
-			LOGPANIC ("Cannot publish mdns service");
-		}
-		static const char *ppText2[] = {"FTP Server", nullptr};	// TXT record strings
-		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
-		if (!pmDNSPublisher->PublishService (ServiceName, ServiceTypeFTP,
-						     21, ppText2))
-		{
-			LOGPANIC ("Cannot publish mdns service");
-		}
-	}
-	else if (m_bNetworkReady && !bNetIsRunning)
-	{
-		//m_bNetworkReady = false;
-		m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
-		LOGNOTE("Network disconnected.");
-	}
-	else if (m_bNetworkReady && bNetIsRunning)
-	{
+		/*m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		assert (m_pmDNSPublisher);
+		
+		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
 		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
+		*/
+		m_bNetworkReady = true;
+	}
+
+	if (m_bNetworkReady && !bNetIsRunning)
+	{
+		m_bNetworkReady = false;
+		//m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
+		LOGNOTE("Network disconnected.");
+	}
+	else if (!m_bNetworkReady && bNetIsRunning)
+	{
+		m_bNetworkReady = true;
+		/*
+		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		*/
 		LOGNOTE("Network connection reestablished.");
 
 	}

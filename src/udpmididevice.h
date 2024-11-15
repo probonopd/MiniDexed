@@ -22,8 +22,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _rtpmididevice_h
-#define _rtpmididevice_h
+#ifndef _udpmididevice_h
+#define _udpmididevice_h
 
 #include "mididevice.h"
 #include "config.h"
@@ -50,7 +50,6 @@ private:
 	CBcmRandomNumberGenerator m_Random;
 	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
 	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
-
 };
 
 #endif

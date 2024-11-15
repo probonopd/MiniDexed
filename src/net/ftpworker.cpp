@@ -61,6 +61,7 @@ struct TDirectoryListEntry
 	u32 nSize;
 	u16 nLastModifedDate;
 	u16 nLastModifedTime;
+	//bool bHid;
 };
 
 using TCommandHandler = bool (CFTPWorker::*)(const char* pArgs);
@@ -422,6 +423,7 @@ const TDirectoryListEntry* CFTPWorker::BuildDirectoryList(size_t& nOutEntries) c
 				{
 					Entry.Type = TDirectoryListEntryType::File;
 					Entry.nSize = FileInfo.fsize;
+					//Entry.bHid = (FileInfo.fattrib & AM_HID) ? true : false;
 				}
 
 				Entry.nLastModifedDate = FileInfo.fdate;
@@ -984,7 +986,10 @@ bool CFTPWorker::ListFileNames(const char* pArgs)
 			const TDirectoryListEntry& Entry = pDirEntries[i];
 			if (Entry.Type == TDirectoryListEntryType::Directory)
 				continue;
-
+			/*if (Entry.Name == "wpa_supplicant.conf")
+			{
+				continue;
+			}*/
 			const int nLength = snprintf(Buffer, sizeof(Buffer), "%s\r\n", Entry.Name);
 			if (pDataSocket->Send(Buffer, nLength, 0) < 0)
 			{
