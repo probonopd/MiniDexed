@@ -19,7 +19,10 @@ jobs:
     - name: Get specific commits of git submodules
       run: |
            sh -ex ./submod.sh
-           sed -i -e 's|int32_t E;|int E;|g' Synth_Dexed/src/compressor.h # https://codeberg.org/dcoredump/Synth_Dexed/pulls/9
+    - name: Apply patches
+      run: |
+           # Put git hash in startup message
+           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
     - name: Install toolchains
       run: |
            set -ex
