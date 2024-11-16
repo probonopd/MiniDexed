@@ -1,0 +1,32 @@
+# Pimoroni Pirate Audio (screen, buttons and audio output)
+# https://shop.pimoroni.com/search?q=pirate%20audio
+
+SoundDevice=i2s
+LCDEnabled=1
+
+SPIBus=0
+ST7789Enabled=1
+ST7789Data=9
+ST7789Select=1
+ST7789Reset=
+ST7789Backlight=13
+ST7789Width=240
+ST7789Height=240
+ST7789Rotation=90
+
+LCDColumns=15
+LCDRows=2
+
+ButtonPinPrev=5
+ButtonActionPrev=click
+ButtonPinNext=6
+ButtonActionNext=click
+ButtonPinBack=16
+ButtonActionBack=click
+ButtonPinSelect=24
+ButtonActionSelect=click
+ButtonPinHome=16
+ButtonActionHome=doubleclick
+ButtonPinShortcut=0
+
+EncoderEnabled=0
