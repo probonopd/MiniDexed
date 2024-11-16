@@ -2230,7 +2230,7 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE("FTP daemon initialized");
 		}
-		m_UI.DisplayWrite (IPString, "IP", "TG1", 0, 1); // FIXME: Do not hardcode "TG1" here
+		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1); // FIXME: Do not hardcode "TG1" here
 
 		/*m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);
