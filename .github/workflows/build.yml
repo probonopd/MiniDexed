@@ -87,7 +87,8 @@ jobs:
            cd hwconfig
            sh -ex ./customize.sh
            cd -
-           cp -r ./hwconfig/minidexed_* ./sdcard/
+           mkdir -p ./sdcard/hardware/
+           cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
