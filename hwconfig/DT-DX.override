@@ -44,3 +44,5 @@ LongPressTimeout=400
 EncoderEnabled=1
 EncoderPinClock=6
 EncoderPinData=5
+
+# Do not delete this line
