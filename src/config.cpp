@@ -204,7 +204,7 @@ void CConfig::Load (void)
 	m_bNetworkEnabled  = m_Properties.GetNumber ("NetworkEnabled", 0) != 0;
 	m_bNetworkDHCP  = m_Properties.GetNumber ("NetworkDHCP", 0) != 0;
 	m_NetworkType = m_Properties.GetString ("NetworkType", "wifi");
-	m_NetworkHostname = m_Properties.GetString ("NetworkHostname", "minidexed");
+	m_NetworkHostname = m_Properties.GetString ("NetworkHostname", "MiniDexed");
 	m_INetworkIPAddress = m_Properties.GetIPAddress("NetworkIPAddress") != 0;
 	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
