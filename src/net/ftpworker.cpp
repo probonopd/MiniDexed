@@ -617,6 +617,13 @@ bool CFTPWorker::Retrieve(const char* pArgs)
 	FIL File;
 	CString Path = RealPath(pArgs);
 
+	// If the filename is "wpa_supplicant.conf", don't allow it to be retrieved
+	if (strcmp(Path, "/wpa_supplicant.conf") == 0)
+	{
+		SendStatus(TFTPStatus::FileActionNotTaken, "File action not taken.");
+		return false;
+	}
+
 	if (f_open(&File, Path, FA_READ) != FR_OK)
 	{
 		SendStatus(TFTPStatus::FileActionNotTaken, "Could not open file for reading.");
@@ -986,10 +993,10 @@ bool CFTPWorker::ListFileNames(const char* pArgs)
 			const TDirectoryListEntry& Entry = pDirEntries[i];
 			if (Entry.Type == TDirectoryListEntryType::Directory)
 				continue;
-			/*if (Entry.Name == "wpa_supplicant.conf")
+			if (strcmp(Entry.Name, "wpa_supplicant.conf") == 0)
 			{
 				continue;
-			}*/
+			}
 			const int nLength = snprintf(Buffer, sizeof(Buffer), "%s\r\n", Entry.Name);
 			if (pDataSocket->Send(Buffer, nLength, 0) < 0)
 			{
