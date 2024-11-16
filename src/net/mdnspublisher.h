@@ -54,7 +54,7 @@ public:
 private:
 	static const unsigned MaxTextRecords = 10;
 	static const unsigned MaxMessageSize = 1400;	// safe UDP payload in an Ethernet frame
-	static const unsigned TTLShort = 10;		// seconds
+	static const unsigned TTLShort = 15;		// seconds
 	static const unsigned TTLLong = 4500;
 	static const unsigned TTLDelete = 0;
 	struct TService
