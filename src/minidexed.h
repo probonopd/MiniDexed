@@ -43,7 +43,7 @@
 #include <circle/net/netsubsystem.h>
 #include <wlan/bcm4343.h>
 #include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
-//#include <circle/net/mdnspublisher.h>
+#include "net/mdnspublisher.h"
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
@@ -341,7 +341,7 @@ private:
 	bool m_bNetworkInit;
 	CUDPMIDIDevice m_UDPMIDI;
 	CFTPDaemon* m_pFTPDaemon;
-	//CmDNSPublisher *m_pmDNSPublisher;
+	CmDNSPublisher *m_pmDNSPublisher;
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
