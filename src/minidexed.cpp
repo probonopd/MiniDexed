@@ -2242,7 +2242,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
-		if (!pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
@@ -2267,7 +2267,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
-		if (!pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
