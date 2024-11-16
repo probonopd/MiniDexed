@@ -32,7 +32,6 @@ const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
 #define FTPPASSWORD "admin"
-#define MDNSSERVICENAME "MiniDexed"
 
 LOGMODULE ("minidexed");
 
@@ -2236,7 +2235,7 @@ void CMiniDexed::UpdateNetwork()
 		assert (m_pmDNSPublisher);
 		
 		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
-		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
@@ -2248,14 +2247,14 @@ void CMiniDexed::UpdateNetwork()
 	if (m_bNetworkReady && !bNetIsRunning)
 	{
 		m_bNetworkReady = false;
-		m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
+		m_pmDNSPublisher->UnpublishService (m_pConfig->GetNetworkHostname());
 		LOGNOTE("Network disconnected.");
 	}
 	else if (!m_bNetworkReady && bNetIsRunning)
 	{
 		m_bNetworkReady = true;
 		
-		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
