@@ -98,6 +98,8 @@ This project stands on the shoulders of giants. Special thanks to:
 - [Banana71](https://github.com/Banana71) for the sound design of the [Soundplantage](https://github.com/Banana71/Soundplantage) performances shipped with MiniDexed
 - [BobanSpasic](https://github.com/BobanSpasic) for the [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software, [MiniDexed performance converter](https://github.com/BobanSpasic/MDX_PerfConv) and [collection of performances for MiniDexed](https://github.com/BobanSpasic/MDX_Vault)
 - [diyelectromusic](https://github.com/diyelectromusic/) for many [contributions](https://github.com/probonopd/MiniDexed/commits?author=diyelectromusic)
+- [dwhinham/mt32-pi](https://github.com/dwhinham/mt32-pi) for creating networking support for circle
+- [omersiar](https://github.com/omersiar) for porting networking support to MiniDexed
 
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/probonopd/MiniDexed.svg?variant=adaptive)](https://starchart.cc/probonopd/MiniDexed)
