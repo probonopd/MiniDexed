@@ -2240,6 +2240,12 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
+
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
 		
 		m_bNetworkReady = true;
 	}
@@ -2259,6 +2265,14 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
+
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		
+		m_bNetworkReady = true;
 		
 		LOGNOTE("Network connection reestablished.");
 
