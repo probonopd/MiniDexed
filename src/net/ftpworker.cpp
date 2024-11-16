@@ -27,6 +27,7 @@
 #include <circle/net/netsubsystem.h>
 #include <circle/sched/scheduler.h>
 #include <circle/timer.h>
+#include <circle/startup.h>
 #include <fatfs/ff.h>
 
 #include <cstdio>
@@ -618,7 +619,7 @@ bool CFTPWorker::Retrieve(const char* pArgs)
 	CString Path = RealPath(pArgs);
 
 	// If the filename is "wpa_supplicant.conf", don't allow it to be retrieved
-	if (strcmp(Path, "/wpa_supplicant.conf") == 0)
+	if (strcmp(Path, "/SD/wpa_supplicant.conf") == 0)
 	{
 		SendStatus(TFTPStatus::FileActionNotTaken, "File action not taken.");
 		return false;
@@ -993,7 +994,7 @@ bool CFTPWorker::ListFileNames(const char* pArgs)
 			const TDirectoryListEntry& Entry = pDirEntries[i];
 			if (Entry.Type == TDirectoryListEntryType::Directory)
 				continue;
-			if (strcmp(Entry.Name, "wpa_supplicant.conf") == 0)
+			if (strcmp(Entry.Name, "/SD/wpa_supplicant.conf") == 0)
 			{
 				continue;
 			}
@@ -1055,6 +1056,9 @@ bool CFTPWorker::Bye(const char* pArgs)
 	SendStatus(TFTPStatus::ClosingControl, "Goodbye.");
 	delete m_pControlSocket;
 	m_pControlSocket = nullptr;
+	
+	// Reboot the system if the user disconnects in order to apply any changes made
+	reboot ();
 	return true;
 }
 
