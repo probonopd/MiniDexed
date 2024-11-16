@@ -11,6 +11,10 @@ for file in *.override; do
 
     # Change the values in the ini file, leaving the rest of the file unchanged
     while IFS='=' read -r key value; do
+        # Skip empty lines and comments
+        if [ -z "$key" ] || [ "${key#\#}" != "$key" ]; then
+            continue
+        fi
         value=$(echo "$value" | tr -d '\r')
         if [ -n "$value" ]; then
             sed -i "s/^$key=.*/$key=$value/" "$name_of_ini_file"
