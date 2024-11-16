@@ -24,7 +24,7 @@ jobs:
            # Put git hash in startup message
            sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
            # https://github.com/rsta2/circle/discussions/427#discussioncomment-11198505
-           # sed -i -e 's|TTLShort = 120|TTLShort = 15|g' circle-stdlib/libs/circle/include/circle/net/mdnspublisher.h
+           sed -i -e 's|TTLShort = 120|TTLShort = 15|g' circle-stdlib/libs/circle/include/circle/net/mdnspublisher.h
     - name: Install toolchains
       run: |
            set -ex

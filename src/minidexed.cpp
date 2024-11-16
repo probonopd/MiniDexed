@@ -64,7 +64,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bNetworkReady(false),
 	m_bNetworkInit(false),
 	m_UDPMIDI (this, pConfig, &m_UI),
-	//m_pmDNSPublisher (nullptr),
+	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -2232,7 +2232,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1); // FIXME: Do not hardcode "TG1" here
 
-		/*m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);
 		
 		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
@@ -2241,26 +2241,26 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		*/
+		
 		m_bNetworkReady = true;
 	}
 
 	if (m_bNetworkReady && !bNetIsRunning)
 	{
 		m_bNetworkReady = false;
-		//m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
+		m_pmDNSPublisher->UnpublishService (MDNSSERVICENAME);
 		LOGNOTE("Network disconnected.");
 	}
 	else if (!m_bNetworkReady && bNetIsRunning)
 	{
 		m_bNetworkReady = true;
-		/*
+		
 		if (!m_pmDNSPublisher->PublishService (MDNSSERVICENAME, CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		*/
+		
 		LOGNOTE("Network connection reestablished.");
 
 	}
