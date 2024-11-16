@@ -164,11 +164,15 @@ void CConfig::Load (void)
 
 	m_nButtonPinPgmUp = m_Properties.GetNumber ("ButtonPinPgmUp", 0);
 	m_nButtonPinPgmDown = m_Properties.GetNumber ("ButtonPinPgmDown", 0);
+	m_nButtonPinBankUp = m_Properties.GetNumber ("ButtonPinBankUp", 0);
+	m_nButtonPinBankDown = m_Properties.GetNumber ("ButtonPinBankDown", 0);
 	m_nButtonPinTGUp = m_Properties.GetNumber ("ButtonPinTGUp", 0);
 	m_nButtonPinTGDown = m_Properties.GetNumber ("ButtonPinTGDown", 0);
 
 	m_ButtonActionPgmUp = m_Properties.GetString ("ButtonActionPgmUp", "");
 	m_ButtonActionPgmDown = m_Properties.GetString ("ButtonActionPgmDown", "");
+	m_ButtonActionBankUp = m_Properties.GetString ("ButtonActionBankUp", "");
+	m_ButtonActionBankDown = m_Properties.GetString ("ButtonActionBankDown", "");
 	m_ButtonActionTGUp = m_Properties.GetString ("ButtonActionTGUp", "");
 	m_ButtonActionTGDown = m_Properties.GetString ("ButtonActionTGDown", "");
 
@@ -182,6 +186,8 @@ void CConfig::Load (void)
 
 	m_nMIDIButtonPgmUp = m_Properties.GetNumber ("MIDIButtonPgmUp", 0);
 	m_nMIDIButtonPgmDown = m_Properties.GetNumber ("MIDIButtonPgmDown", 0);
+	m_nMIDIButtonBankUp = m_Properties.GetNumber ("MIDIButtonBankUp", 0);
+	m_nMIDIButtonBankDown = m_Properties.GetNumber ("MIDIButtonBankDown", 0);
 	m_nMIDIButtonTGUp = m_Properties.GetNumber ("MIDIButtonTGUp", 0);
 	m_nMIDIButtonTGDown = m_Properties.GetNumber ("MIDIButtonTGDown", 0);
 	
@@ -571,6 +577,16 @@ unsigned CConfig::GetButtonPinPgmDown (void) const
 	return m_nButtonPinPgmDown;
 }
 
+unsigned CConfig::GetButtonPinBankUp (void) const
+{
+	return m_nButtonPinBankUp;
+}
+
+unsigned CConfig::GetButtonPinBankDown (void) const
+{
+	return m_nButtonPinBankDown;
+}
+
 unsigned CConfig::GetButtonPinTGUp (void) const
 {
 	return m_nButtonPinTGUp;
@@ -589,6 +605,16 @@ const char *CConfig::GetButtonActionPgmUp (void) const
 const char *CConfig::GetButtonActionPgmDown (void) const
 {
 	return m_ButtonActionPgmDown.c_str();
+}
+
+const char *CConfig::GetButtonActionBankUp (void) const
+{
+	return m_ButtonActionBankUp.c_str();
+}
+
+const char *CConfig::GetButtonActionBankDown (void) const
+{
+	return m_ButtonActionBankDown.c_str();
 }
 
 const char *CConfig::GetButtonActionTGUp (void) const
@@ -644,6 +670,16 @@ unsigned CConfig::GetMIDIButtonPgmUp (void) const
 unsigned CConfig::GetMIDIButtonPgmDown (void) const
 {
 	return m_nMIDIButtonPgmDown;
+}
+
+unsigned CConfig::GetMIDIButtonBankUp (void) const
+{
+	return m_nMIDIButtonBankUp;
+}
+
+unsigned CConfig::GetMIDIButtonBankDown (void) const
+{
+	return m_nMIDIButtonBankDown;
 }
 
 unsigned CConfig::GetMIDIButtonTGUp (void) const

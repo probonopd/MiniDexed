@@ -48,6 +48,8 @@ public:
 		MenuEventPressAndStepUp,
 		MenuEventPgmUp,
 		MenuEventPgmDown,
+		MenuEventBankUp,
+		MenuEventBankDown,
 		MenuEventTGUp,
 		MenuEventTGDown,
 		MenuEventUnknown
@@ -119,6 +121,7 @@ private:
 	void OPShortcutHandler (TMenuEvent Event);
 
 	void PgmUpDownHandler (TMenuEvent Event);
+	void BankUpDownHandler (TMenuEvent Event);
 	void TGUpDownHandler (TMenuEvent Event);
 
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);

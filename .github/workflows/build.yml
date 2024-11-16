@@ -94,6 +94,13 @@ jobs:
            zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y%m%d)-$(git rev-parse --short HEAD).zip *
            echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
            cd -
+    - name: Hardware configration files
+      run: |
+           cd hwconfig
+           sh -ex ./customize.sh
+           cd -
+           mkdir -p ./sdcard/hardware/
+           cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
     - uses: actions/upload-artifact@v3
       with:
         name: ${{ env.artifactName }} # Exported above
