@@ -1,9 +1,3 @@
 {
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-  "containerEnv": {
-    "PATH": "/opt/gcc/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin:/opt/gcc/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin:${PATH}"
-  },
-  "postCreateCommand": "export RPI=3 && ./build.sh"
+  "postCreateCommand": "echo 'Hello, Dev Container!'"
 }
