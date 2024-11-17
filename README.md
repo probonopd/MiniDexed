@@ -2,7 +2,7 @@
 
 ![minidexed](https://user-images.githubusercontent.com/2480569/161813414-bb156a1c-efec-44c0-802a-8926412a08e0.jpg)
 
-MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known Japanese manufacturer running on a bare metal Raspberry Pi (without a Linux kernel or operating system). On Raspberry Pi 2 and larger, it can run 8 tone generators, not unlike the TX816/TX802 (8 DX7 instances without the keyboard in one box). [Featured by HACKADAY](https://hackaday.com/2022/04/19/bare-metal-gives-this-pi-some-classic-synths/), [Adafruit](https://blog.adafruit.com/2022/04/25/free-yamaha-dx7-synth-emulator-on-a-raspberry-pi/), and [Synth Geekery](https://www.youtube.com/watch?v=TDSy5nnm0jA).
+MiniDexed is a FM synthesizer closely modeled on the famous DX7 by a well-known Japanese manufacturer running on a bare metal Raspberry Pi (without a Linux kernel or operating system). On Raspberry Pi 2 and larger, it can run 8 tone generators, not unlike the TX816/TX802 (8 DX7 instances without the keyboard in one box). [Featured by HACKADAY](https://hackaday.com/2022/04/19/bare-metal-gives-this-pi-some-classic-synths/), [Adafruit](https://blog.adafruit.com/2022/04/25/free-yamaha-dx7-synth-emulator-on-a-raspberry-pi/), [The MagPi magazine](https://magpi.raspberrypi.com/articles/mini-dexed) (Issue 142 June 2024, [PDF](https://magpi.raspberrypi.com/issues/142)) and [Synth Geekery](https://www.youtube.com/watch?v=TDSy5nnm0jA).
 
 ## Demo songs
 
@@ -98,6 +98,8 @@ This project stands on the shoulders of giants. Special thanks to:
 - [Banana71](https://github.com/Banana71) for the sound design of the [Soundplantage](https://github.com/Banana71/Soundplantage) performances shipped with MiniDexed
 - [BobanSpasic](https://github.com/BobanSpasic) for the [MiniDexedLibrarian](https://github.com/BobanSpasic/MiniDexedLibrarian) software, [MiniDexed performance converter](https://github.com/BobanSpasic/MDX_PerfConv) and [collection of performances for MiniDexed](https://github.com/BobanSpasic/MDX_Vault)
 - [diyelectromusic](https://github.com/diyelectromusic/) for many [contributions](https://github.com/probonopd/MiniDexed/commits?author=diyelectromusic)
+- [dwhinham/mt32-pi](https://github.com/dwhinham/mt32-pi) for creating networking support for Circle
+- [omersiar](https://github.com/omersiar) for porting networking support to MiniDexed
 
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/probonopd/MiniDexed.svg?variant=adaptive)](https://starchart.cc/probonopd/MiniDexed)
