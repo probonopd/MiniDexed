@@ -44,10 +44,11 @@ constexpr unsigned int SocketTimeout = 20;
 constexpr unsigned int NumRetries = 3;
 
 #ifndef MT32_PI_VERSION
-#define MT32_PI_VERSION "alpha version"
+#define MT32_PI_VERSION "(version unknown)"
 #endif
 
-const char MOTDBanner[] = "Welcome to the minidexed " MT32_PI_VERSION " embedded FTP server!";
+const char MOTDBanner[] = "Welcome to the MiniDexed " MT32_PI_VERSION " embedded FTP server!";
+const char* exclude_filename = "SD:/wpa_supplicant.conf";
 
 enum class TDirectoryListEntryType
 {
@@ -62,7 +63,6 @@ struct TDirectoryListEntry
 	u32 nSize;
 	u16 nLastModifedDate;
 	u16 nLastModifedTime;
-	//bool bHid;
 };
 
 using TCommandHandler = bool (CFTPWorker::*)(const char* pArgs);
@@ -424,7 +424,6 @@ const TDirectoryListEntry* CFTPWorker::BuildDirectoryList(size_t& nOutEntries) c
 				{
 					Entry.Type = TDirectoryListEntryType::File;
 					Entry.nSize = FileInfo.fsize;
-					//Entry.bHid = (FileInfo.fattrib & AM_HID) ? true : false;
 				}
 
 				Entry.nLastModifedDate = FileInfo.fdate;
@@ -617,11 +616,12 @@ bool CFTPWorker::Retrieve(const char* pArgs)
 
 	FIL File;
 	CString Path = RealPath(pArgs);
-
-	// If the filename is "wpa_supplicant.conf", don't allow it to be retrieved
-	if (strcmp(Path, "wpa_supplicant.conf") == 0)
+	typedef const char* LPCTSTR;
+	//printf("%s\n", (LPCTSTR)Path);
+	//printf("%s\n", exclude_filename );
+	if (strcmp((LPCTSTR)Path, exclude_filename) == 0)
 	{
-		SendStatus(TFTPStatus::FileActionNotTaken, "File action not taken.");
+		SendStatus(TFTPStatus::FileNameNotAllowed, "Reading this file is not allowed");
 		return false;
 	}
 
@@ -994,10 +994,6 @@ bool CFTPWorker::ListFileNames(const char* pArgs)
 			const TDirectoryListEntry& Entry = pDirEntries[i];
 			if (Entry.Type == TDirectoryListEntryType::Directory)
 				continue;
-			if (strcmp(Entry.Name, "wpa_supplicant.conf") == 0)
-			{
-				continue;
-			}
 			const int nLength = snprintf(Buffer, sizeof(Buffer), "%s\r\n", Entry.Name);
 			if (pDataSocket->Send(Buffer, nLength, 0) < 0)
 			{
