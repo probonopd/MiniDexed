@@ -143,10 +143,12 @@ public:
 		assert(inR);
 
 		// left
+		arm_scale_f32(inL, panorama[channel][0], tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(inL,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
+		arm_scale_f32(inR, panorama[channel][1], tmp, buffer_length);
 		if(multiplier[channel]!=UNITY_GAIN)
 			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);

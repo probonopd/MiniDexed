@@ -26,7 +26,7 @@
 #include "config.h"
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
-#define DEBOUNCE_TIME 100
+#define DEBOUNCE_TIME 300
 #define MAX_GPIO_BUTTONS 9  // 5 UI buttons, 4 Program/TG Select buttons
 #define MAX_MIDI_BUTTONS 9
 #define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
