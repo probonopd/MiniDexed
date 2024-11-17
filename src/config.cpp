@@ -209,7 +209,12 @@ void CConfig::Load (void)
 	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
 	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
-	m_INetworkSyslogServerIPAddress = m_Properties.GetIPAddress("NetworkSyslogServerIPAddress") != 0;
+
+	const u8 *pSyslogServerIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress");
+	if (pSyslogServerIP)
+	{
+		m_INetworkSyslogServerIPAddress.Set (pSyslogServerIP);
+	}
 }
 
 unsigned CConfig::GetToneGenerators (void) const
