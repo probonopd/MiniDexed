@@ -209,6 +209,7 @@ void CConfig::Load (void)
 	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
 	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
+	m_INetworkSyslogServerIPAddress = m_Properties.GetIPAddress("NetworkSyslogServerIPAddress") != 0;
 }
 
 unsigned CConfig::GetToneGenerators (void) const
@@ -766,4 +767,9 @@ CIPAddress CConfig::GetNetworkDefaultGateway (void) const
 CIPAddress CConfig::GetNetworkDNSServer (void) const
 {
 	return m_INetworkDNSServer;
+}
+
+CIPAddress CConfig::GetNetworkSyslogServerIPAddress (void) const
+{
+	return m_INetworkSyslogServerIPAddress;
 }

@@ -23,6 +23,8 @@
 #include <circle/sound/pwmsoundbasedevice.h>
 #include <circle/sound/i2ssoundbasedevice.h>
 #include <circle/sound/hdmisoundbasedevice.h>
+#include <circle/net/syslogdaemon.h>
+#include <circle/net/ipaddress.h>
 #include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>
@@ -2326,6 +2328,18 @@ bool CMiniDexed::InitNetwork()
 			}
 
 			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+
+			// Syslog configuration
+			static const u8 SysLogServer[]   = {192, 168, 0, 143}; // FIXME: Don't hardcode this, use m_INetworkSyslogServerIPAddress instead
+			static const u16 usServerPort    = 8514;		// standard port is 514
+			CIPAddress ServerIP (SysLogServer);
+			CString IPString;
+			ServerIP.Format (&IPString);
+			LOGNOTE ( "Sending log messages to %s:%u",
+			(const char *) IPString, (unsigned) usServerPort);
+
+			new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+
 		}
 	return m_pNet != nullptr;
 }
