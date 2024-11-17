@@ -31,6 +31,7 @@
 #include <circle/writebuffer.h>
 #include <circle/i2cmaster.h>
 #include <circle/spimaster.h>
+#include <circle/timer.h>
 
 class CMiniDexed;
 
@@ -86,6 +87,8 @@ private:
 
 	CKY040 *m_pRotaryEncoder;
 	bool m_bSwitchPressed;
+	unsigned m_nRotaryEncoderLastReadTime;
+	int m_nRotaryEncoderCounter=0;
 
 	CUIMenu m_Menu;
 };

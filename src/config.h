@@ -49,6 +49,7 @@ public:
 	static const unsigned MaxNotes = 16;
 #endif
 
+	static const unsigned TGChannels = 2;
 	static const unsigned MaxChunkSize = 4096;
 
 #if RASPPI <= 3
