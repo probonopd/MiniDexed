@@ -362,7 +362,7 @@ const TDirectoryListEntry* CFTPWorker::BuildDirectoryList(size_t& nOutEntries) c
 		for (size_t i = 0; i < nVolumes; ++i)
 		{
 			char VolumeName[6];
-			strncpy(VolumeName, VolumeNames[i], sizeof(VolumeName));
+			strncpy(VolumeName, VolumeNames[i], sizeof(VolumeName) - 1);
 			strcat(VolumeName, ":");
 
 			// Returns FR_
@@ -463,7 +463,7 @@ bool CFTPWorker::Port(const char* pArgs)
 		return false;
 
 	char Buffer[TextBufferSize];
-	strncpy(Buffer, pArgs, sizeof(Buffer));
+	strncpy(Buffer, pArgs, sizeof(Buffer) - 1);
 
 	if (m_pDataSocket != nullptr)
 	{
