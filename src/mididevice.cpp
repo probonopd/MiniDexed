@@ -206,11 +206,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		}
 	}
 
-	if (nLength < 2)
+	/*if (nLength < 2)
 	{
 		// LOGERR("MIDI message is shorter than 2 bytes!");
 		return;
-	}
+	}*/
 
 	m_MIDISpinLock.Acquire ();
 
@@ -252,6 +252,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		float32_t fMasterVolume = (float32_t)nMasterVolume / 16384.0;
 		//printf("Master volume: %f (%d)\n",fMasterVolume, nMasterVolume);
 		m_pSynthesizer->setMasterVolume(fMasterVolume);
+	}
+	else if (pMessage[0] == MIDI_TIMING_CLOCK)
+	{
+		m_pSynthesizer->handleClock();
 	}
 	else
 	{

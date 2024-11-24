@@ -42,8 +42,9 @@
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
-#include "effect_platervbstereo.h"
 #include "effect_compressor.h"
+#include "effects.h"
+#include "midi_effects.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -80,6 +81,13 @@ public:
 	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
+	unsigned getTempo(void);
+	void setTempo(unsigned nValue);
+	void handleClock(void);
+
+	bool isPlaying(void);
+	void setPlaying(bool bValue);
+
 	void keyup (int16_t pitch, unsigned nTG);
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
@@ -94,6 +102,14 @@ public:
 	void setBreathController (uint8_t value, unsigned nTG);
 	void setAftertouch (uint8_t value, unsigned nTG);
 
+	void setInsertFXType (unsigned nType, unsigned nTG);
+	std::string getInsertFXName (unsigned nTG);
+	void setMidiFXType (unsigned nType, unsigned nTG);
+	std::string getMidiFXName (unsigned nTG);
+	void setSendFXType (unsigned nType);
+	std::string getSendFXName ();
+	void setSendFXLevel (unsigned nValue);
+	
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
@@ -148,6 +164,8 @@ public:
 	enum TParameter
 	{
 		ParameterCompressorEnable,
+		ParameterSendFXType,
+		ParameterSendFXLevel,
 		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
@@ -157,6 +175,7 @@ public:
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
+		ParameterTempo,
 		ParameterUnknown
 	};
 
@@ -178,6 +197,8 @@ public:
 		TGParameterProgram,
 		TGParameterVolume,
 		TGParameterPan,
+		TGParameterInsertFXType,
+		TGParameterMidiFXType,
 		TGParameterMasterTune,
 		TGParameterCutoff,
 		TGParameterResonance,
@@ -188,7 +209,7 @@ public:
 		TGParameterPortamentoMode,
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
-		TGParameterMonoMode,  
+		TGParameterMonoMode,
 				
 		TGParameterMWRange,
 		TGParameterMWPitch,
@@ -209,12 +230,21 @@ public:
 		TGParameterATPitch,
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
-		
+	
 		TGParameterUnknown
 	};
 
 	void SetTGParameter (TTGParameter Parameter, int nValue, unsigned nTG);
 	int GetTGParameter (TTGParameter Parameter, unsigned nTG);
+
+	void SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
+	int GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
+
+	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
+	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
+
+	void SetSendFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
+	int GetSendFXParameter (unsigned Parameter, unsigned nFXType);
 
 	// access (global or OP-related) parameter of the active voice of a TG
 	static const unsigned NoOP = 6;		// for global parameters
@@ -286,6 +316,8 @@ private:
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
 
+	MidiEffect* m_MidiArp[CConfig::AllToneGenerators];
+	AudioEffect* m_InsertFX[CConfig::AllToneGenerators];
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
   
 	uint8_t m_nRawVoiceData[156]; 
@@ -311,7 +343,7 @@ private:
 //	unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
-	float32_t m_OutputLevel[CConfig::AllToneGenerators][CConfig::MaxChunkSize];
+	float32_t m_OutputLevel[CConfig::AllToneGenerators][CConfig::TGChannels][CConfig::MaxChunkSize];
 #endif
 
 	CPerformanceTimer m_GetChunkTimer;
@@ -320,7 +352,12 @@ private:
 	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
-
+	AudioEffect* m_SendFX = NULL;
+	float32_t m_SendFXLevel = 1.0f;
+	
+	CSpinLock* m_MidiArpSpinLock[CConfig::AllToneGenerators];
+	CSpinLock* m_InsertFXSpinLock[CConfig::AllToneGenerators];
+	CSpinLock m_SendFXSpinLock;
 	CSpinLock m_ReverbSpinLock;
 
 	bool m_bSavePerformance;
@@ -335,6 +372,11 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
+
+	unsigned m_nClockCounter;
+	unsigned long m_mClockTime;
+	unsigned m_nTempo; // Tempo in BPM
+	bool m_bPlaying = false;
 };
 
 #endif
