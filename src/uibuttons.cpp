@@ -36,6 +36,8 @@ CUIButton::CUIButton (void)
 	m_clickEvent(BtnEventNone),
 	m_doubleClickEvent(BtnEventNone),
 	m_longPressEvent(BtnEventNone),
+	m_decEvent(BtnEventNone),
+	m_incEvent(BtnEventNone),
 	m_doubleClickTimeout(0),
 	m_longPressTimeout(0)
 {
@@ -101,6 +103,16 @@ void CUIButton::setLongPressEvent(BtnEvent longPressEvent)
 	m_longPressEvent = longPressEvent;
 }
 
+void CUIButton::setDecEvent(BtnEvent decEvent)
+{
+	m_decEvent = decEvent;
+}
+
+void CUIButton::setIncEvent(BtnEvent incEvent)
+{
+	m_incEvent = incEvent;
+}
+
 unsigned CUIButton::getPinNumber(void)
 {
 	return m_pinNumber;
@@ -109,6 +121,7 @@ unsigned CUIButton::getPinNumber(void)
 CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 {
 	unsigned value;
+
 	if (isMidiPin(m_pinNumber))
 	{
 		if (!m_midipin)
@@ -117,6 +130,18 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 			return BtnTriggerNone;
 		}
 		value = m_midipin->Read();
+
+		if (m_decEvent || m_incEvent)
+		{
+			unsigned raw = m_midipin->ReadRaw();
+
+			if (raw == MIDIPIN_CENTER)
+				return BtnTriggerNone;
+
+			// reset value to trigger only once
+			m_midipin->Write(MIDIPIN_CENTER);
+			return raw < MIDIPIN_CENTER ? BtnTriggerDec : BtnTriggerInc;
+		}
 	}
 	else
 	{
@@ -230,6 +255,12 @@ CUIButton::BtnEvent CUIButton::Read (void) {
 	else if (trigger == BtnTriggerLongPress) {
 		return m_longPressEvent;
 	}
+	else if (trigger == BtnTriggerDec) {
+		return m_decEvent;
+	}
+	else if (trigger == BtnTriggerInc) {
+		return m_incEvent;
+	}
 
 	assert (trigger == BtnTriggerNone);
 
@@ -249,6 +280,12 @@ CUIButton::BtnTrigger CUIButton::triggerTypeFromString(const char* triggerString
 	}	
 	else if (strcmp(triggerString, "longpress") == 0) {
 		return BtnTriggerLongPress;
+	}
+	else if (strcmp(triggerString, "dec") == 0) {
+		return BtnTriggerDec;
+	}
+	else if (strcmp(triggerString, "inc") == 0) {
+		return BtnTriggerInc;
 	}
 
 	LOGERR("Invalid action: %s", triggerString);
@@ -339,7 +376,7 @@ boolean CUIButtons::Initialize (void)
 
 	// Each normal button can be assigned up to 3 actions: click, doubleclick and
 	// longpress. We may not initialise all of the buttons.
-	// MIDI Buttons can be assigned to click, doubleclick, longpress
+	// MIDI buttons can be assigned to click, doubleclick, longpress, dec, inc
 	unsigned pins[MAX_BUTTONS] = {
 		m_prevPin, m_nextPin, m_backPin, m_selectPin, m_homePin, m_pgmUpPin,  m_pgmDownPin,  m_BankUpPin,  m_BankDownPin, m_TGUpPin,  m_TGDownPin, 
 		m_prevMidi, m_nextMidi, m_backMidi, m_selectMidi, m_homeMidi, m_pgmUpMidi, m_pgmDownMidi, m_BankUpMidi, m_BankDownMidi, m_TGUpMidi, m_TGDownMidi
@@ -449,6 +486,12 @@ void CUIButtons::bindButton(unsigned pinNumber, CUIButton::BtnTrigger trigger, C
 			}
 			else if (trigger == CUIButton::BtnTriggerLongPress) {
 				m_buttons[i].setLongPressEvent(event);
+			}
+			else if (trigger == CUIButton::BtnTriggerDec) {
+				m_buttons[i].setDecEvent(event);
+			}
+			else if (trigger == CUIButton::BtnTriggerInc) {
+				m_buttons[i].setIncEvent(event);
 			}
 			else {
 				assert (trigger == CUIButton::BtnTriggerNone);

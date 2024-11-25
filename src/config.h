@@ -217,7 +217,7 @@ public:
 	unsigned GetMIDIButtonSelect (void) const;
 	unsigned GetMIDIButtonHome (void) const;
 
-	// Action type for Midi buttons: "click", "doubleclick", "longpress", ""
+	// Action type for Midi buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
 	const char *GetMIDIButtonActionPrev (void) const;
 	const char *GetMIDIButtonActionNext (void) const;
 	const char *GetMIDIButtonActionBack (void) const;
@@ -232,7 +232,7 @@ public:
 	unsigned GetMIDIButtonTGUp (void) const;
 	unsigned GetMIDIButtonTGDown (void) const;
 	
-	// Action type for buttons: "click", "doubleclick", "longpress", ""
+	// Action type for buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
 	const char *GetMIDIButtonActionPgmUp (void) const;
 	const char *GetMIDIButtonActionPgmDown (void) const;
 	const char *GetMIDIButtonActionBankUp (void) const;
