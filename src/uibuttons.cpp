@@ -299,17 +299,28 @@ boolean CUIButtons::Initialize (void)
 	m_TGDownAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGDown ());
 	m_notesMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNotes ());
 	m_prevMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPrev ());
+	m_prevMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionPrev ());
 	m_nextMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNext ());
+	m_nextMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionNext ());
 	m_backMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBack ());
+	m_backMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionBack ());
 	m_selectMidi = ccToMidiPin( m_pConfig->GetMIDIButtonSelect ());
+	m_selectMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionSelect ());
 	m_homeMidi = ccToMidiPin( m_pConfig->GetMIDIButtonHome ());
+	m_homeMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionHome ());
 	m_pgmUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPgmUp ());
+	m_pgmUpMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionPgmUp ());
 	m_pgmDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPgmDown ());
+	m_pgmDownMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionPgmDown ());
 	m_BankUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBankUp ());
+	m_BankUpMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionBankUp ());
 	m_BankDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonBankDown ());
+	m_BankDownMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionBankDown ());
 	m_TGUpMidi = ccToMidiPin( m_pConfig->GetMIDIButtonTGUp ());
+	m_TGUpMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionTGUp ());
 	m_TGDownMidi = ccToMidiPin( m_pConfig->GetMIDIButtonTGDown ());
-	
+	m_TGDownMidiAction = CUIButton::triggerTypeFromString( m_pConfig->GetMIDIButtonActionTGDown ());
+
 	// First sanity check and convert the timeouts:
 	// Internally values are in tenths of a millisecond, but config values
 	// are in milliseconds
@@ -328,7 +339,7 @@ boolean CUIButtons::Initialize (void)
 
 	// Each normal button can be assigned up to 3 actions: click, doubleclick and
 	// longpress. We may not initialise all of the buttons.
-	// MIDI buttons only support a single click.
+	// MIDI Buttons can be assigned to click, doubleclick, longpress
 	unsigned pins[MAX_BUTTONS] = {
 		m_prevPin, m_nextPin, m_backPin, m_selectPin, m_homePin, m_pgmUpPin,  m_pgmDownPin,  m_BankUpPin,  m_BankDownPin, m_TGUpPin,  m_TGDownPin, 
 		m_prevMidi, m_nextMidi, m_backMidi, m_selectMidi, m_homeMidi, m_pgmUpMidi, m_pgmDownMidi, m_BankUpMidi, m_BankDownMidi, m_TGUpMidi, m_TGDownMidi
@@ -337,9 +348,9 @@ boolean CUIButtons::Initialize (void)
 		// Normal buttons
 		m_prevAction, m_nextAction, m_backAction, m_selectAction, m_homeAction,
 		m_pgmUpAction, m_pgmDownAction, m_BankUpAction, m_BankDownAction, m_TGUpAction, m_TGDownAction, 
-		// MIDI Buttons only support a single click (at present)
-		CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick,
-		CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick
+		// MIDI buttons
+		m_prevMidiAction, m_nextMidiAction, m_backMidiAction, m_selectMidiAction, m_homeMidiAction,
+		m_pgmUpMidiAction, m_pgmDownMidiAction, m_BankUpMidiAction, m_BankDownMidiAction, m_TGUpMidiAction, m_TGDownMidiAction,
 	};
 	CUIButton::BtnEvent events[MAX_BUTTONS] = {
 		// Normal buttons
