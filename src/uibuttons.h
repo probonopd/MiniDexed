@@ -165,18 +165,30 @@ private:
 	
 	// MIDI button configuration
 	unsigned m_notesMidi;
+
 	unsigned m_prevMidi;
+	CUIButton::BtnTrigger m_prevMidiAction;
 	unsigned m_nextMidi;
+	CUIButton::BtnTrigger m_nextMidiAction;
 	unsigned m_backMidi;
+	CUIButton::BtnTrigger m_backMidiAction;
 	unsigned m_selectMidi;
+	CUIButton::BtnTrigger m_selectMidiAction;
 	unsigned m_homeMidi;
+	CUIButton::BtnTrigger m_homeMidiAction;
 	
 	unsigned m_pgmUpMidi;
+	CUIButton::BtnTrigger m_pgmUpMidiAction;
 	unsigned m_pgmDownMidi;
+	CUIButton::BtnTrigger m_pgmDownMidiAction;
 	unsigned m_BankUpMidi;
+	CUIButton::BtnTrigger m_BankUpMidiAction;
 	unsigned m_BankDownMidi;
+	CUIButton::BtnTrigger m_BankDownMidiAction;
 	unsigned m_TGUpMidi;
+	CUIButton::BtnTrigger m_TGUpMidiAction;
 	unsigned m_TGDownMidi;
+	CUIButton::BtnTrigger m_TGDownMidiAction;
 
 	BtnEventHandler *m_eventHandler;
 	void *m_eventParam;
