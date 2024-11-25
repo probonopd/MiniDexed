@@ -42,7 +42,10 @@ public:
 	// Should be treated as a PULLED UP IO pin
 	// i.e. treated as "active low" (LOW) when pressed.
 	unsigned Read (void);
-	
+
+	// returns the raw CC value
+	unsigned ReadRaw (void);
+
 	// MIDI CC values >=64 will set the MIDI pin to LOW ("on")
 	// MIDI CC values <= 63 will set the MIDI pin to HIGH ("off")
 	void Write (unsigned nValue);
@@ -50,6 +53,7 @@ public:
 private:
 	unsigned m_nPinNumber;
 	unsigned m_nValue;
+	unsigned m_nRawValue;
 };
 
 #endif
