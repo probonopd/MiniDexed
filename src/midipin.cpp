@@ -38,6 +38,11 @@ unsigned CMIDIPin::Read (void)
 	return m_nValue;
 }
 
+unsigned CMIDIPin::ReadRaw (void)
+{
+	return m_nRawValue;
+}
+
 void CMIDIPin::Write (unsigned nValue)
 {
 	// Takes values in the MIDI controller range 0 to 127
@@ -50,6 +55,10 @@ void CMIDIPin::Write (unsigned nValue)
 		// "off"
 		m_nValue = HIGH;
 	}
+
+	// Save the raw value for INC and DEC
+	m_nRawValue = nValue;
+
 	return;
 }
 
