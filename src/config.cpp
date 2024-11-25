@@ -178,11 +178,18 @@ void CConfig::Load (void)
 
 	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 0);
 	m_nMIDIButtonNotes = m_Properties.GetNumber ("MIDIButtonNotes", 0);
+
 	m_nMIDIButtonPrev = m_Properties.GetNumber ("MIDIButtonPrev", 0);
 	m_nMIDIButtonNext = m_Properties.GetNumber ("MIDIButtonNext", 0);
 	m_nMIDIButtonBack = m_Properties.GetNumber ("MIDIButtonBack", 0);
 	m_nMIDIButtonSelect = m_Properties.GetNumber ("MIDIButtonSelect", 0);
 	m_nMIDIButtonHome = m_Properties.GetNumber ("MIDIButtonHome", 0);
+
+	m_MIDIButtonActionPrev = m_Properties.GetString ("MIDIButtonActionPrev", "");
+	m_MIDIButtonActionNext = m_Properties.GetString ("MIDIButtonActionNext", "");
+	m_MIDIButtonActionBack = m_Properties.GetString ("MIDIButtonActionBack", "");
+	m_MIDIButtonActionSelect = m_Properties.GetString ("MIDIButtonActionSelect", "");
+	m_MIDIButtonActionHome = m_Properties.GetString ("MIDIButtonActionHome", "");
 
 	m_nMIDIButtonPgmUp = m_Properties.GetNumber ("MIDIButtonPgmUp", 0);
 	m_nMIDIButtonPgmDown = m_Properties.GetNumber ("MIDIButtonPgmDown", 0);
@@ -190,6 +197,13 @@ void CConfig::Load (void)
 	m_nMIDIButtonBankDown = m_Properties.GetNumber ("MIDIButtonBankDown", 0);
 	m_nMIDIButtonTGUp = m_Properties.GetNumber ("MIDIButtonTGUp", 0);
 	m_nMIDIButtonTGDown = m_Properties.GetNumber ("MIDIButtonTGDown", 0);
+
+	m_MIDIButtonActionPgmUp = m_Properties.GetString ("MIDIButtonActionPgmUp", "");
+	m_MIDIButtonActionPgmDown = m_Properties.GetString ("MIDIButtonActionPgmDown", "");
+	m_MIDIButtonActionBankUp = m_Properties.GetString ("MIDIButtonActionBankUp", "");
+	m_MIDIButtonActionBankDown = m_Properties.GetString ("MIDIButtonActionBankDown", "");
+	m_MIDIButtonActionTGUp = m_Properties.GetString ("MIDIButtonActionTGUp", "");
+	m_MIDIButtonActionTGDown = m_Properties.GetString ("MIDIButtonActionTGDown", "");
 	
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
@@ -652,6 +666,31 @@ unsigned CConfig::GetMIDIButtonHome (void) const
 	return m_nMIDIButtonHome;
 }
 
+const char *CConfig::GetMIDIButtonActionPrev (void) const
+{
+	return m_MIDIButtonActionPrev.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionNext (void) const
+{
+	return m_MIDIButtonActionNext.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionBack (void) const
+{
+	return m_MIDIButtonActionBack.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionSelect (void) const
+{
+	return m_MIDIButtonActionSelect.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionHome (void) const
+{
+	return m_MIDIButtonActionHome.c_str();
+}
+
 unsigned CConfig::GetMIDIButtonPgmUp (void) const
 {
 	return m_nMIDIButtonPgmUp;
@@ -680,6 +719,36 @@ unsigned CConfig::GetMIDIButtonTGUp (void) const
 unsigned CConfig::GetMIDIButtonTGDown (void) const
 {
 	return m_nMIDIButtonTGDown;
+}
+
+const char *CConfig::GetMIDIButtonActionPgmUp (void) const
+{
+	return m_MIDIButtonActionPgmUp.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionPgmDown (void) const
+{
+	return m_MIDIButtonActionPgmDown.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionBankUp (void) const
+{
+	return m_MIDIButtonActionBankUp.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionBankDown (void) const
+{
+	return m_MIDIButtonActionBankDown.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionTGUp (void) const
+{
+	return m_MIDIButtonActionTGUp.c_str();
+}
+
+const char *CConfig::GetMIDIButtonActionTGDown (void) const
+{
+	return m_MIDIButtonActionTGDown.c_str();
 }
 
 bool CConfig::GetEncoderEnabled (void) const
