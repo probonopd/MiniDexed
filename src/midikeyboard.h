@@ -25,6 +25,7 @@
 
 #include "mididevice.h"
 #include "config.h"
+#include "dawcontroller.h"
 #include <circle/usb/usbmidi.h>
 #include <circle/device.h>
 #include <circle/string.h>
@@ -47,6 +48,12 @@ public:
 	void Process (boolean bPlugAndPlayUpdated);
 
 	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+	void SendDebounce (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
+
+	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			   bool bArrowDown, bool bArrowUp);
+	
+	void UpdateEncoders (void);
 
 private:
 	static void MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength);
@@ -57,6 +64,8 @@ private:
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 	
 	void USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable);
+
+	void MIDICCHandler (u8 ucCh, u8 ucCC, u8 ucValue) override;
 
 private:
 	struct TSendQueueEntry
@@ -75,6 +84,8 @@ private:
 	CUSBMIDIDevice * volatile m_pMIDIDevice;
 
 	std::queue<TSendQueueEntry> m_SendQueue;
+
+	CDAWController *m_pDAWController;
 
 	static CMIDIKeyboard *s_pThis[MaxInstances];
 
