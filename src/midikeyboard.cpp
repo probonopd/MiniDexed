@@ -25,25 +25,12 @@
 #include <cstring>
 #include <assert.h>
 
-CMIDIKeyboard *CMIDIKeyboard::s_pThis[MaxInstances] = {0};
-
-TMIDIPacketHandler * const CMIDIKeyboard::s_pMIDIPacketHandler[MaxInstances] =
-{
-	MIDIPacketHandler0,
-	MIDIPacketHandler1,
-	MIDIPacketHandler2,
-	MIDIPacketHandler3
-};
-
 CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI, unsigned nInstance)
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
 	m_nSysExIdx (0),
 	m_nInstance (nInstance),
 	m_pMIDIDevice (0)
 {
-	assert (m_nInstance < MaxInstances);
-	s_pThis[m_nInstance] = this;
-
 	m_DeviceName.Format ("umidi%u", nInstance+1);
 
 	AddDevice (m_DeviceName);
@@ -51,8 +38,6 @@ CMIDIKeyboard::CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserI
 
 CMIDIKeyboard::~CMIDIKeyboard (void)
 {
-	assert (m_nInstance < MaxInstances);
-	s_pThis[m_nInstance] = 0;
 }
 
 void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
@@ -81,8 +66,7 @@ void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
 			(CUSBMIDIDevice *) CDeviceNameService::Get ()->GetDevice (m_DeviceName, FALSE);
 		if (m_pMIDIDevice != 0)
 		{
-			assert (m_nInstance < MaxInstances);
-			m_pMIDIDevice->RegisterPacketHandler (s_pMIDIPacketHandler[m_nInstance]);
+			m_pMIDIDevice->RegisterPacketHandler (MIDIPacketHandler, this);
 
 			m_pMIDIDevice->RegisterRemovedHandler (DeviceRemovedHandler, this);
 		}
@@ -104,8 +88,10 @@ void CMIDIKeyboard::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 // Most packets will be passed straight onto the main MIDI message handler
 // but SysEx messages are multiple USB packets and so will need building up
 // before parsing.
-void CMIDIKeyboard::USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable)
+void CMIDIKeyboard::USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable, unsigned nDevice)
 {
+	assert (nDevice == m_nInstance + 1);
+
 	if ((pPacket[0] == 0xF0) && (m_nSysExIdx == 0))
 	{
 		// Start of SysEx message
@@ -159,28 +145,12 @@ void CMIDIKeyboard::USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsign
 	}
 }
 
-void CMIDIKeyboard::MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength)
+void CMIDIKeyboard::MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength, unsigned nDevice, void *pParam)
 {
-	assert (s_pThis[0] != 0);
-	s_pThis[0]->USBMIDIMessageHandler (pPacket, nLength, nCable);
-}
+	CMIDIKeyboard *pThis = static_cast<CMIDIKeyboard *> (pParam);
+	assert (pThis != 0);
 
-void CMIDIKeyboard::MIDIPacketHandler1 (unsigned nCable, u8 *pPacket, unsigned nLength)
-{
-	assert (s_pThis[1] != 0);
-	s_pThis[1]->USBMIDIMessageHandler (pPacket, nLength, nCable);
-}
-
-void CMIDIKeyboard::MIDIPacketHandler2 (unsigned nCable, u8 *pPacket, unsigned nLength)
-{
-	assert (s_pThis[2] != 0);
-	s_pThis[2]->USBMIDIMessageHandler (pPacket, nLength, nCable);
-}
-
-void CMIDIKeyboard::MIDIPacketHandler3 (unsigned nCable, u8 *pPacket, unsigned nLength)
-{
-	assert (s_pThis[3] != 0);
-	s_pThis[3]->USBMIDIMessageHandler (pPacket, nLength, nCable);
+	pThis->USBMIDIMessageHandler (pPacket, nLength, nCable, nDevice);
 }
 
 void CMIDIKeyboard::DeviceRemovedHandler (CDevice *pDevice, void *pContext)
