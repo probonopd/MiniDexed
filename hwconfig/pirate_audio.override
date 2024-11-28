@@ -19,13 +19,13 @@ LCDRows=2
 
 ButtonPinPrev=5
 ButtonActionPrev=click
-ButtonPinNext=6
+ButtonPinNext=16
 ButtonActionNext=click
-ButtonPinBack=16
+ButtonPinBack=24
 ButtonActionBack=click
-ButtonPinSelect=24
+ButtonPinSelect=6
 ButtonActionSelect=click
-ButtonPinHome=16
+ButtonPinHome=24
 ButtonActionHome=doubleclick
 ButtonPinShortcut=0
 
