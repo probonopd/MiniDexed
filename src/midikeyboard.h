@@ -25,6 +25,7 @@
 
 #include "mididevice.h"
 #include "config.h"
+#include "dawcontroller.h"
 #include <circle/usb/usbmidi.h>
 #include <circle/device.h>
 #include <circle/string.h>
@@ -38,25 +39,26 @@ class CMiniDexed;
 class CMIDIKeyboard : public CMIDIDevice
 {
 public:
-	static const unsigned MaxInstances = 4;
-
-public:
 	CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI, unsigned nInstance = 0);
 	~CMIDIKeyboard (void);
 
 	void Process (boolean bPlugAndPlayUpdated);
 
 	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+	void SendDebounce (const u8 *pMessage, size_t nLength, unsigned nCable = 0);
+
+	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			   bool bArrowDown, bool bArrowUp);
+	
+	void UpdateDAWState (void);
 
 private:
-	static void MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler1 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler2 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler3 (unsigned nCable, u8 *pPacket, unsigned nLength);
-
+	static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength, unsigned nDevice, void *pParam);
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
 	
-	void USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable);
+	void USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable, unsigned nDevice);
+
+	void MIDICCHandler (u8 ucCh, u8 ucCC, u8 ucValue) override;
 
 private:
 	struct TSendQueueEntry
@@ -76,10 +78,7 @@ private:
 
 	std::queue<TSendQueueEntry> m_SendQueue;
 
-	static CMIDIKeyboard *s_pThis[MaxInstances];
-
-	static TMIDIPacketHandler * const s_pMIDIPacketHandler[MaxInstances];
-
+	CDAWController *m_pDAWController;
 };
 
 #endif
