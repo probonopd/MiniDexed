@@ -46,7 +46,8 @@ sdcard
 *.swp
 *.swo
 
-CMSIS_5/
-Synth_Dexed/
-circle-stdlib/
+CMSIS_5/**
+Synth_Dexed/**
+circle-stdlib/**
+.vscode/
 minidexed_*

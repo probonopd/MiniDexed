@@ -23,10 +23,17 @@
 #include <circle/sound/pwmsoundbasedevice.h>
 #include <circle/sound/i2ssoundbasedevice.h>
 #include <circle/sound/hdmisoundbasedevice.h>
+#include <circle/net/syslogdaemon.h>
+#include <circle/net/ipaddress.h>
 #include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>
 #include <assert.h>
+
+const char WLANFirmwarePath[] = "SD:firmware/";
+const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
+#define FTPUSERNAME "admin"
+#define FTPPASSWORD "admin"
 
 LOGMODULE ("minidexed");
 
@@ -51,6 +58,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
+	m_pNet(nullptr),
+	m_pNetDevice(nullptr),
+	m_WLAN(WLANFirmwarePath),
+	m_WPASupplicant(WLANConfigFile),
+	m_bNetworkReady(false),
+	m_bNetworkInit(false),
+	m_UDPMIDI (this, pConfig, &m_UI),
+	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
@@ -344,20 +359,24 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	
+	InitNetwork();
+
 	return true;
 }
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
+	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
 	ProcessSound ();
+	pScheduler->Yield();
 #endif
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
 		assert (m_pMIDIKeyboard[i]);
 		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
+		pScheduler->Yield();
 	}
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
@@ -365,6 +384,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bUseSerial)
 	{
 		m_SerialMIDI.Process ();
+		pScheduler->Yield();
 	}
 
 	m_UI.Process ();
@@ -374,12 +394,14 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		DoSavePerformance ();
 
 		m_bSavePerformance = false;
+		pScheduler->Yield();
 	}
 
 	if (m_bSavePerformanceNewFile)
 	{
 		DoSavePerformanceNewFile ();
 		m_bSavePerformanceNewFile = false;
+		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -397,6 +419,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			DoSetFirstPerformance();
 		}
+		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -406,18 +429,24 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			m_bSetNewPerformance = false;
 		}
+		pScheduler->Yield();
 	}
 	
 	if(m_bDeletePerformance)
 	{
 		DoDeletePerformance ();
 		m_bDeletePerformance = false;
+		pScheduler->Yield();
 	}
 		
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
+		pScheduler->Yield();
 	}
+	UpdateNetwork();
+	// Allow other tasks to run
+	pScheduler->Yield();
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -750,6 +779,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	{
 		m_SerialMIDI.SetChannel (uchChannel, nTG);
 	}
+	m_UDPMIDI.SetChannel (uchChannel, nTG);
 
 #ifdef ARM_ALLOW_MULTI_CORE
 /* This doesn't appear to be used anywhere...
@@ -2163,4 +2193,155 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 		break;
 	}
 	
+}
+
+void CMiniDexed::UpdateNetwork()
+{
+	//CNetSubSystem* const pNet = CNetSubSystem::Get();
+	if (!m_pNet)
+		return;
+
+	//add wired network check as well
+	//add wired network check as well
+	bool bNetIsRunning = m_pNet->IsRunning();
+	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
+		bNetIsRunning &= m_pNetDevice->IsLinkUp();
+	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
+		bNetIsRunning &= m_WPASupplicant.IsConnected();
+	
+	if (!m_bNetworkInit)
+	{
+		m_bNetworkInit = true;
+		CString IPString;
+		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
+
+		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
+		
+		m_UDPMIDI.Initialize();
+
+		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+
+		if (!m_pFTPDaemon->Initialize())
+		{
+			LOGERR("Failed to init FTP daemon");
+			delete m_pFTPDaemon;
+			m_pFTPDaemon = nullptr;
+		}
+		else 
+		{
+			LOGNOTE("FTP daemon initialized");
+		}
+		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1); // FIXME: Do not hardcode "TG1" here
+
+		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
+		assert (m_pmDNSPublisher);
+		
+		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		
+		m_bNetworkReady = true;
+	}
+
+	if (m_bNetworkReady && !bNetIsRunning)
+	{
+		m_bNetworkReady = false;
+		m_pmDNSPublisher->UnpublishService (m_pConfig->GetNetworkHostname());
+		LOGNOTE("Network disconnected.");
+	}
+	else if (!m_bNetworkReady && bNetIsRunning)
+	{
+		m_bNetworkReady = true;
+		
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
+						     5004))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+
+		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		{
+			LOGPANIC ("Cannot publish mdns service");
+		}
+		
+		m_bNetworkReady = true;
+		
+		LOGNOTE("Network connection reestablished.");
+
+	}
+}
+
+bool CMiniDexed::InitNetwork()
+{
+	assert(m_pNet == nullptr);
+
+	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
+
+	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	{
+		LOGNOTE("Initializing WLAN");
+
+		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("wlan and wpasupplicant initialized");
+			NetDeviceType = NetDeviceTypeWLAN;
+			
+		}
+		else
+			LOGERR("Failed to initialize WLAN");
+	}
+	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+	{
+		LOGNOTE("Initializing Ethernet");
+		NetDeviceType = NetDeviceTypeEthernet;
+	}
+
+	if (NetDeviceType != NetDeviceTypeUnknown)
+		{
+			if (m_pConfig->GetNetworkDHCP())
+				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
+			else
+				m_pNet = new CNetSubSystem(
+					m_pConfig->GetNetworkIPAddress().Get(),
+					m_pConfig->GetNetworkSubnetMask().Get(),
+					m_pConfig->GetNetworkDefaultGateway().Get(),
+					m_pConfig->GetNetworkDNSServer().Get(),
+					m_pConfig->GetNetworkHostname(),
+					NetDeviceType
+				);
+
+			if (!m_pNet->Initialize())
+			{
+				LOGERR("Failed to initialize network subsystem");
+				delete m_pNet;
+				m_pNet = nullptr;
+			}
+
+			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+
+			// syslog configuration
+			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+			if (ServerIP.IsSet () && !ServerIP.IsNull ())
+			{
+				static const u16 usServerPort = 8514;	// standard port is 514
+				CString IPString;
+				ServerIP.Format (&IPString);
+				LOGNOTE ("Sending log messages to syslog server %s:%u",
+					(const char *) IPString, (unsigned) usServerPort);
+
+				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+			}
+
+		}
+	return m_pNet != nullptr;
 }
