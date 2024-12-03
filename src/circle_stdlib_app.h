@@ -223,6 +223,7 @@ protected:
         CEMMCDevice     mEMMC;
         FATFS           mFileSystem;
         CConsole        mConsole;
+        CScheduler      mScheduler;
 };
 
 /**
