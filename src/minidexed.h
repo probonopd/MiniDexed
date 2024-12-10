@@ -99,6 +99,7 @@ public:
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
+	void setEnabled(uint8_t enabled, uint8_t nTG);
 	void setPitchbendRange(uint8_t range, uint8_t nTG);
 	void setPitchbendStep(uint8_t step, uint8_t nTG);
 	void setPortamentoMode(uint8_t mode, uint8_t nTG);
@@ -191,7 +192,9 @@ public:
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
 		TGParameterMonoMode,  
-				
+		
+		TGParameterEnabled,
+		
 		TGParameterMWRange,
 		TGParameterMWPitch,
 		TGParameterMWAmplitude,
@@ -274,7 +277,8 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::AllToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::AllToneGenerators];	
 	bool m_bMonoMode[CConfig::AllToneGenerators]; 
-				
+	bool m_bEnabled[CConfig::AllToneGenerators];
+
 	unsigned m_nModulationWheelRange[CConfig::AllToneGenerators];
 	unsigned m_nModulationWheelTarget[CConfig::AllToneGenerators];
 	unsigned m_nFootControlRange[CConfig::AllToneGenerators];

@@ -82,6 +82,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
+	{"Enabled",			EditTGParameter,	0,	CMiniDexed::TGParameterEnabled},
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
@@ -248,6 +249,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	1,					1, ToPortaGlissando},	// TGParameterPortamentoGlissando
 	{0,	99,					1},			// TGParameterPortamentoTime
 	{0,	1,					1, ToPolyMono}, 		// TGParameterMonoMode 
+	{0, 1, 1, ToOnOff}, // TGParameterEnabled
 	{0, 99, 1}, //MW Range
 	{0, 1, 1, ToOnOff}, //MW Pitch
 	{0, 1, 1, ToOnOff}, //MW Amp
