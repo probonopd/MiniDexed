@@ -319,6 +319,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		bool bSystemCCChecked = false;
 		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
 		{
+			if (m_pSynthesizer->GetTGParameter (CMiniDexed::TGParameterEnabled, nTG) == 0)
+				continue;
+
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
 				// MIDI SYSEX per MIDI channel
