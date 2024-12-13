@@ -136,6 +136,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 
+	// Additional byte-level MIDI dump for extra debugging
+/*
 	if (m_pConfig->GetMIDIDumpEnabled ())
 	{
 		switch (nLength)
@@ -177,6 +179,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			break;
 		}
 	}
+*/
 
 	// Only for debugging:
 /*
@@ -218,11 +221,39 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucType    = ucStatus >> 4;
 
 	// GLOBAL MIDI SYSEX
-	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == MIDI_SYSTEM_EXCLUSIVE_END) // MASTER VOLUME
+	//
+	// Master Volume is set using a MIDI SysEx message as follows:
+	//   F0  Start of SysEx
+	//   7F  System Realtime SysEx
+	//   7F  SysEx "channel" - 7F = all devices
+	//   04  Device Control
+	//   01  Master Volume Device Control
+	//   LL  Low 7-bits of 14-bit volume
+	//   HH  High 7-bits of 14-bit volume
+	//   F7  End SysEx
+	//
+	//  See MIDI Specification "Device Control"
+	//   "Master Volume and Master Balance"
+	//
+	// Need to scale the volume parameter to fit
+	// a 14-bit value: 0..16383
+	// and then split into LSB/MSB.	
+	if (nLength == 8 &&
+	    pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+	    pMessage[1] == 0x7F &&
+	    pMessage[2] == 0x7F &&
+	    pMessage[3] == 0x04 &&
+	    pMessage[4] == 0x01 &&
+	    // pMessage[5] and pMessage[6] = LSB+MSB
+	    pMessage[7] == MIDI_SYSTEM_EXCLUSIVE_END
+	  ) // MASTER VOLUME
 	{
-		float32_t nMasterVolume=((pMessage[5] & 0x7c) & ((pMessage[6] & 0x7c) <<7))/(1<<14);
-		LOGNOTE("Master volume: %f",nMasterVolume);
-		m_pSynthesizer->setMasterVolume(nMasterVolume);
+		// Convert LSB/MSB to 14-bit integer volume
+		uint32_t nMasterVolume=((pMessage[5] & 0x7F) | ((pMessage[6] & 0x7F) <<7));
+		// Convert to value between 0.0 and 1.0
+		float32_t fMasterVolume = (float32_t)nMasterVolume / 16384.0;
+		//printf("Master volume: %f (%d)\n",fMasterVolume, nMasterVolume);
+		m_pSynthesizer->setMasterVolume(fMasterVolume);
 	}
 	else
 	{
