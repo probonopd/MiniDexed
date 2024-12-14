@@ -144,35 +144,36 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				printf ("MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
+				fprintf (stderr, "MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			printf ("MIDI%u: %02X %02X\n", nCable,
+			fprintf (stderr, "MIDI%u: %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			printf ("MIDI%u: %02X %02X %02X\n", nCable,
+			fprintf (stderr, "MIDI%u: %02X %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
+				
 		default:
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					printf("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+					fprintf(stderr, "MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 16) == 0)
-							printf("\n%04d:",i);
-						printf(" 0x%02x",pMessage[i]);
+							fprintf(stderr, "\n%04d:",i);
+						fprintf(stderr, " 0x%02x",pMessage[i]);
 					}
-					printf("\n");
+					fprintf(stderr, "\n");
 					break;
 				default:
-					printf("MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
+					fprintf(stderr, "MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
 			}
 			break;
 		}
@@ -218,11 +219,39 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucType    = ucStatus >> 4;
 
 	// GLOBAL MIDI SYSEX
-	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[3] == 0x04 &&  pMessage[4] == 0x01 && pMessage[nLength-1] == MIDI_SYSTEM_EXCLUSIVE_END) // MASTER VOLUME
+	//
+	// Master Volume is set using a MIDI SysEx message as follows:
+	//   F0  Start of SysEx
+	//   7F  System Realtime SysEx
+	//   7F  SysEx "channel" - 7F = all devices
+	//   04  Device Control
+	//   01  Master Volume Device Control
+	//   LL  Low 7-bits of 14-bit volume
+	//   HH  High 7-bits of 14-bit volume
+	//   F7  End SysEx
+	//
+	//  See MIDI Specification "Device Control"
+	//   "Master Volume and Master Balance"
+	//
+	// Need to scale the volume parameter to fit
+	// a 14-bit value: 0..16383
+	// and then split into LSB/MSB.	
+	if (nLength == 8 &&
+	    pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+	    pMessage[1] == 0x7F &&
+	    pMessage[2] == 0x7F &&
+	    pMessage[3] == 0x04 &&
+	    pMessage[4] == 0x01 &&
+	    // pMessage[5] and pMessage[6] = LSB+MSB
+	    pMessage[7] == MIDI_SYSTEM_EXCLUSIVE_END
+	  ) // MASTER VOLUME
 	{
-		float32_t nMasterVolume=((pMessage[5] & 0x7c) & ((pMessage[6] & 0x7c) <<7))/(1<<14);
-		LOGNOTE("Master volume: %f",nMasterVolume);
-		m_pSynthesizer->setMasterVolume(nMasterVolume);
+		// Convert LSB/MSB to 14-bit integer volume
+		uint32_t nMasterVolume=((pMessage[5] & 0x7F) | ((pMessage[6] & 0x7F) <<7));
+		// Convert to value between 0.0 and 1.0
+		float32_t fMasterVolume = (float32_t)nMasterVolume / 16384.0;
+		//printf("Master volume: %f (%d)\n",fMasterVolume, nMasterVolume);
+		m_pSynthesizer->setMasterVolume(fMasterVolume);
 	}
 	else
 	{
