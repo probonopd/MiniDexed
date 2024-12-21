@@ -82,6 +82,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
+	{"Enabled",			EditTGParameter,	0,	CMiniDexed::TGParameterEnabled},
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
@@ -248,6 +249,7 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0,	1,					1, ToPortaGlissando},	// TGParameterPortamentoGlissando
 	{0,	99,					1},			// TGParameterPortamentoTime
 	{0,	1,					1, ToPolyMono}, 		// TGParameterMonoMode 
+	{0, 1, 1, ToOnOff}, // TGParameterEnabled
 	{0, 99, 1}, //MW Range
 	{0, 1, 1, ToOnOff}, //MW Pitch
 	{0, 1, 1, ToOnOff}, //MW Amp
@@ -540,7 +542,7 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
 		bool bIsMainMenu = pUIMenu->m_pCurrentMenu == s_MainMenu;
-		pUIMenu->m_pUI->DisplayWrite (
+		pUIMenu->m_pMiniDexed->DisplayWrite (
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 			"",
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
@@ -593,7 +595,7 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	string Value = GetGlobalValueString (Param, pUIMenu->m_pMiniDexed->GetParameter (Param));
 
-	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+	pUIMenu->m_pMiniDexed->DisplayWrite (pMenuName,
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
@@ -637,7 +639,7 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	string Value =   to_string (nValue+1) + "="
 		       + pUIMenu->m_pMiniDexed->GetSysExFileLoader ()->GetBankName (nValue);
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > 0, nValue < (int) CSysExFileLoader::MaxVoiceBankID);
@@ -707,7 +709,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 
 		string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
-		pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+		pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 					      Value.c_str (),
 					      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
@@ -760,7 +762,7 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
@@ -813,7 +815,7 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 
 	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
@@ -866,7 +868,7 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	string Value = GetVoiceValueString (nParam, nValue);
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
@@ -969,7 +971,7 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		Value = GetOPValueString (nParam, nValue);
 	}
 
-	pUIMenu->m_pUI->DisplayWrite (OP.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (OP.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
@@ -988,7 +990,7 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
 			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
 
-	pUIMenu->m_pUI->DisplayWrite (pMenuName,
+	pUIMenu->m_pMiniDexed->DisplayWrite (pMenuName,
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      bOK ? "Completed" : "Error",
 				      false, false);
@@ -1651,7 +1653,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				pUIMenu->m_nSelectedPerformanceID = 0;
 				pUIMenu->m_bConfirmDeletePerformance=false;
-				pUIMenu->m_pUI->DisplayWrite ("", "Delete", pUIMenu->m_pMiniDexed->DeletePerformance(nValue) ? "Completed" : "Error", false, false);
+				pUIMenu->m_pMiniDexed->DisplayWrite ("", "Delete", pUIMenu->m_pMiniDexed->DeletePerformance(nValue) ? "Completed" : "Error", false, false);
 				pUIMenu->m_bSplashShow=true;
 				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandlerNoBack, 0, pUIMenu);
 				return;
@@ -1684,13 +1686,13 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			nPSelected += " [L]";
 		}
 					
-		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
+		pUIMenu->m_pMiniDexed->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
 						  Value.c_str (), true, true);
 //						 (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance());
 	}
 	else
 	{
-		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
+		pUIMenu->m_pMiniDexed->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
 }
 
@@ -1772,7 +1774,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		nPSelected += " [L]";
 	}
 
-	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
+	pUIMenu->m_pMiniDexed->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
 							Value.c_str (),
 							nValue > 0,
 							nValue < pUIMenu->m_pMiniDexed->GetLastPerformanceBank()-1);
@@ -1885,7 +1887,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			pUIMenu->m_pMiniDexed->SetNewPerformanceName(pUIMenu->m_InputText);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
 			MsgOk=bOK ? "Completed" : "Error";
-			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
+			pUIMenu->m_pMiniDexed->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
 			CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 			return;
 		}
@@ -1936,7 +1938,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		}	
 		
 	Value = Value + " " + escCursor ;
-	pUIMenu->m_pUI->DisplayWrite (MenuTitleR.c_str(),MenuTitleL.c_str(), Value.c_str(), false, false);
+	pUIMenu->m_pMiniDexed->DisplayWrite (MenuTitleR.c_str(),MenuTitleL.c_str(), Value.c_str(), false, false);
 	
 	
 }
@@ -1990,7 +1992,7 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
-	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
+	pUIMenu->m_pMiniDexed->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
