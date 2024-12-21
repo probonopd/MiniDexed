@@ -1,9 +1,12 @@
 [submodule "circle-stdlib"]
 	path = circle-stdlib
 	url = https://github.com/smuehlst/circle-stdlib
+	ignore = all
 [submodule "Synth_Dexed"]
 	path = Synth_Dexed
 	url = https://codeberg.org/dcoredump/Synth_Dexed.git
+	ignore = all
 [submodule "CMSIS_5"]
 	path = CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5
+	ignore = all

@@ -39,11 +39,18 @@
 #include <circle/spimaster.h>
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
+#include <circle/sched/scheduler.h>
+#include <circle/net/netsubsystem.h>
+#include <wlan/bcm4343.h>
+#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
+#include "net/mdnspublisher.h"
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
+#include "udpmididevice.h"
+#include "net/ftpdaemon.h"
 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -61,7 +68,6 @@ public:
 #ifdef ARM_ALLOW_MULTI_CORE
 	void Run (unsigned nCore);
 #endif
-
 	CSysExFileLoader *GetSysExFileLoader (void);
 	CPerformanceConfig *GetPerformanceConfig (void);
 
@@ -231,6 +237,8 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+	bool InitNetwork();
+	void UpdateNetwork();
 
 	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
 			   bool bArrowDown, bool bArrowUp);
@@ -242,6 +250,7 @@ private:
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
+	const char* GetNetworkDeviceShortName() const;
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	enum TCoreStatus
@@ -333,6 +342,17 @@ private:
 
 	CSpinLock m_ReverbSpinLock;
 
+	// Network
+	CNetSubSystem* m_pNet;
+	CNetDevice* m_pNetDevice;
+	CBcm4343Device m_WLAN;
+	CWPASupplicant m_WPASupplicant;
+	bool m_bNetworkReady;
+	bool m_bNetworkInit;
+	CUDPMIDIDevice m_UDPMIDI;
+	CFTPDaemon* m_pFTPDaemon;
+	CmDNSPublisher *m_pmDNSPublisher;
+
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
@@ -345,6 +365,9 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
+
+
+	
 };
 
 #endif
