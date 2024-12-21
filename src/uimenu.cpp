@@ -539,12 +539,13 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
+		bool bIsMainMenu = pUIMenu->m_pCurrentMenu == s_MainMenu;
 		pUIMenu->m_pUI->DisplayWrite (
 			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 			"",
 			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
-			pUIMenu->m_nCurrentSelection > 0,
-			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+			pUIMenu->m_nCurrentSelection > 0 || bIsMainMenu,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name || bIsMainMenu);
 	}
 	else
 	{
