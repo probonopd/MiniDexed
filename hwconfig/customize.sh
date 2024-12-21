@@ -29,5 +29,17 @@ for file in *.override; do
         fi
     fi
 
+    # Configure genxnoise_desktop_module as USB gadget (as intended by the manufacturer)
+    case "$file" in
+      *genxnoise_desktop_module*)
+        echo "" >> "$name_of_ini_file"
+        echo "# CAUTION: To prevent hardware damage, DO NOT use the port labeled 'PWR'" >> "$name_of_ini_file"
+        echo "# (the microUSB port near the edge of the device) when USBGadget is set to 1!" >> "$name_of_ini_file"
+        echo "# You need to disable USBGadget if you would like to use that port!" >> "$name_of_ini_file"
+        echo "# See https://github.com/probonopd/MiniDexed/wiki/Hardware#usb-gadget-mode for more information" >> "$name_of_ini_file"
+        echo "USBGadget=1" >> "$name_of_ini_file"
+        ;;
+    esac
+
     echo "Created $name_of_ini_file"
 done
