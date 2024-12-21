@@ -23,6 +23,7 @@
 #ifndef _config_h
 #define _config_h
 
+#include <circle/net/ipaddress.h>
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #include <circle/sysconfig.h>
@@ -210,11 +211,33 @@ public:
 	// MIDI Button Navigation
 	unsigned GetMIDIButtonCh   (void) const;
 	unsigned GetMIDIButtonNotes (void) const;
+
 	unsigned GetMIDIButtonPrev (void) const;
 	unsigned GetMIDIButtonNext (void) const;
 	unsigned GetMIDIButtonBack (void) const;
 	unsigned GetMIDIButtonSelect (void) const;
 	unsigned GetMIDIButtonHome (void) const;
+
+	void SetMIDIButtonCh (unsigned v);
+
+	void SetMIDIButtonPrev (unsigned v);
+	void SetMIDIButtonNext (unsigned v);
+	void SetMIDIButtonBack (unsigned v);
+	void SetMIDIButtonSelect (unsigned v);
+	void SetMIDIButtonHome (unsigned v);
+
+	// Action type for Midi buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
+	const char *GetMIDIButtonActionPrev (void) const;
+	const char *GetMIDIButtonActionNext (void) const;
+	const char *GetMIDIButtonActionBack (void) const;
+	const char *GetMIDIButtonActionSelect (void) const;
+	const char *GetMIDIButtonActionHome (void) const;
+
+	void SetMIDIButtonActionPrev (const char *v);
+	void SetMIDIButtonActionNext (const char *v);
+	void SetMIDIButtonActionBack (const char *v);
+	void SetMIDIButtonActionSelect (const char *v);
+	void SetMIDIButtonActionHome (const char *v);
 
 	// MIDI Button Program and TG Selection
 	unsigned GetMIDIButtonPgmUp (void) const;
@@ -224,6 +247,16 @@ public:
 	unsigned GetMIDIButtonTGUp (void) const;
 	unsigned GetMIDIButtonTGDown (void) const;
 	
+	// Action type for buttons: "click", "doubleclick", "longpress", "dec", "inc", ""
+	const char *GetMIDIButtonActionPgmUp (void) const;
+	const char *GetMIDIButtonActionPgmDown (void) const;
+	const char *GetMIDIButtonActionBankUp (void) const;
+	const char *GetMIDIButtonActionBankDown (void) const;
+	const char *GetMIDIButtonActionTGUp (void) const;
+	const char *GetMIDIButtonActionTGDown (void) const;
+
+	bool GetDAWControllerEnabled (void) const;
+
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
 	bool GetEncoderEnabled (void) const;
@@ -237,6 +270,17 @@ public:
 	// Load performance mode. 0 for load just rotating encoder, 1 load just when Select is pushed
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
+
+	// Network
+	bool GetNetworkEnabled (void) const;
+	const char *GetNetworkType (void) const;
+	bool GetNetworkDHCP (void) const;
+	const char *GetNetworkHostname (void) const;
+	CIPAddress GetNetworkIPAddress (void) const;
+	CIPAddress GetNetworkSubnetMask (void) const;
+	CIPAddress GetNetworkDefaultGateway (void) const;
+	CIPAddress GetNetworkDNSServer (void) const;
+	CIPAddress GetNetworkSyslogServerIPAddress (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -325,7 +369,7 @@ private:
 	std::string m_ButtonActionBankDown;
 	std::string m_ButtonActionTGUp;
 	std::string m_ButtonActionTGDown;
-	
+
 	unsigned m_nDoubleClickTimeout;
 	unsigned m_nLongPressTimeout;
 
@@ -343,6 +387,20 @@ private:
 	unsigned m_nMIDIButtonTGUp;
 	unsigned m_nMIDIButtonTGDown;
 
+	std::string m_MIDIButtonActionPrev;
+	std::string m_MIDIButtonActionNext;
+	std::string m_MIDIButtonActionBack;
+	std::string m_MIDIButtonActionSelect;
+	std::string m_MIDIButtonActionHome;
+	std::string m_MIDIButtonActionPgmUp;
+	std::string m_MIDIButtonActionPgmDown;
+	std::string m_MIDIButtonActionBankUp;
+	std::string m_MIDIButtonActionBankDown;
+	std::string m_MIDIButtonActionTGUp;
+	std::string m_MIDIButtonActionTGDown;
+
+	bool m_bDAWControllerEnabled;
+
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;
 	unsigned m_nEncoderPinData;
@@ -351,6 +409,17 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	// Network
+	bool m_bNetworkEnabled;
+	bool m_bNetworkDHCP;
+	std::string m_NetworkType;
+	std::string m_NetworkHostname;
+	CIPAddress m_INetworkIPAddress;
+	CIPAddress m_INetworkSubnetMask;
+	CIPAddress m_INetworkDefaultGateway;
+	CIPAddress m_INetworkDNSServer;
+	CIPAddress m_INetworkSyslogServerIPAddress;
 };
 
 #endif

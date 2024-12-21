@@ -31,28 +31,6 @@
 
 LOGMODULE ("mididevice");
 
-#define MIDI_NOTE_OFF		0b1000
-#define MIDI_NOTE_ON		0b1001
-#define MIDI_AFTERTOUCH		0b1010			// TODO
-#define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
-#define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0
-	#define MIDI_CC_MODULATION			1
-	#define MIDI_CC_BREATH_CONTROLLER	2 
-	#define MIDI_CC_FOOT_PEDAL 		4
-	#define MIDI_CC_VOLUME				7
-	#define MIDI_CC_PAN_POSITION		10
-	#define MIDI_CC_BANK_SELECT_LSB		32
-	#define MIDI_CC_BANK_SUSTAIN		64
-	#define MIDI_CC_RESONANCE			71
-	#define MIDI_CC_FREQUENCY_CUTOFF	74
-	#define MIDI_CC_REVERB_LEVEL		91
-	#define MIDI_CC_DETUNE_LEVEL		94
-	#define MIDI_CC_ALL_SOUND_OFF		120
-	#define MIDI_CC_ALL_NOTES_OFF		123
-#define MIDI_PROGRAM_CHANGE	0b1100
-#define MIDI_PITCH_BEND		0b1110
-
 // MIDI "System" level (i.e. all TG) custom CC maps
 // Note: Even if number of TGs is not 8, there are only 8
 //       available to be used in the mappings here.
@@ -78,7 +56,8 @@ CMIDIDevice::TDeviceMap CMIDIDevice::s_DeviceMap;
 CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	m_pSynthesizer (pSynthesizer),
 	m_pConfig (pConfig),
-	m_pUI (pUI)
+	m_pUI (pUI),
+	m_pMIDIRouteMap ()
 {
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
@@ -144,17 +123,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				fprintf (stderr, "MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
+				LOGNOTE ("MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			fprintf (stderr, "MIDI%u: %02X %02X\n", nCable,
+			LOGNOTE ("MIDI%u: %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			fprintf (stderr, "MIDI%u: %02X %02X %02X\n", nCable,
+			LOGNOTE ("MIDI%u: %02X %02X %02X\n", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
@@ -163,17 +142,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					fprintf(stderr, "MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+					LOGNOTE("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 16) == 0)
 							fprintf(stderr, "\n%04d:",i);
 						fprintf(stderr, " 0x%02x",pMessage[i]);
 					}
-					fprintf(stderr, "\n");
+					LOGNOTE("\n");
 					break;
 				default:
-					fprintf(stderr, "MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
+					LOGNOTE("MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
 			}
 			break;
 		}
@@ -214,10 +193,21 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 	m_MIDISpinLock.Acquire ();
 
+	u8 ucCable   = nCable;
 	u8 ucStatus  = pMessage[0];
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
+	u8 ucP1      = pMessage[1];
+	u8 ucP2      = nLength >= 3 ? pMessage[2] : 0xFF;
+	bool bSkip    = false;
 
+	if (m_pMIDIRouteMap)
+		GetRoutedMIDI (m_pMIDIRouteMap, &ucCable, &ucChannel, &ucType, &ucP1, &ucP2, &bSkip);
+
+	if (bSkip)
+	{
+		// skip (and release mutex at the end)
+	}
 	// GLOBAL MIDI SYSEX
 	//
 	// Master Volume is set using a MIDI SysEx message as follows:
@@ -236,7 +226,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// Need to scale the volume parameter to fit
 	// a 14-bit value: 0..16383
 	// and then split into LSB/MSB.	
-	if (nLength == 8 &&
+	else if (nLength == 8 &&
 	    pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
 	    pMessage[1] == 0x7F &&
 	    pMessage[2] == 0x7F &&
@@ -265,13 +255,13 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
 				{
-					if (pMessage[1] == MIDI_CC_BANK_SELECT_MSB)
+					if (ucP1 == MIDI_CC_BANK_SELECT_MSB)
 					{
-						m_pSynthesizer->BankSelectMSBPerformance (pMessage[2]);
+						m_pSynthesizer->BankSelectMSBPerformance (ucP2);
 					}
-					else if (pMessage[1] == MIDI_CC_BANK_SELECT_LSB)
+					else if (ucP1 == MIDI_CC_BANK_SELECT_LSB)
 					{
-						m_pSynthesizer->BankSelectLSBPerformance (pMessage[2]);
+						m_pSynthesizer->BankSelectLSBPerformance (ucP2);
 					}
 					else
 					{
@@ -281,7 +271,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 			if (nLength == 3)
 			{
-				m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+				m_pUI->UIMIDICmdHandler (ucChannel, ucType, ucP1, ucP2);
 			}
 			break;
 
@@ -291,7 +281,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				break;
 			}
-			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+			m_pUI->UIMIDICmdHandler (ucChannel, ucType, ucP1, ucP2);
 			break;
 
 		case MIDI_PROGRAM_CHANGE:
@@ -303,7 +293,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					if ((ucChannel == nPerfCh) || (nPerfCh == OmniMode))
 					{
 						//printf("Performance Select Channel %d\n", nPerfCh);
-						m_pSynthesizer->ProgramChangePerformance (pMessage[1]);
+						m_pSynthesizer->ProgramChangePerformance (ucP1);
 					}
 				}
 			}
@@ -315,6 +305,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		bool bSystemCCChecked = false;
 		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
 		{
+			if (m_pSynthesizer->GetTGParameter (CMiniDexed::TGParameterEnabled, nTG) == 0)
+				continue;
+
 			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
 			{
 				// MIDI SYSEX per MIDI channel
@@ -338,17 +331,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 						}
 		
-						if (pMessage[2] > 0)
+						if (ucP2 > 0)
 						{
-							if (pMessage[2] <= 127)
+							if (ucP2 <= 127)
 							{
-								m_pSynthesizer->keydown (pMessage[1],
-											 pMessage[2], nTG);
+								m_pSynthesizer->keydown (ucP1,
+											 ucP2, nTG);
 							}
 						}
 						else
 						{
-							m_pSynthesizer->keyup (pMessage[1], nTG);
+							m_pSynthesizer->keyup (ucP1, nTG);
 						}
 						break;
 		
@@ -357,13 +350,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						{
 							break;
 						}
-		
-						m_pSynthesizer->keyup (pMessage[1], nTG);
+						m_pSynthesizer->keyup (ucP1, nTG);
 						break;
 		
 					case MIDI_CHANNEL_AFTERTOUCH:
-						
-						m_pSynthesizer->setAftertouch (pMessage[1], nTG);
+						m_pSynthesizer->setAftertouch (ucP1, nTG);
 						m_pSynthesizer->ControllersRefresh (nTG);
 						break;
 							
@@ -373,69 +364,81 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 						}
 		
-						switch (pMessage[1])
+						switch (ucP1)
 						{
 						case MIDI_CC_MODULATION:
-							m_pSynthesizer->setModWheel (pMessage[2], nTG);
+							m_pSynthesizer->setModWheel (ucP2, nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
 								
 						case MIDI_CC_FOOT_PEDAL:
-							m_pSynthesizer->setFootController (pMessage[2], nTG);
+							m_pSynthesizer->setFootController (ucP2, nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
 
+						case MIDI_CC_PORTAMENTO_TIME:
+							m_pSynthesizer->setPortamentoTime (maplong (ucP2, 0, 127, 0, 99), nTG);
+							break;
+
 						case MIDI_CC_BREATH_CONTROLLER:
-							m_pSynthesizer->setBreathController (pMessage[2], nTG);
+							m_pSynthesizer->setBreathController (ucP2, nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
 								
 						case MIDI_CC_VOLUME:
-							m_pSynthesizer->SetVolume (pMessage[2], nTG);
+							m_pSynthesizer->SetVolume (ucP2, nTG);
 							break;
 		
 						case MIDI_CC_PAN_POSITION:
-							m_pSynthesizer->SetPan (pMessage[2], nTG);
+							m_pSynthesizer->SetPan (ucP2, nTG);
 							break;
 		
 						case MIDI_CC_BANK_SELECT_MSB:
-							m_pSynthesizer->BankSelectMSB (pMessage[2], nTG);
+							m_pSynthesizer->BankSelectMSB (ucP2, nTG);
 							break;
 		
 						case MIDI_CC_BANK_SELECT_LSB:
-							m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
+							m_pSynthesizer->BankSelectLSB (ucP2, nTG);
 							break;
 		
 						case MIDI_CC_BANK_SUSTAIN:
-							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+							m_pSynthesizer->setSustain (ucP2 >= 64, nTG);
+							break;
+
+						case MIDI_CC_SOSTENUTO:
+							m_pSynthesizer->setSostenuto (ucP2 >= 64, nTG);
+							break;
+		
+						case MIDI_CC_PORTAMENTO:
+							m_pSynthesizer->setPortamentoMode (ucP2 >= 64, nTG);
 							break;
 		
 						case MIDI_CC_RESONANCE:
-							m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							m_pSynthesizer->SetResonance (maplong (ucP2, 0, 127, 0, 99), nTG);
 							break;
 							
 						case MIDI_CC_FREQUENCY_CUTOFF:
-							m_pSynthesizer->SetCutoff (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							m_pSynthesizer->SetCutoff (maplong (ucP2, 0, 127, 0, 99), nTG);
 							break;
 		
 						case MIDI_CC_REVERB_LEVEL:
-							m_pSynthesizer->SetReverbSend (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							m_pSynthesizer->SetReverbSend (maplong (ucP2, 0, 127, 0, 99), nTG);
 							break;
 		
 						case MIDI_CC_DETUNE_LEVEL:
-							if (pMessage[2] == 0)
+							if (ucP2 == 0)
 							{
 								// "0 to 127, with 0 being no celeste (detune) effect applied at all."
 								m_pSynthesizer->SetMasterTune (0, nTG);
 							}
 							else
 							{
-								m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
+								m_pSynthesizer->SetMasterTune (maplong (ucP2, 1, 127, -99, 99), nTG);
 							}
 							break;
 		
 						case MIDI_CC_ALL_SOUND_OFF:
-							m_pSynthesizer->panic (pMessage[2], nTG);
+							m_pSynthesizer->panic (ucP2, nTG);
 							break;
 		
 						case MIDI_CC_ALL_NOTES_OFF:
@@ -444,7 +447,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							// "Receivers should ignore an All Notes Off message while Omni is on (Modes 1 & 2)"
 							if (!m_pConfig->GetIgnoreAllNotesOff () && m_ChannelMap[nTG] != OmniMode)
 							{
-								m_pSynthesizer->notesOff (pMessage[2], nTG);
+								m_pSynthesizer->notesOff (ucP2, nTG);
 							}
 							break;
 
@@ -454,7 +457,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							// so it is possible to break out of the main TG loop too.
 							// Note: We handle this here so we get the TG MIDI channel checking.
 							if (!bSystemCCChecked) {
-								bSystemCCHandled = HandleMIDISystemCC(pMessage[1], pMessage[2]);
+								bSystemCCHandled = HandleMIDISystemCC(ucP1, ucP2);
 								bSystemCCChecked = true;
 							}
 							break;
@@ -465,7 +468,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						// do program change only if enabled in config and not in "Performance Select Channel" mode
 						if( m_pConfig->GetMIDIRXProgramChange() && ( m_pSynthesizer->GetPerformanceSelectChannel() == Disabled) ) {
 							//printf("Program Change to %d (%d)\n", ucChannel, m_pSynthesizer->GetPerformanceSelectChannel());
-							m_pSynthesizer->ProgramChange (pMessage[1], nTG);
+							m_pSynthesizer->ProgramChange (ucP1, nTG);
 						}
 						break;
 		
@@ -475,8 +478,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 						}
 		
-						s16 nValue = pMessage[1];
-						nValue |= (s16) pMessage[2] << 7;
+						s16 nValue = ucP1;
+						nValue |= (s16) ucP2 << 7;
 						nValue -= 0x2000;
 		
 						m_pSynthesizer->setPitchbend (nValue, nTG);
@@ -488,6 +491,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				}
 			}
 		}
+
+		if (m_pMIDIRouteMap)
+			MIDIListener(ucCable, ucChannel, ucType, ucP1, ucP2);
 	}
 	m_MIDISpinLock.Release ();
 }
@@ -547,6 +553,11 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 	}
 	
 	return false;
+}
+
+void CMIDIDevice::SetMIDIRouteMap (TMIDIRouteMap *pMIDIRouteMap)
+{
+	m_pMIDIRouteMap = pMIDIRouteMap;
 }
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
@@ -677,6 +688,11 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   }
 }
 
+void CMIDIDevice::MIDIListener (u8 ucCable, u8 ucChannel, u8 ucType, u8 ucP1, u8 ucP2)
+{
+}
+
+
 void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
 {
   uint8_t voicedump[163];
@@ -693,3 +709,34 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
     // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
 } 
+
+void GetRoutedMIDI (TMIDIRouteMap *map, u8 *pCable, u8 *pCh, u8 *pType, u8 *pP1, u8 *pP2, bool *bSkip)
+{
+	assert (map);
+	for (TMIDIRouteMap *r = map; r->ucSCable != 0xFF ; r++)
+	{
+		if (r->ucSCable == *pCable &&
+			(r->ucSCh == *pCh || r->ucSCh >= 16) &&
+			(r->ucSType == *pType || r->ucSType >= 16) &&
+			(r->ucSP1 == *pP1 || r->ucSP1 > 127) &&
+			(r->ucSP2 == *pP2 || r->ucSP2 > 127))
+		{
+			if (r->bSkip) {
+				*bSkip = true;
+				return;
+			}
+
+			*pCh = r->ucDCh;
+			*pType = r->ucDType;
+			if (r->ucDP1 <= 127)
+				*pP1 = r->ucDP1;
+			if (r->ucDP1 == TMIDIRouteMap::P2)
+				*pP1 = *pP2;
+			if (r->ucDP2 <= 127)
+				*pP2 = r->ucDP2;
+			if (r->bToggle)
+				r->ucDP2 = r->ucDP2 ? 0x0 : 0x7F;
+			return;
+		}
+	}
+}

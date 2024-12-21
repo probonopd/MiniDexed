@@ -57,6 +57,8 @@ public:
 	// To be called from the MIDI device on reception of a MIDI CC message
 	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
+	void InitButtonsWithConfig (CConfig *pConfig);
+
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
