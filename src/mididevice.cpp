@@ -47,6 +47,7 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_BANK_SUSTAIN		64
 	#define MIDI_CC_PORTAMENTO			65
 	#define MIDI_CC_SOSTENUTO			66
+	#define MIDI_CC_HOLD2				69
 	#define MIDI_CC_RESONANCE			71
 	#define MIDI_CC_FREQUENCY_CUTOFF	74
 	#define MIDI_CC_REVERB_LEVEL		91
@@ -425,6 +426,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->setPortamentoMode (pMessage[2] >= 64, nTG);
 							break;
 
+						case MIDI_CC_HOLD2:
+							m_pSynthesizer->setHoldMode (pMessage[2] >= 64, nTG);
+							break;
+		
 						case MIDI_CC_RESONANCE:
 							m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 							break;
