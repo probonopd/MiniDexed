@@ -94,6 +94,7 @@ public:
 
 	void setSustain (bool sustain, unsigned nTG);
 	void setSostenuto (bool sostenuto, unsigned nTG);
+	void setHoldMode(bool holdmode, unsigned nTG);
 	void panic (uint8_t value, unsigned nTG);
 	void notesOff (uint8_t value, unsigned nTG);
 	void setModWheel (uint8_t value, unsigned nTG);
