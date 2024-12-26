@@ -116,4 +116,15 @@ inline std::string ToArpOctMode (int value)
 	}
 }
 
+inline std::string ToArpVelocity (int nValue)
+{
+	switch (nValue)
+	{
+	case 0:
+		return "As Played";
+	default:
+		return std::to_string (nValue);
+	}
+}
+
 #endif // _MIDI_EFFECTS_H

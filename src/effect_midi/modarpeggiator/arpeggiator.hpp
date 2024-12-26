@@ -18,6 +18,7 @@
 
 #define MIDI_NOTE 0
 #define MIDI_CHANNEL 1
+#define MIDI_NOTE_VELOCITY 2
 #define TIMER 2
 
 #define NUM_ARP_MODES 6
@@ -71,7 +72,7 @@ public:
 	struct MidiBuffer getMidiBuffer();
 	void process(const MidiEvent* event, uint32_t eventCount, uint32_t n_frames);
 private:
-	uint8_t midiNotes[NUM_VOICES][2];
+	uint8_t midiNotes[NUM_VOICES][3];
 	uint8_t midiNotesBypassed[NUM_VOICES];
 	uint32_t noteOffBuffer[NUM_NOTE_OFF_SLOTS][3];
 

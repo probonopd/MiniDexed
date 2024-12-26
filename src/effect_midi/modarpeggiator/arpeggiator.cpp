@@ -269,6 +269,7 @@ void Arpeggiator::reset()
 
 	for (unsigned i = 0; i < NUM_VOICES; i++) {
 		midiNotes[i][MIDI_NOTE] = EMPTY_SLOT;
+		midiNotes[i][MIDI_NOTE_VELOCITY] = 0;
 		midiNotes[i][MIDI_CHANNEL] = 0;
 	}
 }
@@ -304,6 +305,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 		for (unsigned clear_notes = 0; clear_notes < NUM_VOICES; clear_notes++) {
 			midiNotes[clear_notes][MIDI_NOTE] = EMPTY_SLOT;
+			midiNotes[clear_notes][MIDI_NOTE_VELOCITY] = 0;
 			midiNotes[clear_notes][MIDI_CHANNEL] = 0;
 		}
 	}
@@ -325,6 +327,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 		uint8_t status = events[i].data[0] & 0xF0;
 
 		uint8_t midiNote = events[i].data[1];
+		uint8_t midiNoteVelocity = events[i].data[2];
 		uint8_t noteToFind;
 		uint8_t foundNote;
 		size_t searchNote;
@@ -364,6 +367,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 								activeNotes = 0;
 								for (unsigned i = 0; i < NUM_VOICES; i++) {
 									midiNotes[i][MIDI_NOTE] = EMPTY_SLOT;
+									midiNotes[i][MIDI_NOTE_VELOCITY] = 0;
 									midiNotes[i][MIDI_CHANNEL] = 0;
 								}
 							}
@@ -388,6 +392,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 							{
 								if (midiNotes[findFreeVoice][MIDI_NOTE] == EMPTY_SLOT) {
 									midiNotes[findFreeVoice][MIDI_NOTE] = midiNote;
+									midiNotes[findFreeVoice][MIDI_NOTE_VELOCITY] = midiNoteVelocity;
 									midiNotes[findFreeVoice][MIDI_CHANNEL] = channel;
 									voiceFound = true;
 								}
@@ -437,6 +442,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 
 						if (!latchMode) {
 							midiNotes[foundNote][MIDI_NOTE] = EMPTY_SLOT;
+							midiNotes[foundNote][MIDI_NOTE_VELOCITY] = 0;
 							midiNotes[foundNote][MIDI_CHANNEL] = 0;
 							if (arpMode != ARP_PLAYED)
 								utils.quicksort(midiNotes, 0, NUM_VOICES - 1);
@@ -593,6 +599,7 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 				{
 					//create MIDI note on message
 					uint8_t midiNote = midiNotes[notePlayed][MIDI_NOTE];
+					uint8_t midiNoteVelocity = midiNotes[notePlayed][MIDI_NOTE_VELOCITY];
 					uint8_t channel = midiNotes[notePlayed][MIDI_CHANNEL];
 
 					if (arpEnabled) {
@@ -606,7 +613,11 @@ void Arpeggiator::process(const MidiEvent* events, uint32_t eventCount, uint32_t
 						midiEvent.size = 3;
 						midiEvent.data[0] = MIDI_NOTEON | channel;
 						midiEvent.data[1] = midiNote;
-						midiEvent.data[2] = velocity;
+						if (velocity > 0) {
+							midiEvent.data[2] = velocity;
+						} else {
+							midiEvent.data[2] = midiNoteVelocity;
+						}
 
 						midiHandler.appendMidiMessage(midiEvent);
 

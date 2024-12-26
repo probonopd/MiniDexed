@@ -651,7 +651,7 @@ const CUIMenu::TParameter CUIMenu::s_TGMidiFXArpParam[MidiArp::Param::UNKNOWN] =
 	{0, 5, 1, ToArpMode}, // ARP_MODE
 	{0, 12, 1, ToArpDivision}, // DIVISION
 	{0, 100, 1}, // NOTE_LENGTH
-	{0, 127, 1}, // VELOCITY
+	{0, 127, 1, ToArpVelocity}, // VELOCITY
 	{1, 4, 1}, // OCTAVE_SPREAD
 	{0, 4, 1, ToArpOctMode}, // OCTAVE_MODE
 	{0, 1, 1, ToOnOff} // PANIC

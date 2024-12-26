@@ -18,7 +18,7 @@ void ArpUtils::swap(uint8_t *a, uint8_t *b)
 }
 
 //got the code for the quick sort algorithm here https://medium.com/human-in-a-machine-world/quicksort-the-best-sorting-algorithm-6ab461b5a9d0
-void ArpUtils::quicksort(uint8_t arr[][2], int l, int r)
+void ArpUtils::quicksort(uint8_t arr[][3], int l, int r)
 {
 	if (l >= r)
 	{
@@ -35,6 +35,7 @@ void ArpUtils::quicksort(uint8_t arr[][2], int l, int r)
 		{
 			swap(&arr[cnt][0], &arr[i][0]);
 			swap(&arr[cnt][1], &arr[i][1]);
+			swap(&arr[cnt][2], &arr[i][2]);
 			cnt++;
 		}
 	}
