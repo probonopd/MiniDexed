@@ -458,25 +458,25 @@ unsigned CPerformanceConfig::GetPan (unsigned nTG) const
 
 unsigned CPerformanceConfig::GetInsertFX (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nInsertFX[nTG];
 }
 
 std::vector<unsigned> CPerformanceConfig::GetInsertFXParams (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return StringToVector(m_sInsertFXParams[nTG]);
 }
 
 unsigned CPerformanceConfig::GetMidiFX (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_nMidiFX[nTG];
 }
 
 std::vector<unsigned> CPerformanceConfig::GetMidiFXParams (unsigned nTG) const
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return StringToVector(m_sMidiFXParams[nTG]);
 }
 
@@ -554,25 +554,25 @@ void CPerformanceConfig::SetPan (unsigned nValue, unsigned nTG)
 
 void CPerformanceConfig::SetInsertFX (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nInsertFX[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_sInsertFXParams[nTG] = VectorToString(pParams);
 }
 
 void CPerformanceConfig::SetMidiFX (unsigned nValue, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_nMidiFX[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetMidiFXParams (std::vector<unsigned> pParams, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	m_sMidiFXParams[nTG] = VectorToString(pParams);
 }
 

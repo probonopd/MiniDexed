@@ -694,7 +694,7 @@ void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)
 
 void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 
 	// If the effect type is already set just return
 	if (m_InsertFX[nTG]->getId() == nType) {
@@ -712,13 +712,13 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 
 std::string CMiniDexed::getInsertFXName (unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_InsertFX[nTG]->getName();
 }
 
 void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 
 	// If the effect type is already set just return
 	if (m_MidiArp[nTG]->getId() == nType) {
@@ -736,7 +736,7 @@ void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 
 std::string CMiniDexed::getMidiFXName (unsigned nTG)
 {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	return m_MidiArp[nTG]->getName();
 }
 
@@ -880,7 +880,7 @@ void CMiniDexed::setTempo(unsigned nValue)
 
 	// Set Tempo to FXs
 	m_SendFX->setTempo(m_nTempo);
-	for (unsigned nTG = 0; nTG < CConfig::ToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_InsertFX[nTG]->setTempo(m_nTempo);
 		m_MidiArp[nTG]->setTempo(m_nTempo);
@@ -1300,28 +1300,28 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 }
 
 void CMiniDexed::SetMidiFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (m_MidiArp[nTG]->getId() == nFXType);
 
 	m_MidiArp[nTG]->setParameter(Parameter, nValue);
 }
 
 int CMiniDexed::GetMidiFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (m_MidiArp[nTG]->getId() == nFXType);
 
 	return m_MidiArp[nTG]->getParameter(Parameter);
 }
 
 void CMiniDexed::SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType) {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (m_InsertFX[nTG]->getId() == nFXType);
 
 	m_InsertFX[nTG]->setParameter(Parameter, nValue);
 }
 
 int CMiniDexed::GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType) {
-	assert (nTG < CConfig::ToneGenerators);
+	assert (nTG < CConfig::AllToneGenerators);
 	assert (m_InsertFX[nTG]->getId() == nFXType);
 
 	return m_InsertFX[nTG]->getParameter(Parameter);
@@ -1523,11 +1523,11 @@ void CMiniDexed::ProcessSound (void)
 					{
 						if(nMasterVolume >0.0 && nMasterVolume <1.0)
 						{
-							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][0][i] * nMasterVolume;
 						}
 						else if(nMasterVolume == 1.0)
 						{
-							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][0][i];
 						}
 					}
 				}
