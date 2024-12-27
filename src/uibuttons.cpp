@@ -59,7 +59,7 @@ void CUIButton::reset (void)
 	m_numClicks = 0;
 }
 
-boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout)
+boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout, unsigned debounceTime)
 {
 	assert (!m_pin);
 	assert(longPressTimeout >= doubleClickTimeout);
@@ -67,10 +67,11 @@ boolean CUIButton::Initialize (unsigned pinNumber, unsigned doubleClickTimeout, 
 	m_pinNumber = pinNumber;
 	m_doubleClickTimeout = doubleClickTimeout;
 	m_longPressTimeout = longPressTimeout;
-	
+	m_debounceTime = debounceTime;
+
 	// Initialise timing values
 	m_timer = m_longPressTimeout;
-	m_debounceTimer = DEBOUNCE_TIME;
+	m_debounceTimer = m_debounceTime;
 
 	if (m_pinNumber != 0)
 	{
@@ -151,7 +152,7 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 	}
 
 	// Debounce here - we don't need to do anything if the debounce timer is active
-	if (m_debounceTimer < DEBOUNCE_TIME) {
+	if (m_debounceTimer < m_debounceTime) {
 		m_debounceTimer++;
 		return BtnTriggerNone;
 	}
@@ -275,6 +276,7 @@ boolean CUIButtons::Initialize (void)
 	// Read the button configuration
 	m_doubleClickTimeout = m_pConfig->GetDoubleClickTimeout ();
 	m_longPressTimeout = m_pConfig->GetLongPressTimeout ();
+	m_debounceTime = m_pConfig->GetButtonsDebounceTime ();
 	m_prevPin = m_pConfig->GetButtonPinPrev ();
 	m_prevAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionPrev ());
 	m_nextPin = m_pConfig->GetButtonPinNext ();
@@ -386,7 +388,7 @@ boolean CUIButtons::Initialize (void)
 			}
 			else if (m_buttons[j].getPinNumber() == 0) {
 				// This is un-initialised so can be assigned
-				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout);
+				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout, m_debounceTime);
 				break;
 			}
 		}
@@ -405,7 +407,7 @@ boolean CUIButtons::Initialize (void)
 			if (m_buttons[j].getPinNumber() == 0) {
 				// This is un-initialised so can be assigned
 				// doubleClickTimeout and longPressTimeout are ignored for MIDI buttons at present
-				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout);
+				m_buttons[j].Initialize(pins[i], doubleClickTimeout, longPressTimeout, m_debounceTime);
 				break;
 			}
 		}

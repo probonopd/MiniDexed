@@ -26,7 +26,6 @@
 #include "config.h"
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
-#define DEBOUNCE_TIME 300
 #define MAX_GPIO_BUTTONS 11  // 5 UI buttons, 6 Program/Bank/TG Select buttons
 #define MAX_MIDI_BUTTONS 11
 #define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
@@ -65,7 +64,7 @@ public:
 	~CUIButton (void);
 	
 	void reset (void);
-	boolean Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout);
+	boolean Initialize (unsigned pinNumber, unsigned doubleClickTimeout, unsigned longPressTimeout, unsigned debounceTime);
 
 	void setClickEvent(BtnEvent clickEvent);
 	void setDoubleClickEvent(BtnEvent doubleClickEvent);
@@ -92,6 +91,8 @@ private:
 	uint16_t m_timer;
 	// Debounce timer
 	uint16_t m_debounceTimer;
+	// Debounce time
+	unsigned m_debounceTime;
 	// Number of clicks recorded since last timer reset
 	uint8_t m_numClicks;
 	// Event to fire on click
@@ -136,6 +137,8 @@ private:
 	unsigned m_doubleClickTimeout;
 	// Timeout for long press in tenths of a millisecond
 	unsigned m_longPressTimeout;
+	// Debounce time
+	unsigned m_debounceTime;
 	
 	// Configuration for buttons
 	unsigned m_prevPin;

@@ -190,6 +190,7 @@ public:
 	// Timeouts for button events in milliseconds
 	unsigned GetDoubleClickTimeout (void) const;
 	unsigned GetLongPressTimeout (void) const;
+	unsigned GetButtonsDebounceTime (void) const;
 
 	// GPIO Button Program and TG Selection
 	// GPIO pin numbers are chip numbers, not header positions
@@ -329,6 +330,7 @@ private:
 	
 	unsigned m_nDoubleClickTimeout;
 	unsigned m_nLongPressTimeout;
+	unsigned m_nButtonsDebounceTime;
 
 	unsigned m_nMIDIButtonCh;
 	unsigned m_nMIDIButtonNotes;
