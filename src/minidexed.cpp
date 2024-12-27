@@ -240,14 +240,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// BEGIN setup reverb
 	SetParameter (ParameterSendFXType, AudioEffectPlateReverb::ID);
 	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
-	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
-	SetParameter (ParameterReverbEnable, 1);
-	SetParameter (ParameterReverbSize, 70);
-	SetParameter (ParameterReverbHighDamp, 50);
-	SetParameter (ParameterReverbLowDamp, 50);
-	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 65);
-	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
 
 	SetParameter (ParameterCompressorEnable, 1);
@@ -1081,8 +1073,6 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 
 void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
-	assert (reverb);
-
 	assert (Parameter < ParameterUnknown);
 	m_nParameter[Parameter] = nValue;
 
@@ -1102,55 +1092,6 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	
 	case ParameterSendFXLevel:
 		setSendFXLevel(nValue);
-		break;
-
-	case ParameterReverbEnable:
-		nValue=constrain((int)nValue,0,1);
-		m_ReverbSpinLock.Acquire ();
-		reverb->setBypass (!nValue);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbSize:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->size (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbHighDamp:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->hidamp (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbLowDamp:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->lodamp (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbLowPass:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->lowpass (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbDiffusion:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->diffusion (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
-		break;
-
-	case ParameterReverbLevel:
-		nValue=constrain((int)nValue,0,99);
-		m_ReverbSpinLock.Acquire ();
-		reverb->level (nValue / 99.0f);
-		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterPerformanceSelectChannel:
@@ -1569,33 +1510,27 @@ void CMiniDexed::ProcessSound (void)
 				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
 
 				// BEGIN adding reverb
-				if (m_nParameter[ParameterReverbEnable])
-				{
-					float32_t ReverbBuffer[2][nFrames];
-					float32_t ReverbSendBuffer[2][nFrames];
+				float32_t ReverbBuffer[2][nFrames];
+				float32_t ReverbSendBuffer[2][nFrames];
 
-					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+				arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+				arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+				arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
 
-					m_SendFXSpinLock.Acquire ();
-					m_ReverbSpinLock.Acquire ();
+				m_SendFXSpinLock.Acquire ();
 
-					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-					//reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-					m_SendFX->process(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], ReverbBuffer[indexL], ReverbBuffer[indexR], nFrames);
+				reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+				m_SendFX->process(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], ReverbBuffer[indexL], ReverbBuffer[indexR], nFrames);
 
-					// scale down and add left reverb buffer by reverb level 
-					arm_scale_f32(ReverbBuffer[indexL], m_SendFXLevel, ReverbBuffer[indexL], nFrames);
-					arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-					// scale down and add right reverb buffer by reverb level 
-					arm_scale_f32(ReverbBuffer[indexR], m_SendFXLevel, ReverbBuffer[indexR], nFrames);
-					arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+				// scale down and add left reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexL], m_SendFXLevel, ReverbBuffer[indexL], nFrames);
+				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+				// scale down and add right reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexR], m_SendFXLevel, ReverbBuffer[indexR], nFrames);
+				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
 
-					m_ReverbSpinLock.Release ();
-					m_SendFXSpinLock.Release ();
-				}
+				m_SendFXSpinLock.Release ();
 				// END adding reverb
 
 				// swap stereo channels if needed prior to writing back out
@@ -1744,14 +1679,6 @@ bool CMiniDexed::DoSavePerformance (void)
 	pParams.clear();
 	pParams.shrink_to_fit();
 	m_PerformanceConfig.SetSendFXLevel (roundf(m_SendFXLevel * 100));
-
-	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
-	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
-	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
-	m_PerformanceConfig.SetReverbLowDamp (m_nParameter[ParameterReverbLowDamp]);
-	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
-	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
-	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
 
 	m_PerformanceConfig.SetTempo (m_nTempo);
 
@@ -2247,14 +2174,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		pParams.clear();
 		pParams.shrink_to_fit();
 		SetParameter (ParameterSendFXLevel, m_PerformanceConfig.GetSendFXLevel ());
-
-		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
-		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
-		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
-		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
-		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
-		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
-		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 
 		SetParameter (ParameterTempo, m_PerformanceConfig.GetTempo ());
 }

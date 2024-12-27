@@ -142,22 +142,6 @@ const CUIMenu::TMenuItem CUIMenu::s_SendFXMenu[] =
 	{0}
 };
 
-#ifdef ARM_ALLOW_MULTI_CORE
-
-const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
-{
-	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbEnable},
-	{"Size",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbSize},
-	{"High damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbHighDamp},
-	{"Low damp",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowDamp},
-	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
-	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
-	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
-	{0}
-};
-
-#endif
-
 const CUIMenu::TMenuItem CUIMenu::s_InsertFX[] =
 {
 	{"Type:", EditTGParameter2, 0, CMiniDexed::TGParameterInsertFXType},
@@ -431,13 +415,6 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
 	{0,	AudioEffects::Types::UNKNOWN - 1, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
-	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
-	{0,	99,	1},				// ParameterReverbSize
-	{0,	99,	1},				// ParameterReverbHighDamp
-	{0,	99,	1},				// ParameterReverbLowDamp
-	{0,	99,	1},				// ParameterReverbLowPass
-	{0,	99,	1},				// ParameterReverbDiffusion
-	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
 	{0, NUM_PERFORMANCE_BANKS, 1},	// ParameterPerformanceBank
 	{30, 250, 1} // ParameterTempo

@@ -166,13 +166,6 @@ public:
 		ParameterCompressorEnable,
 		ParameterSendFXType,
 		ParameterSendFXLevel,
-		ParameterReverbEnable,
-		ParameterReverbSize,
-		ParameterReverbHighDamp,
-		ParameterReverbLowDamp,
-		ParameterReverbLowPass,
-		ParameterReverbDiffusion,
-		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
 		ParameterTempo,
@@ -349,7 +342,6 @@ private:
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
-	AudioEffectPlateReverb* reverb;
 	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 	AudioEffect* m_SendFX = NULL;
@@ -358,8 +350,7 @@ private:
 	CSpinLock* m_MidiArpSpinLock[CConfig::AllToneGenerators];
 	CSpinLock* m_InsertFXSpinLock[CConfig::AllToneGenerators];
 	CSpinLock m_SendFXSpinLock;
-	CSpinLock m_ReverbSpinLock;
-
+	
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
