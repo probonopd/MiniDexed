@@ -115,6 +115,8 @@ public:
 	unsigned GetSendFX (void) const;
 	std::vector<unsigned> GetSendFXParams (void) const;
 	unsigned GetSendFXLevel (void) const;
+	unsigned GetMasterFX (void) const;
+	std::vector<unsigned> GetMasterFXParams (void) const;
 	bool GetReverbEnable (void) const;
 	unsigned GetReverbSize (void) const;			// 0 .. 99
 	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
@@ -128,6 +130,8 @@ public:
 	void SetSendFX (unsigned nValue);
 	void SetSendFXParams (std::vector<unsigned> pParams);
 	void SetSendFXLevel (unsigned nValue);
+	void SetMasterFX (unsigned nValue);
+	void SetMasterFXParams (std::vector<unsigned> pParams);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
 	void SetReverbHighDamp (unsigned nValue);
@@ -221,6 +225,8 @@ private:
 	unsigned m_nSendFX;
 	std::string m_sSendFXParams;
 	unsigned m_nSendFXLevel;
+	unsigned m_nMasterFX;
+	std::string m_sMasterFXParams;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
 	unsigned m_nReverbHighDamp;

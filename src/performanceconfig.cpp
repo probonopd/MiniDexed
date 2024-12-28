@@ -223,7 +223,7 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
 		
-		}
+	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
@@ -248,6 +248,10 @@ bool CPerformanceConfig::Load (void)
 			+ std::to_string(m_nReverbLowPass) + "," + std::to_string(m_nReverbDiffusion) + ","
 			+ std::to_string(100);
 	}
+
+	// Set 3 Band EQ as Default Master FX
+	m_nMasterFX = m_Properties.GetNumber ("MasterFX", 9);
+	m_sMasterFXParams = m_Properties.GetString ("MasterFXParams", "");
 	
 	return bResult;
 }
@@ -421,6 +425,9 @@ bool CPerformanceConfig::Save (void)
 		tokens.shrink_to_fit();
 	}
 	
+	m_Properties.SetNumber ("MasterFX", m_nMasterFX);
+	m_Properties.SetString ("MasterFXParams", m_sMasterFXParams.c_str());
+
 	m_Properties.SetNumber ("Tempo", m_nTempo);
 
 	return m_Properties.Save ();
@@ -638,6 +645,15 @@ unsigned CPerformanceConfig::GetSendFXLevel (void) const
 	return m_nSendFXLevel;
 }
 
+unsigned CPerformanceConfig::GetMasterFX (void) const
+{
+	return m_nMasterFX;
+}
+
+std::vector<unsigned> CPerformanceConfig::GetMasterFXParams (void) const
+{
+	return StringToVector(m_sMasterFXParams);
+}
 
 bool CPerformanceConfig::GetReverbEnable (void) const
 {
@@ -697,6 +713,16 @@ void CPerformanceConfig::SetSendFXParams (std::vector<unsigned> pParams)
 void CPerformanceConfig::SetSendFXLevel (unsigned nValue)
 {
 	m_nSendFXLevel = nValue;
+}
+
+void CPerformanceConfig::SetMasterFX (unsigned nValue)
+{
+	m_nMasterFX = nValue;
+}
+
+void CPerformanceConfig::SetMasterFXParams (std::vector<unsigned> pParams)
+{
+	m_sMasterFXParams = VectorToString(pParams);
 }
 
 void CPerformanceConfig::SetReverbEnable (bool bValue)

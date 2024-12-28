@@ -58,8 +58,14 @@ public:
         a0HP = 1.0f - xHP;
         b1HP = -xHP;
         
-        out1LP = out2LP = out1HP = out2HP = 0.0f;
-        tmp1LP = tmp2LP = tmp1HP = tmp2HP = 0.0f;
+        out1LP = 0.0f;
+        out2LP = 0.0f;
+        out1HP = 0.0f;
+        out2HP = 0.0f;
+        tmp1LP = 0.0f;
+        tmp2LP = 0.0f;
+        tmp1HP = 0.0f;
+        tmp2HP = 0.0f;
     }
 
     virtual ~AudioEffect3BandEQ()
@@ -155,18 +161,31 @@ protected:
 
         for (uint32_t i=0; i < len; ++i)
         {
-            tmp1LP = a0LP * in1[i] - b1LP * tmp1LP + kDC_ADD;
-            tmp2LP = a0LP * in2[i] - b1LP * tmp2LP + kDC_ADD;
+            float inValue1, inValue2;
+            if (std::isnan(in1[i])) {
+                inValue1 = 0.0f;
+            } else {
+                inValue1 = in1[i];
+            }
+            if (std::isnan(in2[i])) {
+                inValue2 = 0.0f;
+            } else {
+                inValue2 = in2[i];
+            }
+
+            tmp1LP = a0LP * inValue1 - b1LP * tmp1LP + kDC_ADD;
+            tmp2LP = a0LP * inValue2 - b1LP * tmp2LP + kDC_ADD;
+
             out1LP = tmp1LP - kDC_ADD;
             out2LP = tmp2LP - kDC_ADD;
 
-            tmp1HP = a0HP * in1[i] - b1HP * tmp1HP + kDC_ADD;
-            tmp2HP = a0HP * in2[i] - b1HP * tmp2HP + kDC_ADD;
-            out1HP = in1[i] - tmp1HP - kDC_ADD;
-            out2HP = in2[i] - tmp2HP - kDC_ADD;
+            tmp1HP = a0HP * inValue1 - b1HP * tmp1HP + kDC_ADD;
+            tmp2HP = a0HP * inValue2 - b1HP * tmp2HP + kDC_ADD;
+            out1HP = inValue1 - tmp1HP - kDC_ADD;
+            out2HP = inValue2 - tmp2HP - kDC_ADD;
 
-            out1[i] = (out1LP*lowVol + (in1[i] - out1LP - out1HP)*midVol + out1HP*highVol) * outVol;
-            out2[i] = (out2LP*lowVol + (in2[i] - out2LP - out2HP)*midVol + out2HP*highVol) * outVol;
+            out1[i] = (out1LP*lowVol + (inValue1 - out1LP - out1HP)*midVol + out1HP*highVol) * outVol;
+            out2[i] = (out2LP*lowVol + (inValue2 - out2LP - out2HP)*midVol + out2HP*highVol) * outVol;
         }
     }
 private:

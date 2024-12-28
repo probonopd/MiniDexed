@@ -242,6 +242,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup reverb
 
+	SetParameter (ParameterMasterFXType, AudioEffect3BandEQ::ID);
+
 	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
@@ -730,6 +732,11 @@ std::string CMiniDexed::getMidiFXName (unsigned nTG)
 
 void CMiniDexed::setSendFXType (unsigned nType)
 {
+	// If the effect type is already set just return
+	if (m_SendFX != NULL  && m_SendFX->getId() == nType) {
+		return;
+	}
+
 	m_SendFXSpinLock.Acquire();
 	if (m_SendFX != NULL)
 	{
@@ -752,6 +759,30 @@ void CMiniDexed::setSendFXLevel (unsigned nValue)
 {
 	nValue = constrain((int)nValue, 0, 100);
 	m_SendFXLevel = (float32_t) nValue / 100.0f;	
+}
+
+void CMiniDexed::setMasterFXType (unsigned nType)
+{
+	// If the effect type is already set just return
+	if (m_MasterFX != NULL  && m_MasterFX->getId() == nType) {
+		return;
+	}
+
+	m_MasterFXSpinLock.Acquire();
+	if (m_MasterFX != NULL)
+	{
+		delete m_MasterFX;
+	}
+	m_MasterFX = newAudioEffect(nType, m_pConfig->GetSampleRate());
+	m_MasterFX->setTempo(m_nTempo);
+	m_MasterFXSpinLock.Release();
+
+	m_UI.ParameterChanged ();
+}
+
+std::string CMiniDexed::getMasterFXName ()
+{
+	return m_MasterFX->getName();
 }
 
 void CMiniDexed::SetReverbSend (unsigned nReverbSend, unsigned nTG)
@@ -868,6 +899,7 @@ void CMiniDexed::setTempo(unsigned nValue)
 
 	// Set Tempo to FXs
 	m_SendFX->setTempo(m_nTempo);
+	m_MasterFX->setTempo(m_nTempo);
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_InsertFX[nTG]->setTempo(m_nTempo);
@@ -1090,6 +1122,10 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		setSendFXLevel(nValue);
 		break;
 
+	case ParameterMasterFXType:
+		setMasterFXType(nValue);
+		break;
+
 	case ParameterPerformanceSelectChannel:
 		// Nothing more to do
 		break;
@@ -1119,6 +1155,8 @@ int CMiniDexed::GetParameter (TParameter Parameter)
 		return m_SendFX->getId();
 	case ParameterSendFXLevel:
 		return roundf(m_SendFXLevel * 100);
+	case ParameterMasterFXType:
+		return m_MasterFX->getId();
 	case ParameterTempo:
 		return this->getTempo();
 	default:
@@ -1276,6 +1314,18 @@ int CMiniDexed::GetSendFXParameter (unsigned Parameter, unsigned nFXType) {
 	return m_SendFX->getParameter(Parameter);
 }
 
+void CMiniDexed::SetMasterFXParameter (unsigned Parameter, int nValue, unsigned nFXType) {
+	assert (m_MasterFX->getId() == nFXType);
+
+	m_MasterFX->setParameter(Parameter, nValue);
+}
+
+int CMiniDexed::GetMasterFXParameter (unsigned Parameter, unsigned nFXType) {
+	assert (m_MasterFX->getId() == nFXType);
+
+	return m_MasterFX->getParameter(Parameter);
+}
+
 void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -1365,19 +1415,18 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
+		uint8_t indexL=0, indexR=1;
 		float32_t SampleBuffer[2][nFrames];
 
 		m_MidiArpSpinLock[0]->Acquire();
 		m_MidiArp[0]->process(nFrames);
 		m_MidiArpSpinLock[0]->Release();
 		
-		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
+		m_pTG[0]->getSamples (SampleBuffer[indexL], nFrames);
 		
 		m_InsertFXSpinLock[0]->Acquire();
-		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
+		m_InsertFX[0]->process(SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
 		m_InsertFXSpinLock[0]->Release();
-
-		uint8_t indexL=0, indexR=1;
 
 		reverb_send_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
 		
@@ -1402,6 +1451,10 @@ void CMiniDexed::ProcessSound (void)
 		arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
 
 		m_SendFXSpinLock.Release ();
+
+		m_MasterFXSpinLock.Acquire ();
+		m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
+		m_MasterFXSpinLock.Release ();
 
 		// swap stereo channels if needed prior to writing back out
 		if (m_bChannelsSwapped)
@@ -1541,8 +1594,8 @@ void CMiniDexed::ProcessSound (void)
 			{
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
-					tg_mixer->doAddMix(i, m_OutputLevel[i][0], m_OutputLevel[i][1]);
-					reverb_send_mixer->doAddMix(i, m_OutputLevel[i][0], m_OutputLevel[i][1]);
+					tg_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
+					reverb_send_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
 				}
 				// END TG mixing
 
@@ -1576,6 +1629,10 @@ void CMiniDexed::ProcessSound (void)
 
 				m_SendFXSpinLock.Release ();
 				// END adding reverb
+
+				m_MasterFXSpinLock.Acquire ();
+				m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
+				m_MasterFXSpinLock.Release ();
 
 				// swap stereo channels if needed prior to writing back out
 				if (m_bChannelsSwapped)
@@ -1723,6 +1780,12 @@ bool CMiniDexed::DoSavePerformance (void)
 	pParams.clear();
 	pParams.shrink_to_fit();
 	m_PerformanceConfig.SetSendFXLevel (roundf(m_SendFXLevel * 100));
+
+	m_PerformanceConfig.SetMasterFX (m_MasterFX->getId());
+	std::vector<unsigned> pMasterParams = m_MasterFX->getParameters();
+	m_PerformanceConfig.SetMasterFXParams (pMasterParams);
+	pMasterParams.clear();
+	pMasterParams.shrink_to_fit();
 
 	m_PerformanceConfig.SetTempo (m_nTempo);
 
@@ -2218,6 +2281,12 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		pParams.clear();
 		pParams.shrink_to_fit();
 		SetParameter (ParameterSendFXLevel, m_PerformanceConfig.GetSendFXLevel ());
+
+		setMasterFXType(m_PerformanceConfig.GetMasterFX ());
+		std::vector<unsigned> pMasterParams = m_PerformanceConfig.GetMasterFXParams ();
+		m_MasterFX->setParameters(pMasterParams);
+		pMasterParams.clear();
+		pMasterParams.shrink_to_fit();
 
 		SetParameter (ParameterTempo, m_PerformanceConfig.GetTempo ());
 }

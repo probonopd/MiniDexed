@@ -109,6 +109,8 @@ public:
 	void setSendFXType (unsigned nType);
 	std::string getSendFXName ();
 	void setSendFXLevel (unsigned nValue);
+	void setMasterFXType (unsigned nType);
+	std::string getMasterFXName ();
 	
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
@@ -166,6 +168,7 @@ public:
 		ParameterCompressorEnable,
 		ParameterSendFXType,
 		ParameterSendFXLevel,
+		ParameterMasterFXType,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
 		ParameterTempo,
@@ -238,6 +241,9 @@ public:
 
 	void SetSendFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
 	int GetSendFXParameter (unsigned Parameter, unsigned nFXType);
+
+	void SetMasterFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
+	int GetMasterFXParameter (unsigned Parameter, unsigned nFXType);
 
 	// access (global or OP-related) parameter of the active voice of a TG
 	static const unsigned NoOP = 6;		// for global parameters
@@ -346,10 +352,12 @@ private:
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 	AudioEffect* m_SendFX = NULL;
 	float32_t m_SendFXLevel = 1.0f;
+	AudioEffect* m_MasterFX = NULL;
 	
 	CSpinLock* m_MidiArpSpinLock[CConfig::AllToneGenerators];
 	CSpinLock* m_InsertFXSpinLock[CConfig::AllToneGenerators];
 	CSpinLock m_SendFXSpinLock;
+	CSpinLock m_MasterFXSpinLock;
 	
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;

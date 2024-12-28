@@ -117,6 +117,11 @@ private:
 	static void EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static CUIMenu::TMenuItem* getSendFXMenuItem(unsigned type);
 
+	static void MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMasterFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getMasterFXMenuItem(unsigned type);
+
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
 	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
@@ -175,6 +180,7 @@ private:
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
 	static const TMenuItem s_SendFXMenu[];
+	static const TMenuItem s_MasterFXMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_InsertFX[];
 	static const TMenuItem s_MidiFX[];

@@ -94,10 +94,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
 	{"Compress", EditGlobalParameter, 0, CMiniDexed::ParameterCompressorEnable},
-	{"Send FX",	MenuHandlerSendFX},
-#ifdef ARM_ALLOW_MULTI_CORE
-	//{"Reverb",	MenuHandler,		s_ReverbMenu},
-#endif
+	{"Send FX", MenuHandlerSendFX},
+	{"Master FX", MenuHandlerMasterFX},
 	{0}
 };
 
@@ -139,6 +137,13 @@ const CUIMenu::TMenuItem CUIMenu::s_SendFXMenu[] =
 	{"Type:", EditGlobalParameter, 0, CMiniDexed::ParameterSendFXType},
 	{"Edit:", EditSendFX},
 	{"Level", EditGlobalParameter, 0, CMiniDexed::ParameterSendFXLevel},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_MasterFXMenu[] =
+{
+	{"Type:", EditGlobalParameter, 0, CMiniDexed::ParameterMasterFXType},
+	{"Edit:", EditMasterFX},
 	{0}
 };
 
@@ -415,6 +420,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	1,	1,	ToOnOff},		// ParameterCompressorEnable
 	{0,	AudioEffects::Types::UNKNOWN - 1, 1, ToFXType}, // ParameterSendFXType
 	{0,	100, 1}, // ParameterSendFXLevel
+	{0,	AudioEffects::Types::UNKNOWN - 1, 1, ToFXType}, // ParameterMasterFXType
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
 	{0, NUM_PERFORMANCE_BANKS, 1},	// ParameterPerformanceBank
 	{30, 250, 1} // ParameterTempo
@@ -1259,6 +1265,90 @@ void CUIMenu::MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 }
 
+void CUIMenu::MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Setup menu when it's open
+	if (!pUIMenu->m_pCurrentMenu)
+	{
+		pUIMenu->m_pCurrentMenu = s_MasterFXMenu;
+	}
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		// Get current FX Name
+		std::string fxName = pUIMenu->m_pMiniDexed->getMasterFXName();
+
+		// Create Paramter with type label
+		std::string value;
+		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+		if (pUIMenu->m_nCurrentSelection < 2)
+		{
+			value.append(fxName);
+		}
+
+		pUIMenu->m_pUI->DisplayWrite (
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			"",
+			value.c_str(),
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
 void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	CMiniDexed::TParameter Param = (CMiniDexed::TParameter) pUIMenu->m_nCurrentParameter;
@@ -1927,6 +2017,140 @@ void CUIMenu::EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	// Get value again after change
 	nValue = pUIMenu->m_pMiniDexed->GetSendFXParameter (nParam, nFXType);
+	CUIMenu::TToString *pToString = rParam.ToString;
+	string Value;
+	if (pToString)
+	{
+		Value = (*pToString) (nValue);
+	}
+	else
+	{
+		Value = to_string (nValue);
+	}
+
+	pUIMenu->m_pUI->DisplayWrite (
+				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					  "",
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+}
+
+void CUIMenu::EditMasterFX (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	int nFXType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterMasterFXType);
+	pUIMenu->m_pCurrentMenu = getMasterFXMenuItem(nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		if (nFXType == 0)
+		{
+			break;
+		}
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		string fxName = pUIMenu->m_pMiniDexed->getMasterFXName();
+
+		pUIMenu->m_pUI->DisplayWrite (
+			fxName.c_str(),
+			"",
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name,
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
+void CUIMenu::EditMasterFXParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Get FX type
+	int nFXType = pUIMenu->m_pMiniDexed->GetParameter(CMiniDexed::ParameterMasterFXType);
+	
+	// Get Param
+	unsigned nParam = pUIMenu->m_nCurrentParameter;
+	TParameter pParam = getFXParameter(nFXType, nParam);
+	const TParameter &rParam = pParam;
+
+	int nValue = pUIMenu->m_pMiniDexed->GetMasterFXParameter (nParam, nFXType);
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventPressAndStepDown:
+		nValue -= rParam.Increment * 9;
+	case MenuEventStepDown:
+		nValue -= rParam.Increment * pUIMenu->m_nStepCount;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		pUIMenu->m_pMiniDexed->SetMasterFXParameter (nParam, nValue, nFXType);
+		break;
+
+	case MenuEventPressAndStepUp:
+		nValue += rParam.Increment * 9;
+	case MenuEventStepUp:
+		nValue += rParam.Increment * pUIMenu->m_nStepCount;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		pUIMenu->m_pMiniDexed->SetMasterFXParameter (nParam, nValue, nFXType);
+		break;
+
+	default:
+		return;
+	}
+
+	// Get value again after change
+	nValue = pUIMenu->m_pMiniDexed->GetMasterFXParameter (nParam, nFXType);
 	CUIMenu::TToString *pToString = rParam.ToString;
 	string Value;
 	if (pToString)
@@ -3193,6 +3417,20 @@ CUIMenu::TMenuItem* CUIMenu::getSendFXMenuItem(unsigned type)
 	while(menu[i].Name != NULL)
 	{
 		menu[i].Handler = EditSendFXParameter;
+		i++;
+	}
+	
+	return menu;
+}
+
+CUIMenu::TMenuItem* CUIMenu::getMasterFXMenuItem(unsigned type)
+{
+	CUIMenu::TMenuItem* menu = getFXMenuItem(type);
+	
+	unsigned i = 0;
+	while(menu[i].Name != NULL)
+	{
+		menu[i].Handler = EditMasterFXParameter;
 		i++;
 	}
 	
