@@ -1369,12 +1369,60 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		float32_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (SampleBuffer, nFrames);
+		float32_t SampleBuffer[2][nFrames];
 
-		// Convert single float array (mono) to int16 array
-		int16_t tmp_int[nFrames];
-		arm_float_to_q15(SampleBuffer,tmp_int,nFrames);
+		m_MidiArpSpinLock[0]->Acquire();
+		m_MidiArp[0]->process(nFrames);
+		m_MidiArpSpinLock[0]->Release();
+		
+		m_pTG[0]->getSamples (SampleBuffer[0], nFrames);
+		
+		m_InsertFXSpinLock[0]->Acquire();
+		m_InsertFX[0]->process(SampleBuffer[0], SampleBuffer[0], SampleBuffer[0], SampleBuffer[1], nFrames);
+		m_InsertFXSpinLock[0]->Release();
+
+		uint8_t indexL=0, indexR=1;
+
+		reverb_send_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
+		
+		float32_t ReverbBuffer[2][nFrames];
+		float32_t ReverbSendBuffer[2][nFrames];
+
+		arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
+		arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
+		arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
+		arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
+
+		m_SendFXSpinLock.Acquire ();
+
+		reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
+		m_SendFX->process(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], ReverbBuffer[indexL], ReverbBuffer[indexR], nFrames);
+
+		// scale down and add left reverb buffer by reverb level 
+		arm_scale_f32(ReverbBuffer[indexL], m_SendFXLevel, ReverbBuffer[indexL], nFrames);
+		arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+		// scale down and add right reverb buffer by reverb level 
+		arm_scale_f32(ReverbBuffer[indexR], m_SendFXLevel, ReverbBuffer[indexR], nFrames);
+		arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+
+		m_SendFXSpinLock.Release ();
+
+		// swap stereo channels if needed prior to writing back out
+		if (m_bChannelsSwapped)
+		{
+			indexL=1;
+			indexR=0;
+		}
+
+		// Convert dual float array (left, right) to single int16 array (left/right)
+		float32_t tmp_float[nFrames*2];
+		int16_t tmp_int[nFrames*2];
+		for(uint16_t i=0; i<nFrames;i++)
+		{
+			tmp_float[i*2]=SampleBuffer[indexL][i];
+			tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
+		}
+		arm_float_to_q15(tmp_float,tmp_int,nFrames*2);
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
