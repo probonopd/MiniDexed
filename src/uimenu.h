@@ -112,10 +112,14 @@ private:
 	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static CUIMenu::TMenuItem* getInsertFXMenuItem(unsigned type);
 
-	static void MenuHandlerSendFX (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditSendFX (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditSendFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static CUIMenu::TMenuItem* getSendFXMenuItem(unsigned type);
+	static void MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX1Parameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX2Parameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getSendFX1MenuItem(unsigned type);
+	static CUIMenu::TMenuItem* getSendFX2MenuItem(unsigned type);
 
 	static void MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -179,7 +183,8 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
-	static const TMenuItem s_SendFXMenu[];
+	static const TMenuItem s_SendFX1Menu[];
+	static const TMenuItem s_SendFX2Menu[];
 	static const TMenuItem s_MasterFXMenu[];
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_InsertFX[];

@@ -112,9 +112,13 @@ public:
 
 	// Effects
 	bool GetCompressorEnable (void) const;
-	unsigned GetSendFX (void) const;
-	std::vector<unsigned> GetSendFXParams (void) const;
-	unsigned GetSendFXLevel (void) const;
+	unsigned GetSendFX1 (void) const;
+	std::vector<unsigned> GetSendFX1Params (void) const;
+	unsigned GetSendFX1SendLevel (void) const;
+	unsigned GetSendFX1Level (void) const;
+	unsigned GetSendFX2 (void) const;
+	std::vector<unsigned> GetSendFX2Params (void) const;
+	unsigned GetSendFX2Level (void) const;
 	unsigned GetMasterFX (void) const;
 	std::vector<unsigned> GetMasterFXParams (void) const;
 	bool GetReverbEnable (void) const;
@@ -127,9 +131,13 @@ public:
 	unsigned GetTempo (void) const;
 
 	void SetCompressorEnable (bool bValue);
-	void SetSendFX (unsigned nValue);
-	void SetSendFXParams (std::vector<unsigned> pParams);
-	void SetSendFXLevel (unsigned nValue);
+	void SetSendFX1 (unsigned nValue);
+	void SetSendFX1Params (std::vector<unsigned> pParams);
+	void SetSendFX1SendLevel (unsigned nValue);
+	void SetSendFX1Level (unsigned nValue);
+	void SetSendFX2 (unsigned nValue);
+	void SetSendFX2Params (std::vector<unsigned> pParams);
+	void SetSendFX2Level (unsigned nValue);
 	void SetMasterFX (unsigned nValue);
 	void SetMasterFXParams (std::vector<unsigned> pParams);
 	void SetReverbEnable (bool bValue);
@@ -222,9 +230,13 @@ private:
 	std::string NewPerformanceName="";
 	
 	bool m_bCompressorEnable;
-	unsigned m_nSendFX;
-	std::string m_sSendFXParams;
-	unsigned m_nSendFXLevel;
+	unsigned m_nSendFX1;
+	std::string m_sSendFX1Params;
+	unsigned m_nSendFX1SendLevel;
+	unsigned m_nSendFX1Level;
+	unsigned m_nSendFX2;
+	std::string m_sSendFX2Params;
+	unsigned m_nSendFX2Level;
 	unsigned m_nMasterFX;
 	std::string m_sMasterFXParams;
 	bool m_bReverbEnable;

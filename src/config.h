@@ -64,6 +64,7 @@ public:
 	static const unsigned DefToneGenerators = AllToneGenerators;
 #endif
 #endif
+	static const unsigned SendFX2MixerChannels = AllToneGenerators + 1;
 	
 // Set maximum polyphony, depending on PI version.  This can be changed via config settings
 #if RASPPI == 1

@@ -106,12 +106,17 @@ public:
 	std::string getInsertFXName (unsigned nTG);
 	void setMidiFXType (unsigned nType, unsigned nTG);
 	std::string getMidiFXName (unsigned nTG);
-	void setSendFXType (unsigned nType);
-	std::string getSendFXName ();
-	void setSendFXLevel (unsigned nValue);
+	void setSendFX1Type (unsigned nType);
+	std::string getSendFX1Name ();
+	void setSendFX1SendFXLevel (unsigned nValue);
+	void setSendFX1Level (unsigned nValue);
+	void setSendFX2Type (unsigned nType);
+	std::string getSendFX2Name ();
+	void setSendFX2Level (unsigned nValue);
 	void setMasterFXType (unsigned nType);
 	std::string getMasterFXName ();
-	
+
+	void SetSendFX1 (unsigned nSend, unsigned nTG);
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
@@ -166,8 +171,11 @@ public:
 	enum TParameter
 	{
 		ParameterCompressorEnable,
-		ParameterSendFXType,
-		ParameterSendFXLevel,
+		ParameterSendFX1Type,
+		ParameterSendFX1SendFXLevel,
+		ParameterSendFX1Level,
+		ParameterSendFX2Type,
+		ParameterSendFX2Level,
 		ParameterMasterFXType,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
@@ -199,6 +207,7 @@ public:
 		TGParameterCutoff,
 		TGParameterResonance,
 		TGParameterMIDIChannel,
+		TGParameterSendFX1,
 		TGParameterReverbSend,
 		TGParameterPitchBendRange, 
 		TGParameterPitchBendStep,
@@ -239,8 +248,11 @@ public:
 	void SetTGFXParameter (unsigned Parameter, int nValue, unsigned nTG, unsigned nFXType);
 	int GetTGFXParameter (unsigned Parameter, unsigned nTG, unsigned nFXType);
 
-	void SetSendFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
-	int GetSendFXParameter (unsigned Parameter, unsigned nFXType);
+	void SetSendFX1Parameter (unsigned Parameter, int nValue, unsigned nFXType);
+	int GetSendFX1Parameter (unsigned Parameter, unsigned nFXType);
+
+	void SetSendFX2Parameter (unsigned Parameter, int nValue, unsigned nFXType);
+	int GetSendFX2Parameter (unsigned Parameter, unsigned nFXType);
 
 	void SetMasterFXParameter (unsigned Parameter, int nValue, unsigned nFXType);
 	int GetMasterFXParameter (unsigned Parameter, unsigned nFXType);
@@ -307,7 +319,7 @@ private:
 	unsigned m_nFootControlRange[CConfig::AllToneGenerators];
 	unsigned m_nFootControlTarget[CConfig::AllToneGenerators];
 	unsigned m_nBreathControlRange[CConfig::AllToneGenerators];	
-	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];
 	unsigned m_nAftertouchRange[CConfig::AllToneGenerators];	
 	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];
 		
@@ -317,7 +329,8 @@ private:
 
 	MidiEffect* m_MidiArp[CConfig::AllToneGenerators];
 	AudioEffect* m_InsertFX[CConfig::AllToneGenerators];
-	unsigned m_nReverbSend[CConfig::AllToneGenerators];
+	unsigned m_nSendFX1[CConfig::AllToneGenerators];
+	unsigned m_nSendFX2[CConfig::AllToneGenerators];
   
 	uint8_t m_nRawVoiceData[156]; 
 	
@@ -349,14 +362,19 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
-	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
-	AudioEffect* m_SendFX = NULL;
-	float32_t m_SendFXLevel = 1.0f;
+	AudioStereoMixer<CConfig::AllToneGenerators>* send_fx1_mixer;
+	AudioStereoMixer<CConfig::SendFX2MixerChannels>* send_fx2_mixer;
+	AudioEffect* m_SendFX1 = NULL;
+	AudioEffect* m_SendFX2 = NULL;
+	float32_t m_SendFX1SendFXLevel = 0.0f;
+	float32_t m_SendFX1Level = 1.0f;
+	float32_t m_SendFX2Level = 1.0f;
 	AudioEffect* m_MasterFX = NULL;
 	
 	CSpinLock* m_MidiArpSpinLock[CConfig::AllToneGenerators];
 	CSpinLock* m_InsertFXSpinLock[CConfig::AllToneGenerators];
-	CSpinLock m_SendFXSpinLock;
+	CSpinLock m_SendFX1SpinLock;
+	CSpinLock m_SendFX2SpinLock;
 	CSpinLock m_MasterFXSpinLock;
 	
 	bool m_bSavePerformance;

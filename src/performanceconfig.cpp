@@ -237,13 +237,23 @@ bool CPerformanceConfig::Load (void)
 
 	m_nTempo = m_Properties.GetNumber ("Tempo", 120);
 
+	m_nSendFX1 = m_Properties.GetNumber ("SendFX1", 7);
+	m_sSendFX1Params = m_Properties.GetString ("SendFX1Params", "");
+	m_nSendFX1SendLevel = m_Properties.GetNumber ("SendFX1SendLevel", 0);
+	m_nSendFX1Level = m_Properties.GetNumber ("SendFX1Level", 100);
+
 	// Set EFFECT_REVERB as Default for backward compatibility
 	// EFFECT_REVERB 7
-	m_nSendFX = m_Properties.GetNumber ("SendFX", 7);
-	m_sSendFXParams = m_Properties.GetString ("SendFXParams", "");
-	m_nSendFXLevel = m_Properties.GetNumber ("SendFXLevel", m_nReverbLevel);
-	if (m_nSendFX == 7 && m_sSendFXParams.empty()) {
-		m_sSendFXParams = std::to_string(m_bReverbEnable == 1 ? 0 : 1) + "," + std::to_string(m_nReverbSize) + ","
+	// Support for first FX version with only one send effect for backward compatibility
+	m_nSendFX2 = m_Properties.GetNumber ("SendFX", 7);
+	m_sSendFX2Params = m_Properties.GetString ("SendFXParams", "");
+	m_nSendFX2Level = m_Properties.GetNumber ("SendFXLevel", m_nReverbLevel);
+	// Now read the new values, but use previous values as default
+	m_nSendFX2 = m_Properties.GetNumber ("SendFX2", m_nSendFX2);
+	m_sSendFX2Params = m_Properties.GetString ("SendFX2Params", m_sSendFX2Params.c_str());
+	m_nSendFX2Level = m_Properties.GetNumber ("SendFX2Level", m_nSendFX2Level);
+	if (m_nSendFX2 == 7 && m_sSendFX2Params.empty()) {
+		m_sSendFX2Params = std::to_string(m_bReverbEnable == 1 ? 0 : 1) + "," + std::to_string(m_nReverbSize) + ","
 			+ std::to_string(m_nReverbHighDamp) + "," + std::to_string(m_nReverbLowDamp) + ","
 			+ std::to_string(m_nReverbLowPass) + "," + std::to_string(m_nReverbDiffusion) + ","
 			+ std::to_string(100);
@@ -375,16 +385,21 @@ bool CPerformanceConfig::Save (void)
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
-	m_Properties.SetNumber ("SendFX", m_nSendFX);
-	m_Properties.SetString ("SendFXParams", m_sSendFXParams.c_str());
-	m_Properties.SetNumber ("SendFXLevel", m_nSendFXLevel);
+	m_Properties.SetNumber ("SendFX1", m_nSendFX1);
+	m_Properties.SetString ("SendFX1Params", m_sSendFX1Params.c_str());
+	m_Properties.SetNumber ("SendFX1SendLevel", m_nSendFX1SendLevel);
+	m_Properties.SetNumber ("SendFX1Level", m_nSendFX1Level);
+
+	m_Properties.SetNumber ("SendFX2", m_nSendFX2);
+	m_Properties.SetString ("SendFX2Params", m_sSendFX2Params.c_str());
+	m_Properties.SetNumber ("SendFX2Level", m_nSendFX2Level);
 
 	// For backward compatibility
 	// EFFECT_REVERB 7
-	if (m_nSendFX == 7)
+	if (m_nSendFX2 == 7)
 	{
 		std::vector<unsigned> tokens;
-		std::string params = m_sSendFXParams;
+		std::string params = m_sSendFX2Params;
 		char delimiter = ',';
 		std::stringstream ss(params);
 		std::string temp;
@@ -419,7 +434,7 @@ bool CPerformanceConfig::Save (void)
 				break;
 			}
 		}
-		m_Properties.SetNumber ("ReverbLevel", m_nSendFXLevel);
+		m_Properties.SetNumber ("ReverbLevel", m_nSendFX2Level);
 
 		tokens.clear();
 		tokens.shrink_to_fit();
@@ -630,19 +645,39 @@ bool CPerformanceConfig::GetCompressorEnable (void) const
 	return m_bCompressorEnable;
 }
 
-unsigned CPerformanceConfig::GetSendFX (void) const
+unsigned CPerformanceConfig::GetSendFX1 (void) const
 {
-	return m_nSendFX;
+	return m_nSendFX1;
 }
 
-std::vector<unsigned> CPerformanceConfig::GetSendFXParams (void) const
+unsigned CPerformanceConfig::GetSendFX2 (void) const
 {
-	return StringToVector(m_sSendFXParams);
+	return m_nSendFX2;
 }
 
-unsigned CPerformanceConfig::GetSendFXLevel (void) const
+std::vector<unsigned> CPerformanceConfig::GetSendFX1Params (void) const
 {
-	return m_nSendFXLevel;
+	return StringToVector(m_sSendFX1Params);
+}
+
+std::vector<unsigned> CPerformanceConfig::GetSendFX2Params (void) const
+{
+	return StringToVector(m_sSendFX2Params);
+}
+
+unsigned CPerformanceConfig::GetSendFX1SendLevel (void) const
+{
+	return m_nSendFX1SendLevel;
+}
+
+unsigned CPerformanceConfig::GetSendFX1Level (void) const
+{
+	return m_nSendFX1Level;
+}
+
+unsigned CPerformanceConfig::GetSendFX2Level (void) const
+{
+	return m_nSendFX2Level;
 }
 
 unsigned CPerformanceConfig::GetMasterFX (void) const
@@ -700,19 +735,39 @@ void CPerformanceConfig::SetCompressorEnable (bool bValue)
 	m_bCompressorEnable = bValue;
 }
 
-void CPerformanceConfig::SetSendFX (unsigned nValue)
+void CPerformanceConfig::SetSendFX1 (unsigned nValue)
 {
-	m_nSendFX = nValue;
+	m_nSendFX1 = nValue;
 }
 
-void CPerformanceConfig::SetSendFXParams (std::vector<unsigned> pParams)
+void CPerformanceConfig::SetSendFX2 (unsigned nValue)
 {
-	m_sSendFXParams = VectorToString(pParams);
+	m_nSendFX1 = nValue;
 }
 
-void CPerformanceConfig::SetSendFXLevel (unsigned nValue)
+void CPerformanceConfig::SetSendFX1Params (std::vector<unsigned> pParams)
 {
-	m_nSendFXLevel = nValue;
+	m_sSendFX1Params = VectorToString(pParams);
+}
+
+void CPerformanceConfig::SetSendFX2Params (std::vector<unsigned> pParams)
+{
+	m_sSendFX2Params = VectorToString(pParams);
+}
+
+void CPerformanceConfig::SetSendFX1SendLevel (unsigned nValue)
+{
+	m_nSendFX1SendLevel = nValue;
+}
+
+void CPerformanceConfig::SetSendFX1Level (unsigned nValue)
+{
+	m_nSendFX1Level = nValue;
+}
+
+void CPerformanceConfig::SetSendFX2Level (unsigned nValue)
+{
+	m_nSendFX2Level = nValue;
 }
 
 void CPerformanceConfig::SetMasterFX (unsigned nValue)
