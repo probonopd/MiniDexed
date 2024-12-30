@@ -164,8 +164,8 @@ public:
 	int GetParameter (TParameter Parameter);
 
 	std::string GetNewPerformanceDefaultName(void);
-	void SetNewPerformanceName(std::string nName);
-	void SetVoiceName (std::string VoiceName, unsigned nTG);
+	void SetNewPerformanceName(const std::string &Name);
+	void SetVoiceName (const std::string &VoiceName, unsigned nTG);
 	bool DeletePerformance(unsigned nID);
 	bool DoDeletePerformance(void);
 

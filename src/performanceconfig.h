@@ -137,7 +137,7 @@ public:
 	bool CreateNewPerformanceFile(void);
 	bool GetInternalFolderOk(); 
 	std::string GetNewPerformanceDefaultName(void);
-	void SetNewPerformanceName(std::string nName);
+	void SetNewPerformanceName(const std::string &Name);
 	bool DeletePerformance(unsigned nID);
 	bool CheckFreePerformanceSlot(void);
 	std::string AddPerformanceBankDirName(unsigned nBankID);
