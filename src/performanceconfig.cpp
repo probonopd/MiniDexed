@@ -1097,14 +1097,7 @@ std::string CPerformanceConfig::GetNewPerformanceDefaultName(void)
 
 void CPerformanceConfig::SetNewPerformanceName(const std::string &Name)
 {
-	int i = Name.length();
-	do
-	{
-		--i;
-	}
-	while (i >= 0 && Name[i] == 32);
-
-	NewPerformanceName = Name.substr(0, i + 1);
+	NewPerformanceName = Name.substr(0, Name.find_last_not_of(' ') + 1);
 }
 
 bool CPerformanceConfig::DeletePerformance(unsigned nID)
