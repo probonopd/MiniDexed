@@ -315,15 +315,11 @@ bool CMiniDexed::Initialize (void)
 	}
 	
 	// setup and start the sound device
-	int Channels = 1;	// 16-bit Mono
+	int Channels = 2;	// 16-bit Stereo
 #ifdef ARM_ALLOW_MULTI_CORE
 	if (m_bQuadDAC8Chan)
 	{
 		Channels = 8;	// 16-bit 8-channel mono
-	}
-	else
-	{
-		Channels = 2;	// 16-bit Stereo
 	}
 #endif
 	// Need 2 x ChunkSize / Channel queue frames as the audio driver uses
