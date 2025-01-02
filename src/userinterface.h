@@ -57,6 +57,10 @@ public:
 	// To be called from the MIDI device on reception of a MIDI CC message
 	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
 
+	void MIDIEventHandler (CUIMenu::TMenuEvent Event);
+
+	const void GetParameterInfos (CUIMenu::TCParameterInfo pParamInfo[8]);
+
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
 
