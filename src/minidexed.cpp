@@ -1968,9 +1968,9 @@ std::string CMiniDexed::GetNewPerformanceDefaultName(void)
 	return m_PerformanceConfig.GetNewPerformanceDefaultName();
 }
 
-void CMiniDexed::SetNewPerformanceName(std::string nName)
+void CMiniDexed::SetNewPerformanceName(const std::string &Name)
 {
-	m_PerformanceConfig.SetNewPerformanceName(nName);
+	m_PerformanceConfig.SetNewPerformanceName(Name);
 }
 
 bool CMiniDexed::IsValidPerformance(unsigned nID)
@@ -1983,7 +1983,7 @@ bool CMiniDexed::IsValidPerformanceBank(unsigned nBankID)
 	return m_PerformanceConfig.IsValidPerformanceBank(nBankID);
 }
 
-void CMiniDexed::SetVoiceName (std::string VoiceName, unsigned nTG)
+void CMiniDexed::SetVoiceName (const std::string &VoiceName, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return;  // Not an active TG
