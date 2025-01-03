@@ -359,7 +359,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	InitNetwork();
+	InitNetwork();  // returns bool but we continue even if something goes wrong
 
 	return true;
 }
@@ -2200,8 +2200,7 @@ void CMiniDexed::UpdateNetwork()
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet)
 		return;
-	//add wired network check as well
-	//add wired network check as well
+
 	bool bNetIsRunning = m_pNet->IsRunning();
 	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
@@ -2309,7 +2308,8 @@ bool CMiniDexed::InitNetwork()
 			LOGNOTE("WLAN initialized");
 		}
 		else
-			LOGERR("Failed to initialize WLAN");
+			LOGERR("Failed to initialize WLAN, maybe firmware files are missing?");
+			return false;
 	}
 	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
 	{
@@ -2338,9 +2338,13 @@ bool CMiniDexed::InitNetwork()
 			}
 			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
 			// WPASupplicant needs to be started after netdevice available
-			if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))	
+			if (NetDeviceType == NetDeviceTypeWLAN)	
 			{
-				if (!m_WPASupplicant.Initialize()) LOGERR("Failed to initialize WPASupplicant");
+				if (!m_WPASupplicant.Initialize()) {
+					// It seems no way to catch if config is missing unless circle provides it
+					// or we catch the faults in config file ourselves
+					LOGERR("Failed to initialize WPASupplicant, maybe wifi config is missing?"); 
+				}
 			}
 		}
 	return m_pNet != nullptr;
