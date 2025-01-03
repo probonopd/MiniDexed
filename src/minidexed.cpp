@@ -2200,7 +2200,6 @@ void CMiniDexed::UpdateNetwork()
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet)
 		return;
-
 	//add wired network check as well
 	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
@@ -2209,7 +2208,7 @@ void CMiniDexed::UpdateNetwork()
 	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= m_WPASupplicant.IsConnected();
 	
-	if (!m_bNetworkInit)
+	if (!m_bNetworkInit && bNetIsRunning)
 	{
 		m_bNetworkInit = true;
 		CString IPString;
@@ -2248,7 +2247,21 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		
+		// syslog configuration
+		if (m_pConfig->GetSyslogEnabled())
+		{
+			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+			if (ServerIP.IsSet () && !ServerIP.IsNull ())
+			{
+				static const u16 usServerPort = 8514;	// standard port is 514
+				CString IPString;
+				ServerIP.Format (&IPString);
+				LOGNOTE ("Sending log messages to syslog server %s:%u",
+					(const char *) IPString, (unsigned) usServerPort);
+
+				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+			}
+		}
 		m_bNetworkReady = true;
 	}
 
@@ -2290,12 +2303,10 @@ bool CMiniDexed::InitNetwork()
 	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
 	{
 		LOGNOTE("Initializing WLAN");
-
-		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		NetDeviceType = NetDeviceTypeWLAN;
+		if (m_WLAN.Initialize())
 		{
-			LOGNOTE("wlan and wpasupplicant initialized");
-			NetDeviceType = NetDeviceTypeWLAN;
-			
+			LOGNOTE("WLAN initialized");
 		}
 		else
 			LOGERR("Failed to initialize WLAN");
@@ -2319,29 +2330,18 @@ bool CMiniDexed::InitNetwork()
 					m_pConfig->GetNetworkHostname(),
 					NetDeviceType
 				);
-
-			if (!m_pNet->Initialize())
+			if (!m_pNet->Initialize(false))
 			{
 				LOGERR("Failed to initialize network subsystem");
 				delete m_pNet;
 				m_pNet = nullptr;
 			}
-
 			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
-
-			// syslog configuration
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-			if (ServerIP.IsSet () && !ServerIP.IsNull ())
+			// WPASupplicant needs to be started after netdevice available
+			if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))	
 			{
-				static const u16 usServerPort = 8514;	// standard port is 514
-				CString IPString;
-				ServerIP.Format (&IPString);
-				LOGNOTE ("Sending log messages to syslog server %s:%u",
-					(const char *) IPString, (unsigned) usServerPort);
-
-				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+				if (!m_WPASupplicant.Initialize()) LOGERR("Failed to initialize WPASupplicant");
 			}
-
 		}
 	return m_pNet != nullptr;
 }
