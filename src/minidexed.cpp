@@ -478,6 +478,7 @@ void CMiniDexed::Run (unsigned nCore)
 					m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
 				}
 			}
+			DataSyncBarrier ();
 		}
 	}
 }
@@ -1252,6 +1253,8 @@ void CMiniDexed::ProcessSound (void)
 		//
 		// Audio signal path after tone generators starts here
 		//
+
+		DataMemBarrier ();
 
 		if (m_bQuadDAC8Chan) {
 			// This is only supported when there are 8 TGs
