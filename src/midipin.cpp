@@ -25,7 +25,8 @@ LOGMODULE ("midipin");
 
 CMIDIPin::CMIDIPin (unsigned nPinNumber)
 :	m_nPinNumber (nPinNumber),
-	m_nValue (HIGH)
+	m_nValue (HIGH),
+	m_nRawValue (MIDIPIN_CENTER)
 {
 }
 
@@ -36,6 +37,11 @@ CMIDIPin::~CMIDIPin (void)
 unsigned CMIDIPin::Read (void)
 {
 	return m_nValue;
+}
+
+unsigned CMIDIPin::ReadRaw (void)
+{
+	return m_nRawValue;
 }
 
 void CMIDIPin::Write (unsigned nValue)
@@ -50,6 +56,10 @@ void CMIDIPin::Write (unsigned nValue)
 		// "off"
 		m_nValue = HIGH;
 	}
+
+	// Save the raw value for INC and DEC
+	m_nRawValue = nValue;
+
 	return;
 }
 
