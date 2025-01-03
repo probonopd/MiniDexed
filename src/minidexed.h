@@ -30,6 +30,7 @@
 #include "serialmididevice.h"
 #include "perftimer.h"
 #include <fatfs/ff.h>
+#include <atomic>
 #include <stdint.h>
 #include <string>
 #include <circle/types.h>
@@ -309,8 +310,8 @@ private:
 
 #ifdef ARM_ALLOW_MULTI_CORE
 //	unsigned m_nActiveTGsLog2;
-	volatile TCoreStatus m_CoreStatus[CORES];
-	volatile unsigned m_nFramesToProcess;
+	std::atomic<TCoreStatus> m_CoreStatus[CORES];
+	std::atomic<unsigned> m_nFramesToProcess;
 	float32_t m_OutputLevel[CConfig::AllToneGenerators][CConfig::MaxChunkSize];
 #endif
 

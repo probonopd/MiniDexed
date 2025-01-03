@@ -436,6 +436,7 @@ void CMiniDexed::Run (unsigned nCore)
 			while (m_CoreStatus[nCore] != CoreStatusIdle)
 			{
 				// just wait
+				WaitForInterrupt ();
 			}
 		}
 
@@ -449,9 +450,11 @@ void CMiniDexed::Run (unsigned nCore)
 		while (1)
 		{
 			m_CoreStatus[nCore] = CoreStatusIdle;		// ready to be kicked
+			SendIPI (1, IPI_USER);
 			while (m_CoreStatus[nCore] == CoreStatusIdle)
 			{
 				// just wait
+				WaitForInterrupt ();
 			}
 
 			// now kicked from core 1
@@ -478,6 +481,7 @@ void CMiniDexed::Run (unsigned nCore)
 					m_pTG[nTG]->getSamples (m_OutputLevel[nTG],m_nFramesToProcess);
 				}
 			}
+			DataSyncBarrier ();
 		}
 	}
 }
@@ -1230,6 +1234,7 @@ void CMiniDexed::ProcessSound (void)
 		{
 			assert (m_CoreStatus[nCore] == CoreStatusIdle);
 			m_CoreStatus[nCore] = CoreStatusBusy;
+			SendIPI (nCore, IPI_USER);
 		}
 
 		// process the TGs assigned to core 1
@@ -1245,6 +1250,7 @@ void CMiniDexed::ProcessSound (void)
 		{
 			while (m_CoreStatus[nCore] != CoreStatusIdle)
 			{
+				WaitForInterrupt ();
 				// just wait
 			}
 		}
@@ -1252,6 +1258,8 @@ void CMiniDexed::ProcessSound (void)
 		//
 		// Audio signal path after tone generators starts here
 		//
+
+		DataMemBarrier ();
 
 		if (m_bQuadDAC8Chan) {
 			// This is only supported when there are 8 TGs
