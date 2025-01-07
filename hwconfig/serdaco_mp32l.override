@@ -12,10 +12,10 @@ MIDIThru=umidi1,ttyS1
 SSD1306LCDI2CAddress=0x3c
 SSD1306LCDWidth=128
 SSD1306LCDHeight=32
-SSD1306LCDRotate=0
+SSD1306LCDRotate=1
 SSD1306LCDMirror=0
 
-LCDColumns=16
+LCDColumns=20
 LCDRows=2
 
 ButtonPinPrev=17
