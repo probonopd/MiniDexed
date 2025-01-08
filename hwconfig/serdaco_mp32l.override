@@ -29,3 +29,5 @@ ButtonActionSelect=click
 ButtonPinHome=23
 ButtonActionHome=longpress 
 ButtonPinShortcut=0
+
+EncoderEnabled=0
