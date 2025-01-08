@@ -1,0 +1,31 @@
+# mt32-Pi-Midi-Hat by Chrissy
+# https://github.com/chris-jh/mt32-pi-midi-hat
+
+SoundDevice=i2s
+SampleRate=48000
+DACI2CAddress=0
+ChannelsSwapped=0
+
+MIDIBaudRate=31250
+MIDIThru=umidi1,ttyS1
+
+SSD1306LCDI2CAddress=0x3c
+SSD1306LCDWidth=128
+SSD1306LCDHeight=64
+SSD1306LCDRotate=0
+SSD1306LCDMirror=0
+
+LCDColumns=20
+LCDRows=4
+
+ButtonPinPrev=22
+ButtonActionPrev=click
+ButtonPinNext=23
+ButtonActionNext=click
+ButtonPinBack=27
+ButtonActionBack=click  
+ButtonPinSelect=17
+ButtonActionSelect=click
+ButtonPinHome=17
+ButtonActionHome=longpress 
+ButtonPinShortcut=0
