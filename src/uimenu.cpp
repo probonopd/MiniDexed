@@ -1788,9 +1788,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 
 	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
-							Value.c_str (),
-							nValue > 0,
-							nValue < pUIMenu->m_pMiniDexed->GetLastPerformanceBank()-1);
+							Value.c_str (), true, true);
 }
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
