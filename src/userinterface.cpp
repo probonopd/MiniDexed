@@ -198,6 +198,16 @@ bool CUserInterface::Initialize (void)
 	return true;
 }
 
+void CUserInterface::MIDIEventHandler (CUIMenu::TMenuEvent Event)
+{
+	m_Menu.EventHandler (Event);
+}
+
+const void CUserInterface::GetParameterInfos (CUIMenu::TCParameterInfo pParamInfo[8])
+{
+	m_Menu.GetParameterInfos (pParamInfo);
+}
+
 void CUserInterface::Process (void)
 {
 	if (m_pLCDBuffered)
@@ -213,6 +223,7 @@ void CUserInterface::Process (void)
 void CUserInterface::ParameterChanged (void)
 {
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
+	m_pMiniDexed->UpdateDAWState ();
 }
 
 void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
@@ -396,7 +407,7 @@ void CUserInterface::UIButtonsEventStub (CUIButton::BtnEvent Event, void *pParam
 	pThis->UIButtonsEventHandler (Event);
 }
 
-void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
+void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiType, unsigned nMidiData1, unsigned nMidiData2)
 {
 	if (m_nMIDIButtonCh == CMIDIDevice::Disabled)
 	{
@@ -411,7 +422,7 @@ void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsi
 	
 	if (m_pUIButtons)
 	{
-		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
+		m_pUIButtons->BtnMIDICmdHandler (nMidiType, nMidiData1, nMidiData2);
 	}
 }
 

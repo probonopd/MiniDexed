@@ -84,6 +84,8 @@ public:
 	void keydown (int16_t pitch, uint8_t velocity, unsigned nTG);
 
 	void setSustain (bool sustain, unsigned nTG);
+	void setSostenuto (bool sostenuto, unsigned nTG);
+	void setHoldMode(bool holdmode, unsigned nTG);
 	void panic (uint8_t value, unsigned nTG);
 	void notesOff (uint8_t value, unsigned nTG);
 	void setModWheel (uint8_t value, unsigned nTG);
@@ -97,6 +99,7 @@ public:
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
+	void setEnabled(uint8_t enabled, uint8_t nTG);
 	void setPitchbendRange(uint8_t range, uint8_t nTG);
 	void setPitchbendStep(uint8_t step, uint8_t nTG);
 	void setPortamentoMode(uint8_t mode, uint8_t nTG);
@@ -189,7 +192,9 @@ public:
 		TGParameterPortamentoGlissando,
 		TGParameterPortamentoTime,
 		TGParameterMonoMode,  
-				
+		
+		TGParameterEnabled,
+		
 		TGParameterMWRange,
 		TGParameterMWPitch,
 		TGParameterMWAmplitude,
@@ -227,6 +232,12 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+
+	void DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			   bool bArrowDown, bool bArrowUp);
+
+	void UpdateDAWState ();
+	void UpdateDAWMenu (CUIMenu::TCPageType Type, s8 ucPage, u8 ucOP, u8 ucTG);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
@@ -272,7 +283,8 @@ private:
 	unsigned m_nPortamentoGlissando[CConfig::AllToneGenerators];	
 	unsigned m_nPortamentoTime[CConfig::AllToneGenerators];	
 	bool m_bMonoMode[CConfig::AllToneGenerators]; 
-				
+	bool m_bEnabled[CConfig::AllToneGenerators];
+
 	unsigned m_nModulationWheelRange[CConfig::AllToneGenerators];
 	unsigned m_nModulationWheelTarget[CConfig::AllToneGenerators];
 	unsigned m_nFootControlRange[CConfig::AllToneGenerators];
