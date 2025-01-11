@@ -133,6 +133,18 @@ void AudioEffectBigMuff::doProcess(const float32_t* inblockL, const float32_t* i
     
 		cont = 1;
     
+        if (inblockL != outblockL)
+        {
+            memcpy(outblockL, inblockL, len * sizeof(float32_t));
+        }
+        if (inblockR != outblockR)
+        {
+            memcpy(outblockR, inblockR, len * sizeof(float32_t));
+        }
+
+        printf("Realloc Big Muff END\n");
+        fflush(NULL);
+
 		return;
 	}
     
@@ -231,7 +243,7 @@ void AudioEffectBigMuff::doProcess(const float32_t* inblockL, const float32_t* i
 	
 	 /*****************************************************************/
 	
-	 for (uint32_t i=1; i<=len; i++)
+	for (uint32_t i=1; i<=len; i++)
     {
 		outblockL[i-1] = y3[i-1]*OUTPUT_GAIN; //-26dB
         outblockR[i-1] = outblockL[i-1];

@@ -131,6 +131,14 @@ void AudioEffectDS1::doProcess(const float32_t* inblockL, const float32_t* inblo
     
 		cont = 1;
     
+        if (inblockL != outblockL)
+        {
+            memcpy(outblockL, inblockL, len * sizeof(float32_t));
+        }
+        if (inblockR != outblockR) {
+            memcpy(outblockR, inblockR, len * sizeof(float32_t));
+        }
+    
 		return;
 	}
     
@@ -229,7 +237,7 @@ void AudioEffectDS1::doProcess(const float32_t* inblockL, const float32_t* inblo
     
     Down8_Float(outblockL, y2, len);
 	
-	 for (uint32_t i=1; i<=len; i++)
+	for (uint32_t i=1; i<=len; i++)
     {
 		outblockL[i-1] = outblockL[i-1]*OUTPUT_GAIN; //-15dB
         outblockR[i-1] = outblockL[i-1];

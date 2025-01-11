@@ -17,7 +17,11 @@ public:
     static const unsigned ID = 5;
     static constexpr const char* NAME = "Big Muff";
 
+#ifdef ARM_ALLOW_MULTI_CORE
     static const unsigned TAMANHO_DO_BUFFER = 256;
+#else
+    static const unsigned TAMANHO_DO_BUFFER = 1024;
+#endif
     static constexpr float32_t INPUT_GAIN  = 1;
     static constexpr float32_t OUTPUT_GAIN = 1;
     
