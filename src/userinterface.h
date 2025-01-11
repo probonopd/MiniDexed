@@ -89,6 +89,7 @@ private:
 	bool m_bSwitchPressed;
 	unsigned m_nRotaryEncoderLastReadTime;
 	int m_nRotaryEncoderCounter=0;
+	unsigned nLastLCDUpdateTime;
 
 	CUIMenu m_Menu;
 };

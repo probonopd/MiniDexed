@@ -701,7 +701,10 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	}
 
 	m_InsertFXSpinLock[nTG]->Acquire();
-	delete m_InsertFX[nTG];
+	if (m_InsertFX[nTG] != NULL)
+	{
+		delete m_InsertFX[nTG];
+	}
 	m_InsertFX[nTG] = newAudioEffect(nType, m_pConfig->GetSampleRate());
 	m_InsertFX[nTG]->setTempo(m_nTempo);
 	m_InsertFXSpinLock[nTG]->Release();
