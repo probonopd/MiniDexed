@@ -59,6 +59,7 @@ public:
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+	unsigned GetSendFX1Send (unsigned nTG) const;		// 0 .. 127
 	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPitchBendRange (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPitchBendStep (unsigned nTG) const;		// 0 .. 12
@@ -91,6 +92,7 @@ public:
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
+	void SetSendFX1Send (unsigned nValue, unsigned nTG);
 	void SetReverbSend (unsigned nValue, unsigned nTG);
 	void SetPitchBendRange (unsigned nValue, unsigned nTG);
 	void SetPitchBendStep (unsigned nValue, unsigned nTG);
@@ -198,6 +200,7 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
+	int m_nSendFX1Send[CConfig::AllToneGenerators];
 	int m_nReverbSend[CConfig::AllToneGenerators];
 	unsigned m_nPitchBendRange[CConfig::AllToneGenerators];
 	unsigned m_nPitchBendStep[CConfig::AllToneGenerators];

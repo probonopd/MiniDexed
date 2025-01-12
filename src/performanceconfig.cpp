@@ -175,6 +175,9 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
 
+		PropertyName.Format ("SendFX1%u", nTG+1);
+		m_nSendFX1Send[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
 		
@@ -237,7 +240,7 @@ bool CPerformanceConfig::Load (void)
 
 	m_nTempo = m_Properties.GetNumber ("Tempo", 120);
 
-	m_nSendFX1 = m_Properties.GetNumber ("SendFX1", 7);
+	m_nSendFX1 = m_Properties.GetNumber ("SendFX1", 2);
 	m_sSendFX1Params = m_Properties.GetString ("SendFX1Params", "");
 	m_nSendFX1SendLevel = m_Properties.GetNumber ("SendFX1SendLevel", 0);
 	m_nSendFX1Level = m_Properties.GetNumber ("SendFX1Level", 100);
@@ -331,6 +334,9 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("NoteShift%u", nTG+1);
 		m_Properties.SetSignedNumber (PropertyName, m_nNoteShift[nTG]);
+
+		PropertyName.Format ("SendFX1%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nSendFX1Send[nTG]);
 
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nReverbSend[nTG]);
@@ -538,6 +544,12 @@ int CPerformanceConfig::GetNoteShift (unsigned nTG) const
 	return m_nNoteShift[nTG];
 }
 
+unsigned CPerformanceConfig::GetSendFX1Send (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nSendFX1Send[nTG];
+}
+
 unsigned CPerformanceConfig::GetReverbSend (unsigned nTG) const
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -632,6 +644,12 @@ void CPerformanceConfig::SetNoteShift (int nValue, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
 	m_nNoteShift[nTG] = nValue;
+}
+
+void CPerformanceConfig::SetSendFX1Send (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nSendFX1Send[nTG] = nValue;
 }
 
 void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
@@ -742,7 +760,7 @@ void CPerformanceConfig::SetSendFX1 (unsigned nValue)
 
 void CPerformanceConfig::SetSendFX2 (unsigned nValue)
 {
-	m_nSendFX1 = nValue;
+	m_nSendFX2 = nValue;
 }
 
 void CPerformanceConfig::SetSendFX1Params (std::vector<unsigned> pParams)

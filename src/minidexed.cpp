@@ -1531,8 +1531,6 @@ void CMiniDexed::ProcessSound (void)
 		// BEGIN adding send fx 1
 		float32_t SendFXOutputBuffer[2][nFrames];
 		float32_t SendFXMixBuffer[2][nFrames];
-		arm_fill_f32(0.0f, SendFXOutputBuffer[indexL], nFrames);
-		arm_fill_f32(0.0f, SendFXOutputBuffer[indexR], nFrames);
 		arm_fill_f32(0.0f, SendFXMixBuffer[indexR], nFrames);
 		arm_fill_f32(0.0f, SendFXMixBuffer[indexL], nFrames);
 		
@@ -1542,14 +1540,12 @@ void CMiniDexed::ProcessSound (void)
 		m_SendFX1SpinLock.Release ();
 		
 		// send to FX 2
-		arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1SendFXLevel, SendFXMixBuffer[indexL], nFrames);
-		arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1SendFXLevel, SendFXMixBuffer[indexR], nFrames);
 		send_fx2_mixer->doAddMix(CConfig::SendFX2MixerChannels - 1, SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
 
-		// scale down and add left reverb buffer by reverb level 
+		// scale down and add left send fx buffer by send fx level 
 		arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1Level, SendFXOutputBuffer[indexL], nFrames);
 		arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-		// scale down and add right reverb buffer by reverb level 
+		// scale down and add right send fx buffer by send fx level 
 		arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1Level, SendFXOutputBuffer[indexR], nFrames);
 		arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
 		// END adding send fx 1
@@ -1561,10 +1557,10 @@ void CMiniDexed::ProcessSound (void)
 		m_SendFX2->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
 		m_SendFX2SpinLock.Release ();
 
-		// scale down and add left reverb buffer by reverb level 
+		// scale down and add left send fx buffer by send fx level 
 		arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX2Level, SendFXOutputBuffer[indexL], nFrames);
 		arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-		// scale down and add right reverb buffer by reverb level 
+		// scale down and add right send fx buffer by send fx level 
 		arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX2Level, SendFXOutputBuffer[indexR], nFrames);
 		arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
 		// END adding send fx 2
@@ -1903,23 +1899,32 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetAftertouchRange (m_nAftertouchRange[nTG], nTG);
 		m_PerformanceConfig.SetAftertouchTarget (m_nAftertouchTarget[nTG], nTG);
 		
+		m_PerformanceConfig.SetSendFX1Send (m_nSendFX1[nTG], nTG);
 		m_PerformanceConfig.SetReverbSend (m_nSendFX2[nTG], nTG);
 	}
 
 	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
 
+	m_PerformanceConfig.SetSendFX1 (m_SendFX1->getId());
+	std::vector<unsigned> pParamsSendFX1 = m_SendFX1->getParameters();
+	m_PerformanceConfig.SetSendFX1Params (pParamsSendFX1);
+	pParamsSendFX1.clear();
+	pParamsSendFX1.shrink_to_fit();
+	m_PerformanceConfig.SetSendFX1Level (roundf(m_SendFX1Level * 100));
+	m_PerformanceConfig.SetSendFX1SendLevel (roundf(m_SendFX1SendFXLevel * 100));
+
 	m_PerformanceConfig.SetSendFX2 (m_SendFX2->getId());
-	std::vector<unsigned> pParams = m_SendFX2->getParameters();
-	m_PerformanceConfig.SetSendFX2Params (pParams);
-	pParams.clear();
-	pParams.shrink_to_fit();
+	std::vector<unsigned> pParamsSendFX2 = m_SendFX2->getParameters();
+	m_PerformanceConfig.SetSendFX2Params (pParamsSendFX2);
+	pParamsSendFX2.clear();
+	pParamsSendFX2.shrink_to_fit();
 	m_PerformanceConfig.SetSendFX2Level (roundf(m_SendFX2Level * 100));
 
 	m_PerformanceConfig.SetMasterFX (m_MasterFX->getId());
-	std::vector<unsigned> pMasterParams = m_MasterFX->getParameters();
-	m_PerformanceConfig.SetMasterFXParams (pMasterParams);
-	pMasterParams.clear();
-	pMasterParams.shrink_to_fit();
+	std::vector<unsigned> pParamsMaster = m_MasterFX->getParameters();
+	m_PerformanceConfig.SetMasterFXParams (pParamsMaster);
+	pParamsMaster.clear();
+	pParamsMaster.shrink_to_fit();
 
 	m_PerformanceConfig.SetTempo (m_nTempo);
 
@@ -2392,6 +2397,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 			}
 			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
+			SetSendFX1 (m_PerformanceConfig.GetSendFX1Send (nTG), nTG);
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 					
 			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
@@ -2408,19 +2414,27 @@ void CMiniDexed::LoadPerformanceParameters(void)
 
 		// Effects
 		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
-		
+
+		setSendFX1Type(m_PerformanceConfig.GetSendFX1 ());
+		std::vector<unsigned> pParamsFX1 = m_PerformanceConfig.GetSendFX1Params ();
+		m_SendFX1->setParameters(pParamsFX1);
+		pParamsFX1.clear();
+		pParamsFX1.shrink_to_fit();
+		SetParameter (ParameterSendFX1Level, m_PerformanceConfig.GetSendFX1Level ());
+		SetParameter (ParameterSendFX1SendFXLevel, m_PerformanceConfig.GetSendFX1SendLevel ());
+
 		setSendFX2Type(m_PerformanceConfig.GetSendFX2 ());
-		std::vector<unsigned> pParams = m_PerformanceConfig.GetSendFX2Params ();
-		m_SendFX2->setParameters(pParams);
-		pParams.clear();
-		pParams.shrink_to_fit();
+		std::vector<unsigned> pParamsFX2 = m_PerformanceConfig.GetSendFX2Params ();
+		m_SendFX2->setParameters(pParamsFX2);
+		pParamsFX2.clear();
+		pParamsFX2.shrink_to_fit();
 		SetParameter (ParameterSendFX2Level, m_PerformanceConfig.GetSendFX2Level ());
 
 		setMasterFXType(m_PerformanceConfig.GetMasterFX ());
-		std::vector<unsigned> pMasterParams = m_PerformanceConfig.GetMasterFXParams ();
-		m_MasterFX->setParameters(pMasterParams);
-		pMasterParams.clear();
-		pMasterParams.shrink_to_fit();
+		std::vector<unsigned> pParamsMaster = m_PerformanceConfig.GetMasterFXParams ();
+		m_MasterFX->setParameters(pParamsMaster);
+		pParamsMaster.clear();
+		pParamsMaster.shrink_to_fit();
 
 		SetParameter (ParameterTempo, m_PerformanceConfig.GetTempo ());
 }
