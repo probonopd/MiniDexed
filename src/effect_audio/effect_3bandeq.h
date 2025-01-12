@@ -40,8 +40,8 @@ public:
         fMid = 0.0f;
         fHigh = 0.0f;
         fMaster = 0.0f;
-        fLowMidFreq = 440.0f;
-        fMidHighFreq = 2000.0f;
+        fLowMidFreq = 320.0f;
+        fMidHighFreq = 3100.0f;
 
         // Internal stuff
         lowVol = midVol = highVol = outVol = 1.0f;
