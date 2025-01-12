@@ -1634,9 +1634,11 @@ void CMiniDexed::ProcessSound (void)
 
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
 			
-			m_InsertFXSpinLock[i]->Acquire();
-			m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
-			m_InsertFXSpinLock[i]->Release();
+			if (!m_bQuadDAC8Chan) {
+				m_InsertFXSpinLock[i]->Acquire();
+				m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
+				m_InsertFXSpinLock[i]->Release();
+			}
 		}
 
 		// wait for cores 2 and 3 to complete their work
