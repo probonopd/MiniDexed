@@ -264,7 +264,7 @@ bool CPerformanceConfig::Load (void)
 
 	// Set 3 Band EQ as Default Master FX
 	m_nMasterFX = m_Properties.GetNumber ("MasterFX", 9);
-	m_sMasterFXParams = m_Properties.GetString ("MasterFXParams", "");
+	m_sMasterFXParams = m_Properties.GetString ("MasterFXParams", "0,50,50,50,50,320,3100");
 	
 	return bResult;
 }
