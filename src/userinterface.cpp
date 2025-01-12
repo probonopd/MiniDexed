@@ -53,6 +53,7 @@ CUserInterface::~CUserInterface (void)
 bool CUserInterface::Initialize (void)
 {
 	assert (m_pConfig);
+	nLastLCDUpdateTime = 0;
 
 	if (m_pConfig->GetLCDEnabled ())
 	{
@@ -152,7 +153,7 @@ bool CUserInterface::Initialize (void)
 		}
 		assert (m_pLCD);
 
-		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
+		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD, 256);
 		assert (m_pLCDBuffered);
 
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
@@ -188,6 +189,8 @@ bool CUserInterface::Initialize (void)
 			return false;
 		}
 
+		m_nRotaryEncoderLastReadTime = 0;
+		m_nRotaryEncoderCounter = 0;
 		m_pRotaryEncoder->RegisterEventHandler (EncoderEventStub, this);
 
 		LOGDBG ("Rotary encoder initialized");
@@ -200,10 +203,17 @@ bool CUserInterface::Initialize (void)
 
 void CUserInterface::Process (void)
 {
-	if (m_pLCDBuffered)
+	// Limit display updates to avoid glitches on sigle core RPis
+	unsigned nReadTime = CTimer::GetClockTicks ();
+	if (nReadTime - nLastLCDUpdateTime > 50000)
 	{
-		m_pLCDBuffered->Update ();
-	}
+		if (m_pLCDBuffered)
+		{
+			// Limit updates to 16 bytes to avoid glitches on sigle core RPis
+			m_pLCDBuffered->Update (16);
+        }
+        nLastLCDUpdateTime = nReadTime;
+    }
 	if (m_pUIButtons)
 	{
 		m_pUIButtons->Update();
@@ -280,6 +290,7 @@ void CUserInterface::LCDWrite (const char *pString)
 
 void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 {
+	unsigned nReadTime = CTimer::GetClockTicks ();
 	switch (Event)
 	{
 	case CKY040::EventSwitchDown:
@@ -291,6 +302,12 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventClockwise:
+		if (nReadTime - m_nRotaryEncoderLastReadTime > 100000 || m_nRotaryEncoderCounter < 0) {
+			m_nRotaryEncoderCounter = 0;
+		}
+		m_nRotaryEncoderLastReadTime = nReadTime;
+		m_nRotaryEncoderCounter++;
+		m_Menu.SetStepCount(std::max((m_nRotaryEncoderCounter / 6) * 5, 1));
 		if (m_bSwitchPressed) {
 			// We must reset the encoder switch button to prevent events from being
 			// triggered after the encoder is rotated
@@ -304,6 +321,12 @@ void CUserInterface::EncoderEventHandler (CKY040::TEvent Event)
 		break;
 
 	case CKY040::EventCounterclockwise:
+		if (nReadTime - m_nRotaryEncoderLastReadTime > 100000 || m_nRotaryEncoderCounter > 0) {
+			m_nRotaryEncoderCounter = 0;
+		}
+		m_nRotaryEncoderLastReadTime = nReadTime;
+		m_nRotaryEncoderCounter--;
+		m_Menu.SetStepCount(std::max(((m_nRotaryEncoderCounter * -1) / 6) * 5, 1));
 		if (m_bSwitchPressed) {
 			m_pUIButtons->ResetButton(m_pConfig->GetButtonPinShortcut());
 			m_Menu.EventHandler(CUIMenu::MenuEventPressAndStepDown);
@@ -340,10 +363,12 @@ void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 	switch (Event)
 	{
 	case CUIButton::BtnEventPrev:
+		m_Menu.SetStepCount(1);
 		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
 		break;
 
 	case CUIButton::BtnEventNext:
+		m_Menu.SetStepCount(1);
 		m_Menu.EventHandler (CUIMenu::MenuEventStepUp);
 		break;
 
@@ -411,6 +436,7 @@ void CUserInterface::UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsi
 	
 	if (m_pUIButtons)
 	{
+		m_Menu.SetStepCount(1);
 		m_pUIButtons->BtnMIDICmdHandler (nMidiCmd, nMidiData1, nMidiData2);
 	}
 }

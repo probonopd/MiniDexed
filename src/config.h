@@ -64,6 +64,7 @@ public:
 	static const unsigned DefToneGenerators = AllToneGenerators;
 #endif
 #endif
+	static const unsigned SendFX2MixerChannels = AllToneGenerators + 1;
 	
 // Set maximum polyphony, depending on PI version.  This can be changed via config settings
 #if RASPPI == 1
@@ -80,6 +81,7 @@ public:
 	static const unsigned DefaultNotes = 16;
 #endif
 
+	static const unsigned TGChannels = 2;
 	static const unsigned MaxChunkSize = 4096;
 
 #if RASPPI <= 3
@@ -189,6 +191,7 @@ public:
 	// Timeouts for button events in milliseconds
 	unsigned GetDoubleClickTimeout (void) const;
 	unsigned GetLongPressTimeout (void) const;
+	unsigned GetButtonsDebounceTime (void) const;
 
 	// GPIO Button Program and TG Selection
 	// GPIO pin numbers are chip numbers, not header positions
@@ -328,6 +331,7 @@ private:
 	
 	unsigned m_nDoubleClickTimeout;
 	unsigned m_nLongPressTimeout;
+	unsigned m_nButtonsDebounceTime;
 
 	unsigned m_nMIDIButtonCh;
 	unsigned m_nMIDIButtonNotes;
