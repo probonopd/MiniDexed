@@ -830,6 +830,24 @@ void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 	m_pTG[nTG]->setSustain (sustain);
 }
 
+void CMiniDexed::setSostenuto(bool sostenuto, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setSostenuto (sostenuto);
+}
+
+void CMiniDexed::setHoldMode(bool holdmode, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setHold (holdmode);
+}
+
 void CMiniDexed::panic(uint8_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -1169,7 +1187,7 @@ std::string CMiniDexed::GetVoiceName (unsigned nTG)
 	if (nTG < m_nToneGenerators)
 	{
 		assert (m_pTG[nTG]);
-		m_pTG[nTG]->setName (VoiceName);
+		m_pTG[nTG]->getName (VoiceName);
 	}
 	std::string Result (VoiceName);
 	return Result;
@@ -1992,7 +2010,7 @@ void CMiniDexed::SetVoiceName (const std::string &VoiceName, unsigned nTG)
 	char Name[11];
 	strncpy(Name, VoiceName.c_str(),10);
 	Name[10] = '\0';
-	m_pTG[nTG]->getName (Name);
+	m_pTG[nTG]->setName (Name);
 }
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
