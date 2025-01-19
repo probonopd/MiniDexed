@@ -98,6 +98,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		
 		m_nReverbSend[i] = 0;
 
+		m_bEnabled[i] = 1;
+
 		// Active the required number of active TGs
 		if (i<m_nToneGenerators)
 		{
@@ -830,6 +832,24 @@ void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 	m_pTG[nTG]->setSustain (sustain);
 }
 
+void CMiniDexed::setSostenuto(bool sostenuto, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setSostenuto (sostenuto);
+}
+
+void CMiniDexed::setHoldMode(bool holdmode, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setHold (holdmode);
+}
+
 void CMiniDexed::panic(uint8_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -922,6 +942,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 			assert (m_pTG[nTG]);
 			m_pTG[nTG]->setCompressor (!!nValue);
 		}
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbEnable:
@@ -929,6 +950,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->set_bypass (!nValue);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbSize:
@@ -936,6 +958,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->size (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbHighDamp:
@@ -943,6 +966,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->hidamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbLowDamp:
@@ -950,6 +974,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->lodamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbLowPass:
@@ -957,6 +982,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->lowpass (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbDiffusion:
@@ -964,6 +990,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->diffusion (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterReverbLevel:
@@ -971,6 +998,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		m_ReverbSpinLock.Acquire ();
 		reverb->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
+		m_UI.ParameterChanged ();
 		break;
 
 	case ParameterPerformanceSelectChannel:
@@ -1015,6 +1043,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
 	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
 	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+	case TGParameterEnabled:		setEnabled (nValue, nTG);	break;
 	
 	case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
 	case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
@@ -1072,6 +1101,7 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
 	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
 	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
+	case TGParameterEnabled:		return m_bEnabled[nTG] ? 1 : 0; 
 	
 	case TGParameterMWRange:					return getModController(0, 0, nTG);
 	case TGParameterMWPitch:					return getModController(0, 1, nTG);
@@ -1122,6 +1152,7 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 			}
 
 			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
+			m_UI.ParameterChanged ();
 
 			return;
 		}
@@ -1133,6 +1164,7 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 	assert (uchOffset < 156);
 
 	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+	m_UI.ParameterChanged ();
 }
 
 uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
@@ -1501,6 +1533,17 @@ void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
 	m_UI.ParameterChanged ();
 }
 
+void CMiniDexed::setEnabled (uint8_t enabled, uint8_t nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+	assert (m_pTG[nTG]);
+
+	m_bEnabled[nTG] = enabled != 0;
+	
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::setPitchbendRange(uint8_t range, uint8_t nTG)
 {
 	range = constrain (range, 0, 12);
@@ -1775,6 +1818,33 @@ void CMiniDexed::setMasterVolume (float32_t vol)
 	nMasterVolume=vol;
 }
 
+void CMiniDexed::DisplayWrite (const char *pMenu, const char *pParam, const char *pValue,
+			       bool bArrowDown, bool bArrowUp)
+{
+	m_UI.DisplayWrite (pMenu, pParam, pValue, bArrowDown, bArrowUp);
+
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i]->DisplayWrite (pMenu, pParam, pValue, bArrowDown, bArrowUp);
+	}
+}
+
+void CMiniDexed::UpdateDAWState ()
+{
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i]->UpdateDAWState ();
+	}
+}
+
+void CMiniDexed::UpdateDAWMenu (CUIMenu::TCPageType Type, s8 ucPage, u8 ucOP, u8 ucTG)
+{
+	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
+	{
+		m_pMIDIKeyboard[i]->UpdateDAWMenu (Type, ucPage, ucOP, ucTG);
+	}
+}
+
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
 {
 	return m_PerformanceConfig.GetPerformanceFileName(nID);
@@ -1938,6 +2008,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 			}
 			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
+			setEnabled(1, nTG);
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 					
 			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
