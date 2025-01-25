@@ -45,6 +45,7 @@ public:
 	void Process (void);
 
 	void ParameterChanged (void);
+	void DisplayChanged (void);
 
 	// Write to display in this format:
 	// +----------------+

@@ -212,6 +212,11 @@ void CUserInterface::Process (void)
 
 void CUserInterface::ParameterChanged (void)
 {
+	m_Menu.EventHandler (CUIMenu::MenuEventUpdateParameter);
+}
+
+void CUserInterface::DisplayChanged (void)
+{
 	m_Menu.EventHandler (CUIMenu::MenuEventUpdate);
 }
 
