@@ -248,6 +248,7 @@ public:
 	CIPAddress GetNetworkSubnetMask (void) const;
 	CIPAddress GetNetworkDefaultGateway (void) const;
 	CIPAddress GetNetworkDNSServer (void) const;
+	bool GetSyslogEnabled (void) const;
 	CIPAddress GetNetworkSyslogServerIPAddress (void) const;
 
 private:
@@ -373,6 +374,7 @@ private:
 	CIPAddress m_INetworkSubnetMask;
 	CIPAddress m_INetworkDefaultGateway;
 	CIPAddress m_INetworkDNSServer;
+	bool m_bSyslogEnabled;
 	CIPAddress m_INetworkSyslogServerIPAddress;
 };
 

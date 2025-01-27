@@ -203,11 +203,12 @@ void CConfig::Load (void)
 	// Network
 	m_bNetworkEnabled  = m_Properties.GetNumber ("NetworkEnabled", 0) != 0;
 	m_bNetworkDHCP  = m_Properties.GetNumber ("NetworkDHCP", 0) != 0;
-	m_NetworkType = m_Properties.GetString ("NetworkType", "wifi");
+	m_NetworkType = m_Properties.GetString ("NetworkType", "wlan");
 	m_NetworkHostname = m_Properties.GetString ("NetworkHostname", "MiniDexed");
 	m_INetworkIPAddress = m_Properties.GetIPAddress("NetworkIPAddress") != 0;
 	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
+	m_bSyslogEnabled  = m_Properties.GetNumber ("SyslogEnabled", 0) != 0;
 	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
 
 	const u8 *pSyslogServerIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress");
@@ -772,6 +773,11 @@ CIPAddress CConfig::GetNetworkDefaultGateway (void) const
 CIPAddress CConfig::GetNetworkDNSServer (void) const
 {
 	return m_INetworkDNSServer;
+}
+
+bool CConfig::GetSyslogEnabled (void) const
+{
+	return m_bSyslogEnabled;
 }
 
 CIPAddress CConfig::GetNetworkSyslogServerIPAddress (void) const
