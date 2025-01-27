@@ -2299,7 +2299,7 @@ bool CMiniDexed::InitNetwork()
 
 	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
-	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wlan") == 0))
 	{
 		LOGNOTE("Initializing WLAN");
 		NetDeviceType = NetDeviceTypeWLAN;
@@ -2343,7 +2343,7 @@ bool CMiniDexed::InitNetwork()
 				if (!m_WPASupplicant.Initialize()) {
 					// It seems no way to catch if config is missing unless circle provides it
 					// or we catch the faults in config file ourselves
-					LOGERR("Failed to initialize WPASupplicant, maybe wifi config is missing?"); 
+					LOGERR("Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
 				}
 			}
 		}
