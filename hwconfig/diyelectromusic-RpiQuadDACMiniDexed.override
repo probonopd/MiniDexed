@@ -1,0 +1,32 @@
+# diyelectromusic MiniDexed Quad DAC (RpiQuadDACMiniDexed)
+# https://github.com/diyelectromusic/sdemp_pcbs/tree/main/RpiQuadDACMiniDexed
+# https://diyelectromusic.com/2024/06/09/minidexed-quad-dac-pcb-design/
+# https://diyelectromusic.com/2024/06/09/minidexed-quad-dac-pcb-build-guide/
+
+SoundDevice=i2s
+QuadDAC8Chan=1
+
+LCDEnabled=1
+SSD1306LCDI2CAddress=0x3C
+SSD1306LCDWidth=128
+SSD1306LCDHeight=32
+SSD1306LCDRotate=1
+SSD1306LCDMirror=0
+
+LCDColumns=20
+LCDRows=2
+
+ButtonPinPrev=0
+ButtonActionPrev=
+ButtonPinNext=0
+ButtonActionNext=
+ButtonPinBack=5
+ButtonActionBack=click
+ButtonPinSelect=11
+ButtonActionSelect=click
+ButtonPinHome=6
+ButtonActionHome=click
+
+EncoderEnabled=1
+EncoderPinClock=10
+EncoderPinData=9
