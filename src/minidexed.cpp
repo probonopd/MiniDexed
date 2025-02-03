@@ -2299,25 +2299,34 @@ bool CMiniDexed::InitNetwork()
 
 	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
-	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wlan") == 0))
+	if (m_pConfig->GetNetworkEnabled())
 	{
-		LOGNOTE("Initializing WLAN");
-		NetDeviceType = NetDeviceTypeWLAN;
-		if (m_WLAN.Initialize())
+		if (strcmp(m_pConfig->GetNetworkType(), "wlan") == 0)
 		{
-			LOGNOTE("WLAN initialized");
+			LOGNOTE("Initializing WLAN");
+			NetDeviceType = NetDeviceTypeWLAN;
+			if (m_WLAN.Initialize())
+			{
+				LOGNOTE("WLAN initialized");
+			}
+			else
+			{
+				LOGERR("Failed to initialize WLAN, maybe firmware files are missing?");
+				return false;
+			}
 		}
-		else
-			LOGERR("Failed to initialize WLAN, maybe firmware files are missing?");
-			return false;
-	}
-	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
-	{
-		LOGNOTE("Initializing Ethernet");
-		NetDeviceType = NetDeviceTypeEthernet;
-	}
-
-	if (NetDeviceType != NetDeviceTypeUnknown)
+		else if (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0)
+		{
+			LOGNOTE("Initializing Ethernet");
+			NetDeviceType = NetDeviceTypeEthernet;
+		}
+		else 
+		{
+			LOGERR("Network type is not set, please check your minidexed configuration file.");
+			NetDeviceType = NetDeviceTypeUnknown;
+		}
+		
+		if (NetDeviceType != NetDeviceTypeUnknown)
 		{
 			if (m_pConfig->GetNetworkDHCP())
 				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
@@ -2336,16 +2345,18 @@ bool CMiniDexed::InitNetwork()
 				delete m_pNet;
 				m_pNet = nullptr;
 			}
-			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
 			// WPASupplicant needs to be started after netdevice available
 			if (NetDeviceType == NetDeviceTypeWLAN)	
 			{
-				if (!m_WPASupplicant.Initialize()) {
+				if (!m_WPASupplicant.Initialize()) 
+				{
 					// It seems no way to catch if config is missing unless circle provides it
 					// or we catch the faults in config file ourselves
 					LOGERR("Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
 				}
 			}
 		}
-	return m_pNet != nullptr;
+		return m_pNet != nullptr;
+	}
+
 }
