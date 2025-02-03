@@ -2346,7 +2346,7 @@ bool CMiniDexed::InitNetwork()
 				m_pNet = nullptr;
 			}
 			// WPASupplicant needs to be started after netdevice available
-			if (NetDeviceType == NetDeviceTypeWLAN)	
+			if (NetDeviceType == NetDeviceTypeWLAN)
 			{
 				if (!m_WPASupplicant.Initialize()) 
 				{
@@ -2355,6 +2355,7 @@ bool CMiniDexed::InitNetwork()
 					LOGERR("Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
 				}
 			}
+			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
 		}
 		return m_pNet != nullptr;
 	}
