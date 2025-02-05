@@ -359,7 +359,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	InitNetwork();
+	InitNetwork();  // returns bool but we continue even if something goes wrong
 
 	return true;
 }
@@ -2201,15 +2201,13 @@ void CMiniDexed::UpdateNetwork()
 	if (!m_pNet)
 		return;
 
-	//add wired network check as well
-	//add wired network check as well
 	bool bNetIsRunning = m_pNet->IsRunning();
 	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
 	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= m_WPASupplicant.IsConnected();
 	
-	if (!m_bNetworkInit)
+	if (!m_bNetworkInit && bNetIsRunning)
 	{
 		m_bNetworkInit = true;
 		CString IPString;
@@ -2248,7 +2246,21 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		
+		// syslog configuration
+		if (m_pConfig->GetSyslogEnabled())
+		{
+			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+			if (ServerIP.IsSet () && !ServerIP.IsNull ())
+			{
+				static const u16 usServerPort = 8514;	// standard port is 514
+				CString IPString;
+				ServerIP.Format (&IPString);
+				LOGNOTE ("Sending log messages to syslog server %s:%u",
+					(const char *) IPString, (unsigned) usServerPort);
+
+				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+			}
+		}
 		m_bNetworkReady = true;
 	}
 
@@ -2287,26 +2299,34 @@ bool CMiniDexed::InitNetwork()
 
 	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
-	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	if (m_pConfig->GetNetworkEnabled())
 	{
-		LOGNOTE("Initializing WLAN");
-
-		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		if (strcmp(m_pConfig->GetNetworkType(), "wlan") == 0)
 		{
-			LOGNOTE("wlan and wpasupplicant initialized");
+			LOGNOTE("Initializing WLAN");
 			NetDeviceType = NetDeviceTypeWLAN;
-			
+			if (m_WLAN.Initialize())
+			{
+				LOGNOTE("WLAN initialized");
+			}
+			else
+			{
+				LOGERR("Failed to initialize WLAN, maybe firmware files are missing?");
+				return false;
+			}
 		}
-		else
-			LOGERR("Failed to initialize WLAN");
-	}
-	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
-	{
-		LOGNOTE("Initializing Ethernet");
-		NetDeviceType = NetDeviceTypeEthernet;
-	}
-
-	if (NetDeviceType != NetDeviceTypeUnknown)
+		else if (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0)
+		{
+			LOGNOTE("Initializing Ethernet");
+			NetDeviceType = NetDeviceTypeEthernet;
+		}
+		else 
+		{
+			LOGERR("Network type is not set, please check your minidexed configuration file.");
+			NetDeviceType = NetDeviceTypeUnknown;
+		}
+		
+		if (NetDeviceType != NetDeviceTypeUnknown)
 		{
 			if (m_pConfig->GetNetworkDHCP())
 				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
@@ -2319,29 +2339,25 @@ bool CMiniDexed::InitNetwork()
 					m_pConfig->GetNetworkHostname(),
 					NetDeviceType
 				);
-
-			if (!m_pNet->Initialize())
+			if (!m_pNet->Initialize(false))
 			{
 				LOGERR("Failed to initialize network subsystem");
 				delete m_pNet;
 				m_pNet = nullptr;
 			}
-
-			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
-
-			// syslog configuration
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-			if (ServerIP.IsSet () && !ServerIP.IsNull ())
+			// WPASupplicant needs to be started after netdevice available
+			if (NetDeviceType == NetDeviceTypeWLAN)
 			{
-				static const u16 usServerPort = 8514;	// standard port is 514
-				CString IPString;
-				ServerIP.Format (&IPString);
-				LOGNOTE ("Sending log messages to syslog server %s:%u",
-					(const char *) IPString, (unsigned) usServerPort);
-
-				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+				if (!m_WPASupplicant.Initialize()) 
+				{
+					// It seems no way to catch if config is missing unless circle provides it
+					// or we catch the faults in config file ourselves
+					LOGERR("Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
+				}
 			}
-
+			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
 		}
-	return m_pNet != nullptr;
+		return m_pNet != nullptr;
+	}
+
 }
