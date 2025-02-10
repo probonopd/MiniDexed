@@ -241,6 +241,9 @@ public:
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
 
+	// Enable/Disable FXs
+	bool GetFXEnabled (void) const;
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -355,6 +358,8 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	bool m_bFXEnabled;
 };
 
 #endif

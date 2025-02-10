@@ -1521,53 +1521,59 @@ void CMiniDexed::ProcessSound (void)
 		
 		m_pTG[0]->getSamples (SampleBuffer[indexL], nFrames);
 		
-		m_InsertFXSpinLock[0]->Acquire();
-		m_InsertFX[0]->process(SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
-		m_InsertFXSpinLock[0]->Release();
+		if (m_pConfig->GetFXEnabled())
+		{
+			m_InsertFXSpinLock[0]->Acquire();
+			m_InsertFX[0]->process(SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
+			m_InsertFXSpinLock[0]->Release();
 
-		send_fx1_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
-		send_fx2_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
+			send_fx1_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
+			send_fx2_mixer->doAddMix(0, SampleBuffer[indexL], SampleBuffer[indexR]);
 
-		// BEGIN adding send fx 1
-		float32_t SendFXOutputBuffer[2][nFrames];
-		float32_t SendFXMixBuffer[2][nFrames];
-		arm_fill_f32(0.0f, SendFXMixBuffer[indexR], nFrames);
-		arm_fill_f32(0.0f, SendFXMixBuffer[indexL], nFrames);
-		
-		m_SendFX1SpinLock.Acquire ();
-		send_fx1_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
-		m_SendFX1->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
-		m_SendFX1SpinLock.Release ();
-		
-		// send to FX 2
-		send_fx2_mixer->doAddMix(CConfig::SendFX2MixerChannels - 1, SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+			// BEGIN adding send fx 1
+			float32_t SendFXOutputBuffer[2][nFrames];
+			float32_t SendFXMixBuffer[2][nFrames];
+			arm_fill_f32(0.0f, SendFXMixBuffer[indexR], nFrames);
+			arm_fill_f32(0.0f, SendFXMixBuffer[indexL], nFrames);
+			
+			m_SendFX1SpinLock.Acquire ();
+			send_fx1_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+			m_SendFX1->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
+			m_SendFX1SpinLock.Release ();
+			
+			// send to FX 2
+			send_fx2_mixer->doAddMix(CConfig::SendFX2MixerChannels - 1, SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
 
-		// scale down and add left send fx buffer by send fx level 
-		arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1Level, SendFXOutputBuffer[indexL], nFrames);
-		arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-		// scale down and add right send fx buffer by send fx level 
-		arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1Level, SendFXOutputBuffer[indexR], nFrames);
-		arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
-		// END adding send fx 1
+			// scale down and add left send fx buffer by send fx level 
+			arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1Level, SendFXOutputBuffer[indexL], nFrames);
+			arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
+			// scale down and add right send fx buffer by send fx level 
+			arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1Level, SendFXOutputBuffer[indexR], nFrames);
+			arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
+			// END adding send fx 1
 
+			// BEGIN adding send fx 2
+			m_SendFX2SpinLock.Acquire ();
+			send_fx2_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+			m_SendFX2->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
+			m_SendFX2SpinLock.Release ();
 
-		// BEGIN adding send fx 2
-		m_SendFX2SpinLock.Acquire ();
-		send_fx2_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
-		m_SendFX2->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
-		m_SendFX2SpinLock.Release ();
+			// scale down and add left send fx buffer by send fx level 
+			arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX2Level, SendFXOutputBuffer[indexL], nFrames);
+			arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
+			// scale down and add right send fx buffer by send fx level 
+			arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX2Level, SendFXOutputBuffer[indexR], nFrames);
+			arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
+			// END adding send fx 2
 
-		// scale down and add left send fx buffer by send fx level 
-		arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX2Level, SendFXOutputBuffer[indexL], nFrames);
-		arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-		// scale down and add right send fx buffer by send fx level 
-		arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX2Level, SendFXOutputBuffer[indexR], nFrames);
-		arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
-		// END adding send fx 2
-
-		m_MasterFXSpinLock.Acquire ();
-		m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
-		m_MasterFXSpinLock.Release ();
+			m_MasterFXSpinLock.Acquire ();
+			m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
+			m_MasterFXSpinLock.Release ();
+		}
+		else
+		{
+			memcpy(SampleBuffer[indexR], SampleBuffer[indexR], nFrames * sizeof(float32_t));
+		}
 
 		// swap stereo channels if needed prior to writing back out
 		if (m_bChannelsSwapped)
@@ -1634,7 +1640,8 @@ void CMiniDexed::ProcessSound (void)
 
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
 			
-			if (!m_bQuadDAC8Chan) {
+			if (!m_bQuadDAC8Chan && m_pConfig->GetFXEnabled())
+			{
 				m_InsertFXSpinLock[i]->Acquire();
 				m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
 				m_InsertFXSpinLock[i]->Release();
@@ -1710,8 +1717,12 @@ void CMiniDexed::ProcessSound (void)
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
 					tg_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
-					send_fx1_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
-					send_fx2_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
+
+					if (m_pConfig->GetFXEnabled())
+					{
+						send_fx1_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
+						send_fx2_mixer->doAddMix(i, m_OutputLevel[i][indexL], m_OutputLevel[i][indexR]);
+					}
 				}
 				// END TG mixing
 
@@ -1722,49 +1733,52 @@ void CMiniDexed::ProcessSound (void)
 				// get the mix of all TGs
 				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
 
-				// BEGIN adding send fx 1
-				float32_t SendFXOutputBuffer[2][nFrames];
-				float32_t SendFXMixBuffer[2][nFrames];
-				arm_fill_f32(0.0f, SendFXOutputBuffer[indexL], nFrames);
-				arm_fill_f32(0.0f, SendFXOutputBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, SendFXMixBuffer[indexR], nFrames);
-				arm_fill_f32(0.0f, SendFXMixBuffer[indexL], nFrames);
-				
-				m_SendFX1SpinLock.Acquire ();
-				send_fx1_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
-				m_SendFX1->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
-				m_SendFX1SpinLock.Release ();
-				
-				// send to FX 2
-				arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1SendFXLevel, SendFXMixBuffer[indexL], nFrames);
-				arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1SendFXLevel, SendFXMixBuffer[indexR], nFrames);
-				send_fx2_mixer->doAddMix(CConfig::SendFX2MixerChannels - 1, SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+				if (m_pConfig->GetFXEnabled())
+				{
+					// BEGIN adding send fx 1
+					float32_t SendFXOutputBuffer[2][nFrames];
+					float32_t SendFXMixBuffer[2][nFrames];
+					arm_fill_f32(0.0f, SendFXOutputBuffer[indexL], nFrames);
+					arm_fill_f32(0.0f, SendFXOutputBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, SendFXMixBuffer[indexR], nFrames);
+					arm_fill_f32(0.0f, SendFXMixBuffer[indexL], nFrames);
+					
+					m_SendFX1SpinLock.Acquire ();
+					send_fx1_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+					m_SendFX1->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
+					m_SendFX1SpinLock.Release ();
+					
+					// send to FX 2
+					arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1SendFXLevel, SendFXMixBuffer[indexL], nFrames);
+					arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1SendFXLevel, SendFXMixBuffer[indexR], nFrames);
+					send_fx2_mixer->doAddMix(CConfig::SendFX2MixerChannels - 1, SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
 
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1Level, SendFXOutputBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1Level, SendFXOutputBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
-				// END adding send fx 1
+					// scale down and add left reverb buffer by reverb level 
+					arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX1Level, SendFXOutputBuffer[indexL], nFrames);
+					arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
+					// scale down and add right reverb buffer by reverb level 
+					arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX1Level, SendFXOutputBuffer[indexR], nFrames);
+					arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
+					// END adding send fx 1
 
-				// BEGIN adding send fx 2
-				m_SendFX2SpinLock.Acquire ();
-				send_fx2_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
-				m_SendFX2->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
-				m_SendFX2SpinLock.Release ();
+					// BEGIN adding send fx 2
+					m_SendFX2SpinLock.Acquire ();
+					send_fx2_mixer->getMix(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR]);
+					m_SendFX2->process(SendFXMixBuffer[indexL], SendFXMixBuffer[indexR], SendFXOutputBuffer[indexL], SendFXOutputBuffer[indexR], nFrames);
+					m_SendFX2SpinLock.Release ();
 
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX2Level, SendFXOutputBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX2Level, SendFXOutputBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
-				// END adding send fx 2
+					// scale down and add left reverb buffer by reverb level 
+					arm_scale_f32(SendFXOutputBuffer[indexL], m_SendFX2Level, SendFXOutputBuffer[indexL], nFrames);
+					arm_add_f32(SampleBuffer[indexL], SendFXOutputBuffer[indexL], SampleBuffer[indexL], nFrames);
+					// scale down and add right reverb buffer by reverb level 
+					arm_scale_f32(SendFXOutputBuffer[indexR], m_SendFX2Level, SendFXOutputBuffer[indexR], nFrames);
+					arm_add_f32(SampleBuffer[indexR], SendFXOutputBuffer[indexR], SampleBuffer[indexR], nFrames);
+					// END adding send fx 2
 
-				m_MasterFXSpinLock.Acquire ();
-				m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
-				m_MasterFXSpinLock.Release ();
+					m_MasterFXSpinLock.Acquire ();
+					m_MasterFX->process(SampleBuffer[indexL], SampleBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
+					m_MasterFXSpinLock.Release ();
+				}
 
 				// swap stereo channels if needed prior to writing back out
 				if (m_bChannelsSwapped)
