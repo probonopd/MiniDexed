@@ -53,7 +53,6 @@ CUserInterface::~CUserInterface (void)
 bool CUserInterface::Initialize (void)
 {
 	assert (m_pConfig);
-	nLastLCDUpdateTime = 0;
 
 	if (m_pConfig->GetLCDEnabled ())
 	{
@@ -153,7 +152,7 @@ bool CUserInterface::Initialize (void)
 		}
 		assert (m_pLCD);
 
-		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD, 256);
+		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
 
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
@@ -203,17 +202,10 @@ bool CUserInterface::Initialize (void)
 
 void CUserInterface::Process (void)
 {
-	// Limit display updates to avoid glitches on sigle core RPis
-	unsigned nReadTime = CTimer::GetClockTicks ();
-	if (nReadTime - nLastLCDUpdateTime > 50000)
+	if (m_pLCDBuffered)
 	{
-		if (m_pLCDBuffered)
-		{
-			// Limit updates to 16 bytes to avoid glitches on sigle core RPis
-			m_pLCDBuffered->Update (16);
-        }
-        nLastLCDUpdateTime = nReadTime;
-    }
+		m_pLCDBuffered->Update ();
+	}
 	if (m_pUIButtons)
 	{
 		m_pUIButtons->Update();
