@@ -496,7 +496,14 @@ void CMiniDexed::Run (unsigned nCore)
 					m_pTG[nTG]->getSamples (m_OutputLevel[nTG][0],m_nFramesToProcess);
 
 					m_InsertFXSpinLock[nTG]->Acquire();
-					m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
+					if (!m_bQuadDAC8Chan && m_pConfig->GetFXEnabled())
+					{
+						m_InsertFX[nTG]->process(m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][0], m_OutputLevel[nTG][1], m_nFramesToProcess);
+					}
+					else
+					{
+						memcpy(m_OutputLevel[nTG][1], m_OutputLevel[nTG][0], m_nFramesToProcess * sizeof(float32_t));
+					}
 					m_InsertFXSpinLock[nTG]->Release();
 				}
 			}
@@ -1572,7 +1579,7 @@ void CMiniDexed::ProcessSound (void)
 		}
 		else
 		{
-			memcpy(SampleBuffer[indexR], SampleBuffer[indexR], nFrames * sizeof(float32_t));
+			memcpy(SampleBuffer[indexR], SampleBuffer[indexL], nFrames * sizeof(float32_t));
 		}
 
 		// swap stereo channels if needed prior to writing back out
@@ -1640,12 +1647,16 @@ void CMiniDexed::ProcessSound (void)
 
 			m_pTG[i]->getSamples (m_OutputLevel[i][0], nFrames);
 			
+			m_InsertFXSpinLock[i]->Acquire();
 			if (!m_bQuadDAC8Chan && m_pConfig->GetFXEnabled())
 			{
-				m_InsertFXSpinLock[i]->Acquire();
 				m_InsertFX[i]->process(m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][0], m_OutputLevel[i][1], nFrames);
-				m_InsertFXSpinLock[i]->Release();
 			}
+			else
+			{
+				memcpy(m_OutputLevel[i][1], m_OutputLevel[i][0], nFrames * sizeof(float32_t));
+			}
+			m_InsertFXSpinLock[i]->Release();
 		}
 
 		// wait for cores 2 and 3 to complete their work
