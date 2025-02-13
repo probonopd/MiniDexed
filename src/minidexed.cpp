@@ -106,18 +106,20 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		memset(m_OutputLevel[i][1], 0, CConfig::MaxChunkSize * sizeof(float32_t));
 #endif
 		
-		m_InsertFXSpinLock[i] = new CSpinLock();
-		m_InsertFX[i] = new AudioEffect(pConfig->GetSampleRate ());
 		m_nSendFX1[i] = 0;
 		m_nSendFX2[i] = 0;
 
 		// Active the required number of active TGs
 		if (i<m_nToneGenerators)
 		{
+			m_InsertFXSpinLock[i] = new CSpinLock();
+			m_InsertFX[i] = new AudioEffect(pConfig->GetSampleRate ());
+
 			m_uchOPMask[i] = 0b111111;	// All operators on
 
 			m_pTG[i] = new CDexedAdapter (m_nPolyphony, pConfig->GetSampleRate ());
 			assert (m_pTG[i]);
+
 			m_MidiArpSpinLock[i] = new CSpinLock();
 			m_MidiArp[i] = new MidiEffect(pConfig->GetSampleRate(), m_pTG[i]);
 
@@ -703,7 +705,7 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 
 	// If the effect type is already set just return
-	if (m_InsertFX[nTG]->getId() == nType) {
+	if (m_InsertFX[nTG] != NULL && m_InsertFX[nTG]->getId() == nType) {
 		return;
 	}
 
@@ -730,12 +732,15 @@ void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 
 	// If the effect type is already set just return
-	if (m_MidiArp[nTG]->getId() == nType) {
+	if (m_MidiArp[nTG] != NULL && m_MidiArp[nTG]->getId() == nType) {
 		return;
 	}
 
 	m_MidiArpSpinLock[nTG]->Acquire();
-	delete m_MidiArp[nTG];
+	if (m_MidiArp[nTG] != NULL)
+	{
+		delete m_MidiArp[nTG];
+	}
 	m_MidiArp[nTG] = newMidiEffect(nType, m_pConfig->GetSampleRate(), m_pTG[nTG]);
 	m_MidiArp[nTG]->setTempo(m_nTempo);
 	m_MidiArpSpinLock[nTG]->Release();
@@ -972,7 +977,7 @@ void CMiniDexed::setTempo(unsigned nValue)
 	m_SendFX1->setTempo(m_nTempo);
 	m_SendFX2->setTempo(m_nTempo);
 	m_MasterFX->setTempo(m_nTempo);
-	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
 	{
 		m_InsertFX[nTG]->setTempo(m_nTempo);
 		m_MidiArp[nTG]->setTempo(m_nTempo);
@@ -2402,17 +2407,19 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
 			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
 
-			setInsertFXType(m_PerformanceConfig.GetInsertFX (nTG), nTG);
-			std::vector<unsigned> pParams = m_PerformanceConfig.GetInsertFXParams(nTG);
-			m_InsertFX[nTG]->setParameters(pParams);
-			pParams.clear();
-			pParams.shrink_to_fit();
+			if (nTG < m_nToneGenerators) {
+				setInsertFXType(m_PerformanceConfig.GetInsertFX (nTG), nTG);
+				std::vector<unsigned> pParams = m_PerformanceConfig.GetInsertFXParams(nTG);
+				m_InsertFX[nTG]->setParameters(pParams);
+				pParams.clear();
+				pParams.shrink_to_fit();
 
-			setMidiFXType(m_PerformanceConfig.GetMidiFX (nTG), nTG);
-			std::vector<unsigned> pMidiFXParams = m_PerformanceConfig.GetMidiFXParams(nTG);
-			m_MidiArp[nTG]->setParameters(pMidiFXParams);
-			pMidiFXParams.clear();
-			pMidiFXParams.shrink_to_fit();
+				setMidiFXType(m_PerformanceConfig.GetMidiFX (nTG), nTG);
+				std::vector<unsigned> pMidiFXParams = m_PerformanceConfig.GetMidiFXParams(nTG);
+				m_MidiArp[nTG]->setParameters(pMidiFXParams);
+				pMidiFXParams.clear();
+				pMidiFXParams.shrink_to_fit();
+			}
 			
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
