@@ -1,0 +1,31 @@
+# diyelectromusic Raspberry Pi MiniDexed IO Module (HD44780 Version) (RpiMiniDexedHD44780)
+# https://github.com/diyelectromusic/sdemp_pcbs/tree/main/RpiMiniDexedHD44780
+# https://diyelectromusic.wordpress.com/2022/08/16/minidexed-raspberry-pi-io-board-part-3/
+
+SoundDevice=i2s
+
+LCDEnabled=1
+LCDPinEnable=10
+LCDPinRegisterSelect=9
+LCDPinReadWrite=0
+LCDPinData4=22
+LCDPinData5=27
+LCDPinData6=17
+LCDPinData7=4
+LCDI2CAddress=0x00
+SSD1306LCDI2CAddress=0
+LCDColumns=16
+LCDRows=2
+
+EncoderEnabled=1
+EncoderPinClock=24
+EncoderPinData=23
+For the two buttons, and the rotary encoder switch itself:
+
+ButtonPinBack=25
+ButtonActionBack=longpress
+ButtonPinSelect=25
+ButtonActionSelect=click
+ButtonPinHome=25
+ButtonActionHome=doubleclick
+ButtonPinShortcut=25

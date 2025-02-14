@@ -83,7 +83,7 @@ const int16_t AudioWaveformSine[257] = {
  -4808, -4011, -3212, -2410, -1608,  -804,     0
 };
 
-AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
+AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate) : AudioEffect(samplerate)
 {
     input_attn = 0.5f;
     in_allp_k = INP_ALLP_COEFF;
@@ -154,6 +154,87 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
     lfo2_adder = (UINT32_MAX + 1)/(samplerate * LFO2_FREQ_HZ);  
 
     reverb_level = 0.0f;
+
+    this->setParameter(AudioEffectPlateReverb::Param::SIZE, 70);
+	this->setParameter(AudioEffectPlateReverb::Param::HIGH_DAMP, 50);
+	this->setParameter(AudioEffectPlateReverb::Param::LOW_DAMP, 50);
+	this->setParameter(AudioEffectPlateReverb::Param::LOW_PASS, 30);
+	this->setParameter(AudioEffectPlateReverb::Param::DIFFUSION, 65);
+	this->setParameter(AudioEffectPlateReverb::Param::MIX, 50);
+    this->setParameter(AudioEffectPlateReverb::Param::LEVEL, 99);
+}
+
+void AudioEffectPlateReverb::initializeSendFX()
+{
+	this->setParameter(AudioEffectPlateReverb::Param::MIX, 100);
+}
+
+void AudioEffectPlateReverb::setParameter(unsigned param, unsigned value)
+{
+    switch (param)
+    {
+    case AudioEffectPlateReverb::Param::BYPASS:
+        this->setBypass(value == 1);
+        break;
+    case AudioEffectPlateReverb::Param::SIZE:
+        this->sizeValue = value;
+        this->size((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::HIGH_DAMP:
+        this->hidampValue = value;
+        this->hidamp((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::LOW_DAMP:
+        this->lodampValue = value;
+        this->lodamp((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::LOW_PASS:
+        this->lowpassValue = value;
+        this->lowpass((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::DIFFUSION:
+        this->diffusionValue = value;
+        this->diffusion((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::MIX:
+        this->setMix((float32_t) value / 100.0f);
+        break;
+    case AudioEffectPlateReverb::Param::LEVEL:
+        this->level((float32_t) value / 100.0f);
+        break;
+    default:
+        break;
+    }
+}
+
+unsigned AudioEffectPlateReverb::getParameter(unsigned param)
+{
+    switch (param)
+    {
+    case AudioEffectPlateReverb::Param::BYPASS:
+	return this->getBypass() ? 1 : 0;
+    case AudioEffectPlateReverb::Param::SIZE:
+        return this->sizeValue;
+    case AudioEffectPlateReverb::Param::HIGH_DAMP:
+        return this->hidampValue;
+    case AudioEffectPlateReverb::Param::LOW_DAMP:
+        return this->lodampValue;
+    case AudioEffectPlateReverb::Param::LOW_PASS:
+        return this->lowpassValue;
+    case AudioEffectPlateReverb::Param::DIFFUSION:
+        return this->diffusionValue;
+    case AudioEffectPlateReverb::Param::MIX:
+        return roundf(this->mix * 100);
+    case AudioEffectPlateReverb::Param::LEVEL:
+        return roundf(this->reverb_level * 100);
+    default:
+        return 0;
+    }
+}
+
+void AudioEffectPlateReverb::doProcess(const float32_t* inblockL, const float32_t* inblockR, float32_t* outblockL, float32_t* outblockR, uint16_t len)
+{
+    this->doReverb(inblockL, inblockR, outblockL, outblockR, len);
 }
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
@@ -235,7 +316,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         y += (int64_t)y1 * idx;
         lfo2_out_cos = (int32_t) (y >> (32-8)); // 16bit output   
 
-	input = inblockL[i] * input_attn;
+	    input = inblockL[i] * input_attn;
 
         // chained input allpasses, channel L
         acc = in_allp1_bufL[in_allp1_idxL]  + input * in_allp_k;  
@@ -405,10 +486,10 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-	rvbblockL[i] = master_lowpass_l;
+	    rvbblockL[i] = inblockL[i] * dryMix + master_lowpass_l * wetMix;
 
         // Channel R
-        #ifdef TAP1_MODULATED
+#ifdef TAP1_MODULATED
         temp16 = (lp_dly1_idx + lp_dly1_offset_R + (lfo2_out_cos>>LFO_FRAC_BITS)) %  (sizeof(lp_dly1_buf)/sizeof(float32_t));
         temp1 = lp_dly1_buf[temp16++];    // sample now
         if (temp16  >= sizeof(lp_dly1_buf)/sizeof(float32_t)) temp16 = 0;
@@ -416,10 +497,10 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         input = (float32_t)(lfo2_out_cos & LFO_FRAC_MASK) / ((float32_t)LFO_FRAC_MASK); // interp. k
 
         acc = (temp1*(1.0f-input) + temp2*input)* 0.8f;
-        #else
+#else
         temp16 = (lp_dly1_idx + lp_dly1_offset_R) %  (sizeof(lp_dly1_buf)/sizeof(float32_t));
         acc = lp_dly1_buf[temp16] * 0.8f;
-        #endif
+#endif
 #ifdef TAP2_MODULATED
         temp16 = (lp_dly2_idx + lp_dly2_offset_R + (lfo1_out_cos>>LFO_FRAC_BITS)) % (sizeof(lp_dly2_buf)/sizeof(float32_t));
         temp1 = lp_dly2_buf[temp16++];
@@ -449,6 +530,6 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
 
-	rvbblockR[i] = master_lowpass_r;
+	    rvbblockR[i] = inblockR[i] * dryMix + master_lowpass_r * wetMix;
     }
 }
