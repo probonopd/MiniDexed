@@ -724,7 +724,12 @@ void CMiniDexed::setInsertFXType (unsigned nType, unsigned nTG)
 std::string CMiniDexed::getInsertFXName (unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
-	return m_InsertFX[nTG]->getName();
+	if (nTG < m_nToneGenerators)
+	{
+		assert (m_InsertFX[nTG]);
+		return m_InsertFX[nTG]->getName();
+	}
+	return "";
 }
 
 void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
@@ -751,7 +756,12 @@ void CMiniDexed::setMidiFXType (unsigned nType, unsigned nTG)
 std::string CMiniDexed::getMidiFXName (unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
-	return m_MidiArp[nTG]->getName();
+	if (nTG < m_nToneGenerators)
+	{
+		assert (m_MidiArp[nTG]);
+		return m_MidiArp[nTG]->getName();
+	}
+	return "";
 }
 
 void CMiniDexed::setSendFX1Type (unsigned nType)
@@ -1336,8 +1346,18 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterMIDIChannel:	return m_nMIDIChannel[nTG];
 	case TGParameterSendFX1:	return m_nSendFX1[nTG];
 	case TGParameterReverbSend:	return m_nSendFX2[nTG];
-	case TGParameterInsertFXType:	return m_InsertFX[nTG]->getId();
-	case TGParameterMidiFXType:	return m_MidiArp[nTG]->getId();
+	case TGParameterInsertFXType:
+		if (nTG < m_nToneGenerators)
+		{
+			return m_InsertFX[nTG]->getId();
+		}
+		return 0;
+	case TGParameterMidiFXType:
+		if (nTG < m_nToneGenerators)
+		{
+			return m_MidiArp[nTG]->getId();
+		}
+		return 0;
 	case TGParameterPitchBendRange:	return m_nPitchBendRange[nTG];
 	case TGParameterPitchBendStep:	return m_nPitchBendStep[nTG];
 	case TGParameterPortamentoMode:		return m_nPortamentoMode[nTG];

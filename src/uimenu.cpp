@@ -1029,6 +1029,9 @@ void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->m_pCurrentMenu = s_MidiFX;
 	}
+
+	// Identify TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
 	
 	switch (Event)
 	{
@@ -1037,6 +1040,12 @@ void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+
+		// Check if TG is enabled
+		if (nTG >= pUIMenu->m_pConfig->GetToneGenerators()) {
+			break;
+		}
+
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
@@ -1082,8 +1091,6 @@ void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Identify TG
-		unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
 		// Create TG label
 		string TG ("TG");
 		TG += to_string (nTG+1);
@@ -1116,6 +1123,9 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		pUIMenu->m_pCurrentMenu = s_InsertFX;
 	}
+
+	// Identify TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
 	
 	switch (Event)
 	{
@@ -1124,6 +1134,12 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		
+		// Check if TG is enabled
+		if (nTG >= pUIMenu->m_pConfig->GetToneGenerators()) {
+			break;
+		}
+
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
@@ -1169,8 +1185,6 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Identify TG
-		unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1]; 
 		// Create TG label
 		string TG ("TG");
 		TG += to_string (nTG+1);
