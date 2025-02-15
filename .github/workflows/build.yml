@@ -96,7 +96,7 @@ jobs:
       with:
         name: ${{ env.artifactName }} # Exported above
         path: ./sdcard/*
-        retention-days: 3 # To not exceed the free MB/month quota so quickly
+        retention-days: 14 # To not exceed the free MB/month quota so quickly
     - name: Upload to GitHub Releases (only when building from main branch)
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
