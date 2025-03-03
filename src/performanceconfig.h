@@ -26,6 +26,7 @@
 #include "config.h"
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
+#include <vector>
 #define NUM_VOICE_PARAM 156
 #define NUM_PERFORMANCES 128
 #define NUM_PERFORMANCE_BANKS 128
@@ -48,12 +49,17 @@ public:
 	unsigned GetMIDIChannel (unsigned nTG) const;		// 0 .. 15, omni, off
 	unsigned GetVolume (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPan (unsigned nTG) const;			// 0 .. 127
+	unsigned GetInsertFX (unsigned nTG) const;		// 0 .. X
+	std::vector<unsigned> GetInsertFXParams (unsigned nTG) const;
+	unsigned GetMidiFX (unsigned nTG) const;		// 0 .. X
+	std::vector<unsigned> GetMidiFXParams (unsigned nTG) const;
 	int GetDetune (unsigned nTG) const;			// -99 .. 99
 	unsigned GetCutoff (unsigned nTG) const;		// 0 .. 99
 	unsigned GetResonance (unsigned nTG) const;		// 0 .. 99
 	unsigned GetNoteLimitLow (unsigned nTG) const;		// 0 .. 127
 	unsigned GetNoteLimitHigh (unsigned nTG) const;		// 0 .. 127
 	int GetNoteShift (unsigned nTG) const;			// -24 .. 24
+	unsigned GetSendFX1Send (unsigned nTG) const;		// 0 .. 127
 	unsigned GetReverbSend (unsigned nTG) const;		// 0 .. 127
 	unsigned GetPitchBendRange (unsigned nTG) const;		// 0 .. 12
 	unsigned GetPitchBendStep (unsigned nTG) const;		// 0 .. 12
@@ -76,12 +82,17 @@ public:
 	void SetMIDIChannel (unsigned nValue, unsigned nTG);
 	void SetVolume (unsigned nValue, unsigned nTG);
 	void SetPan (unsigned nValue, unsigned nTG);
+	void SetInsertFX (unsigned nValue, unsigned nTG);
+	void SetInsertFXParams (std::vector<unsigned> pParams, unsigned nTG);
+	void SetMidiFX (unsigned nValue, unsigned nTG);
+	void SetMidiFXParams (std::vector<unsigned> pParams, unsigned nTG);
 	void SetDetune (int nValue, unsigned nTG);
 	void SetCutoff (unsigned nValue, unsigned nTG);
 	void SetResonance (unsigned nValue, unsigned nTG);
 	void SetNoteLimitLow (unsigned nValue, unsigned nTG);
 	void SetNoteLimitHigh (unsigned nValue, unsigned nTG);
 	void SetNoteShift (int nValue, unsigned nTG);
+	void SetSendFX1Send (unsigned nValue, unsigned nTG);
 	void SetReverbSend (unsigned nValue, unsigned nTG);
 	void SetPitchBendRange (unsigned nValue, unsigned nTG);
 	void SetPitchBendStep (unsigned nValue, unsigned nTG);
@@ -103,6 +114,15 @@ public:
 
 	// Effects
 	bool GetCompressorEnable (void) const;
+	unsigned GetSendFX1 (void) const;
+	std::vector<unsigned> GetSendFX1Params (void) const;
+	unsigned GetSendFX1SendLevel (void) const;
+	unsigned GetSendFX1Level (void) const;
+	unsigned GetSendFX2 (void) const;
+	std::vector<unsigned> GetSendFX2Params (void) const;
+	unsigned GetSendFX2Level (void) const;
+	unsigned GetMasterFX (void) const;
+	std::vector<unsigned> GetMasterFXParams (void) const;
 	bool GetReverbEnable (void) const;
 	unsigned GetReverbSize (void) const;			// 0 .. 99
 	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
@@ -110,8 +130,18 @@ public:
 	unsigned GetReverbLowPass (void) const;			// 0 .. 99
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
 	unsigned GetReverbLevel (void) const;			// 0 .. 99
+	unsigned GetTempo (void) const;
 
 	void SetCompressorEnable (bool bValue);
+	void SetSendFX1 (unsigned nValue);
+	void SetSendFX1Params (std::vector<unsigned> pParams);
+	void SetSendFX1SendLevel (unsigned nValue);
+	void SetSendFX1Level (unsigned nValue);
+	void SetSendFX2 (unsigned nValue);
+	void SetSendFX2Params (std::vector<unsigned> pParams);
+	void SetSendFX2Level (unsigned nValue);
+	void SetMasterFX (unsigned nValue);
+	void SetMasterFXParams (std::vector<unsigned> pParams);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
 	void SetReverbHighDamp (unsigned nValue);
@@ -119,6 +149,7 @@ public:
 	void SetReverbLowPass (unsigned nValue);
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
+	void SetTempo (unsigned nValue);
 
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
@@ -159,12 +190,17 @@ private:
 	unsigned m_nMIDIChannel[CConfig::AllToneGenerators];
 	unsigned m_nVolume[CConfig::AllToneGenerators];
 	unsigned m_nPan[CConfig::AllToneGenerators];
+	unsigned m_nInsertFX[CConfig::AllToneGenerators];
+	std::string m_sInsertFXParams[CConfig::AllToneGenerators];
+	unsigned m_nMidiFX[CConfig::AllToneGenerators];
+	std::string m_sMidiFXParams[CConfig::AllToneGenerators];
 	int m_nDetune[CConfig::AllToneGenerators];
 	unsigned m_nCutoff[CConfig::AllToneGenerators];
 	unsigned m_nResonance[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
+	int m_nSendFX1Send[CConfig::AllToneGenerators];
 	int m_nReverbSend[CConfig::AllToneGenerators];
 	unsigned m_nPitchBendRange[CConfig::AllToneGenerators];
 	unsigned m_nPitchBendStep[CConfig::AllToneGenerators];
@@ -197,6 +233,15 @@ private:
 	std::string NewPerformanceName="";
 	
 	bool m_bCompressorEnable;
+	unsigned m_nSendFX1;
+	std::string m_sSendFX1Params;
+	unsigned m_nSendFX1SendLevel;
+	unsigned m_nSendFX1Level;
+	unsigned m_nSendFX2;
+	std::string m_sSendFX2Params;
+	unsigned m_nSendFX2Level;
+	unsigned m_nMasterFX;
+	std::string m_sMasterFXParams;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
 	unsigned m_nReverbHighDamp;
@@ -204,6 +249,10 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+	unsigned m_nTempo;
+
+	std::string VectorToString (std::vector<unsigned> pParams);
+	std::vector<unsigned> StringToVector (std::string sParams) const;
 };
 
 #endif

@@ -59,6 +59,7 @@ public:
 	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
 
 	void EventHandler (TMenuEvent Event);
+	void SetStepCount (unsigned StepCount);
 	
 private:
 	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -82,6 +83,7 @@ private:
 	};
 
 private:
+	static void MainMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
@@ -95,7 +97,35 @@ private:
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
-	
+
+	static void MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMidiFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGMidiFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getMidiFXMenuItem(unsigned type);	
+	static CUIMenu::TParameter getMidiFXParameter(unsigned type, unsigned param);
+
+	static CUIMenu::TMenuItem* getFXMenuItem(unsigned type);	
+	static CUIMenu::TParameter getFXParameter(unsigned type, unsigned param);
+
+	static void MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditInsertFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditTGFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getInsertFXMenuItem(unsigned type);
+
+	static void MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX1Parameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditSendFX2Parameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getSendFX1MenuItem(unsigned type);
+	static CUIMenu::TMenuItem* getSendFX2MenuItem(unsigned type);
+
+	static void MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMasterFX (CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditMasterFXParameter (CUIMenu *pUIMenu, TMenuEvent Event);
+	static CUIMenu::TMenuItem* getMasterFXMenuItem(unsigned type);
+
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
 	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
@@ -116,7 +146,7 @@ private:
 	static std::string ToPortaMode (int nValue);  
 	static std::string ToPortaGlissando (int nValue);   
 	static std::string ToPolyMono (int nValue);
-
+			
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
 
@@ -153,7 +183,31 @@ private:
 	static const TMenuItem s_MainMenu[];
 	static const TMenuItem s_TGMenu[];
 	static const TMenuItem s_EffectsMenu[];
+	static const TMenuItem s_SendFX1Menu[];
+	static const TMenuItem s_SendFX2Menu[];
+	static const TMenuItem s_MasterFXMenu[];
 	static const TMenuItem s_ReverbMenu[];
+	static const TMenuItem s_InsertFX[];
+	static const TMenuItem s_MidiFX[];
+	static const TMenuItem s_FXDisabled[];
+	
+	static TMenuItem s_FXNone[];
+	static TMenuItem s_FXChorus[];
+	static TMenuItem s_FXDelay[];
+	static TMenuItem s_FXLPFilter[];
+	static TMenuItem s_FXDS1[];
+	static TMenuItem s_FXBigMuff[];
+	static TMenuItem s_FXTalReverb3[];
+	static TMenuItem s_FXReverb[];
+	static TMenuItem s_FXMVerb[];
+	static TMenuItem s_FX3BandEQ[];
+	static TMenuItem s_FXPhaser[];
+	static TMenuItem s_FXAPhaser[];
+	static TMenuItem s_FXFlanger[];
+	
+	static TMenuItem s_MidiFXNone[];
+	static TMenuItem s_MidiFXArp[];
+
 	static const TMenuItem s_EditVoiceMenu[];
 	static const TMenuItem s_OperatorMenu[];
 	static const TMenuItem s_SaveMenu[];
@@ -166,6 +220,19 @@ private:
 			
 	static const TParameter s_GlobalParameter[];
 	static const TParameter s_TGParameter[];
+	static const TParameter s_TGFXChorusParam[];
+	static const TParameter s_TGFXDelayParam[];
+	static const TParameter s_TGFXLPFParam[];
+	static const TParameter s_TGFXDS1Param[];
+	static const TParameter s_TGFXBigMuffParam[];
+	static const TParameter s_TGFXTalReverb3Param[];
+	static const TParameter s_TGFXReverbParam[];
+	static const TParameter s_TGFXMVerbParam[];
+	static const TParameter s_TGFX3BandEQParam[];
+	static const TParameter s_TGFXPhaserParam[];
+	static const TParameter s_TGFXAPhaserParam[];
+	static const TParameter s_TGFXFlangerParam[];
+	static const TParameter s_TGMidiFXArpParam[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 
@@ -179,6 +246,7 @@ private:
 	unsigned m_nSelectedPerformanceID =0;
 	unsigned m_nSelectedPerformanceBankID =0;
 	bool m_bSplashShow=false;
+	int m_nStepCount = 1;
 
 };
 
