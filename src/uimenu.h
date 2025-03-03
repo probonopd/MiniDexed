@@ -189,6 +189,7 @@ private:
 	static const TMenuItem s_ReverbMenu[];
 	static const TMenuItem s_InsertFX[];
 	static const TMenuItem s_MidiFX[];
+	static const TMenuItem s_FXDisabled[];
 	
 	static TMenuItem s_FXNone[];
 	static TMenuItem s_FXChorus[];

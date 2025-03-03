@@ -165,6 +165,12 @@ const CUIMenu::TMenuItem CUIMenu::s_InsertFX[] =
 	{0}
 };
 
+const CUIMenu::TMenuItem CUIMenu::s_FXDisabled[] =
+{
+	{"Disabled"},
+	{0}
+};
+
 CUIMenu::TMenuItem CUIMenu::s_FXNone[] =
 {
 	{"None"},
@@ -893,7 +899,7 @@ void CUIMenu::MainMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
 		string strTempo;
-		if (menuChange)
+		if (menuChange || !pUIMenu->m_pConfig->GetFXEnabled())
 		{
 			strTempo = "";
 		}
@@ -1025,7 +1031,10 @@ void CUIMenu::MenuHandler (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	// Setup menu when it's open
-	if (!pUIMenu->m_pCurrentMenu)
+	if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+		pUIMenu->m_pCurrentMenu = s_FXDisabled;
+	}
+	else if (!pUIMenu->m_pCurrentMenu)
 	{
 		pUIMenu->m_pCurrentMenu = s_MidiFX;
 	}
@@ -1046,97 +1055,8 @@ void CUIMenu::MenuHandlerMidiFX (CUIMenu *pUIMenu, TMenuEvent Event)
 			break;
 		}
 
-		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
-		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
-		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentMenuItem;
-		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentSelection;
-		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
-			= pUIMenu->m_nCurrentParameter;
-		pUIMenu->m_nCurrentMenuDepth++;
-
-		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
-		pUIMenu->m_nCurrentParameter =
-			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
-		pUIMenu->m_pCurrentMenu =
-			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
-		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
-		pUIMenu->m_nCurrentSelection = 0;
-		break;
-
-	case MenuEventStepDown:
-		if (pUIMenu->m_nCurrentSelection > 0)
-		{
-			pUIMenu->m_nCurrentSelection--;
-		}
-		break;
-
-	case MenuEventStepUp:
-		++pUIMenu->m_nCurrentSelection;
-		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
-		{
-			pUIMenu->m_nCurrentSelection--;
-		}
-		break;
-
-	case MenuEventPressAndStepDown:
-	case MenuEventPressAndStepUp:
-		pUIMenu->TGShortcutHandler (Event);
-		return;
-
-	default:
-		return;
-	}
-
-	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
-	{
-		// Create TG label
-		string TG ("TG");
-		TG += to_string (nTG+1);
-
-		// Get current FX type
-		int nFxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
-
-		// Create Paramter with type label
-		std::string value;
-		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		value.append(getMidiFXTypeName(nFxType));
-
-		pUIMenu->m_pUI->DisplayWrite (
-			TG.c_str (),
-			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-			value.c_str(),
-			pUIMenu->m_nCurrentSelection > 0,
-			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
-	}
-	else
-	{
-		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
-	}
-}
-
-void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
-{
-	// Setup menu when it's open
-	if (!pUIMenu->m_pCurrentMenu)
-	{
-		pUIMenu->m_pCurrentMenu = s_InsertFX;
-	}
-
-	// Identify TG
-	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
-	
-	switch (Event)
-	{
-	case MenuEventUpdate:
-		break;
-
-	case MenuEventSelect:				// push menu
-		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
-		
-		// Check if TG is enabled
-		if (nTG >= pUIMenu->m_pConfig->GetToneGenerators()) {
+		// Check if FXs are enabled
+		if (!pUIMenu->m_pConfig->GetFXEnabled()) {
 			break;
 		}
 
@@ -1189,13 +1109,18 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 		string TG ("TG");
 		TG += to_string (nTG+1);
 
-		// Get current FX Name
-		std::string fxName = pUIMenu->m_pMiniDexed->getInsertFXName(nTG);
-
-		// Create Paramter with type label
+		// Check if FXs are enabled
 		std::string value;
-		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		value.append(fxName);
+		if (pUIMenu->m_pConfig->GetFXEnabled()) {
+			// Get current FX type
+			int nFxType = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterMidiFXType, nTG);
+
+			// Create Paramter with type label
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+			value.append(getMidiFXTypeName(nFxType));
+		} else {
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+		}
 
 		pUIMenu->m_pUI->DisplayWrite (
 			TG.c_str (),
@@ -1210,13 +1135,19 @@ void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 }
 
-void CUIMenu::MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event)
+void CUIMenu::MenuHandlerInsertFX (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	// Setup menu when it's open
-	if (!pUIMenu->m_pCurrentMenu)
-	{
-		pUIMenu->m_pCurrentMenu = s_SendFX1Menu;
+	if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+		pUIMenu->m_pCurrentMenu = s_FXDisabled;
 	}
+	else if (!pUIMenu->m_pCurrentMenu)
+	{
+		pUIMenu->m_pCurrentMenu = s_InsertFX;
+	}
+
+	// Identify TG
+	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
 	
 	switch (Event)
 	{
@@ -1225,6 +1156,17 @@ void CUIMenu::MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+		
+		// Check if TG is enabled
+		if (nTG >= pUIMenu->m_pConfig->GetToneGenerators()) {
+			break;
+		}
+
+		// Check if FXs are enabled
+		if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+			break;
+		}
+
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
@@ -1270,15 +1212,119 @@ void CUIMenu::MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Get current FX Name
-		std::string fxName = pUIMenu->m_pMiniDexed->getSendFX1Name();
+		// Create TG label
+		string TG ("TG");
+		TG += to_string (nTG+1);
 
-		// Create Paramter with type label
+		// Check if FXs are enabled
 		std::string value;
-		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		if (pUIMenu->m_nCurrentSelection < 2)
-		{
+		if (pUIMenu->m_pConfig->GetFXEnabled()) {
+			// Get current FX Name
+			std::string fxName = pUIMenu->m_pMiniDexed->getInsertFXName(nTG);
+
+			// Create Paramter with type label
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
 			value.append(fxName);
+		} else {
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+		}
+
+		pUIMenu->m_pUI->DisplayWrite (
+			TG.c_str (),
+			pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+			value.c_str(),
+			pUIMenu->m_nCurrentSelection > 0,
+			!!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection+1].Name);
+	}
+	else
+	{
+		pUIMenu->EventHandler (MenuEventUpdate);	// no, update parameter display
+	}
+}
+
+void CUIMenu::MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	// Setup menu when it's open
+	if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+		pUIMenu->m_pCurrentMenu = s_FXDisabled;
+	}
+	else if (!pUIMenu->m_pCurrentMenu)
+	{
+		pUIMenu->m_pCurrentMenu = s_SendFX1Menu;
+	}
+	
+	switch (Event)
+	{
+	case MenuEventUpdate:
+		break;
+
+	case MenuEventSelect:				// push menu
+		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+
+		// Check if FXs are enabled
+		if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+			break;
+		}
+
+		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
+		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentMenuItem;
+		pUIMenu->m_nMenuStackSelection[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth]
+			= pUIMenu->m_nCurrentParameter;
+		pUIMenu->m_nCurrentMenuDepth++;
+
+		pUIMenu->m_pParentMenu = pUIMenu->m_pCurrentMenu;
+		pUIMenu->m_nCurrentParameter =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Parameter;
+		pUIMenu->m_pCurrentMenu =
+			pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].MenuItem;
+		pUIMenu->m_nCurrentMenuItem = pUIMenu->m_nCurrentSelection;
+		pUIMenu->m_nCurrentSelection = 0;
+		break;
+
+	case MenuEventStepDown:
+		if (pUIMenu->m_nCurrentSelection > 0)
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventStepUp:
+		++pUIMenu->m_nCurrentSelection;
+		if (!pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name)  // more entries?
+		{
+			pUIMenu->m_nCurrentSelection--;
+		}
+		break;
+
+	case MenuEventPressAndStepDown:
+	case MenuEventPressAndStepUp:
+		pUIMenu->TGShortcutHandler (Event);
+		return;
+
+	default:
+		return;
+	}
+
+	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
+	{
+		// Check if FXs are enabled
+		std::string value;
+		if (pUIMenu->m_pConfig->GetFXEnabled()) {
+			// Get current FX Name
+			std::string fxName = pUIMenu->m_pMiniDexed->getSendFX1Name();
+
+			// Create Paramter with type label
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+			if (pUIMenu->m_nCurrentSelection < 2)
+			{
+				value.append(fxName);
+			}
+		} else {
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
 		}
 
 		pUIMenu->m_pUI->DisplayWrite (
@@ -1297,7 +1343,10 @@ void CUIMenu::MenuHandlerSendFX1 (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	// Setup menu when it's open
-	if (!pUIMenu->m_pCurrentMenu)
+	if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+		pUIMenu->m_pCurrentMenu = s_FXDisabled;
+	}
+	else if (!pUIMenu->m_pCurrentMenu)
 	{
 		pUIMenu->m_pCurrentMenu = s_SendFX2Menu;
 	}
@@ -1309,6 +1358,12 @@ void CUIMenu::MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+
+		// Check if FXs are enabled
+		if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+			break;
+		}
+
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
@@ -1354,15 +1409,20 @@ void CUIMenu::MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Get current FX Name
-		std::string fxName = pUIMenu->m_pMiniDexed->getSendFX2Name();
-
-		// Create Paramter with type label
+		// Check if FXs are enabled
 		std::string value;
-		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		if (pUIMenu->m_nCurrentSelection < 2)
-		{
-			value.append(fxName);
+		if (pUIMenu->m_pConfig->GetFXEnabled()) {
+			// Get current FX Name
+			std::string fxName = pUIMenu->m_pMiniDexed->getSendFX2Name();
+
+			// Create Paramter with type label
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+			if (pUIMenu->m_nCurrentSelection < 2)
+			{
+				value.append(fxName);
+			}
+		} else {
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
 		}
 
 		pUIMenu->m_pUI->DisplayWrite (
@@ -1381,7 +1441,10 @@ void CUIMenu::MenuHandlerSendFX2 (CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	// Setup menu when it's open
-	if (!pUIMenu->m_pCurrentMenu)
+	if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+		pUIMenu->m_pCurrentMenu = s_FXDisabled;
+	}
+	else if (!pUIMenu->m_pCurrentMenu)
 	{
 		pUIMenu->m_pCurrentMenu = s_MasterFXMenu;
 	}
@@ -1393,6 +1456,12 @@ void CUIMenu::MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	case MenuEventSelect:				// push menu
 		assert (pUIMenu->m_nCurrentMenuDepth < MaxMenuDepth);
+
+		// Check if FXs are enabled
+		if (!pUIMenu->m_pConfig->GetFXEnabled()) {
+			break;
+		}
+
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pParentMenu;
 		pUIMenu->m_MenuStackMenu[pUIMenu->m_nCurrentMenuDepth] = pUIMenu->m_pCurrentMenu;
 		pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth]
@@ -1438,15 +1507,20 @@ void CUIMenu::MenuHandlerMasterFX (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (pUIMenu->m_pCurrentMenu)				// if this is another menu?
 	{
-		// Get current FX Name
-		std::string fxName = pUIMenu->m_pMiniDexed->getMasterFXName();
-
-		// Create Paramter with type label
+		// Check if FXs are enabled
 		std::string value;
-		value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
-		if (pUIMenu->m_nCurrentSelection < 2)
-		{
-			value.append(fxName);
+		if (pUIMenu->m_pConfig->GetFXEnabled()) {
+			// Get current FX Name
+			std::string fxName = pUIMenu->m_pMiniDexed->getMasterFXName();
+
+			// Create Paramter with type label
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
+			if (pUIMenu->m_nCurrentSelection < 2)
+			{
+				value.append(fxName);
+			}
+		} else {
+			value.append(pUIMenu->m_pCurrentMenu[pUIMenu->m_nCurrentSelection].Name);
 		}
 
 		pUIMenu->m_pUI->DisplayWrite (
