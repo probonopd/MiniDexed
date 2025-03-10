@@ -1483,6 +1483,7 @@ bool CMiniDexed::DoSavePerformance (void)
 
 	if(m_bSaveAsDeault)
 	{
+		m_PerformanceConfig.SetNewPerformanceBank(0);
 		m_PerformanceConfig.SetNewPerformance(0);
 		
 	}
