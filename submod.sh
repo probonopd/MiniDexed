@@ -12,7 +12,7 @@ cd -
 #
 # Optional update submodules explicitly
 cd circle-stdlib/libs/circle
-git checkout fff3764
+git checkout c243194
 cd -
 cd circle-stdlib/libs/circle-newlib
 #git checkout develop
@@ -20,5 +20,5 @@ cd -
 #
 # Use fixed master branch of Synth_Dexed
 cd Synth_Dexed/
-git checkout c9f5274
+git checkout 919f71f
 cd -
