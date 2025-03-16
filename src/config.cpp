@@ -199,6 +199,8 @@ void CConfig::Load (void)
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 1) != 0;
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
+
+	m_bFXEnabled = m_Properties.GetNumber("FXEnabled", 0) != 0;
 }
 
 unsigned CConfig::GetToneGenerators (void) const
@@ -715,4 +717,9 @@ bool CConfig::GetPerformanceSelectToLoad (void) const
 unsigned CConfig::GetPerformanceSelectChannel (void) const
 {
 	return m_bPerformanceSelectChannel;
+}
+
+bool CConfig::GetFXEnabled (void) const
+{
+	return m_bFXEnabled;
 }

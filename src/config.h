@@ -64,6 +64,7 @@ public:
 	static const unsigned DefToneGenerators = AllToneGenerators;
 #endif
 #endif
+	static const unsigned SendFX2MixerChannels = AllToneGenerators + 1;
 	
 // Set maximum polyphony, depending on PI version.  This can be changed via config settings
 #if RASPPI == 1
@@ -80,6 +81,7 @@ public:
 	static const unsigned DefaultNotes = 16;
 #endif
 
+	static const unsigned TGChannels = 2;
 	static const unsigned MaxChunkSize = 4096;
 
 #if RASPPI <= 3
@@ -238,6 +240,9 @@ public:
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
 
+	// Enable/Disable FXs
+	bool GetFXEnabled (void) const;
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -351,6 +356,8 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	bool m_bFXEnabled;
 };
 
 #endif
