@@ -1900,7 +1900,7 @@ bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 
 bool CMiniDexed::DoSavePerformance (void)
 {
-	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
+	for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++)
 	{
 		m_PerformanceConfig.SetBankNumber (m_nVoiceBankID[nTG], nTG);
 		m_PerformanceConfig.SetVoiceNumber (m_nProgram[nTG], nTG);
@@ -1932,13 +1932,8 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetNoteLimitLow (m_nNoteLimitLow[nTG], nTG);
 		m_PerformanceConfig.SetNoteLimitHigh (m_nNoteLimitHigh[nTG], nTG);
 		m_PerformanceConfig.SetNoteShift (m_nNoteShift[nTG], nTG);
-		if (nTG < m_pConfig->GetToneGenerators())
-		{
-			m_pTG[nTG]->getVoiceData(m_nRawVoiceData);
-		} else {
-			// Not an active TG so provide default voice by asking for an invalid voice ID.
-			m_SysExFileLoader.GetVoice(CSysExFileLoader::MaxVoiceBankID, CSysExFileLoader::VoicesPerBank+1, m_nRawVoiceData);
-		}
+
+		m_pTG[nTG]->getVoiceData(m_nRawVoiceData);
 		m_PerformanceConfig.SetVoiceDataToTxt (m_nRawVoiceData, nTG); 
 		m_PerformanceConfig.SetMonoMode (m_bMonoMode[nTG], nTG); 
 				
@@ -2462,8 +2457,6 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
 			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
 			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
-			
-		
 		}
 
 		// Effects
