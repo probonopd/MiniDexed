@@ -74,6 +74,7 @@ public:
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
+	void SetExpression (unsigned nExpression, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
@@ -261,6 +262,7 @@ private:
 	unsigned m_nVoiceBankIDMSBPerformance;
 	unsigned m_nProgram[CConfig::AllToneGenerators];
 	unsigned m_nVolume[CConfig::AllToneGenerators];
+	unsigned m_nExpression[CConfig::AllToneGenerators];
 	unsigned m_nPan[CConfig::AllToneGenerators];
 	int m_nMasterTune[CConfig::AllToneGenerators];
 	int m_nCutoff[CConfig::AllToneGenerators];
