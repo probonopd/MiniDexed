@@ -131,6 +131,7 @@ public:
 	unsigned GetMIDISystemCCVol (void) const;
 	unsigned GetMIDISystemCCPan (void) const;
 	unsigned GetMIDISystemCCDetune (void) const;
+	unsigned GetMIDIGlobalExpression (void) const;
 
 	// HD44780 LCD
 	// GPIO pin numbers are chip numbers, not header positions
@@ -267,6 +268,7 @@ private:
 	unsigned m_nMIDISystemCCVol;
 	unsigned m_nMIDISystemCCPan;
 	unsigned m_nMIDISystemCCDetune;
+	unsigned m_nMIDIGlobalExpression;
 
 	bool m_bLCDEnabled;
 	unsigned m_nLCDPinEnable;

@@ -112,6 +112,7 @@ void CConfig::Load (void)
 	m_nMIDISystemCCVol = m_Properties.GetNumber ("MIDISystemCCVol", 0);
 	m_nMIDISystemCCPan = m_Properties.GetNumber ("MIDISystemCCPan", 0);
 	m_nMIDISystemCCDetune = m_Properties.GetNumber ("MIDISystemCCDetune", 0);
+	m_nMIDIGlobalExpression = m_Properties.GetNumber ("MIDIGlobalExpression", 0);
 
 	m_bLCDEnabled = m_Properties.GetNumber ("LCDEnabled", 0) != 0;
 	m_nLCDPinEnable = m_Properties.GetNumber ("LCDPinEnable", 4);
@@ -351,6 +352,11 @@ unsigned CConfig::GetMIDISystemCCPan (void) const
 unsigned CConfig::GetMIDISystemCCDetune (void) const
 {
 	return m_nMIDISystemCCDetune;
+}
+
+unsigned CConfig::GetMIDIGlobalExpression (void) const
+{
+	return m_nMIDIGlobalExpression;
 }
 
 bool CConfig::GetLCDEnabled (void) const

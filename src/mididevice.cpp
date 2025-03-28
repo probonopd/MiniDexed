@@ -95,6 +95,15 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	m_MIDISystemCCBitmap[2] = 0;
 	m_MIDISystemCCBitmap[3] = 0;
 
+	m_nMIDIGlobalExpression = m_pConfig->GetMIDIGlobalExpression();
+	// convert from config channels 1..16 to internal channels
+	if ((m_nMIDIGlobalExpression >= 1) && (m_nMIDIGlobalExpression <= 16)) {
+		m_nMIDIGlobalExpression = m_nMIDIGlobalExpression - 1;
+	} else {
+		// Either disabled or OMNI means disabled
+		m_nMIDIGlobalExpression = Disabled;
+	}
+
 	for (int tg=0; tg<8; tg++)
 	{
 		if (m_nMIDISystemCCVol != 0) {
@@ -280,6 +289,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					}
 				}
 			}
+			if (m_nMIDIGlobalExpression != Disabled)
+			{
+				// Expression is global so check for expression MIDI channel
+				// NB: OMNI not supported
+				if (ucChannel == m_nMIDIGlobalExpression) {
+					// Send to all TGs regardless of their own channel
+					for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+						m_pSynthesizer->SetExpression (pMessage[2], nTG);
+					}
+				}
+			}
 			if (nLength == 3)
 			{
 				m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
@@ -400,7 +420,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 		
 						case MIDI_CC_EXPRESSION:
-							m_pSynthesizer->SetExpression (pMessage[2], nTG);
+							if (m_nMIDIGlobalExpression == Disabled) {
+								// Expression is per channel only
+								m_pSynthesizer->SetExpression (pMessage[2], nTG);
+							}
 							break;
 		
 						case MIDI_CC_BANK_SELECT_MSB:
