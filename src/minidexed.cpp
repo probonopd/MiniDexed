@@ -72,6 +72,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nVoiceBankIDMSB[i] = 0;
 		m_nProgram[i] = 0;
 		m_nVolume[i] = 100;
+		m_nExpression[i] = 127;
 		m_nPan[i] = 64;
 		m_nMasterTune[i] = 0;
 		m_nCutoff[i] = 99;
@@ -280,6 +281,7 @@ bool CMiniDexed::Initialize (void)
 		assert (m_pTG[i]);
 
 		SetVolume (100, i);
+		SetExpression (127, i);
 		ProgramChange (0, i);
 
 		m_pTG[i]->setTranspose (24);
@@ -648,9 +650,26 @@ void CMiniDexed::SetVolume (unsigned nVolume, unsigned nTG)
 	m_nVolume[nTG] = nVolume;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setGain (nVolume / 127.0f);
+	m_pTG[nTG]->setGain ((m_nVolume[nTG] * m_nExpression[nTG]) / (127.0f * 127.0f));
 
 	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetExpression (unsigned nExpression, unsigned nTG)
+{
+	nExpression=constrain((int)nExpression,0,127);
+
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	m_nExpression[nTG] = nExpression;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->setGain ((m_nVolume[nTG] * m_nExpression[nTG]) / (127.0f * 127.0f));
+
+	// Expression is a "live performance" parameter only set
+	// via MIDI and not via the UI.
+	//m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::SetPan (unsigned nPan, unsigned nTG)

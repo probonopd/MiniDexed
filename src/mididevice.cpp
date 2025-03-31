@@ -37,14 +37,15 @@ LOGMODULE ("mididevice");
 #define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
 #define MIDI_CONTROL_CHANGE	0b1011
 	#define MIDI_CC_BANK_SELECT_MSB		0
-	#define MIDI_CC_MODULATION			1
+	#define MIDI_CC_MODULATION		1
 	#define MIDI_CC_BREATH_CONTROLLER	2 
 	#define MIDI_CC_FOOT_PEDAL 		4
-	#define MIDI_CC_VOLUME				7
+	#define MIDI_CC_VOLUME			7
 	#define MIDI_CC_PAN_POSITION		10
+	#define MIDI_CC_EXPRESSION		11
 	#define MIDI_CC_BANK_SELECT_LSB		32
 	#define MIDI_CC_BANK_SUSTAIN		64
-	#define MIDI_CC_RESONANCE			71
+	#define MIDI_CC_RESONANCE		71
 	#define MIDI_CC_FREQUENCY_CUTOFF	74
 	#define MIDI_CC_REVERB_LEVEL		91
 	#define MIDI_CC_DETUNE_LEVEL		94
@@ -93,6 +94,15 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	m_MIDISystemCCBitmap[1] = 0;
 	m_MIDISystemCCBitmap[2] = 0;
 	m_MIDISystemCCBitmap[3] = 0;
+
+	m_nMIDIGlobalExpression = m_pConfig->GetMIDIGlobalExpression();
+	// convert from config channels 1..16 to internal channels
+	if ((m_nMIDIGlobalExpression >= 1) && (m_nMIDIGlobalExpression <= 16)) {
+		m_nMIDIGlobalExpression = m_nMIDIGlobalExpression - 1;
+	} else {
+		// Either disabled or OMNI means disabled
+		m_nMIDIGlobalExpression = Disabled;
+	}
 
 	for (int tg=0; tg<8; tg++)
 	{
@@ -279,6 +289,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					}
 				}
 			}
+			if (m_nMIDIGlobalExpression != Disabled)
+			{
+				// Expression is global so check for expression MIDI channel
+				// NB: OMNI not supported
+				if (ucChannel == m_nMIDIGlobalExpression) {
+					// Send to all TGs regardless of their own channel
+					for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+						m_pSynthesizer->SetExpression (pMessage[2], nTG);
+					}
+				}
+			}
 			if (nLength == 3)
 			{
 				m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
@@ -396,6 +417,13 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		
 						case MIDI_CC_PAN_POSITION:
 							m_pSynthesizer->SetPan (pMessage[2], nTG);
+							break;
+		
+						case MIDI_CC_EXPRESSION:
+							if (m_nMIDIGlobalExpression == Disabled) {
+								// Expression is per channel only
+								m_pSynthesizer->SetExpression (pMessage[2], nTG);
+							}
 							break;
 		
 						case MIDI_CC_BANK_SELECT_MSB:

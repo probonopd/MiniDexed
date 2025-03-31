@@ -75,6 +75,7 @@ private:
 	unsigned m_nMIDISystemCCPan;
 	unsigned m_nMIDISystemCCDetune;
 	u32	 m_MIDISystemCCBitmap[4]; // to allow for 128 bit entries
+	unsigned m_nMIDIGlobalExpression;
 
 	std::string m_DeviceName;
 
