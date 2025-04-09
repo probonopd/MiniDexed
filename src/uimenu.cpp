@@ -563,6 +563,7 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -608,6 +609,7 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -652,6 +654,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -726,6 +729,7 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -779,6 +783,7 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -832,6 +837,7 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -885,6 +891,7 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
