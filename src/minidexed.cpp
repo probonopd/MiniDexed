@@ -1932,55 +1932,57 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 void CMiniDexed::LoadPerformanceParameters(void)
 {
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
+	{
+
+		BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+		ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
+		SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
+		SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
+		SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
+		SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+		SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
+		SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
+		setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
+		setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
+		setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
+		setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
+		setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
+
+		m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
+		m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
+		m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+
+		if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
 		{
-			
-			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
-			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
-			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
-			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
-			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
-			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
-			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
-			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
-			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
-			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
-			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
-			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
-			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
-
-			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
-			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
-			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
-			
-			if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
-			{
-			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
-			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
-			}
-			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
-			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
-					
-			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
-			setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
-			setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
-			setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
-			setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
-			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
-			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
-			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
-			
-		
+		uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
+		m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
 		}
+		setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
+		SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
 
-		// Effects
-		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
-		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
-		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
-		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
-		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
-		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
-		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
-		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+		setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
+		setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
+		setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
+		setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
+		setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
+		setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
+		setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
+		setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
+
+
+	}
+
+	// Effects
+	SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+	SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+	SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+	SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+	SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+	SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+	SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+	SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+	m_UI.DisplayChanged();
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
