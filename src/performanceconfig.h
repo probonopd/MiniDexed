@@ -149,39 +149,48 @@ public:
 	std::string GetPerformanceBankName(unsigned nBankID);
 	bool IsValidPerformanceBank(unsigned nBankID);
 
-private:
-	CPropertiesFatFsFile m_Properties;
+private:	
+	struct TPerf {
+		unsigned nBankNumber[CConfig::AllToneGenerators];
+		unsigned nVoiceNumber[CConfig::AllToneGenerators];
+		unsigned nMIDIChannel[CConfig::AllToneGenerators];
+		unsigned nVolume[CConfig::AllToneGenerators];
+		unsigned nPan[CConfig::AllToneGenerators];
+		int nDetune[CConfig::AllToneGenerators];
+		unsigned nCutoff[CConfig::AllToneGenerators];
+		unsigned nResonance[CConfig::AllToneGenerators];
+		unsigned nNoteLimitLow[CConfig::AllToneGenerators];
+		unsigned nNoteLimitHigh[CConfig::AllToneGenerators];
+		int nNoteShift[CConfig::AllToneGenerators];
+		int nReverbSend[CConfig::AllToneGenerators];
+		unsigned nPitchBendRange[CConfig::AllToneGenerators];
+		unsigned nPitchBendStep[CConfig::AllToneGenerators];
+		unsigned nPortamentoMode[CConfig::AllToneGenerators];
+		unsigned nPortamentoGlissando[CConfig::AllToneGenerators];
+		unsigned nPortamentoTime[CConfig::AllToneGenerators];
+		std::string nVoiceDataTxt[CConfig::AllToneGenerators]; 
+		bool bMonoMode[CConfig::AllToneGenerators]; 
+
+		unsigned nModulationWheelRange[CConfig::AllToneGenerators];
+		unsigned nModulationWheelTarget[CConfig::AllToneGenerators];
+		unsigned nFootControlRange[CConfig::AllToneGenerators];	
+		unsigned nFootControlTarget[CConfig::AllToneGenerators];	
+		unsigned nBreathControlRange[CConfig::AllToneGenerators];	
+		unsigned nBreathControlTarget[CConfig::AllToneGenerators];	
+		unsigned nAftertouchRange[CConfig::AllToneGenerators];	
+		unsigned nAftertouchTarget[CConfig::AllToneGenerators];	
+
+		bool bCompressorEnable;
+		bool bReverbEnable;
+		unsigned nReverbSize;
+		unsigned nReverbHighDamp;
+		unsigned nReverbLowDamp;
+		unsigned nReverbLowPass;
+		unsigned nReverbDiffusion;
+		unsigned nReverbLevel;
+	};
 	
 	unsigned m_nToneGenerators;
-
-	unsigned m_nBankNumber[CConfig::AllToneGenerators];
-	unsigned m_nVoiceNumber[CConfig::AllToneGenerators];
-	unsigned m_nMIDIChannel[CConfig::AllToneGenerators];
-	unsigned m_nVolume[CConfig::AllToneGenerators];
-	unsigned m_nPan[CConfig::AllToneGenerators];
-	int m_nDetune[CConfig::AllToneGenerators];
-	unsigned m_nCutoff[CConfig::AllToneGenerators];
-	unsigned m_nResonance[CConfig::AllToneGenerators];
-	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
-	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
-	int m_nNoteShift[CConfig::AllToneGenerators];
-	int m_nReverbSend[CConfig::AllToneGenerators];
-	unsigned m_nPitchBendRange[CConfig::AllToneGenerators];
-	unsigned m_nPitchBendStep[CConfig::AllToneGenerators];
-	unsigned m_nPortamentoMode[CConfig::AllToneGenerators];
-	unsigned m_nPortamentoGlissando[CConfig::AllToneGenerators];
-	unsigned m_nPortamentoTime[CConfig::AllToneGenerators];
-	std::string m_nVoiceDataTxt[CConfig::AllToneGenerators]; 
-	bool m_bMonoMode[CConfig::AllToneGenerators]; 
-
-	unsigned m_nModulationWheelRange[CConfig::AllToneGenerators];
-	unsigned m_nModulationWheelTarget[CConfig::AllToneGenerators];
-	unsigned m_nFootControlRange[CConfig::AllToneGenerators];	
-	unsigned m_nFootControlTarget[CConfig::AllToneGenerators];	
-	unsigned m_nBreathControlRange[CConfig::AllToneGenerators];	
-	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];	
-	unsigned m_nAftertouchRange[CConfig::AllToneGenerators];	
-	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];	
 
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  
@@ -195,15 +204,8 @@ private:
 	FATFS *m_pFileSystem; 
 
 	std::string NewPerformanceName="";
-	
-	bool m_bCompressorEnable;
-	bool m_bReverbEnable;
-	unsigned m_nReverbSize;
-	unsigned m_nReverbHighDamp;
-	unsigned m_nReverbLowDamp;
-	unsigned m_nReverbLowPass;
-	unsigned m_nReverbDiffusion;
-	unsigned m_nReverbLevel;
+
+	TPerf *m_pPerfBank[NUM_PERFORMANCES];
 };
 
 #endif
