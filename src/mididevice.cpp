@@ -267,7 +267,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
-			// Add handling for Voice Dump Request SysEx
+		// Handling for Voice Dump Request SysEx
 		if (nLength == 5 &&
 			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
 			pMessage[1] == 0x43 &&
@@ -279,15 +279,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			return;
 		}
 
-		// Add handling for Mute Operator SysEx
+		// Handling for Mute Operator SysEx
 		if (nLength == 7 &&
 			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
 			pMessage[1] == 0x43 &&
-			pMessage[3] == 0x1B &&
-			pMessage[4] == 0x2F &&
+			pMessage[2] == 0x11 &&
+			pMessage[3] == 0x01 &&
+			pMessage[4] == 0x1B &&
+			pMessage[5] == 0x2F &&
 			pMessage[6] == MIDI_SYSTEM_EXCLUSIVE_END) {
 			LOGDBG("Mute Operator SysEx received: Operator %d, Value %d", pMessage[4], pMessage[5]);
-			m_pSynthesizer->setOperatorMute(pMessage[5], nTG); // Implement this function in the synthesizer
+			m_pSynthesizer->setOperatorMute(pMessage[4], pMessage[5]);
 			return;
 		}
 
