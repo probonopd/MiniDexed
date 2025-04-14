@@ -2,7 +2,7 @@
 // mididevice.cpp
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
-// Copyright (C) 2022  The MiniDexed Team
+// Copyright (C) 2022-25  The MiniDexed Team
 //
 // Original author of this class:
 //	R. Stange <rsta2@o2online.de>
@@ -51,6 +51,8 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_DETUNE_LEVEL		94
 	#define MIDI_CC_ALL_SOUND_OFF		120
 	#define MIDI_CC_ALL_NOTES_OFF		123
+	#define MIDI_CC_OMNI_MODE_OFF		124
+	#define MIDI_CC_OMNI_MODE_ON		125
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -265,6 +267,30 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
+			// Add handling for Voice Dump Request SysEx
+		if (nLength == 5 &&
+			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+			pMessage[1] == 0x43 &&
+			(pMessage[2] & 0xF0) == 0x20 && // Check for Yamaha SysEx with channel
+			pMessage[3] == 0x00 &&
+			pMessage[4] == MIDI_SYSTEM_EXCLUSIVE_END) {
+			LOGDBG("Voice Dump Request received for channel %d", pMessage[2] & 0x0F);
+			SendSystemExclusiveVoice(0, nCable, pMessage[2] & 0x0F); // Send voice dump for the requested channel
+			return;
+		}
+
+		// Add handling for Mute Operator SysEx
+		if (nLength == 7 &&
+			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+			pMessage[1] == 0x43 &&
+			pMessage[3] == 0x1B &&
+			pMessage[4] == 0x2F &&
+			pMessage[6] == MIDI_SYSTEM_EXCLUSIVE_END) {
+			LOGDBG("Mute Operator SysEx received: Operator %d, Value %d", pMessage[4], pMessage[5]);
+			m_pSynthesizer->setOperatorMute(pMessage[5], nTG); // Implement this function in the synthesizer
+			return;
+		}
+
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
 		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
@@ -474,6 +500,20 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							{
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
+							break;
+
+						case MIDI_CC_OMNI_MODE_OFF:
+							// Sets to "Omni Off" mode
+							if (m_ChannelMap[nTG] == OmniMode) {
+								m_pSynthesizer->SetMIDIChannel(ucChannel, nTG);
+								LOGDBG("Omni Mode Off: TG %d set to MIDI channel %d", nTG, ucChannel+1);
+							}
+							break;
+						
+						case MIDI_CC_OMNI_MODE_ON:
+							// Sets to "Omni On" mode
+							m_pSynthesizer->SetMIDIChannel(OmniMode, nTG);
+							LOGDBG("Omni Mode On: TG %d set to OMNI", nTG);
 							break;
 
 						default:
@@ -720,4 +760,4 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
     Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
     // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
-} 
+}
