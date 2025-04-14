@@ -2,7 +2,7 @@
 // minidexed.cpp
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
-// Copyright (C) 2022  The MiniDexed Team
+// Copyright (C) 2022-25  The MiniDexed Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -2183,4 +2183,19 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 		break;
 	}
 	
+}
+
+void CMiniDexed::setOperatorMute(uint8_t operatorIndex, unsigned nTG) {
+    if (nTG >= CConfig::AllToneGenerators || operatorIndex >= 6) {
+        LOGERR("Invalid tone generator or operator index: TG=%u, Operator=%u", nTG, operatorIndex);
+        return;
+    }
+
+    // Toggle the operator mask for the specified operator
+    m_uchOPMask[nTG] ^= (1 << operatorIndex);
+
+    LOGDBG("Operator %u mute toggled for TG %u. New mask: 0x%02X", operatorIndex, nTG, m_uchOPMask[nTG]);
+
+    // Apply the updated operator mask to the tone generator
+    m_pTG[nTG]->SetOperatorMask(m_uchOPMask[nTG]);
 }
