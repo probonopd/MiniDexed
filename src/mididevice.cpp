@@ -53,6 +53,8 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_ALL_NOTES_OFF		123
 	#define MIDI_CC_OMNI_MODE_OFF		124
 	#define MIDI_CC_OMNI_MODE_ON		125
+	#define MIDI_CC_MONO_MODE_ON		126
+	#define MIDI_CC_POLY_MODE_ON		127
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -543,6 +545,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							// Sets to "Omni On" mode
 							m_pSynthesizer->SetMIDIChannel(OmniMode, nTG);
 							LOGDBG("Omni Mode On: TG %d set to OMNI", nTG);
+							break;
+
+						case MIDI_CC_MONO_MODE_ON:
+							// Sets monophonic mode
+							m_pSynthesizer->setMonoMode(1, nTG);
+							LOGDBG("Mono Mode On: TG %d set to MONO", nTG);
+							break;
+
+						case MIDI_CC_POLY_MODE_ON:
+							// Sets polyphonic mode
+							m_pSynthesizer->setMonoMode(0, nTG);
+							LOGDBG("Poly Mode On: TG %d set to POLY", nTG);
 							break;
 
 						default:
