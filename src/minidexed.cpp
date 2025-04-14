@@ -2197,5 +2197,4 @@ void CMiniDexed::setOperatorMute(uint8_t operatorIndex, unsigned nTG) {
     LOGDBG("Operator %u mute toggled for TG %u. New mask: 0x%02X", operatorIndex, nTG, m_uchOPMask[nTG]);
 
     // Apply the updated operator mask to the tone generator
-    m_pTG[nTG]->SetOperatorMask(m_uchOPMask[nTG]);
 }
