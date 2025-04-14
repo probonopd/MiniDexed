@@ -228,7 +228,8 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-    void setOperatorMute(uint8_t operatorIndex, unsigned nTG);
+
+	void setOperatorMask(uint8_t operatorMask, unsigned nTG); // Set operators enabled/disabled from bitmask
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
