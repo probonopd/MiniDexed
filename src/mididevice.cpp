@@ -88,6 +88,7 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
+		m_PreviousChannelMap[nTG] = Disabled; // Initialize previous channel map
 	}
 
 	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
@@ -136,6 +137,12 @@ CMIDIDevice::~CMIDIDevice (void)
 void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
+	
+	// When changing to OMNI mode, store the previous channel
+	if (ucChannel == OmniMode && m_ChannelMap[nTG] != OmniMode) {
+		m_PreviousChannelMap[nTG] = m_ChannelMap[nTG];
+	}
+	
 	m_ChannelMap[nTG] = ucChannel;
 }
 
@@ -536,8 +543,11 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						case MIDI_CC_OMNI_MODE_OFF:
 							// Sets to "Omni Off" mode
 							if (m_ChannelMap[nTG] == OmniMode) {
-								m_pSynthesizer->SetMIDIChannel(ucChannel, nTG);
-								LOGDBG("Omni Mode Off: TG %d set to MIDI channel %d", nTG, ucChannel+1);
+								// Restore the previous channel if available, otherwise use current channel
+								u8 channelToRestore = (m_PreviousChannelMap[nTG] != Disabled) ? 
+									m_PreviousChannelMap[nTG] : ucChannel;
+								m_pSynthesizer->SetMIDIChannel(channelToRestore, nTG);
+								LOGDBG("Omni Mode Off: TG %d restored to MIDI channel %d", nTG, channelToRestore+1);
 							}
 							break;
 						

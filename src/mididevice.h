@@ -70,6 +70,7 @@ private:
 	CUserInterface *m_pUI;
 
 	u8 m_ChannelMap[CConfig::AllToneGenerators];
+	u8 m_PreviousChannelMap[CConfig::AllToneGenerators]; // Store previous channels for OMNI OFF restore
 	
 	unsigned m_nMIDISystemCCVol;
 	unsigned m_nMIDISystemCCPan;
