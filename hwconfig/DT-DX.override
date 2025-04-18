@@ -2,7 +2,7 @@
 # https://www.dtronics.nl/dt-dx
 
 SoundDevice=i2s
-SampleRate=22000
+SampleRate=48000
 ChunkSize=256
 DACI2CAddress=0x0
 ChannelsSwapped=1
