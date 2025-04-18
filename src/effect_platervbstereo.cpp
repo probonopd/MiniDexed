@@ -201,8 +201,8 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
     }
     cleanup_done = false;
 
-    rv_time = rv_time_k * (m_samplerate / 44100.0f);
-    float32_t rv_time_scaler_scaled = rv_time_scaler * (m_samplerate / 44100.0f);
+    rv_time = rv_time_k * (m_samplerate / 48000.0f);
+    float32_t rv_time_scaler_scaled = rv_time_scaler * (m_samplerate / 48000.0f);
 
     for (uint16_t i=0; i < len; i++) 
     {
