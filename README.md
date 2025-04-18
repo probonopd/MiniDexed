@@ -100,6 +100,7 @@ This project stands on the shoulders of giants. Special thanks to:
 - [diyelectromusic](https://github.com/diyelectromusic/) for many [contributions](https://github.com/probonopd/MiniDexed/commits?author=diyelectromusic)
 - [dwhinham/mt32-pi](https://github.com/dwhinham/mt32-pi) for creating networking support for Circle
 - [omersiar](https://github.com/omersiar) for porting networking support to MiniDexed
+- [soyersoyer](https://github.com/soyersoyer) for sound quality improvements
 
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/probonopd/MiniDexed.svg?variant=adaptive)](https://starchart.cc/probonopd/MiniDexed)
