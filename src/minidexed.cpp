@@ -218,7 +218,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	setMasterVolume(1.0);
+	float masterVolNorm = (float)(pConfig->GetMasterVolume()) / 127.0f;
+	setMasterVolume(masterVolNorm);
 
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
@@ -1800,14 +1801,17 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	dest[162] = 0xF7; // SysEx end
 }
 
-void CMiniDexed::setMasterVolume (float32_t vol)
+void CMiniDexed::setMasterVolume(float32_t vol)
 {
-	if(vol < 0.0)
-		vol = 0.0;
-	else if(vol > 1.0)
-		vol = 1.0;
+    if (vol < 0.0)
+        vol = 0.0;
+    else if (vol > 1.0)
+        vol = 1.0;
 
-	nMasterVolume=vol;
+    // Apply logarithmic scaling to match perceived loudness
+    vol = powf(vol, 2.0f);
+
+    nMasterVolume = vol;
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
