@@ -702,15 +702,24 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepDown);
 		}
 	} else {
-		string TG ("TG");
-		TG += to_string (nTG+1);
+		// Show bank:voice number on the top line, e.g. 005:012
+		int nBank = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
+		std::string topLine = "000";
+		topLine += std::to_string(nBank+1);
+		topLine = topLine.substr(topLine.length()-3,3);
+		topLine += ":";
+		std::string voiceNum = "000";
+		voiceNum += std::to_string(nValue+1);
+		voiceNum = voiceNum.substr(voiceNum.length()-3,3);
+		topLine += voiceNum;
 
-		string Value = to_string (nValue+1) + "=" + pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
+		// Only show the voice name on the bottom line
+		std::string Value = pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
-		pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-					      Value.c_str (),
-					      nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+		pUIMenu->m_pUI->DisplayWrite (topLine.c_str(),
+					  pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					  Value.c_str(),
+					  nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
 	}
 }
 
@@ -1996,5 +2005,3 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 				   
 }
-
-
