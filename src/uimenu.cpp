@@ -1540,7 +1540,7 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 
 	if (pThis->m_hPerformanceLoadTimer == hTimer)
 	{
-		pThis->m_pMiniDexed->SetNewPerformance(pThis->m_nPendingPerformanceID);
+		pThis->m_pMiniDexed->SetNewPerformance(pThis->m_nSelectedPerformanceID);
 		pThis->m_hPerformanceLoadTimer = 0;
 	}
 	else
@@ -1595,12 +1595,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					--nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nPendingPerformanceID = nValue;
-			if (pUIMenu->m_hPerformanceLoadTimer)
-			{
-				CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
-			}
-			pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
+			pUIMenu->m_nSelectedPerformanceID = nValue;
 			break;
 
 		case MenuEventStepUp:
@@ -1615,12 +1610,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					++nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nPendingPerformanceID = nValue;
-			if (pUIMenu->m_hPerformanceLoadTimer)
-			{
-				CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
-			}
-			pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
+			pUIMenu->m_nSelectedPerformanceID = nValue;
 			break;
 
 		case MenuEventSelect:
@@ -1637,6 +1627,13 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		default:
 			return;
 		}
+
+		// Restart the debounce timer
+		if (pUIMenu->m_hPerformanceLoadTimer)
+		{
+			CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
+		}
+		pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
 	}
 	else
 	{
@@ -1676,14 +1673,14 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	if (!pUIMenu->m_bPerformanceDeleteMode)
 	{
-		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
+		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(pUIMenu->m_nSelectedPerformanceID);
 		unsigned nBankNum = pUIMenu->m_pMiniDexed->GetPerformanceBank();
 
 		std::string nPSelected = "000";
 		nPSelected += std::to_string(nBankNum + 1);
 		nPSelected = nPSelected.substr(nPSelected.length() - 3, 3);
 		std::string nPPerf = "000";
-		nPPerf += std::to_string(nValue + 1);
+		nPPerf += std::to_string(pUIMenu->m_nSelectedPerformanceID + 1);
 		nPPerf = nPPerf.substr(nPPerf.length() - 3, 3);
 
 		nPSelected += ":" + nPPerf;
