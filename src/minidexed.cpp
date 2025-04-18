@@ -1310,6 +1310,15 @@ void CMiniDexed::ProcessSound (void)
 				arm_fill_q15(0, tmp_int, nFrames*Channels);
 			}
 
+			// Prevent PCM510x analog mute from kicking in
+			for (uint8_t tg = 0; tg < Channels; tg++) 
+			{
+				if (tmp_int[(nFrames - 1) * Channels + tg] == 0)
+				{
+					tmp_int[(nFrames - 1) * Channels + tg]++;
+				}
+			}
+			
 			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 			{
 				LOGERR ("Sound data dropped");
@@ -1395,6 +1404,12 @@ void CMiniDexed::ProcessSound (void)
 				arm_fill_q15(0, tmp_int, nFrames * 2);
 			}
 
+			// Prevent PCM510x analog mute from kicking in
+			if (tmp_int[nFrames * 2 - 1] == 0)
+			{
+				tmp_int[nFrames * 2 - 1]++;
+			}
+			
 			if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 			{
 				LOGERR ("Sound data dropped");
