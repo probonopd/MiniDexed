@@ -325,6 +325,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
 				// Set the operator mask directly (no toggling)
 				m_pSynthesizer->setOperatorMask(operatorMask, nTG);
+				// Also update the actual voice data parameter OPE (offset 155)
+				m_pSynthesizer->setVoiceDataElement(155, operatorMask, nTG);
 			}
 			return;
 		}
