@@ -1533,19 +1533,18 @@ void CUIMenu::TGUpDownHandler (TMenuEvent Event)
 	EventHandler (MenuEventUpdate);
 }
 
-void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext)
+void CUIMenu::TimerHandler(TKernelTimerHandle hTimer, void *pParam, void *pContext)
 {
-	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
-	assert (pThis);
+	CUIMenu *pThis = static_cast<CUIMenu *>(pContext);
+	assert(pThis);
 
 	if (pThis->m_hPerformanceLoadTimer == hTimer)
 	{
-		pThis->m_pMiniDexed->SetNewPerformance(pThis->m_nSelectedPerformanceID);
-		pThis->m_hPerformanceLoadTimer = 0;
-	}
-	else
-	{
-		pThis->EventHandler (MenuEventBack);
+		if (pThis->m_pMiniDexed->GetActualPerformanceID() != pThis->m_nSelectedPerformanceID)
+		{
+			pThis->m_pMiniDexed->SetNewPerformance(pThis->m_nSelectedPerformanceID);
+		}
+		pThis->m_hPerformanceLoadTimer = 0; // Detach the timer after execution
 	}
 }
 
@@ -1595,7 +1594,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					--nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nSelectedPerformanceID = nValue;
 			break;
 
 		case MenuEventStepUp:
@@ -1610,7 +1608,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					++nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nSelectedPerformanceID = nValue;
 			break;
 
 		case MenuEventSelect:
@@ -1628,12 +1625,17 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			return;
 		}
 
-		// Restart the debounce timer
-		if (pUIMenu->m_hPerformanceLoadTimer)
+		if (nValue != pUIMenu->m_nSelectedPerformanceID)
 		{
-			CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
+			pUIMenu->m_nSelectedPerformanceID = nValue;
+
+			// Restart the debounce timer only if the selection has changed
+			if (pUIMenu->m_hPerformanceLoadTimer)
+			{
+				CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
+			}
+			pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
 		}
-		pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
 	}
 	else
 	{
