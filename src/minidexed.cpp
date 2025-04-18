@@ -23,6 +23,7 @@
 #include <circle/sound/pwmsoundbasedevice.h>
 #include <circle/sound/i2ssoundbasedevice.h>
 #include <circle/sound/hdmisoundbasedevice.h>
+#include <circle/sound/usbsoundbasedevice.h>
 #include <circle/gpiopin.h>
 #include <string.h>
 #include <stdio.h>
@@ -201,6 +202,16 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		// The channels are swapped by default in the HDMI sound driver.
 		// TODO: Remove this line, when this has been fixed in the driver.
 		m_bChannelsSwapped = !m_bChannelsSwapped;
+#endif
+	}
+	else if (strcmp (pDeviceName, "usb") == 0)
+	{
+#if RASPPI<=3
+		LOGNOTE ("USB mode NOT supported on RPI 1-3.");
+#else
+		LOGNOTE ("USB mode");
+
+		m_pSoundDevice = new CUSBSoundBaseDevice (pConfig->GetSampleRate ());
 #endif
 	}
 	else
