@@ -802,17 +802,24 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 
 void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
 {
+  LOGDBG("SendSystemExclusiveVoice: nVoice=%u, nCable=%u, nTG=%u", nVoice, nCable, nTG);
+  if (nTG >= m_pConfig->GetToneGenerators()) {
+    LOGERR("SendSystemExclusiveVoice: Invalid TG index %u", nTG);
+    return;
+  }
   uint8_t voicedump[163];
+  memset(voicedump, 0, sizeof(voicedump));
 
-  // Get voice sysex dump from TG
   m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
+  LOGDBG("SysEx dump header: %02X %02X %02X %02X %02X %02X ... end: %02X", 
+    voicedump[0], voicedump[1], voicedump[2], voicedump[3], voicedump[4], voicedump[5], voicedump[162]);
 
-  TDeviceMap::const_iterator Iterator;
-
-  // send voice dump to all MIDI interfaces
-  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
-  {
-    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
-    // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
+  // Only send to the device (MIDI cable) on which the dump was requested
+  TDeviceMap::const_iterator Iterator = s_DeviceMap.find(m_DeviceName);
+  if (Iterator != s_DeviceMap.end()) {
+    LOGDBG("Sending SysEx voice dump to device: %s, size: %u", Iterator->first.c_str(), (unsigned)sizeof(voicedump));
+    Iterator->second->Send (voicedump, sizeof(voicedump));
+  } else {
+    LOGERR("SendSystemExclusiveVoice: Device not found for name %s", m_DeviceName.c_str());
   }
 }
