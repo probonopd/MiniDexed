@@ -239,6 +239,8 @@ public:
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
 
+	unsigned GetMasterVolume() const { return m_nMasterVolume; }
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -353,6 +355,8 @@ private:
 	bool m_bProfileEnabled;
 	bool m_bPerformanceSelectToLoad;
 	unsigned m_bPerformanceSelectChannel;
+
+	unsigned m_nMasterVolume; // Master volume 0-127
 };
 
 #endif
