@@ -702,18 +702,24 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 			CUIMenu::EditProgramNumber (pUIMenu, MenuEventStepDown);
 		}
 	} else {
-		// Show bank:voice number on the top line, e.g. 005:012
+		// Format: 000:000      TG1 (bank:voice padded, TGx right-aligned)
 		int nBank = pUIMenu->m_pMiniDexed->GetTGParameter(CMiniDexed::TGParameterVoiceBank, nTG);
-		std::string topLine = "000";
-		topLine += std::to_string(nBank+1);
-		topLine = topLine.substr(topLine.length()-3,3);
-		topLine += ":";
+		std::string left = "000";
+		left += std::to_string(nBank+1);
+		left = left.substr(left.length()-3,3);
+		left += ":";
 		std::string voiceNum = "000";
 		voiceNum += std::to_string(nValue+1);
 		voiceNum = voiceNum.substr(voiceNum.length()-3,3);
-		topLine += voiceNum;
+		left += voiceNum;
 
-		// Only show the voice name on the bottom line
+		std::string tgLabel = "TG" + std::to_string(nTG+1);
+		unsigned lcdCols = pUIMenu->m_pConfig->GetLCDColumns();
+		unsigned pad = 0;
+		if (lcdCols > left.length() + tgLabel.length())
+			pad = lcdCols - (unsigned)(left.length() + tgLabel.length());
+		std::string topLine = left + std::string(pad, ' ') + tgLabel;
+
 		std::string Value = pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
 		pUIMenu->m_pUI->DisplayWrite (topLine.c_str(),
