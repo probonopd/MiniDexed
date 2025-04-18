@@ -1309,7 +1309,7 @@ void CMiniDexed::ProcessSound (void)
 				arm_fill_q15(0, tmp_int, nFrames*Channels);
 			}
 
-			// Prevent power save
+			// Prevent PCM510x analog mute from kicking in
 			for (uint8_t tg = 0; tg < Channels; tg++) 
 			{
 				if (tmp_int[(nFrames - 1) * Channels + tg] == 0)
@@ -1403,7 +1403,7 @@ void CMiniDexed::ProcessSound (void)
 				arm_fill_q15(0, tmp_int, nFrames * 2);
 			}
 
-			// Prevent power save
+			// Prevent PCM510x analog mute from kicking in
 			if (tmp_int[nFrames * 2 - 1] == 0)
 			{
 				tmp_int[nFrames * 2 - 1]++;
