@@ -1551,16 +1551,9 @@ void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void 
 
 void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 {
-	bool bPerformanceSelectToLoad = pUIMenu->m_pMiniDexed->GetPerformanceSelectToLoad();
 	unsigned nLastPerformance = pUIMenu->m_pMiniDexed->GetLastPerformance();
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	unsigned nStart = nValue;
-	if (pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true)
-	{
-		// A bank change has left the selected performance out of sync
-		nValue = pUIMenu->m_pMiniDexed->GetActualPerformanceID();
-		pUIMenu->m_nSelectedPerformanceID = nValue;
-	}
 	std::string Value;
 		
 	if (Event == MenuEventUpdate)
@@ -1594,10 +1587,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
-			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
-			{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
-			}
+			pUIMenu->m_pMiniDexed->SetNewPerformance(nValue); // Always load on scroll
 			break;
 
 		case MenuEventStepUp:
@@ -1614,22 +1604,12 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
-			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
-			{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
-			}
+			pUIMenu->m_pMiniDexed->SetNewPerformance(nValue); // Always load on scroll
 			break;
 
 		case MenuEventSelect:	
 			switch (pUIMenu->m_nCurrentParameter)
 			{
-			case 0:
-				if (bPerformanceSelectToLoad)
-				{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
-				}
-
-				break;
 			case 1:
 				if (pUIMenu->m_pMiniDexed->IsValidPerformance(pUIMenu->m_nSelectedPerformanceID))
 				{
@@ -1694,14 +1674,9 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		nPPerf = nPPerf.substr(nPPerf.length()-3,3);
 
 		nPSelected += ":"+nPPerf;
-		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
-		{
-			nPSelected += " [L]";
-		}
-					
+		
 		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
 						  Value.c_str (), true, true);
-//						 (int) nValue > 0, (int) nValue < (int) pUIMenu->m_pMiniDexed->GetLastPerformance());
 	}
 	else
 	{
