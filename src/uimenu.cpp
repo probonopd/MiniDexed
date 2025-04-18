@@ -353,7 +353,9 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig)
 	m_nCurrentMenuItem (0),
 	m_nCurrentSelection (0),
 	m_nCurrentParameter (0),
-	m_nCurrentMenuDepth (0)
+	m_nCurrentMenuDepth (0),
+	m_hPerformanceLoadTimer (0),
+	m_nPendingPerformanceID (0)
 {
 	assert (m_pConfig);
 	m_nToneGenerators = m_pConfig->GetToneGenerators();
@@ -1536,7 +1538,15 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
 	assert (pThis);
 
-	pThis->EventHandler (MenuEventBack);
+	if (pThis->m_hPerformanceLoadTimer == hTimer)
+	{
+		pThis->m_pMiniDexed->SetNewPerformance(pThis->m_nPendingPerformanceID);
+		pThis->m_hPerformanceLoadTimer = 0;
+	}
+	else
+	{
+		pThis->EventHandler (MenuEventBack);
+	}
 }
 
 void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext)
@@ -1555,18 +1565,18 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	unsigned nStart = nValue;
 	std::string Value;
-		
+
 	if (Event == MenuEventUpdate)
 	{
-		pUIMenu->m_bPerformanceDeleteMode=false;
+		pUIMenu->m_bPerformanceDeleteMode = false;
 	}
-	
+
 	if (pUIMenu->m_bSplashShow)
 	{
 		return;
-	}		
-	
-	if(!pUIMenu->m_bPerformanceDeleteMode)
+	}
+
+	if (!pUIMenu->m_bPerformanceDeleteMode)
 	{
 		switch (Event)
 		{
@@ -1578,7 +1588,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				if (nValue == 0)
 				{
-					// Wrap around
 					nValue = nLastPerformance;
 				}
 				else if (nValue > 0)
@@ -1586,8 +1595,12 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					--nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nSelectedPerformanceID = nValue;
-			pUIMenu->m_pMiniDexed->SetNewPerformance(nValue); // Always load on scroll
+			pUIMenu->m_nPendingPerformanceID = nValue;
+			if (pUIMenu->m_hPerformanceLoadTimer)
+			{
+				CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
+			}
+			pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
 			break;
 
 		case MenuEventStepUp:
@@ -1595,7 +1608,6 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				if (nValue == nLastPerformance)
 				{
-					// Wrap around
 					nValue = 0;
 				}
 				else if (nValue < nLastPerformance)
@@ -1603,24 +1615,25 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					++nValue;
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
-			pUIMenu->m_nSelectedPerformanceID = nValue;
-			pUIMenu->m_pMiniDexed->SetNewPerformance(nValue); // Always load on scroll
+			pUIMenu->m_nPendingPerformanceID = nValue;
+			if (pUIMenu->m_hPerformanceLoadTimer)
+			{
+				CTimer::Get()->CancelKernelTimer(pUIMenu->m_hPerformanceLoadTimer);
+			}
+			pUIMenu->m_hPerformanceLoadTimer = CTimer::Get()->StartKernelTimer(MSEC2HZ(500), TimerHandler, 0, pUIMenu);
 			break;
 
-		case MenuEventSelect:	
-			switch (pUIMenu->m_nCurrentParameter)
+		case MenuEventSelect:
+			if (pUIMenu->m_nCurrentParameter == 1)
 			{
-			case 1:
 				if (pUIMenu->m_pMiniDexed->IsValidPerformance(pUIMenu->m_nSelectedPerformanceID))
 				{
-					pUIMenu->m_bPerformanceDeleteMode=true;
-					pUIMenu->m_bConfirmDeletePerformance=false;
+					pUIMenu->m_bPerformanceDeleteMode = true;
+					pUIMenu->m_bConfirmDeletePerformance = false;
 				}
-				break;
-			default:
-				break;
 			}
 			break;
+
 		default:
 			return;
 		}
@@ -1633,54 +1646,54 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			break;
 
 		case MenuEventStepDown:
-			pUIMenu->m_bConfirmDeletePerformance=false;
+			pUIMenu->m_bConfirmDeletePerformance = false;
 			break;
 
 		case MenuEventStepUp:
-			pUIMenu->m_bConfirmDeletePerformance=true;
+			pUIMenu->m_bConfirmDeletePerformance = true;
 			break;
 
-		case MenuEventSelect:	
-			pUIMenu->m_bPerformanceDeleteMode=false;
+		case MenuEventSelect:
+			pUIMenu->m_bPerformanceDeleteMode = false;
 			if (pUIMenu->m_bConfirmDeletePerformance)
 			{
 				pUIMenu->m_nSelectedPerformanceID = 0;
-				pUIMenu->m_bConfirmDeletePerformance=false;
-				pUIMenu->m_pUI->DisplayWrite ("", "Delete", pUIMenu->m_pMiniDexed->DeletePerformance(nValue) ? "Completed" : "Error", false, false);
-				pUIMenu->m_bSplashShow=true;
-				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandlerNoBack, 0, pUIMenu);
+				pUIMenu->m_bConfirmDeletePerformance = false;
+				pUIMenu->m_pUI->DisplayWrite("", "Delete", pUIMenu->m_pMiniDexed->DeletePerformance(nValue) ? "Completed" : "Error", false, false);
+				pUIMenu->m_bSplashShow = true;
+				CTimer::Get()->StartKernelTimer(MSEC2HZ(1500), TimerHandlerNoBack, 0, pUIMenu);
 				return;
 			}
 			else
 			{
 				break;
 			}
-			
+
 		default:
 			return;
-		}		
+		}
 	}
-		
-	if(!pUIMenu->m_bPerformanceDeleteMode)
+
+	if (!pUIMenu->m_bPerformanceDeleteMode)
 	{
 		Value = pUIMenu->m_pMiniDexed->GetPerformanceName(nValue);
 		unsigned nBankNum = pUIMenu->m_pMiniDexed->GetPerformanceBank();
-		
-		std::string nPSelected = "000";
-		nPSelected += std::to_string(nBankNum+1);  // Convert to user-facing bank number rather than index
-		nPSelected = nPSelected.substr(nPSelected.length()-3,3);
-		std::string nPPerf = "000";
-		nPPerf += std::to_string(nValue+1);  // Convert to user-facing performance number rather than index
-		nPPerf = nPPerf.substr(nPPerf.length()-3,3);
 
-		nPSelected += ":"+nPPerf;
-		
-		pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
-						  Value.c_str (), true, true);
+		std::string nPSelected = "000";
+		nPSelected += std::to_string(nBankNum + 1);
+		nPSelected = nPSelected.substr(nPSelected.length() - 3, 3);
+		std::string nPPerf = "000";
+		nPPerf += std::to_string(nValue + 1);
+		nPPerf = nPPerf.substr(nPPerf.length() - 3, 3);
+
+		nPSelected += ":" + nPPerf;
+
+		pUIMenu->m_pUI->DisplayWrite(pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
+						  Value.c_str(), true, true);
 	}
 	else
 	{
-		pUIMenu->m_pUI->DisplayWrite ("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
+		pUIMenu->m_pUI->DisplayWrite("", "Delete?", pUIMenu->m_bConfirmDeletePerformance ? "Yes" : "No", false, false);
 	}
 }
 
@@ -1986,3 +1999,4 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 				   
 }
+``` 

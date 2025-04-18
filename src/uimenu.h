@@ -179,6 +179,9 @@ private:
 	unsigned m_nSelectedPerformanceID =0;
 	unsigned m_nSelectedPerformanceBankID =0;
 	bool m_bSplashShow=false;
+	
+	unsigned m_nPendingPerformanceID = 0;
+	TKernelTimerHandle m_hPerformanceLoadTimer = 0;
 
 };
 
