@@ -723,9 +723,9 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 		std::string Value = pUIMenu->m_pMiniDexed->GetVoiceName (nTG);
 
 		pUIMenu->m_pUI->DisplayWrite (topLine.c_str(),
-					  pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					  "",
 					  Value.c_str(),
-					  nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank-1);
+					  nValue > 0, nValue < (int) CSysExFileLoader::VoicesPerBank);
 	}
 }
 
