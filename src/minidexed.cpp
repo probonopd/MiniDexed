@@ -2258,7 +2258,7 @@ void CMiniDexed::UpdateNetwork()
 				LOGNOTE ("Sending log messages to syslog server %s:%u",
 					(const char *) IPString, (unsigned) usServerPort);
 
-				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+				m_pSysLogDaemon = std::make_unique<CSysLogDaemon>(m_pNet, ServerIP, usServerPort);
 			}
 		}
 		m_bNetworkReady = true;
