@@ -2,7 +2,7 @@
 // mididevice.cpp
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
-// Copyright (C) 2022  The MiniDexed Team
+// Copyright (C) 2022-25  The MiniDexed Team
 //
 // Original author of this class:
 //	R. Stange <rsta2@o2online.de>
@@ -51,6 +51,10 @@ LOGMODULE ("mididevice");
 	#define MIDI_CC_DETUNE_LEVEL		94
 	#define MIDI_CC_ALL_SOUND_OFF		120
 	#define MIDI_CC_ALL_NOTES_OFF		123
+	#define MIDI_CC_OMNI_MODE_OFF		124
+	#define MIDI_CC_OMNI_MODE_ON		125
+	#define MIDI_CC_MONO_MODE_ON		126
+	#define MIDI_CC_POLY_MODE_ON		127
 #define MIDI_PROGRAM_CHANGE	0b1100
 #define MIDI_PITCH_BEND		0b1110
 
@@ -84,6 +88,7 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
+		m_PreviousChannelMap[nTG] = Disabled; // Initialize previous channel map
 	}
 
 	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
@@ -132,6 +137,12 @@ CMIDIDevice::~CMIDIDevice (void)
 void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
+	
+	// When changing to OMNI mode, store the previous channel
+	if (ucChannel == OmniMode && m_ChannelMap[nTG] != OmniMode) {
+		m_PreviousChannelMap[nTG] = m_ChannelMap[nTG];
+	}
+	
 	m_ChannelMap[nTG] = ucChannel;
 }
 
@@ -265,6 +276,61 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
+		// Handle Voice Dump Request SysEx (Format 0)
+		if (nLength == 5 &&
+			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+			pMessage[1] == 0x43 &&  // Yamaha manufacturer ID
+			(pMessage[2] & 0xF0) == 0x20 && // Status byte with channel (0x2n)
+			pMessage[3] == 0x00 &&  // Format 0 (single voice)
+			pMessage[4] == MIDI_SYSTEM_EXCLUSIVE_END) {
+			uint8_t channel = pMessage[2] & 0x0F;
+			LOGDBG("Voice Dump Request (Format 0) received for channel %d", channel);
+			
+			// Find TG matching this channel
+			bool found = false;
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+				if (m_ChannelMap[nTG] == channel || m_ChannelMap[nTG] == OmniMode) {
+					SendSystemExclusiveVoice(0, nCable, nTG);
+					found = true;
+					// Don't break here to allow multiple TGs on same channel to respond
+				}
+			}
+			
+			if (!found) {
+				// If no specific TG is found for this channel, respond with TG 0
+				SendSystemExclusiveVoice(0, nCable, 0);
+			}
+			return;
+		}
+
+		// Operator enable/disable SysEx handling - Format F0 43 11 g=0 h=1 1B p F7
+		// Where 1B (27) is parameter for operator on/off
+		// And p is a bitmask for operators (bit 0=OP6, bit 1=OP5, bit 2=OP4, bit 3=OP3, bit 4=OP2, bit 5=OP1)
+		if (nLength == 7 &&
+			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+			pMessage[1] == 0x43 && // Yamaha manufacturer ID
+			pMessage[2] == 0x11 && // Sub-status byte (parameter change)
+			pMessage[3] == 0x01 && // Format byte (h=1, g=0)
+			pMessage[4] == 0x1B && // Parameter 27 (0x1B) - operator on/off
+			pMessage[5] <= 0x3F && // Value (6-bit mask, 0x00-0x3F valid range)
+			pMessage[6] == MIDI_SYSTEM_EXCLUSIVE_END) {
+			
+			uint8_t operatorMask = pMessage[5];
+			LOGDBG("Operator On/Off SysEx received: Mask 0x%02X", operatorMask);
+
+			// Apply to MIDI channel-specific TGs
+			uint8_t channel = 0; // Default to first channel if not specified
+			
+			// Find TGs to apply this to (apply to all TGs if from UI)
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+				// Set the operator mask directly (no toggling)
+				m_pSynthesizer->setOperatorMask(operatorMask, nTG);
+				// Also update the actual voice data parameter OPE (offset 155)
+				m_pSynthesizer->setVoiceDataElement(155, operatorMask, nTG);
+			}
+			return;
+		}
+
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
 		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
@@ -474,6 +540,35 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							{
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
+							break;
+
+						case MIDI_CC_OMNI_MODE_OFF:
+							// Sets to "Omni Off" mode
+							if (m_ChannelMap[nTG] == OmniMode) {
+								// Restore the previous channel if available, otherwise use current channel
+								u8 channelToRestore = (m_PreviousChannelMap[nTG] != Disabled) ? 
+									m_PreviousChannelMap[nTG] : ucChannel;
+								m_pSynthesizer->SetMIDIChannel(channelToRestore, nTG);
+								LOGDBG("Omni Mode Off: TG %d restored to MIDI channel %d", nTG, channelToRestore+1);
+							}
+							break;
+						
+						case MIDI_CC_OMNI_MODE_ON:
+							// Sets to "Omni On" mode
+							m_pSynthesizer->SetMIDIChannel(OmniMode, nTG);
+							LOGDBG("Omni Mode On: TG %d set to OMNI", nTG);
+							break;
+
+						case MIDI_CC_MONO_MODE_ON:
+							// Sets monophonic mode
+							m_pSynthesizer->setMonoMode(1, nTG);
+							LOGDBG("Mono Mode On: TG %d set to MONO", nTG);
+							break;
+
+						case MIDI_CC_POLY_MODE_ON:
+							// Sets polyphonic mode
+							m_pSynthesizer->setMonoMode(0, nTG);
+							LOGDBG("Poly Mode On: TG %d set to POLY", nTG);
 							break;
 
 						default:
@@ -707,17 +802,24 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 
 void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
 {
-  uint8_t voicedump[163];
-
-  // Get voice sysex dump from TG
-  m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
-
-  TDeviceMap::const_iterator Iterator;
-
-  // send voice dump to all MIDI interfaces
-  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
-  {
-    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
-    // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
+  LOGDBG("SendSystemExclusiveVoice: nVoice=%u, nCable=%u, nTG=%u", nVoice, nCable, nTG);
+  if (nTG >= m_pConfig->GetToneGenerators()) {
+    LOGERR("SendSystemExclusiveVoice: Invalid TG index %u", nTG);
+    return;
   }
-} 
+  uint8_t voicedump[163];
+  memset(voicedump, 0, sizeof(voicedump));
+
+  m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
+  LOGDBG("SysEx dump header: %02X %02X %02X %02X %02X %02X ... end: %02X", 
+    voicedump[0], voicedump[1], voicedump[2], voicedump[3], voicedump[4], voicedump[5], voicedump[162]);
+
+  // Only send to the device (MIDI cable) on which the dump was requested
+  TDeviceMap::const_iterator Iterator = s_DeviceMap.find(m_DeviceName);
+  if (Iterator != s_DeviceMap.end()) {
+    LOGDBG("Sending SysEx voice dump to device: %s, size: %u", Iterator->first.c_str(), (unsigned)sizeof(voicedump));
+    Iterator->second->Send (voicedump, sizeof(voicedump));
+  } else {
+    LOGERR("SendSystemExclusiveVoice: Device not found for name %s", m_DeviceName.c_str());
+  }
+}

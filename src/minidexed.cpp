@@ -2,7 +2,7 @@
 // minidexed.cpp
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
-// Copyright (C) 2022  The MiniDexed Team
+// Copyright (C) 2022-25  The MiniDexed Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -1690,7 +1690,7 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 
 	assert (m_pTG[nTG]);
 
-	m_nBreathControlTarget[nTG]=target;
+	m_nBreathControlTarget[nTG] = target;
 
 	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -2204,4 +2204,30 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 		break;
 	}
 	
+}
+
+void CMiniDexed::setOperatorMask(uint8_t operatorMask, unsigned nTG) {
+    if (nTG >= CConfig::AllToneGenerators) {
+        LOGERR("Invalid tone generator: TG=%u", nTG);
+        return;
+    }
+
+    // According to Yamaha DX7/TX SysEx format:
+    // Bit 0 = OP6, Bit 1 = OP5, Bit 2 = OP4, Bit 3 = OP3, Bit 4 = OP2, Bit 5 = OP1
+    // For MiniDexed: Bit 0 = OP1, Bit 1 = OP2, etc. - need to reverse the bit order to match
+    
+    uint8_t reversedMask = 0;
+    for (int i = 0; i < 6; i++) {
+        if (operatorMask & (1 << i)) {
+            reversedMask |= (1 << (5 - i));
+        }
+    }
+    
+    m_uchOPMask[nTG] = reversedMask;
+    LOGDBG("Set operator mask for TG %u: Yamaha=0x%02X, Reversed=0x%02X", nTG, operatorMask, reversedMask);
+
+    // Apply the updated operator mask to the tone generator
+    if (nTG < m_nToneGenerators) {
+        m_pTG[nTG]->setOPAll(m_uchOPMask[nTG]);
+    }
 }
