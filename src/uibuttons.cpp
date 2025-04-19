@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <circle/timer.h>
 #include <string.h>
+#include "midi.h"
 
 LOGMODULE ("uibuttons");
 
@@ -492,20 +493,21 @@ void CUIButtons::ResetButton (unsigned pinNumber)
 
 void CUIButtons::BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2)
 {
+	u8 ucType = nMidiCmd >> 4;
 	if (m_notesMidi > 0) {
 //		LOGDBG("BtnMIDICmdHandler (notes): %x %x %x)", nMidiCmd, nMidiData1, nMidiData2);
 		// Using MIDI Note messages for MIDI buttons
 		unsigned midiPin = ccToMidiPin(nMidiData1);
 		for (unsigned i=0; i<MAX_BUTTONS; i++) {
 			if (m_buttons[i].getPinNumber() == midiPin) {
-				if (nMidiCmd == 0x80) {
-					// NoteOff = Button OFF
+				if (ucType == MIDI_NOTE_OFF) {
+					// Button OFF
 					m_buttons[i].Write (0);
-				} else if ((nMidiCmd == 0x90) && (nMidiData2 == 0)) {
-					// NoteOn with Vel == 0 = Button OFF
+				} else if ((ucType == MIDI_NOTE_ON) && (nMidiData2 == 0)) {
+					// Button OFF (MIDI_NOTE_ON with Vel == 0)
 					m_buttons[i].Write (0);
-				} else if (nMidiCmd == 0x90) {
-					// NoteOn = Button ON
+				} else if (ucType == MIDI_NOTE_ON) {
+					// Button ON
 					m_buttons[i].Write (127);
 				} else {
 					// Ignore other MIDI commands
@@ -515,7 +517,7 @@ void CUIButtons::BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsi
 	} else {
 //		LOGDBG("BtnMIDICmdHandler (CC): %x %x %x)", nMidiCmd, nMidiData1, nMidiData2);
 		// Using MIDI CC messages for MIDI buttons
-		if (nMidiCmd == 0xB0) {  // Control Message
+		if (ucType == MIDI_CONTROL_CHANGE) {
 			unsigned midiPin = ccToMidiPin(nMidiData1);
 			for (unsigned i=0; i<MAX_BUTTONS; i++) {
 				if (m_buttons[i].getPinNumber() == midiPin) {
@@ -523,5 +525,5 @@ void CUIButtons::BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsi
 				}
 			}
 		}
-	}	
+	}
 }
