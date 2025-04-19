@@ -2341,7 +2341,7 @@ bool CMiniDexed::InitNetwork()
 
 			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
 
-			// syslog configuration
+			// Syslog configuration
 			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
 			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
