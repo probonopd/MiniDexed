@@ -2246,19 +2246,20 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		// syslog configuration
+
+		// Syslog configuration
 		if (m_pConfig->GetSyslogEnabled())
 		{
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-			if (ServerIP.IsSet () && !ServerIP.IsNull ())
-			{
-				static const u16 usServerPort = 8514;	// standard port is 514
-				CString IPString;
-				ServerIP.Format (&IPString);
-				LOGNOTE ("Sending log messages to syslog server %s:%u",
-					(const char *) IPString, (unsigned) usServerPort);
-
-				m_pSysLogDaemon = std::make_unique<CSysLogDaemon>(m_pNet, ServerIP, usServerPort);
+      CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+      if (ServerIP.IsSet () && !ServerIP.IsNull ())
+      {
+        static const u16 usServerPort = 8514; // standard port is 514
+        CString IPStringSyslog;
+        ServerIP.Format (&IPStringSyslog);
+        LOGNOTE ("Sending log messages to syslog server %s:%u",
+          (const char *) IPStringSyslog, (unsigned) usServerPort);
+        new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+      }
 			}
 		}
 		m_bNetworkReady = true;
@@ -2345,8 +2346,16 @@ bool CMiniDexed::InitNetwork()
 				delete m_pNet;
 				m_pNet = nullptr;
 			}
+
 			// WPASupplicant needs to be started after netdevice available
 			if (NetDeviceType == NetDeviceTypeWLAN)
+      {
+  			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+      }
+      
+			// Syslog configuration
+			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
 				if (!m_WPASupplicant.Initialize()) 
 				{
