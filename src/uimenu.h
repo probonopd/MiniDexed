@@ -39,6 +39,7 @@ public:
 	enum TMenuEvent
 	{
 		MenuEventUpdate,
+		MenuEventUpdateParameter,
 		MenuEventSelect,
 		MenuEventBack,
 		MenuEventHome,
