@@ -2248,7 +2248,19 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		
+
+		// syslog configuration
+		CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+		if (ServerIP.IsSet () && !ServerIP.IsNull ())
+		{
+			static const u16 usServerPort = 8514; // standard port is 514
+			CString IPStringSyslog;
+			ServerIP.Format (&IPStringSyslog);
+			LOGNOTE ("Sending log messages to syslog server %s:%u",
+				(const char *) IPStringSyslog, (unsigned) usServerPort);
+			new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+		}
+
 		m_bNetworkReady = true;
 	}
 
