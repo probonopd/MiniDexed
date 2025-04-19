@@ -20,6 +20,11 @@ if [ "${RPI}" -gt "1" ]; then
     OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
 fi
 
+# For wireless access
+if [ "${RPI}" == "3" ]; then
+    OPTIONS="${OPTIONS} -o USE_SDHOST"
+fi
+
 # USB Vendor and Device ID for use with USB Gadget Mode
 source USBID.sh
 if [ "${USB_VID}" ] ; then
@@ -39,6 +44,11 @@ make -j
 cd libs/circle/addon/display/
 make clean || true
 make -j
+
+cd ../wlan/
+make clean || true
+make -j
+
 cd ../sensor/
 make clean || true
 make -j

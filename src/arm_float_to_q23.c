@@ -22,10 +22,6 @@ void arm_float_to_q23(const float32_t * pSrc, q23_t * pDst, uint32_t blockSize)
 
         cvt = vcvtq_n_s32_f32(inV, 23);
 
-        /* saturate */
-        cvt = vminq_s32(cvt, vdupq_n_s32(0x007fffff));
-        cvt = vmaxq_s32(cvt, vdupq_n_s32(0xff800000));
-
         vst1q_s32(pDst, cvt);
         pDst += 4;
         pIn += 4;

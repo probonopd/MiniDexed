@@ -23,6 +23,7 @@
 #ifndef _config_h
 #define _config_h
 
+#include <circle/net/ipaddress.h>
 #include <fatfs/ff.h>
 #include <Properties/propertiesfatfsfile.h>
 #include <circle/sysconfig.h>
@@ -241,6 +242,18 @@ public:
 
 	unsigned GetMasterVolume() const { return m_nMasterVolume; }
 
+	// Network
+	bool GetNetworkEnabled (void) const;
+	bool GetNetworkDHCP (void) const;
+	const char *GetNetworkType (void) const;
+	const char *GetNetworkHostname (void) const;
+	CIPAddress GetNetworkIPAddress (void) const;
+	CIPAddress GetNetworkSubnetMask (void) const;
+	CIPAddress GetNetworkDefaultGateway (void) const;
+	CIPAddress GetNetworkDNSServer (void) const;
+	bool GetSyslogEnabled (void) const;
+	CIPAddress GetNetworkSyslogServerIPAddress (void) const;
+	
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -357,6 +370,18 @@ private:
 	unsigned m_bPerformanceSelectChannel;
 
 	unsigned m_nMasterVolume; // Master volume 0-127
+
+	// Network
+	bool m_bNetworkEnabled;
+	bool m_bNetworkDHCP;
+	std::string m_NetworkType;
+	std::string m_NetworkHostname;
+	CIPAddress m_INetworkIPAddress;
+	CIPAddress m_INetworkSubnetMask;
+	CIPAddress m_INetworkDefaultGateway;
+	CIPAddress m_INetworkDNSServer;
+	bool m_bSyslogEnabled;
+	CIPAddress m_INetworkSyslogServerIPAddress;
 };
 
 #endif
