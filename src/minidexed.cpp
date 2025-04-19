@@ -359,7 +359,7 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 #endif
-	InitNetwork();  // returns bool but we continue even if something goes wrong
+	InitNetwork();
 
 	return true;
 }
@@ -2197,7 +2197,6 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 
 void CMiniDexed::UpdateNetwork()
 {
-	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet)
 		return;
 
@@ -2206,19 +2205,15 @@ void CMiniDexed::UpdateNetwork()
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
 	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= m_WPASupplicant.IsConnected();
-	
-	if (!m_bNetworkInit && bNetIsRunning)
+
+	if (!m_bNetworkInit)
 	{
 		m_bNetworkInit = true;
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
-		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
-		
 		m_UDPMIDI.Initialize();
-
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
-
 		if (!m_pFTPDaemon->Initialize())
 		{
 			LOGERR("Failed to init FTP daemon");
@@ -2233,39 +2228,28 @@ void CMiniDexed::UpdateNetwork()
 
 		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);
-		
-		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
-		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
-						     5004))
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI, 5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
 		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-
-		// Syslog configuration
-		if (m_pConfig->GetSyslogEnabled())
+		CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+		if (ServerIP.IsSet () && !ServerIP.IsNull ())
 		{
-      CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-      if (ServerIP.IsSet () && !ServerIP.IsNull ())
-      {
-        static const u16 usServerPort = 8514; // standard port is 514
-        CString IPStringSyslog;
-        ServerIP.Format (&IPStringSyslog);
-        LOGNOTE ("Sending log messages to syslog server %s:%u",
-          (const char *) IPStringSyslog, (unsigned) usServerPort);
-        new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
-      }
-			}
+			static const u16 usServerPort = 8514; // standard port is 514
+			CString IPStringSyslog;
+			ServerIP.Format (&IPStringSyslog);
+			LOGNOTE ("Sending log messages to syslog server %s:%u",
+				(const char *) IPStringSyslog, (unsigned) usServerPort);
+			new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
 		}
 		m_bNetworkReady = true;
 	}
-
-	if (m_bNetworkReady && !bNetIsRunning)
+	else if (m_bNetworkReady && !bNetIsRunning)
 	{
 		m_bNetworkReady = false;
 		m_pmDNSPublisher->UnpublishService (m_pConfig->GetNetworkHostname());
@@ -2274,23 +2258,16 @@ void CMiniDexed::UpdateNetwork()
 	else if (!m_bNetworkReady && bNetIsRunning)
 	{
 		m_bNetworkReady = true;
-		
-		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
-						     5004))
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI, 5004))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
 		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		
-		m_bNetworkReady = true;
-		
 		LOGNOTE("Network connection reestablished.");
-
 	}
 }
 
@@ -2384,7 +2361,7 @@ bool CMiniDexed::InitNetwork()
 
 		// syslog configuration
 		CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-		if (ServerIP.IsSet () && !ServerIP.IsNull ())
+		if (m_pConfig->GetSyslogEnabled() && ServerIP.IsSet () && !ServerIP.IsNull ())
 		{
 			static const u16 usServerPort = 8514; // standard port is 514
 			CString IPString;
