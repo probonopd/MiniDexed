@@ -2295,65 +2295,108 @@ void CMiniDexed::UpdateNetwork()
 
 bool CMiniDexed::InitNetwork()
 {
+	LOGNOTE("InitNetwork: Starting network initialization");
 	assert(m_pNet == nullptr);
 
 	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
+	LOGNOTE("InitNetwork: NetworkEnabled=%d, NetworkType=%s", m_pConfig->GetNetworkEnabled(), m_pConfig->GetNetworkType());
+
 	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
 	{
-		LOGNOTE("Initializing WLAN");
+		LOGNOTE("InitNetwork: Initializing WLAN");
+
+		if (m_WLAN.Initialize())
+		{
+			LOGNOTE("InitNetwork: WLAN initialized");
+		}
+		else
+		{
+			LOGERR("InitNetwork: Failed to initialize WLAN");
+		}
+
+		if (m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("InitNetwork: WPASupplicant initialized");
+		}
+		else
+		{
+			LOGERR("InitNetwork: Failed to initialize WPASupplicant");
+		}
 
 		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
 		{
-			LOGNOTE("wlan and wpasupplicant initialized");
+			LOGNOTE("InitNetwork: WLAN and WPASupplicant initialized");
 			NetDeviceType = NetDeviceTypeWLAN;
-			
 		}
 		else
-			LOGERR("Failed to initialize WLAN");
+		{
+			LOGERR("InitNetwork: Failed to initialize WLAN or WPASupplicant");
+		}
 	}
 	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
 	{
-		LOGNOTE("Initializing Ethernet");
+		LOGNOTE("InitNetwork: Initializing Ethernet");
 		NetDeviceType = NetDeviceTypeEthernet;
 	}
 
 	if (NetDeviceType != NetDeviceTypeUnknown)
+	{
+		LOGNOTE("InitNetwork: NetDeviceType set, proceeding to create CNetSubSystem");
+		if (m_pConfig->GetNetworkDHCP())
 		{
-			if (m_pConfig->GetNetworkDHCP())
-				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
-			else
-				m_pNet = new CNetSubSystem(
-					m_pConfig->GetNetworkIPAddress().Get(),
-					m_pConfig->GetNetworkSubnetMask().Get(),
-					m_pConfig->GetNetworkDefaultGateway().Get(),
-					m_pConfig->GetNetworkDNSServer().Get(),
-					m_pConfig->GetNetworkHostname(),
-					NetDeviceType
-				);
-
-			if (!m_pNet->Initialize())
-			{
-				LOGERR("Failed to initialize network subsystem");
-				delete m_pNet;
-				m_pNet = nullptr;
-			}
-
-			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
-
-			// Syslog configuration
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-			if (ServerIP.IsSet () && !ServerIP.IsNull ())
-			{
-				static const u16 usServerPort = 8514;	// standard port is 514
-				CString IPString;
-				ServerIP.Format (&IPString);
-				LOGNOTE ("Sending log messages to syslog server %s:%u",
-					(const char *) IPString, (unsigned) usServerPort);
-
-				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
-			}
-
+			LOGNOTE("InitNetwork: Using DHCP");
+			m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
 		}
+		else
+		{
+			LOGNOTE("InitNetwork: Using static IP");
+			LOGNOTE("InitNetwork: IP=%u, Mask=%u, GW=%u, DNS=%u, Hostname=%s", 
+				(unsigned)m_pConfig->GetNetworkIPAddress().Get(),
+				(unsigned)m_pConfig->GetNetworkSubnetMask().Get(),
+				(unsigned)m_pConfig->GetNetworkDefaultGateway().Get(),
+				(unsigned)m_pConfig->GetNetworkDNSServer().Get(),
+				m_pConfig->GetNetworkHostname());
+			m_pNet = new CNetSubSystem(
+				m_pConfig->GetNetworkIPAddress().Get(),
+				m_pConfig->GetNetworkSubnetMask().Get(),
+				m_pConfig->GetNetworkDefaultGateway().Get(),
+				m_pConfig->GetNetworkDNSServer().Get(),
+				m_pConfig->GetNetworkHostname(),
+				NetDeviceType
+			);
+		}
+
+		if (!m_pNet->Initialize())
+		{
+			LOGERR("InitNetwork: Failed to initialize network subsystem");
+			delete m_pNet;
+			m_pNet = nullptr;
+		}
+		else
+		{
+			LOGNOTE("InitNetwork: Network subsystem initialized");
+		}
+
+		m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+		LOGNOTE("InitNetwork: Got NetDevice, type=%d", (int)NetDeviceType);
+
+		// syslog configuration
+		CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+		if (ServerIP.IsSet () && !ServerIP.IsNull ())
+		{
+			static const u16 usServerPort = 8514; // standard port is 514
+			CString IPString;
+			ServerIP.Format (&IPString);
+			LOGNOTE ("InitNetwork: Sending log messages to syslog server %s:%u",
+				(const char *) IPString, (unsigned) usServerPort);
+			new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+		}
+	}
+	else
+	{
+		LOGERR("InitNetwork: NetDeviceType is unknown, network not initialized");
+	}
+	LOGNOTE("InitNetwork: Done, m_pNet %s", m_pNet ? "set" : "nullptr");
 	return m_pNet != nullptr;
 }
