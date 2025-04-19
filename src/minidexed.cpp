@@ -2296,77 +2296,108 @@ void CMiniDexed::UpdateNetwork()
 
 bool CMiniDexed::InitNetwork()
 {
+	LOGNOTE("InitNetwork: Starting network initialization");
 	assert(m_pNet == nullptr);
 
 	TNetDeviceType NetDeviceType = NetDeviceTypeUnknown;
 
-	if (m_pConfig->GetNetworkEnabled())
-	{
-		if (strcmp(m_pConfig->GetNetworkType(), "wlan") == 0)
-		{
-			LOGNOTE("Initializing WLAN");
-			NetDeviceType = NetDeviceTypeWLAN;
-			if (m_WLAN.Initialize())
-			{
-				LOGNOTE("WLAN initialized");
-			}
-			else
-			{
-				LOGERR("Failed to initialize WLAN, maybe firmware files are missing?");
-				return false;
-			}
-		}
-		else if (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0)
-		{
-			LOGNOTE("Initializing Ethernet");
-			NetDeviceType = NetDeviceTypeEthernet;
-		}
-		else 
-		{
-			LOGERR("Network type is not set, please check your minidexed configuration file.");
-			NetDeviceType = NetDeviceTypeUnknown;
-		}
-		
-		if (NetDeviceType != NetDeviceTypeUnknown)
-		{
-			if (m_pConfig->GetNetworkDHCP())
-				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
-			else
-				m_pNet = new CNetSubSystem(
-					m_pConfig->GetNetworkIPAddress().Get(),
-					m_pConfig->GetNetworkSubnetMask().Get(),
-					m_pConfig->GetNetworkDefaultGateway().Get(),
-					m_pConfig->GetNetworkDNSServer().Get(),
-					m_pConfig->GetNetworkHostname(),
-					NetDeviceType
-				);
-			if (!m_pNet->Initialize(false))
-			{
-				LOGERR("Failed to initialize network subsystem");
-				delete m_pNet;
-				m_pNet = nullptr;
-			}
+	LOGNOTE("InitNetwork: NetworkEnabled=%d, NetworkType=%s", m_pConfig->GetNetworkEnabled(), m_pConfig->GetNetworkType());
 
-			// WPASupplicant needs to be started after netdevice available
-			if (NetDeviceType == NetDeviceTypeWLAN)
-      {
-  			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
-      }
-      
-			// Syslog configuration
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
-			if (ServerIP.IsSet () && !ServerIP.IsNull ())
-			{
-				if (!m_WPASupplicant.Initialize()) 
-				{
-					// It seems no way to catch if config is missing unless circle provides it
-					// or we catch the faults in config file ourselves
-					LOGERR("Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
-				}
-			}
-			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+	if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "wifi") == 0))
+	{
+		LOGNOTE("InitNetwork: Initializing WLAN");
+
+		if (m_WLAN.Initialize())
+		{
+			LOGNOTE("InitNetwork: WLAN initialized");
 		}
-		return m_pNet != nullptr;
+		else
+		{
+			LOGERR("InitNetwork: Failed to initialize WLAN");
+		}
+
+		if (m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("InitNetwork: WPASupplicant initialized");
+		}
+		else
+		{
+			LOGERR("InitNetwork: Failed to initialize WPASupplicant");
+		}
+
+		if (m_WLAN.Initialize() && m_WPASupplicant.Initialize())
+		{
+			LOGNOTE("InitNetwork: WLAN and WPASupplicant initialized");
+			NetDeviceType = NetDeviceTypeWLAN;
+		}
+		else
+		{
+			LOGERR("InitNetwork: Failed to initialize WLAN or WPASupplicant");
+		}
+	}
+	else if (m_pConfig->GetNetworkEnabled () && (strcmp(m_pConfig->GetNetworkType(), "ethernet") == 0))
+	{
+		LOGNOTE("InitNetwork: Initializing Ethernet");
+		NetDeviceType = NetDeviceTypeEthernet;
 	}
 
+	if (NetDeviceType != NetDeviceTypeUnknown)
+	{
+		LOGNOTE("InitNetwork: NetDeviceType set, proceeding to create CNetSubSystem");
+		if (m_pConfig->GetNetworkDHCP())
+		{
+			LOGNOTE("InitNetwork: Using DHCP");
+			m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
+		}
+		else
+		{
+			LOGNOTE("InitNetwork: Using static IP");
+			LOGNOTE("InitNetwork: IP=%u, Mask=%u, GW=%u, DNS=%u, Hostname=%s", 
+				(unsigned)m_pConfig->GetNetworkIPAddress().Get(),
+				(unsigned)m_pConfig->GetNetworkSubnetMask().Get(),
+				(unsigned)m_pConfig->GetNetworkDefaultGateway().Get(),
+				(unsigned)m_pConfig->GetNetworkDNSServer().Get(),
+				m_pConfig->GetNetworkHostname());
+			m_pNet = new CNetSubSystem(
+				m_pConfig->GetNetworkIPAddress().Get(),
+				m_pConfig->GetNetworkSubnetMask().Get(),
+				m_pConfig->GetNetworkDefaultGateway().Get(),
+				m_pConfig->GetNetworkDNSServer().Get(),
+				m_pConfig->GetNetworkHostname(),
+				NetDeviceType
+			);
+		}
+
+		if (!m_pNet->Initialize())
+		{
+			LOGERR("InitNetwork: Failed to initialize network subsystem");
+			delete m_pNet;
+			m_pNet = nullptr;
+		}
+		else
+		{
+			LOGNOTE("InitNetwork: Network subsystem initialized");
+		}
+
+		m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+		LOGNOTE("InitNetwork: Got NetDevice, type=%d", (int)NetDeviceType);
+
+		// syslog configuration
+		CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+		if (ServerIP.IsSet () && !ServerIP.IsNull ())
+		{
+			static const u16 usServerPort = 8514; // standard port is 514
+			CString IPString;
+			ServerIP.Format (&IPString);
+			LOGNOTE ("InitNetwork: Sending log messages to syslog server %s:%u",
+				(const char *) IPString, (unsigned) usServerPort);
+			new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
+		}
+	}
+	else
+	{
+		LOGERR("InitNetwork: NetDeviceType is unknown, network not initialized");
+	}
+	LOGNOTE("InitNetwork: Done, m_pNet %s", m_pNet ? "set" : "nullptr");
+	return m_pNet != nullptr;
 }
