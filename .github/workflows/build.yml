@@ -25,29 +25,29 @@ jobs:
     - name: Install toolchains
       run: |
            set -ex
-           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
-           tar xf *-aarch64-none-elf.tar.xz
+           #wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+           #tar xf *-aarch64-none-elf.tar.xz
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
            tar xf *-arm-none-eabi.tar.xz
            mkdir -p kernels
-    - name: Build for Raspberry Pi 5
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=5 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 4
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=4 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 3
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=3 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
+#    - name: Build for Raspberry Pi 5
+#      run: |
+#           set -ex
+#           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
+#           RPI=5 bash -ex build.sh
+#           cp ./src/kernel*.img ./kernels/
+#    - name: Build for Raspberry Pi 4
+#      run: |
+#           set -ex
+#           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
+#           RPI=4 bash -ex build.sh
+#           cp ./src/kernel*.img ./kernels/
+#    - name: Build for Raspberry Pi 3
+#      run: |
+#           set -ex
+#           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
+#           RPI=3 bash -ex build.sh
+#           cp ./src/kernel*.img ./kernels/
     - name: Build for Raspberry Pi 2
       run: |
            set -ex
