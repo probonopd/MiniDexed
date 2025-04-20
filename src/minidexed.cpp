@@ -362,9 +362,12 @@ bool CMiniDexed::Initialize (void)
 	{
 		return false;
 	}
+
+	if (m_pConfig->GetNetworkEnabled()) {
+		InitNetwork();  // returns bool but we continue even if something goes wrong
+		LOGNOTE("CMiniDexed::Initialize: InitNetwork() called");
+	}
 #endif
-	InitNetwork();  // returns bool but we continue even if something goes wrong
-	LOGNOTE("CMiniDexed::Initialize: InitNetwork() called");
 
 	return true;
 }
@@ -2240,7 +2243,6 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 
 void CMiniDexed::UpdateNetwork()
 {
-	LOGNOTE("CMiniDexed::UpdateNetwork called");
 	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet) {
 		LOGNOTE("CMiniDexed::UpdateNetwork: m_pNet is nullptr, returning early");
