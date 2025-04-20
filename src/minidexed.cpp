@@ -1619,7 +1619,7 @@ void CMiniDexed::setModWheelRange(uint8_t range, uint8_t nTG)
 	m_pTG[nTG]->setMWController(range, m_pTG[nTG]->getModWheelTarget(), 0);
 //	m_pTG[nTG]->setModWheelRange(constrain(range, 0, 99));  replaces with the above due to wrong constrain on dexed_synth module. 
 
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1633,7 +1633,7 @@ void CMiniDexed::setModWheelTarget(uint8_t target, uint8_t nTG)
 	m_nModulationWheelTarget[nTG] = target;
 
 	m_pTG[nTG]->setModWheelTarget(constrain(target, 0, 7));
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1648,7 +1648,7 @@ void CMiniDexed::setFootControllerRange(uint8_t range, uint8_t nTG)
 	m_pTG[nTG]->setFCController(range, m_pTG[nTG]->getFootControllerTarget(), 0);
 //	m_pTG[nTG]->setFootControllerRange(constrain(range, 0, 99));  replaces with the above due to wrong constrain on dexed_synth module. 
 
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1662,7 +1662,7 @@ void CMiniDexed::setFootControllerTarget(uint8_t target, uint8_t nTG)
 	m_nFootControlTarget[nTG] = target;
 
 	m_pTG[nTG]->setFootControllerTarget(constrain(target, 0, 7));
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1677,7 +1677,7 @@ void CMiniDexed::setBreathControllerRange(uint8_t range, uint8_t nTG)
 	m_pTG[nTG]->setBCController(range, m_pTG[nTG]->getBreathControllerTarget(), 0);
 	//m_pTG[nTG]->setBreathControllerRange(constrain(range, 0, 99));
 
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1691,7 +1691,7 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 	m_nBreathControlTarget[nTG]=target;
 
 	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1706,7 +1706,7 @@ void CMiniDexed::setAftertouchRange(uint8_t range, uint8_t nTG)
 	m_pTG[nTG]->setATController(range, m_pTG[nTG]->getAftertouchTarget(), 0);
 //	m_pTG[nTG]->setAftertouchRange(constrain(range, 0, 99));
 
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
@@ -1720,7 +1720,7 @@ void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
 	m_nAftertouchTarget[nTG]=target;
 
 	m_pTG[nTG]->setAftertouchTarget(constrain(target, 0, 7));
-	m_pTG[nTG]->ControllersRefresh();
+	//m_pTG[nTG]->ControllersRefresh();
 	m_UI.ParameterChanged ();
 }
 
