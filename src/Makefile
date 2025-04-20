@@ -22,4 +22,4 @@ include ./Rules.mk
 
 clean:
 	@echo "Cleaning up..."
-	rm -f $(OBJS) *.o *~ core
+	rm -f $(OBJS) *.o *.d *~ core
