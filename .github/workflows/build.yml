@@ -103,6 +103,9 @@ jobs:
       if: ${{ github.ref == 'refs/heads/main' }}
       run: |
            set -ex
+           UPLOADTOOL_ISPRERELEASE=true
+           UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
+           UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
            wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
            bash ./upload.sh ./MiniDexed*.zip
            
