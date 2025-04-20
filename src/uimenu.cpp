@@ -74,8 +74,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
-#endif
 	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
+#endif
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
