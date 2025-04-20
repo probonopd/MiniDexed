@@ -201,8 +201,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
     }
     cleanup_done = false;
 
-    rv_time = rv_time_k * (m_samplerate / 48000.0f);
-    float32_t rv_time_scaler_scaled = rv_time_scaler * (m_samplerate / 48000.0f);
+    rv_time = rv_time_k * (48000.0f / m_samplerate);
 
     for (uint16_t i=0; i < len; i++) 
     {
@@ -302,7 +301,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = lpf1 - hpf1;
         hpf1 += temp1 * lp_hipass_f;
         acc = lpf1 + temp2*lp_hidamp_k + hpf1*lp_lodamp_k;
-        acc = acc * rv_time * rv_time_scaler_scaled;                                                                // scale by the reveb time
+        acc = acc * rv_time * rv_time_scaler;                                                                // scale by the reveb time
         
         input = acc + in_allp_out_L;
 
@@ -321,7 +320,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = lpf2 - hpf2;
         hpf2 += temp1 * lp_hipass_f;
         acc = lpf2 + temp2*lp_hidamp_k + hpf2*lp_lodamp_k;
-        acc = acc * rv_time * rv_time_scaler_scaled;             
+        acc = acc * rv_time * rv_time_scaler;             
 
         input = acc + in_allp_out_R;
 
@@ -340,7 +339,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = lpf3 - hpf3;
         hpf3 += temp1 * lp_hipass_f;
         acc = lpf3 + temp2*lp_hidamp_k + hpf3*lp_lodamp_k;
-        acc = acc * rv_time * rv_time_scaler_scaled;              
+        acc = acc * rv_time * rv_time_scaler;              
 
         input = acc + in_allp_out_L;       
 
@@ -359,7 +358,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = lpf4 - hpf4;
         hpf4 += temp1 * lp_hipass_f;
         acc = lpf4 + temp2*lp_hidamp_k + hpf4*lp_lodamp_k;
-        acc = acc * rv_time * rv_time_scaler_scaled;              
+        acc = acc * rv_time * rv_time_scaler;              
 
         lp_allp_out = acc;
 
