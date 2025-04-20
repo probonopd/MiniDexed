@@ -22,7 +22,7 @@ jobs:
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
       - name: Create kernels directory
-        run: mkdir -p kernels/
+        run: mkdir -p ./kernels/
       - name: Put git hash in startup message
         run: |
           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
@@ -89,6 +89,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
+      - name: Create kernels directory
+        run: mkdir -p ./kernels/
       - name: Put git hash in startup message
         run: |
           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
