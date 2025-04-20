@@ -1,3 +1,5 @@
+# Build 32-bit and 64-bit separately
+
 name: Build
 
 env:
