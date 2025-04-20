@@ -701,6 +701,71 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
         LOGDBG("SysEx send voice %u request",sysex_return-500);
         SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
       }
+      else if (nLength == 7 && pMessage[0] == 0xF0 && pMessage[1] == 0x43 && (pMessage[2] & 0xF0) == 0x10 && pMessage[3] == 0x04 && pMessage[6] == 0xF7)
+      {
+        // TX816/TX216 Performance SysEx message
+        uint8_t module = pMessage[2] & 0x0F; // n = module number (0-7)
+        uint8_t par = pMessage[4];
+        uint8_t val = pMessage[5];
+        // Map parameter to internal function
+        switch (par)
+        {
+          case 0: // MIDI Channel
+            m_pSynthesizer->SetMIDIChannel(val & 0x0F, module);
+            break;
+          case 1: // Poly/Mono
+            m_pSynthesizer->setMonoMode(val ? true : false, module);
+            break;
+          case 2: // Pitch Bend Range
+            m_pSynthesizer->setPitchbendRange(val, module);
+            break;
+          case 3: // Pitch Bend Step
+            m_pSynthesizer->setPitchbendStep(val, module);
+            break;
+          case 4: // Portamento Time
+            m_pSynthesizer->setPortamentoTime(val, module);
+            break;
+          case 5: // Portamento/Glissando
+            m_pSynthesizer->setPortamentoGlissando(val, module);
+            break;
+          case 6: // Portamento Mode
+            m_pSynthesizer->setPortamentoMode(val, module);
+            break;
+          case 9: // Mod Wheel Sensitivity
+            m_pSynthesizer->setModWheelRange(val, module);
+            break;
+          case 10: // Mod Wheel Assign
+            m_pSynthesizer->setModWheelTarget(val, module);
+            break;
+          case 11: // Foot Controller Sensitivity
+            m_pSynthesizer->setFootControllerRange(val, module);
+            break;
+          case 12: // Foot Controller Assign
+            m_pSynthesizer->setFootControllerTarget(val, module);
+            break;
+          case 13: // Aftertouch Sensitivity
+            m_pSynthesizer->setAftertouchRange(val, module);
+            break;
+          case 14: // Aftertouch Assign
+            m_pSynthesizer->setAftertouchTarget(val, module);
+            break;
+          case 15: // Breath Controller Sensitivity
+            m_pSynthesizer->setBreathControllerRange(val, module);
+            break;
+          case 16: // Breath Controller Assign
+            m_pSynthesizer->setBreathControllerTarget(val, module);
+            break;
+          case 26: // Audio Output Level Attenuator (if supported)
+            // m_pSynthesizer->setOutputAttenuator(val, module); // Uncomment if implemented
+            break;
+          case 64: // Master Tuning
+            m_pSynthesizer->SetMasterTune(val, module);
+            break;
+          default:
+            // Unknown or unsupported parameter
+            break;
+        }
+      }
       break;
   }
 }
@@ -720,4 +785,4 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
     Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
     // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
-} 
+}
