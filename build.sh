@@ -61,8 +61,11 @@ cd ..
 
 # Build MiniDexed
 cd src
-git clean -f # Completely reset this directory so that no leftover changes are used in subsequent builds
-make clean || true
+make clean
+print "***** DEBUG *****"
+env
+grep -r 'aarch64-none-elf' ./src/
+find ./src -type d -name 'aarch64-none-elf'
 make -j
 ls *.img
 cd ..
