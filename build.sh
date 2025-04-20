@@ -62,7 +62,7 @@ cd ..
 # Build MiniDexed
 cd src
 make clean
-print "***** DEBUG *****"
+echo "***** DEBUG *****"
 env
 grep -r 'aarch64-none-elf' ./src/
 find ./src -type d -name 'aarch64-none-elf'
