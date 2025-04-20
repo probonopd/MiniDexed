@@ -64,6 +64,7 @@ cd src
 make clean
 echo "***** DEBUG *****"
 env
+rm -rf ./gcc-* || true
 grep -r 'aarch64-none-elf' . || true
 find . -type d -name 'aarch64-none-elf' || true
 make -j
