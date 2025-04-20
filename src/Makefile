@@ -16,3 +16,10 @@ OPTIMIZE = -O3
 
 include ./Synth_Dexed.mk
 include ./Rules.mk
+
+# Clean target
+.PHONY: clean
+
+clean:
+	@echo "Cleaning up..."
+	rm -f $(OBJS) *.o *~ core
