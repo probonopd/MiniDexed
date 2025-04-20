@@ -11,27 +11,20 @@ on:
   pull_request:
 
 jobs:
-  prepare:
-    name: Prepare Environment
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v2
-      - name: Get specific commits of git submodules
-        run: sh -ex ./submod.sh
-      - name: Apply patches
-        run: |
-          # Put git hash in startup message
-          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
 
   build64:
     name: Build 64-bit kernels
     runs-on: ubuntu-22.04
-    needs: prepare
     outputs:
       artifact-path: ${{ steps.upload64.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
-
+      - name: Get specific commits of git submodules
+        run: sh -ex ./submod.sh
+      - name: Put git hash in startup message
+        run: |
+          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
         run: |
@@ -88,12 +81,16 @@ jobs:
   build32:
     name: Build 32-bit kernels
     runs-on: ubuntu-22.04
-    needs: prepare
     outputs:
       artifact-path: ${{ steps.upload32.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
-
+      - name: Get specific commits of git submodules
+        run: sh -ex ./submod.sh
+      - name: Put git hash in startup message
+        run: |
+          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          
       # Install 32-bit toolchain (arm-none-eabi)
       - name: Install 32-bit toolchain
         run: |
