@@ -704,62 +704,61 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if (nLength == 7 && pMessage[0] == 0xF0 && pMessage[1] == 0x43 && (pMessage[2] & 0xF0) == 0x10 && pMessage[3] == 0x04 && pMessage[6] == 0xF7)
       {
         // TX816/TX216 Performance SysEx message
-        uint8_t module = pMessage[2] & 0x0F; // n = module number (0-7)
+        uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
         uint8_t par = pMessage[4];
         uint8_t val = pMessage[5];
-        // Map parameter to internal function
         switch (par)
         {
           case 0: // MIDI Channel
-            m_pSynthesizer->SetMIDIChannel(val & 0x0F, module);
+            m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
             break;
           case 1: // Poly/Mono
-            m_pSynthesizer->setMonoMode(val ? true : false, module);
+            m_pSynthesizer->setMonoMode(val ? true : false, mTG);
             break;
           case 2: // Pitch Bend Range
-            m_pSynthesizer->setPitchbendRange(val, module);
+            m_pSynthesizer->setPitchbendRange(val, mTG);
             break;
           case 3: // Pitch Bend Step
-            m_pSynthesizer->setPitchbendStep(val, module);
+            m_pSynthesizer->setPitchbendStep(val, mTG);
             break;
           case 4: // Portamento Time
-            m_pSynthesizer->setPortamentoTime(val, module);
+            m_pSynthesizer->setPortamentoTime(val, mTG);
             break;
           case 5: // Portamento/Glissando
-            m_pSynthesizer->setPortamentoGlissando(val, module);
+            m_pSynthesizer->setPortamentoGlissando(val, mTG);
             break;
           case 6: // Portamento Mode
-            m_pSynthesizer->setPortamentoMode(val, module);
+            m_pSynthesizer->setPortamentoMode(val, mTG);
             break;
           case 9: // Mod Wheel Sensitivity
-            m_pSynthesizer->setModWheelRange(val, module);
+            m_pSynthesizer->setModWheelRange(val, mTG);
             break;
           case 10: // Mod Wheel Assign
-            m_pSynthesizer->setModWheelTarget(val, module);
+            m_pSynthesizer->setModWheelTarget(val, mTG);
             break;
           case 11: // Foot Controller Sensitivity
-            m_pSynthesizer->setFootControllerRange(val, module);
+            m_pSynthesizer->setFootControllerRange(val, mTG);
             break;
           case 12: // Foot Controller Assign
-            m_pSynthesizer->setFootControllerTarget(val, module);
+            m_pSynthesizer->setFootControllerTarget(val, mTG);
             break;
           case 13: // Aftertouch Sensitivity
-            m_pSynthesizer->setAftertouchRange(val, module);
+            m_pSynthesizer->setAftertouchRange(val, mTG);
             break;
           case 14: // Aftertouch Assign
-            m_pSynthesizer->setAftertouchTarget(val, module);
+            m_pSynthesizer->setAftertouchTarget(val, mTG);
             break;
           case 15: // Breath Controller Sensitivity
-            m_pSynthesizer->setBreathControllerRange(val, module);
+            m_pSynthesizer->setBreathControllerRange(val, mTG);
             break;
           case 16: // Breath Controller Assign
-            m_pSynthesizer->setBreathControllerTarget(val, module);
+            m_pSynthesizer->setBreathControllerTarget(val, mTG);
             break;
           case 26: // Audio Output Level Attenuator (if supported)
-            // m_pSynthesizer->setOutputAttenuator(val, module); // Uncomment if implemented
+            // m_pSynthesizer->setOutputAttenuator(val, mTG); // Uncomment if implemented
             break;
           case 64: // Master Tuning
-            m_pSynthesizer->SetMasterTune(val, module);
+            m_pSynthesizer->SetMasterTune(val, mTG);
             break;
           default:
             // Unknown or unsupported parameter
