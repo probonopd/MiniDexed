@@ -29,8 +29,6 @@ jobs:
            tar xf *-aarch64-none-elf.tar.xz
            wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
            tar xf *-arm-none-eabi.tar.xz
-           # ls -lh ./circle-stdlib/install/aarch64-none-circle/include/stdint.h # For debugging (can be removed later)
-           find . -name 'stdint.h'
            mkdir -p kernels
     - name: Build for Raspberry Pi 5
       run: |
