@@ -36,6 +36,7 @@ fi
 
 # Build circle-stdlib library
 cd circle-stdlib/
+git clean -f # Completely reset this directory so that no leftover changes are used in subsequent builds
 make mrproper || true
 ./configure -r ${RPI} --prefix "${TOOLCHAIN_PREFIX}" ${OPTIONS} -o KERNEL_MAX_SIZE=0x400000
 make -j
