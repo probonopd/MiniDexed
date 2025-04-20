@@ -59,6 +59,7 @@ private:
 	CSPIMaster	*m_pSPIMaster;
 	CMiniDexed	*m_pDexed;
 	CUSBController *m_pUSB;
+	CScheduler	m_Scheduler;
 
 	static CKernel *s_pThis;
 };
