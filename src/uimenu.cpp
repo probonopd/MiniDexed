@@ -992,23 +992,76 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 
 void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 {
-	if (Event != MenuEventUpdate)
-	{
+	// Add confirmation before overwriting a performance
+	static bool bOverwriteMode = false;
+	static bool bConfirmOverwrite = false;
+
+	if (pUIMenu->m_nCurrentParameter == 0) { // Overwrite
+		if (!bOverwriteMode) {
+			if (Event == MenuEventUpdate) {
+				bOverwriteMode = true;
+				bConfirmOverwrite = false;
+				// Show confirmation dialog with performance name
+				std::string perfName = pUIMenu->m_pMiniDexed->GetPerformanceName(pUIMenu->m_pMiniDexed->GetActualPerformanceID());
+				pUIMenu->m_pUI->DisplayWrite("", "Overwrite?", perfName.c_str(), false, false);
+				return;
+			}
+			if (Event == MenuEventStepDown) {
+				bConfirmOverwrite = false;
+				std::string perfName = pUIMenu->m_pMiniDexed->GetPerformanceName(pUIMenu->m_pMiniDexed->GetActualPerformanceID());
+				pUIMenu->m_pUI->DisplayWrite("", "Overwrite?", perfName.c_str(), false, false);
+				return;
+			}
+			if (Event == MenuEventStepUp) {
+				bConfirmOverwrite = true;
+				std::string perfName = pUIMenu->m_pMiniDexed->GetPerformanceName(pUIMenu->m_pMiniDexed->GetActualPerformanceID());
+				pUIMenu->m_pUI->DisplayWrite("", "Overwrite?", (perfName + " [Yes]").c_str(), false, false);
+				return;
+			}
+			if (Event == MenuEventSelect) {
+				if (bConfirmOverwrite) {
+					bOverwriteMode = false;
+					bConfirmOverwrite = false;
+					bool bOK = pUIMenu->m_pMiniDexed->SavePerformance(false);
+					const char *pMenuName =
+						pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+							[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+					pUIMenu->m_pUI->DisplayWrite (pMenuName,
+							      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+							      bOK ? "Completed" : "Error",
+							      false, false);
+					CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+					return;
+				} else {
+					bOverwriteMode = false;
+					bConfirmOverwrite = false;
+					Event = MenuEventUpdate;
+				}
+			}
+			return;
+		}
+	}
+
+	if (pUIMenu->m_nCurrentParameter == 2) { // Save as default, no confirmation needed
+		if (Event != MenuEventUpdate)
+		{
+			bool bOK = pUIMenu->m_pMiniDexed->SavePerformance(true);
+			const char *pMenuName =
+				pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
+					[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+			pUIMenu->m_pUI->DisplayWrite (pMenuName,
+					      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+					      bOK ? "Completed" : "Error",
+					      false, false);
+			CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+		}
 		return;
 	}
 
-	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
-
-	const char *pMenuName =
-		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
-			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
-
-	pUIMenu->m_pUI->DisplayWrite (pMenuName,
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      bOK ? "Completed" : "Error",
-				      false, false);
-
-	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+	// New (handled by InputTxt)
+	if (pUIMenu->m_nCurrentParameter == 1) {
+		return;
+	}
 }
 
 string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
