@@ -64,8 +64,8 @@ cd src
 make clean
 echo "***** DEBUG *****"
 env
-grep -r 'aarch64-none-elf' .
-find . -type d -name 'aarch64-none-elf'
+grep -r 'aarch64-none-elf' . || true
+find . -type d -name 'aarch64-none-elf' || true
 make -j
 ls *.img
 cd ..
