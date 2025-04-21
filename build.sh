@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e 
+set -e
 set -x
 
 if [ -z "${RPI}" ] ; then
@@ -18,6 +18,11 @@ fi
 OPTIONS="-o USE_PWM_AUDIO_ON_ZERO -o SAVE_VFP_REGS_ON_IRQ -o REALTIME -o SCREEN_DMA_BURST_LENGTH=1"
 if [ "${RPI}" -gt "1" ]; then
     OPTIONS="${OPTIONS} -o ARM_ALLOW_MULTI_CORE"
+fi
+
+# For wireless access
+if [ "${RPI}" == "3" ]; then
+    OPTIONS="${OPTIONS} -o USE_SDHOST"
 fi
 
 # USB Vendor and Device ID for use with USB Gadget Mode
@@ -39,6 +44,11 @@ make -j
 cd libs/circle/addon/display/
 make clean || true
 make -j
+
+cd ../wlan/
+make clean || true
+make -j
+
 cd ../sensor/
 make clean || true
 make -j
@@ -51,7 +61,12 @@ cd ..
 
 # Build MiniDexed
 cd src
-make clean || true
+make clean
+echo "***** DEBUG *****"
+env
+rm -rf ./gcc-* || true
+grep -r 'aarch64-none-elf' . || true
+find . -type d -name 'aarch64-none-elf' || true
 make -j
 ls *.img
 cd ..
