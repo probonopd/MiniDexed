@@ -11,8 +11,7 @@ include $(CIRCLEHOME)/Rules.mk
 
 INCLUDE += \
 	   -I $(CIRCLE_STDLIB_DIR)/include \
-	   -I $(NEWLIBDIR)/include \
-	   -I $(NET_DIR)
+	   -I $(NEWLIBDIR)/include
 
 LIBS += \
  	$(NEWLIBDIR)/lib/libm.a \
@@ -29,8 +28,7 @@ LIBS += \
  	$(CIRCLEHOME)/addon/fatfs/libfatfs.a \
  	$(CIRCLEHOME)/lib/fs/libfs.a \
   	$(CIRCLEHOME)/lib/sched/libsched.a \
-	$(CIRCLEHOME)/lib/libcircle.a \
-	$(CIRCLEHOME)/lib/net/libnet.a
+	$(CIRCLEHOME)/lib/libcircle.a
 
 EXTRACLEAN += $(NET_DIR)/*.d $(NET_DIR)/*.o
 
