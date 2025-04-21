@@ -21,9 +21,9 @@ if [ "${RPI}" -gt "1" ]; then
 fi
 
 # For wireless access
-if [ "${RPI}" == "3" ]; then
-    OPTIONS="${OPTIONS} -o USE_SDHOST"
-fi
+#if [ "${RPI}" == "3" ]; then
+#    OPTIONS="${OPTIONS} -o USE_SDHOST"
+#fi
 
 # USB Vendor and Device ID for use with USB Gadget Mode
 source USBID.sh
