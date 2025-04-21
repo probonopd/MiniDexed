@@ -2432,6 +2432,10 @@ bool CMiniDexed::InitNetwork()
 			if (!m_UDPMIDI) {
 				LOGERR("CMiniDexed::InitNetwork: Failed to allocate UDP MIDI device");
 				// Clean up other network resources if needed, or handle error appropriately
+			} else {
+				// Synchronize UDP MIDI channels with current assignments
+				for (unsigned nTG = 0; nTG < m_nToneGenerators; ++nTG)
+					m_UDPMIDI->SetChannel(m_nMIDIChannel[nTG], nTG);
 			}
 		}
 		LOGNOTE("CMiniDexed::InitNetwork: returning %d", m_pNet != nullptr);
