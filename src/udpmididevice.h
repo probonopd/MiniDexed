@@ -1,5 +1,7 @@
 //
-// serialmididevice.h
+// udpmididevice.h
+//
+// Virtual midi device for data recieved on network 
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
 // Copyright (C) 2022  The MiniDexed Team
@@ -20,39 +22,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
-#ifndef _serialmididevice_h
-#define _serialmididevice_h
+#ifndef _udpmididevice_h
+#define _udpmididevice_h
 
 #include "mididevice.h"
 #include "config.h"
-#include <circle/interrupt.h>
-#include <circle/serial.h>
-#include <circle/writebuffer.h>
-#include <circle/types.h>
+#include "net/applemidi.h"
+#include "net/udpmidi.h"
 
 class CMiniDexed;
 
-class CSerialMIDIDevice : public CMIDIDevice
+class CUDPMIDIDevice : CAppleMIDIHandler, CUDPMIDIHandler, public CMIDIDevice
 {
 public:
-	CSerialMIDIDevice (CMiniDexed *pSynthesizer, CInterruptSystem *pInterrupt, CConfig *pConfig, CUserInterface *pUI);
-	~CSerialMIDIDevice (void);
+	CUDPMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI);
+	~CUDPMIDIDevice (void);
 
 	boolean Initialize (void);
-
-	void Process (void);
-
-	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+	virtual void OnAppleMIDIDataReceived(const u8* pData, size_t nSize) override;
+	virtual void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName) override;
+	virtual void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName) override;
+	virtual void OnUDPMIDIDataReceived(const u8* pData, size_t nSize) override;
 
 private:
+	CMiniDexed *m_pSynthesizer;
 	CConfig *m_pConfig;
-
-	CSerialDevice m_Serial;
-	unsigned m_nSerialState;
-	unsigned m_nSysEx;
-	u8 m_SerialMessage[MAX_MIDI_MESSAGE];
-
-	CWriteBufferDevice m_SendBuffer;
+	CBcmRandomNumberGenerator m_Random;
+	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
+	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
 };
 
 #endif

@@ -36,14 +36,22 @@
 #include <circle/interrupt.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
+#include <circle/spimaster.h>
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
+#include <circle/sched/scheduler.h>
+#include <circle/net/netsubsystem.h>
+#include <wlan/bcm4343.h>
+#include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
+#include "net/mdnspublisher.h"
 #include <circle/spinlock.h>
 #include "common.h"
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
 #include "effect_compressor.h"
-
+#include "udpmididevice.h"
+#include "net/ftpdaemon.h"
+ 
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
 :	public CMultiCoreSupport
@@ -51,7 +59,8 @@ class CMiniDexed
 {
 public:
 	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
-		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, FATFS *pFileSystem);
+		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, FATFS *pFileSystem);
+	~CMiniDexed (void); // Add destructor
 
 	bool Initialize (void);
 
@@ -62,13 +71,18 @@ public:
 #endif
 
 	CSysExFileLoader *GetSysExFileLoader (void);
+	CPerformanceConfig *GetPerformanceConfig (void);
 
 	void BankSelect    (unsigned nBank, unsigned nTG);
+	void BankSelectPerformance    (unsigned nBank);
 	void BankSelectMSB (unsigned nBankMSB, unsigned nTG);
+	void BankSelectMSBPerformance (unsigned nBankMSB);
 	void BankSelectLSB (unsigned nBankLSB, unsigned nTG);
+	void BankSelectLSBPerformance (unsigned nBankLSB);
 	void ProgramChange (unsigned nProgram, unsigned nTG);
 	void ProgramChangePerformance (unsigned nProgram);
 	void SetVolume (unsigned nVolume, unsigned nTG);
+	void SetExpression (unsigned nExpression, unsigned nTG);
 	void SetPan (unsigned nPan, unsigned nTG);			// 0 .. 127
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
@@ -117,17 +131,27 @@ public:
 	std::string GetPerformanceFileName(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
 	unsigned GetLastPerformance();
+	unsigned GetPerformanceBank();
+	unsigned GetLastPerformanceBank();
 	unsigned GetActualPerformanceID();
 	void SetActualPerformanceID(unsigned nID);
+	unsigned GetActualPerformanceBankID();
+	void SetActualPerformanceBankID(unsigned nBankID);
 	bool SetNewPerformance(unsigned nID);
+	bool SetNewPerformanceBank(unsigned nBankID);
+	void SetFirstPerformance(void);
+	void DoSetFirstPerformance(void);
 	bool SavePerformanceNewFile ();
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
+	bool IsValidPerformance(unsigned nID);
+	bool IsValidPerformanceBank(unsigned nBankID);
 
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
@@ -141,6 +165,7 @@ public:
 		ParameterReverbDiffusion,
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
+		ParameterPerformanceBank,
 		ParameterUnknown
 	};
 
@@ -148,8 +173,8 @@ public:
 	int GetParameter (TParameter Parameter);
 
 	std::string GetNewPerformanceDefaultName(void);
-	void SetNewPerformanceName(std::string nName);
-	void SetVoiceName (std::string VoiceName, unsigned nTG);
+	void SetNewPerformanceName(const std::string &Name);
+	void SetVoiceName (const std::string &VoiceName, unsigned nTG);
 	bool DeletePerformance(unsigned nID);
 	bool DoDeletePerformance(void);
 
@@ -212,11 +237,15 @@ public:
 
 	void setMasterVolume (float32_t vol);
 
+	bool InitNetwork();
+	void UpdateNetwork();
+
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
-	uint8_t m_uchOPMask[CConfig::ToneGenerators];
+	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
+	const char* GetNetworkDeviceShortName() const;
 
 #ifdef ARM_ALLOW_MULTI_CORE
 	enum TCoreStatus
@@ -233,39 +262,45 @@ private:
 	CConfig *m_pConfig;
 
 	int m_nParameter[ParameterUnknown];			// global (non-TG) parameters
+	
+	unsigned m_nToneGenerators;
+	unsigned m_nPolyphony;
 
-	CDexedAdapter *m_pTG[CConfig::ToneGenerators];
+	CDexedAdapter *m_pTG[CConfig::AllToneGenerators];
 
-	unsigned m_nVoiceBankID[CConfig::ToneGenerators];
-	unsigned m_nVoiceBankIDMSB[CConfig::ToneGenerators];
-	unsigned m_nProgram[CConfig::ToneGenerators];
-	unsigned m_nVolume[CConfig::ToneGenerators];
-	unsigned m_nPan[CConfig::ToneGenerators];
-	int m_nMasterTune[CConfig::ToneGenerators];
-	int m_nCutoff[CConfig::ToneGenerators];
-	int m_nResonance[CConfig::ToneGenerators];
-	unsigned m_nMIDIChannel[CConfig::ToneGenerators];
-	unsigned m_nPitchBendRange[CConfig::ToneGenerators];	
-	unsigned m_nPitchBendStep[CConfig::ToneGenerators];	
-	unsigned m_nPortamentoMode[CConfig::ToneGenerators];	
-	unsigned m_nPortamentoGlissando[CConfig::ToneGenerators];	
-	unsigned m_nPortamentoTime[CConfig::ToneGenerators];	
-	bool m_bMonoMode[CConfig::ToneGenerators]; 
+	unsigned m_nVoiceBankID[CConfig::AllToneGenerators];
+	unsigned m_nVoiceBankIDMSB[CConfig::AllToneGenerators];
+	unsigned m_nVoiceBankIDPerformance;
+	unsigned m_nVoiceBankIDMSBPerformance;
+	unsigned m_nProgram[CConfig::AllToneGenerators];
+	unsigned m_nVolume[CConfig::AllToneGenerators];
+	unsigned m_nExpression[CConfig::AllToneGenerators];
+	unsigned m_nPan[CConfig::AllToneGenerators];
+	int m_nMasterTune[CConfig::AllToneGenerators];
+	int m_nCutoff[CConfig::AllToneGenerators];
+	int m_nResonance[CConfig::AllToneGenerators];
+	unsigned m_nMIDIChannel[CConfig::AllToneGenerators];
+	unsigned m_nPitchBendRange[CConfig::AllToneGenerators];	
+	unsigned m_nPitchBendStep[CConfig::AllToneGenerators];	
+	unsigned m_nPortamentoMode[CConfig::AllToneGenerators];	
+	unsigned m_nPortamentoGlissando[CConfig::AllToneGenerators];	
+	unsigned m_nPortamentoTime[CConfig::AllToneGenerators];	
+	bool m_bMonoMode[CConfig::AllToneGenerators]; 
 				
-	unsigned m_nModulationWheelRange[CConfig::ToneGenerators];
-	unsigned m_nModulationWheelTarget[CConfig::ToneGenerators];
-	unsigned m_nFootControlRange[CConfig::ToneGenerators];
-	unsigned m_nFootControlTarget[CConfig::ToneGenerators];
-	unsigned m_nBreathControlRange[CConfig::ToneGenerators];	
-	unsigned m_nBreathControlTarget[CConfig::ToneGenerators];	
-	unsigned m_nAftertouchRange[CConfig::ToneGenerators];	
-	unsigned m_nAftertouchTarget[CConfig::ToneGenerators];
+	unsigned m_nModulationWheelRange[CConfig::AllToneGenerators];
+	unsigned m_nModulationWheelTarget[CConfig::AllToneGenerators];
+	unsigned m_nFootControlRange[CConfig::AllToneGenerators];
+	unsigned m_nFootControlTarget[CConfig::AllToneGenerators];
+	unsigned m_nBreathControlRange[CConfig::AllToneGenerators];	
+	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];	
+	unsigned m_nAftertouchRange[CConfig::AllToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];
 		
-	unsigned m_nNoteLimitLow[CConfig::ToneGenerators];
-	unsigned m_nNoteLimitHigh[CConfig::ToneGenerators];
-	int m_nNoteShift[CConfig::ToneGenerators];
+	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
+	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
+	int m_nNoteShift[CConfig::AllToneGenerators];
 
-	unsigned m_nReverbSend[CConfig::ToneGenerators];
+	unsigned m_nReverbSend[CConfig::AllToneGenerators];
   
 	uint8_t m_nRawVoiceData[156]; 
 	
@@ -280,34 +315,50 @@ private:
 	CPCKeyboard m_PCKeyboard;
 	CSerialMIDIDevice m_SerialMIDI;
 	bool m_bUseSerial;
+	bool m_bQuadDAC8Chan;
 
 	CSoundBaseDevice *m_pSoundDevice;
 	bool m_bChannelsSwapped;
 	unsigned m_nQueueSizeFrames;
 
 #ifdef ARM_ALLOW_MULTI_CORE
-	unsigned m_nActiveTGsLog2;
+//	unsigned m_nActiveTGsLog2;
 	volatile TCoreStatus m_CoreStatus[CORES];
 	volatile unsigned m_nFramesToProcess;
-	float32_t m_OutputLevel[CConfig::ToneGenerators][CConfig::MaxChunkSize];
+	float32_t m_OutputLevel[CConfig::AllToneGenerators][CConfig::MaxChunkSize];
 #endif
 
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
-	AudioStereoMixer<CConfig::ToneGenerators>* tg_mixer;
-	AudioStereoMixer<CConfig::ToneGenerators>* reverb_send_mixer;
+	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
+	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+
+	// Network
+	CNetSubSystem* m_pNet;
+	CNetDevice* m_pNetDevice;
+	CBcm4343Device* m_WLAN; // Changed to pointer
+	CWPASupplicant* m_WPASupplicant; // Changed to pointer
+	bool m_bNetworkReady;
+	bool m_bNetworkInit;
+	CUDPMIDIDevice* m_UDPMIDI; // Changed to pointer
+	CFTPDaemon* m_pFTPDaemon;
+	CmDNSPublisher *m_pmDNSPublisher;
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;	
+	bool m_bSetNewPerformanceBank;
+	unsigned m_nSetNewPerformanceBankID;	
+	bool m_bSetFirstPerformance;
 	bool	m_bDeletePerformance;
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
+	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
 };
 

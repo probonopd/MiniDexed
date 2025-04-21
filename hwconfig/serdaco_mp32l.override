@@ -1,0 +1,33 @@
+# Serdaco MP32L
+# https://www.serdashop.com/MP32L
+
+SoundDevice=i2s
+SampleRate=48000
+DACI2CAddress=0
+ChannelsSwapped=0
+
+MIDIBaudRate=31250
+MIDIThru=umidi1,ttyS1
+
+SSD1306LCDI2CAddress=0x3c
+SSD1306LCDWidth=128
+SSD1306LCDHeight=32
+SSD1306LCDRotate=1
+SSD1306LCDMirror=0
+
+LCDColumns=20
+LCDRows=2
+
+ButtonPinPrev=17
+ButtonActionPrev=click
+ButtonPinNext=27
+ButtonActionNext=click
+ButtonPinBack=22
+ButtonActionBack=click  
+ButtonPinSelect=23
+ButtonActionSelect=click
+ButtonPinHome=23
+ButtonActionHome=longpress 
+ButtonPinShortcut=0
+
+EncoderEnabled=0

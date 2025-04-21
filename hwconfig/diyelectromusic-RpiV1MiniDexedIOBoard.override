@@ -1,0 +1,30 @@
+# diyelectromusic MiniDexed Raspberry Pi V1 IO Board (RpiV1MiniDexedIOBoard)
+# https://github.com/diyelectromusic/sdemp_pcbs/tree/main/RpiV1MiniDexedIOBoard
+# https://diyelectromusic.com/2023/02/28/minidexed-raspberry-pi-v1-io-board-part-2/
+
+SoundDevice=i2s
+
+LCDEnabled=1
+SSD1306LCDI2CAddress=0x3C
+SSD1306LCDWidth=128
+SSD1306LCDHeight=32
+SSD1306LCDRotate=0
+SSD1306LCDMirror=0
+LCDColumns=20
+LCDRows=2
+
+ButtonPinPrev=0
+ButtonActionPrev=
+ButtonPinNext=0
+ButtonActionNext=
+ButtonPinBack=22
+ButtonActionBack=click
+ButtonPinSelect=11
+ButtonActionSelect=click
+ButtonPinHome=27
+ButtonActionHome=click
+ButtonPinShortcut=11
+
+EncoderEnabled=1
+EncoderPinClock=9
+EncoderPinData=10
