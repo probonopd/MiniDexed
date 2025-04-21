@@ -374,14 +374,8 @@ bool CMiniDexed::Initialize (void)
 
 void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
-	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
-	bool audioBufferFilled = false;
-	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail();
-	if (nFrames >= m_nQueueSizeFrames/2) {
-		ProcessSound();
-		audioBufferFilled = true;
-	}
+	ProcessSound ();
 #endif
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
@@ -448,17 +442,6 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	{
 		m_GetChunkTimer.Dump ();
 	}
-	if (m_pNet) {
-		UpdateNetwork();
-	}
-#ifndef ARM_ALLOW_MULTI_CORE
-	if (audioBufferFilled) {
-		pScheduler->Yield();
-	}
-#else
-	// On multicore, always yield at the end
-	pScheduler->Yield();
-#endif
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
