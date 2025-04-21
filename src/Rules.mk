@@ -30,7 +30,6 @@ LIBS += \
  	$(CIRCLEHOME)/lib/fs/libfs.a \
   	$(CIRCLEHOME)/lib/sched/libsched.a \
 	$(CIRCLEHOME)/lib/libcircle.a \
-	$(CIRCLEHOME)/addon/wlan/libwlan.a \
 	$(CIRCLEHOME)/lib/net/libnet.a
 
 EXTRACLEAN += $(NET_DIR)/*.d $(NET_DIR)/*.o
