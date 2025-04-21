@@ -11,7 +11,8 @@ include $(CIRCLEHOME)/Rules.mk
 
 INCLUDE += \
 	   -I $(CIRCLE_STDLIB_DIR)/include \
-	   -I $(NEWLIBDIR)/include
+	   -I $(NEWLIBDIR)/include \
+	   -I $(NET_DIR)
 
 LIBS += \
  	$(NEWLIBDIR)/lib/libm.a \
