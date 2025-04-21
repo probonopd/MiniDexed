@@ -25,12 +25,15 @@
 #include <circle/usb/usbhcidevice.h>
 #include "usbminidexedmidigadget.h"
 
+#define NET_DEVICE_TYPE		NetDeviceTypeWLAN		// or: NetDeviceTypeWLAN
+
 LOGMODULE ("kernel");
 
 CKernel *CKernel::s_pThis = 0;
 
 CKernel::CKernel (void)
-:	CStdlibAppStdio ("minidexed"),
+:	
+	CStdlibAppStdio ("minidexed"),
 	m_Config (&mFileSystem),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
