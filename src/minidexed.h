@@ -39,7 +39,7 @@
 #include <circle/spimaster.h>
 #include <circle/multicore.h>
 #include <circle/sound/soundbasedevice.h>
-#include <circle/sched/scheduler.h>
+// #include <circle/sched/scheduler.h>
 #include <circle/net/netsubsystem.h>
 #include <wlan/bcm4343.h>
 #include <wlan/hostap/wpa_supplicant/wpasupplicant.h>
