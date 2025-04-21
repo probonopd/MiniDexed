@@ -1177,6 +1177,8 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 
 	if (nOP < 6)
 	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+
 		if (uchOffset == DEXED_OP_ENABLE)
 		{
 			if (uchValue)
@@ -1191,9 +1193,7 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
 
 			return;
-		}
-
-		nOP = 5 - nOP;		// OPs are in reverse order
+		}		
 	}
 
 	uchOffset += nOP * 21;
@@ -1212,12 +1212,12 @@ uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned
 
 	if (nOP < 6)
 	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+
 		if (uchOffset == DEXED_OP_ENABLE)
 		{
 			return !!(m_uchOPMask[nTG] & (1 << nOP));
 		}
-
-		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 
 	uchOffset += nOP * 21;
