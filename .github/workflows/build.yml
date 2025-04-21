@@ -73,7 +73,7 @@ jobs:
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: build64-artifacts
+          name: 64bit_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)
           path: sdcard/*
           
   build32:
@@ -116,7 +116,7 @@ jobs:
         id: upload32
         uses: actions/upload-artifact@v4
         with:
-          name: build32-artifacts
+          name: 32bit_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)
           path: sdcard/*
 
   combine:
@@ -127,12 +127,12 @@ jobs:
       - name: Download 64-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build64-artifacts
+          name: 64bit_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)
           path: combined
       - name: Download 32-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build32-artifacts
+          name: 32bit_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)
           path: combined
       - name: Create combined ZIP file
         run: |
