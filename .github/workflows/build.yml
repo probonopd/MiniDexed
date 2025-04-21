@@ -144,9 +144,12 @@ jobs:
         with:
           name: combined-artifact
           path: MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
-      - name: Upload to GitHub Releases (only from main branch)
+      - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-          set -ex
-          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-          bash ./upload.sh MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
+             set -ex
+             export UPLOADTOOL_ISPRERELEASE=true
+             export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
+             export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
+             wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+             bash ./upload.sh ./MiniDexed*.zip
