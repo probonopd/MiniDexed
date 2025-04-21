@@ -60,11 +60,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
-	m_WLAN(WLANFirmwarePath),
-	m_WPASupplicant(WLANConfigFile),
+	m_WLAN(nullptr),
+	m_WPASupplicant(nullptr),
 	m_bNetworkReady(false),
 	m_bNetworkInit(false),
-	m_UDPMIDI (this, pConfig, &m_UI),
+	m_UDPMIDI(nullptr),
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
@@ -259,6 +259,15 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterPerformanceBank, 0);
 };
 
+CMiniDexed::~CMiniDexed (void)
+{
+	delete m_WLAN;
+	delete m_WPASupplicant;
+	delete m_UDPMIDI;
+	delete m_pFTPDaemon;
+	delete m_pmDNSPublisher;
+}
+
 bool CMiniDexed::Initialize (void)
 {
 	LOGNOTE("CMiniDexed::Initialize called");
@@ -363,10 +372,8 @@ bool CMiniDexed::Initialize (void)
 		return false;
 	}
 
-	if (m_pConfig->GetNetworkEnabled()) {
-		InitNetwork();  // returns bool but we continue even if something goes wrong
-		LOGNOTE("CMiniDexed::Initialize: InitNetwork() called");
-	}
+	InitNetwork();  // returns bool but we continue even if something goes wrong
+	LOGNOTE("CMiniDexed::Initialize: InitNetwork() called");
 #endif
 
 	return true;
@@ -806,7 +813,10 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	{
 		m_SerialMIDI.SetChannel (uchChannel, nTG);
 	}
-	m_UDPMIDI.SetChannel (uchChannel, nTG);
+	if (m_UDPMIDI)
+	{
+		m_UDPMIDI->SetChannel (uchChannel, nTG);
+	}
 
 #ifdef ARM_ALLOW_MULTI_CORE
 /* This doesn't appear to be used anywhere...
@@ -1725,7 +1735,7 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 
 	assert (m_pTG[nTG]);
 
-	m_nBreathControlTarget[nTG]=target;
+	m_nBreathControlTarget[nTG] = target;
 
 	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1754,7 +1764,7 @@ void CMiniDexed::setAftertouchTarget(uint8_t target, uint8_t nTG)
 
 	assert (m_pTG[nTG]);
 
-	m_nAftertouchTarget[nTG]=target;
+	m_nAftertouchTarget[nTG] = target;
 
 	m_pTG[nTG]->setAftertouchTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
@@ -1792,7 +1802,6 @@ void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 	assert (m_pTG[nTG]);
 
 	m_pTG[nTG]->setVoiceDataElement(constrain(data, 0, 155),constrain(number, 0, 99));
-	//m_pTG[nTG]->doRefreshVoice();
 	m_UI.ParameterChanged ();
 }
 
@@ -2243,7 +2252,6 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 
 void CMiniDexed::UpdateNetwork()
 {
-	//CNetSubSystem* const pNet = CNetSubSystem::Get();
 	if (!m_pNet) {
 		LOGNOTE("CMiniDexed::UpdateNetwork: m_pNet is nullptr, returning early");
 		return;
@@ -2253,7 +2261,7 @@ void CMiniDexed::UpdateNetwork()
 	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
 		bNetIsRunning &= m_pNetDevice->IsLinkUp();
 	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
-		bNetIsRunning &= m_WPASupplicant.IsConnected();
+		bNetIsRunning &= (m_WPASupplicant && m_WPASupplicant->IsConnected());
 	
 	if (!m_bNetworkInit && bNetIsRunning)
 	{
@@ -2262,9 +2270,10 @@ void CMiniDexed::UpdateNetwork()
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
-		//LOGNOTE("Network up and running at: %s", static_cast<const char *>(IPString));
-		
-		m_UDPMIDI.Initialize();
+		if (m_UDPMIDI)
+		{
+			m_UDPMIDI->Initialize();
+		}
 
 		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
 
@@ -2278,12 +2287,11 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE("FTP daemon initialized");
 		}
-		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1); // FIXME: Do not hardcode "TG1" here
+		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1);
 
 		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);
 		
-		//static const char *ppText[] = {"RTP-MIDI Receiver", nullptr};	// dont bother adding additional data
 		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI,
 						     5004))
 		{
@@ -2295,13 +2303,13 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
-		// syslog configuration
+
 		if (m_pConfig->GetSyslogEnabled())
 		{
 			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
 			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
-				static const u16 usServerPort = 8514;	// standard port is 514
+				static const u16 usServerPort = 8514;
 				CString IPString;
 				ServerIP.Format (&IPString);
 				LOGNOTE ("Sending log messages to syslog server %s:%u",
@@ -2361,13 +2369,15 @@ bool CMiniDexed::InitNetwork()
 		{
 			LOGNOTE("CMiniDexed::InitNetwork: Initializing WLAN");
 			NetDeviceType = NetDeviceTypeWLAN;
-			if (m_WLAN.Initialize())
+			m_WLAN = new CBcm4343Device(WLANFirmwarePath);
+			if (m_WLAN && m_WLAN->Initialize())
 			{
 				LOGNOTE("CMiniDexed::InitNetwork: WLAN initialized");
 			}
 			else
 			{
 				LOGERR("CMiniDexed::InitNetwork: Failed to initialize WLAN, maybe firmware files are missing?");
+				delete m_WLAN; m_WLAN = nullptr;
 				return false;
 			}
 		}
@@ -2396,22 +2406,33 @@ bool CMiniDexed::InitNetwork()
 					m_pConfig->GetNetworkHostname(),
 					NetDeviceType
 				);
-			if (!m_pNet->Initialize(false))
+			if (!m_pNet || !m_pNet->Initialize(false)) // Check if m_pNet allocation succeeded
 			{
 				LOGERR("CMiniDexed::InitNetwork: Failed to initialize network subsystem");
-				delete m_pNet;
-				m_pNet = nullptr;
+				delete m_pNet; m_pNet = nullptr; // Clean up if failed
+				delete m_WLAN; m_WLAN = nullptr; // Clean up WLAN if allocated
+				return false; // Return false as network init failed
 			}
 			// WPASupplicant needs to be started after netdevice available
 			if (NetDeviceType == NetDeviceTypeWLAN)
 			{
 				LOGNOTE("CMiniDexed::InitNetwork: Initializing WPASupplicant");
-				if (!m_WPASupplicant.Initialize()) 
+				m_WPASupplicant = new CWPASupplicant(WLANConfigFile); // Allocate m_WPASupplicant
+				if (!m_WPASupplicant || !m_WPASupplicant->Initialize()) 
 				{
 					LOGERR("CMiniDexed::InitNetwork: Failed to initialize WPASupplicant, maybe wlan config is missing?"); 
+					delete m_WPASupplicant; m_WPASupplicant = nullptr; // Clean up if failed
+					// Continue without supplicant? Or return false? Decided to continue for now.
 				}
 			}
 			m_pNetDevice = CNetDevice::GetNetDevice(NetDeviceType);
+
+			// Allocate UDP MIDI device now that network might be up
+			m_UDPMIDI = new CUDPMIDIDevice(this, m_pConfig, &m_UI); // Allocate m_UDPMIDI
+			if (!m_UDPMIDI) {
+				LOGERR("CMiniDexed::InitNetwork: Failed to allocate UDP MIDI device");
+				// Clean up other network resources if needed, or handle error appropriately
+			}
 		}
 		LOGNOTE("CMiniDexed::InitNetwork: returning %d", m_pNet != nullptr);
 		return m_pNet != nullptr;
@@ -2421,6 +2442,4 @@ bool CMiniDexed::InitNetwork()
 		LOGNOTE("CMiniDexed::InitNetwork: Network is not enabled in configuration");
 		return false;
 	}
-	LOGNOTE("CMiniDexed::InitNetwork: Network was not initialized");
-	return false;
 }
