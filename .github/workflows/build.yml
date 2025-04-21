@@ -1,3 +1,5 @@
+# Build 32-bit and 64-bit separately
+
 name: Build
 
 env:
@@ -9,103 +11,142 @@ on:
   pull_request:
 
 jobs:
-  Build:
 
+  build64:
+    name: Build 64-bit kernels
     runs-on: ubuntu-22.04
-
+    outputs:
+      artifact-path: ${{ steps.upload64.outputs.artifact-path }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Get specific commits of git submodules
-      run: |
-           sh -ex ./submod.sh
-    - name: Apply patches
-      run: |
-           # Put git hash in startup message
-           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
-    - name: Install toolchains
-      run: |
-           set -ex
-           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
-           tar xf *-aarch64-none-elf.tar.xz
-           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
-           tar xf *-arm-none-eabi.tar.xz
-           mkdir -p kernels
-    - name: Build for Raspberry Pi 5
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=5 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 4
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=4 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 3
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           RPI=3 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 2
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
-           RPI=2 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Build for Raspberry Pi 1
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*arm-none*/bin/):$PATH
-           RPI=1 bash -ex build.sh
-           cp ./src/kernel*.img ./kernels/
-    - name: Get Raspberry Pi boot files
-      run: |
-           set -ex
-           export PATH=$(readlink -f ./gcc-*aarch64-none*/bin/):$PATH
-           cd ./circle-stdlib/libs/circle/boot
-           make
-           make armstub64
-           cd -
-           mkdir -p sdcard
-           cp -r ./circle-stdlib/libs/circle/boot/* sdcard
-           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-           cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
-           cp ./getsysex.sh sdcard/
-           echo "usbspeed=full" > sdcard/cmdline.txt
-           cd sdcard
-           cp ../kernels/* . || true
-           cd -
-    - name: Get performance files
-      run: |
-           git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
-           cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
-    - name: Hardware configration files
-      run: |
-           cd hwconfig
-           sh -ex ./customize.sh
-           cd -
-           mkdir -p ./sdcard/hardware/
-           cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
-    - name: zip
-      run: |
-           cd sdcard
-           zip -r ../MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip *
-           echo "artifactName=MiniDexed_$GITHUB_RUN_NUMBER_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-           cd -
-    - uses: actions/upload-artifact@v4
-      with:
-        name: ${{ env.artifactName }} # Exported above
-        path: ./sdcard/*
-        # retention-days: 14 # To not exceed the free MB/month quota so quickly
-    - name: Upload to GitHub Releases (only when building from main branch)
-      if: ${{ github.ref == 'refs/heads/main' }}
-      run: |
-           set -ex
-           export UPLOADTOOL_ISPRERELEASE=true
-           export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
-           export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
-           wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-           bash ./upload.sh ./MiniDexed*.zip
-           
+      - uses: actions/checkout@v2
+      - name: Get specific commits of git submodules
+        run: sh -ex ./submod.sh
+      - name: Create sdcard directory
+        run: mkdir -p ./sdcard/
+      - name: Put git hash in startup message
+        run: |
+          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          
+      # Install 64-bit toolchain (aarch64)
+      - name: Install 64-bit toolchain
+        run: |
+          set -ex
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+          tar xf gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+
+      - name: Build for Raspberry Pi 5 (64-bit)
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          RPI=5 bash -ex build.sh
+          cp ./src/kernel*.img ./sdcard/
+
+      - name: Build for Raspberry Pi 4 (64-bit)
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          RPI=4 bash -ex build.sh
+          cp ./src/kernel*.img ./sdcard/
+
+      - name: Build for Raspberry Pi 3 (64-bit)
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          RPI=3 bash -ex build.sh
+          cp ./src/kernel*.img ./sdcard/
+
+      - name: Prepare SD card content for 64-bit
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          cd ./circle-stdlib/libs/circle/boot
+          make
+          make armstub64
+          cd -
+          cp -r ./circle-stdlib/libs/circle/boot/* sdcard
+          rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
+          cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
+          cp ./getsysex.sh sdcard/
+          echo "usbspeed=full" > sdcard/cmdline.txt
+          
+      - name: Upload 64-bit artifacts
+        id: upload64
+        uses: actions/upload-artifact@v4
+        with:
+          name: build64-artifacts
+          path: sdcard/*
+          
+  build32:
+    name: Build 32-bit kernels
+    runs-on: ubuntu-22.04
+    outputs:
+      artifact-path: ${{ steps.upload32.outputs.artifact-path }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get specific commits of git submodules
+        run: sh -ex ./submod.sh
+      - name: Create sdcard directory
+        run: mkdir -p ./sdcard/
+      - name: Put git hash in startup message
+        run: |
+          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          
+      # Install 32-bit toolchain (arm-none-eabi)
+      - name: Install 32-bit toolchain
+        run: |
+          set -ex
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+          tar xf gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+
+      - name: Build for Raspberry Pi 2 (32-bit)
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin):$PATH
+          RPI=2 bash -ex build.sh
+          cp ./src/kernel*.img ./sdcard/
+
+      - name: Build for Raspberry Pi 1 (32-bit)
+        run: |
+          set -ex
+          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin):$PATH
+          RPI=1 bash -ex build.sh
+          cp ./src/kernel*.img ./sdcard/
+
+      - name: Upload 32-bit artifacts
+        id: upload32
+        uses: actions/upload-artifact@v4
+        with:
+          name: build32-artifacts
+          path: sdcard/*
+
+  combine:
+    name: Combine Artifacts
+    runs-on: ubuntu-22.04
+    needs: [ build64, build32 ]
+    steps:
+      - name: Download 64-bit artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build64-artifacts
+          path: combined
+      - name: Download 32-bit artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build32-artifacts
+          path: combined
+      - name: Create combined ZIP file
+        run: |
+          cd combined
+          zip -r ../MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip .
+          cd ..
+      - name: Upload combined ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-artifact
+          path: MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
+      - name: Upload to GitHub Releases (only from main branch)
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          set -ex
+          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+          bash ./upload.sh MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
