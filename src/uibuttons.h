@@ -124,7 +124,7 @@ public:
 
 	void ResetButton (unsigned pinNumber);
 
-	void BtnMIDICmdHandler (unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
+	void BtnMIDICmdHandler (unsigned nMidiType, unsigned nMidiData1, unsigned nMidiData2);
 	
 private:
 	CConfig *m_pConfig;
