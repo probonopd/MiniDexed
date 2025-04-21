@@ -60,6 +60,7 @@ class CMiniDexed
 public:
 	CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		    CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, FATFS *pFileSystem);
+	~CMiniDexed (void); // Add destructor
 
 	bool Initialize (void);
 
@@ -339,11 +340,11 @@ private:
 	// Network
 	CNetSubSystem* m_pNet;
 	CNetDevice* m_pNetDevice;
-	CBcm4343Device m_WLAN;
-	CWPASupplicant m_WPASupplicant;
+	CBcm4343Device* m_WLAN; // Changed to pointer
+	CWPASupplicant* m_WPASupplicant; // Changed to pointer
 	bool m_bNetworkReady;
 	bool m_bNetworkInit;
-	CUDPMIDIDevice m_UDPMIDI;
+	CUDPMIDIDevice* m_UDPMIDI; // Changed to pointer
 	CFTPDaemon* m_pFTPDaemon;
 	CmDNSPublisher *m_pmDNSPublisher;
 
