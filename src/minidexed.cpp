@@ -376,15 +376,18 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 {
 	CScheduler* const pScheduler = CScheduler::Get();
 #ifndef ARM_ALLOW_MULTI_CORE
-	ProcessSound ();
-	pScheduler->Yield();
+	bool audioBufferFilled = false;
+	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail();
+	if (nFrames >= m_nQueueSizeFrames/2) {
+		ProcessSound();
+		audioBufferFilled = true;
+	}
 #endif
 
 	for (unsigned i = 0; i < CConfig::MaxUSBMIDIDevices; i++)
 	{
 		assert (m_pMIDIKeyboard[i]);
 		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
-		pScheduler->Yield();
 	}
 
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
@@ -392,7 +395,6 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bUseSerial)
 	{
 		m_SerialMIDI.Process ();
-		pScheduler->Yield();
 	}
 
 	m_UI.Process ();
@@ -402,14 +404,12 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		DoSavePerformance ();
 
 		m_bSavePerformance = false;
-		pScheduler->Yield();
 	}
 
 	if (m_bSavePerformanceNewFile)
 	{
 		DoSavePerformanceNewFile ();
 		m_bSavePerformanceNewFile = false;
-		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -427,7 +427,6 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			DoSetFirstPerformance();
 		}
-		pScheduler->Yield();
 	}
 	
 	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
@@ -437,26 +436,29 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		{
 			m_bSetNewPerformance = false;
 		}
-		pScheduler->Yield();
 	}
 	
 	if(m_bDeletePerformance)
 	{
 		DoDeletePerformance ();
 		m_bDeletePerformance = false;
-		pScheduler->Yield();
 	}
 		
 	if (m_bProfileEnabled)
 	{
 		m_GetChunkTimer.Dump ();
-		pScheduler->Yield();
 	}
 	if (m_pNet) {
 		UpdateNetwork();
 	}
-	// Allow other tasks to run
+#ifndef ARM_ALLOW_MULTI_CORE
+	if (audioBufferFilled) {
+		pScheduler->Yield();
+	}
+#else
+	// On multicore, always yield at the end
 	pScheduler->Yield();
+#endif
 }
 
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -1725,7 +1727,7 @@ void CMiniDexed::setBreathControllerTarget(uint8_t target, uint8_t nTG)
 
 	assert (m_pTG[nTG]);
 
-	m_nBreathControlTarget[nTG]=target;
+	m_nBreathControlTarget[nTG] = target;
 
 	m_pTG[nTG]->setBreathControllerTarget(constrain(target, 0, 7));
 	m_pTG[nTG]->ControllersRefresh();
