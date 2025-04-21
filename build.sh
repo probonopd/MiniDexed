@@ -45,10 +45,6 @@ cd libs/circle/addon/display/
 make clean || true
 make -j
 
-cd ../wlan/
-make clean || true
-make -j
-
 cd ../sensor/
 make clean || true
 make -j
