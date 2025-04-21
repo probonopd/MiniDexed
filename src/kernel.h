@@ -24,6 +24,9 @@
 #include <circle/cputhrottle.h>
 #include <circle/gpiomanager.h>
 #include <circle/i2cmaster.h>
+#include <circle/spimaster.h>
+#include <circle/usb/usbcontroller.h>
+#include <circle/sched/scheduler.h>
 #include "config.h"
 #include "minidexed.h"
 
@@ -53,7 +56,10 @@ private:
 	CCPUThrottle	m_CPUThrottle;
 	CGPIOManager	m_GPIOManager;
 	CI2CMaster	m_I2CMaster;
+	CSPIMaster	*m_pSPIMaster;
 	CMiniDexed	*m_pDexed;
+	CUSBController *m_pUSB;
+	CScheduler	m_Scheduler;
 
 	static CKernel *s_pThis;
 };

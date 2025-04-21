@@ -31,13 +31,12 @@
 #include <circle/types.h>
 #include <queue>
 
+#define USB_SYSEX_BUFFER_SIZE (MAX_DX7_SYSEX_LENGTH+128) // Allow a bit spare to handle unexpected SysEx messages
+
 class CMiniDexed;
 
 class CMIDIKeyboard : public CMIDIDevice
 {
-public:
-	static const unsigned MaxInstances = 4;
-
 public:
 	CMIDIKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI, unsigned nInstance = 0);
 	~CMIDIKeyboard (void);
@@ -47,12 +46,10 @@ public:
 	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
 
 private:
-	static void MIDIPacketHandler0 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler1 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler2 (unsigned nCable, u8 *pPacket, unsigned nLength);
-	static void MIDIPacketHandler3 (unsigned nCable, u8 *pPacket, unsigned nLength);
-
+	static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength, unsigned nDevice, void *pParam);
 	static void DeviceRemovedHandler (CDevice *pDevice, void *pContext);
+	
+	void USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsigned nCable, unsigned nDevice);
 
 private:
 	struct TSendQueueEntry
@@ -61,6 +58,8 @@ private:
 		size_t	 nLength;
 		unsigned nCable;
 	};
+	uint8_t m_SysEx[USB_SYSEX_BUFFER_SIZE];
+	unsigned m_nSysExIdx;
 
 private:
 	unsigned m_nInstance;
@@ -69,10 +68,6 @@ private:
 	CUSBMIDIDevice * volatile m_pMIDIDevice;
 
 	std::queue<TSendQueueEntry> m_SendQueue;
-
-	static CMIDIKeyboard *s_pThis[MaxInstances];
-
-	static TMIDIPacketHandler * const s_pMIDIPacketHandler[MaxInstances];
 };
 
 #endif

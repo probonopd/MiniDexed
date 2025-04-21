@@ -1,13 +1,27 @@
 #!/bin/bash
 set -ex
+
+# Update top-level modules as a baseline
 git submodule update --init --recursive
+
+# Use fixed master branch of circle-stdlib then re-update
 cd circle-stdlib/
-git checkout e318f89 # Needed to support Circle develop?
+git reset --hard
+git checkout 1111eee # Matches Circle Step49
+git submodule update --init --recursive
 cd -
-cd circle-stdlib/libs/circle
-git checkout ec09d7e # develop
+
+# Optional update submodules explicitly
+#cd circle-stdlib/libs/circle
+#git reset --hard
+#git checkout tags/Step49
+#cd -
+#cd circle-stdlib/libs/circle-newlib
+#git checkout develop
+#cd -
+
+# Use fixed master branch of Synth_Dexed
+cd Synth_Dexed/
+git reset --hard
+git checkout c9f5274
 cd -
-cd circle-stdlib/libs/circle-newlib
-git checkout 48bf91d # needed for circle ec09d7e
-cd -
-           
