@@ -3,10 +3,6 @@
 
 # Updater for MiniDexed
 
-# Download https://github.com/probonopd/MiniDexed/releases/expanded_assets/continuous
-# and extract the URL of the first .zip file in the list
-# and download it to a temporary directory, then extract it
-
 import os
 import sys
 import tempfile
@@ -92,7 +88,7 @@ if __name__ == "__main__":
     # Ask user which release to download (numbered choices)
     release_options = [
         ("Latest official release", "https://github.com/probonopd/MiniDexed/releases/expanded_assets/latest"),
-        ("Continuous (nightly) build", "https://github.com/probonopd/MiniDexed/releases/expanded_assets/continuous")
+        ("Continuous (experimental) build", "https://github.com/probonopd/MiniDexed/releases/expanded_assets/continuous")
     ]
     print("Which release do you want to download?")
     for idx, (desc, _) in enumerate(release_options):
