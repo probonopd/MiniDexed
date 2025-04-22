@@ -2,7 +2,6 @@ name: Build
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GIT_INFO: ""
 
 on:
   push:
@@ -10,23 +9,28 @@ on:
   pull_request:
 
 jobs:
-
   build64:
     name: Build 64-bit kernels
     runs-on: ubuntu-22.04
     outputs:
       artifact-path: ${{ steps.upload64.outputs.artifact-path }}
+      git_info: ${{ steps.gitinfo.outputs.git_info }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Compute Git Info for Artifact Name
-        run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        id: gitinfo
+        run: echo "::set-output name=git_info::$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)"
+
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
+
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
+
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
+          sed -i "s/Loading.../${{ steps.gitinfo.outputs.git_info }}/g" src/userinterface.cpp
 
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
@@ -70,7 +74,7 @@ jobs:
           cp ./getsysex.sh sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
           # Performances
-          git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
+          git clone https://github.com/Banana71/Soundplantage --depth 1
           cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
           # Hardware configuration
           cd hwconfig
@@ -89,9 +93,9 @@ jobs:
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_64bit
+          name: MiniDexed_${{ github.run_number }}_${{ steps.gitinfo.outputs.git_info }}_64bit
           path: sdcard/*
-          
+
   build32:
     name: Build 32-bit kernels
     runs-on: ubuntu-22.04
@@ -99,12 +103,16 @@ jobs:
       artifact-path: ${{ steps.upload32.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
+
       - name: Compute Git Info for Artifact Name
         run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
+
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
+
       - name: Put git hash in startup message
         run: |
           sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
@@ -148,11 +156,13 @@ jobs:
           pattern: MiniDexed_*
           merge-multiple: true
           path: combined
+
       - name: Create combined ZIP file
         run: |
           cd combined
-          zip -r ../MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip .
+          zip -r ../MiniDexed_${{ github.run_number }}_${{ needs.build64.outputs.git_info }}.zip .
           cd ..
+
       - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
