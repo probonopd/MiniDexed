@@ -265,6 +265,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					else
 					{
 						// Ignore any other CC messages at this time
+						LOGNOTE("Ignoring CC %d (%d) on Performance Select Channel %d\n", pMessage[1], pMessage[2], nPerfCh);
 					}
 				}
 			}
