@@ -1,5 +1,3 @@
-# Build 32-bit and 64-bit separately
-
 name: Build
 
 env:
@@ -26,7 +24,7 @@ jobs:
       - name: Put git hash in startup message
         run: |
           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
-          
+
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
         run: |
@@ -65,15 +63,20 @@ jobs:
           cd -
           cp -r ./circle-stdlib/libs/circle/boot/* sdcard
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-          cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
+          cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
+          mkdir -p sdcard/firmware sdcard/hardware sdcard/performance
+          cp -r ./firmware sdcard/
+          cp -r ./hardware sdcard/
+          cp -r ./performance sdcard/
+          cp ./wpa_supplicant.conf sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
-          
+
       - name: Upload 64-bit artifacts
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: build64-artifacts
+          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build64
           path: sdcard/*
           
   build32:
@@ -90,7 +93,7 @@ jobs:
       - name: Put git hash in startup message
         run: |
           sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
-          
+
       # Install 32-bit toolchain (arm-none-eabi)
       - name: Install 32-bit toolchain
         run: |
@@ -112,11 +115,20 @@ jobs:
           RPI=1 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
+      # For the 32-bit build, assume that the additional folders/files are shared so copy them as well.
+      - name: Copy extra files for 32-bit
+        run: |
+          mkdir -p sdcard/firmware sdcard/hardware sdcard/performance
+          cp -r ./firmware/* sdcard/firmware/ || true
+          cp -r ./hardware/* sdcard/hardware/ || true
+          cp -r ./performance/* sdcard/performance/ || true
+          cp ./wpa_supplicant.conf sdcard/ || true
+
       - name: Upload 32-bit artifacts
         id: upload32
         uses: actions/upload-artifact@v4
         with:
-          name: build32-artifacts
+          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build32
           path: sdcard/*
 
   combine:
@@ -127,29 +139,29 @@ jobs:
       - name: Download 64-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build64-artifacts
+          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build64
           path: combined
       - name: Download 32-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build32-artifacts
+          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build32
           path: combined
       - name: Create combined ZIP file
         run: |
           cd combined
-          zip -r ../MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip .
+          zip -r ../MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip .
           cd ..
       - name: Upload combined ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: combined-artifact
-          path: MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
+          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_combined
+          path: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
       - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-             set -ex
-             export UPLOADTOOL_ISPRERELEASE=true
-             export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
-             export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
-             wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-             bash ./upload.sh ./MiniDexed*.zip
+          set -ex
+          export UPLOADTOOL_ISPRERELEASE=true
+          export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
+          export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
+          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+          bash ./upload.sh ./MiniDexed*.zip
