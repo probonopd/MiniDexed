@@ -211,6 +211,7 @@ void CConfig::Load (void)
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
 	m_bSyslogEnabled  = m_Properties.GetNumber ("NetworkSyslogEnabled", 0) != 0;
 	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
+	m_bNetworkFTPEnabled = m_Properties.GetNumber("NetworkFTPEnabled", 0) != 0;
 
 	const u8 *pSyslogServerIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress");
 	if (pSyslogServerIP)
@@ -791,4 +792,9 @@ bool CConfig::GetSyslogEnabled (void) const
 CIPAddress CConfig::GetNetworkSyslogServerIPAddress (void) const
 {
 	return m_INetworkSyslogServerIPAddress;
+}
+
+bool CConfig::GetNetworkFTPEnabled (void) const
+{
+	return m_bNetworkFTPEnabled;
 }
