@@ -66,11 +66,15 @@ jobs:
           cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
           mkdir -p sdcard/firmware sdcard/hardware sdcard/performance
-          cp -r ./firmware sdcard/
           cp -r ./hardware sdcard/
           cp -r ./performance sdcard/
           cp ./wpa_supplicant.conf sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
+          # WLAN firmware
+          cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
+          cd sdcard/firmware
+          make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
+          cd -
 
       - name: Upload 64-bit artifacts
         id: upload64
