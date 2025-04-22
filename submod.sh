@@ -2,13 +2,13 @@
 set -ex
 
 # Update top-level modules as a baseline
-git submodule update --init --recursive
+git submodule update --init --recursive -f
 
 # Use fixed master branch of circle-stdlib then re-update
 cd circle-stdlib/
 git reset --hard
-git checkout 1111eee # Matches Circle Step49
-git submodule update --init --recursive
+git checkout 1111eee -f # Matches Circle Step49
+git submodule update --init --recursive -f
 cd -
 
 # Optional update submodules explicitly
@@ -23,5 +23,5 @@ cd -
 # Use fixed master branch of Synth_Dexed
 cd Synth_Dexed/
 git reset --hard
-git checkout c9f5274
+git checkout 65d8383ad5 -f
 cd -

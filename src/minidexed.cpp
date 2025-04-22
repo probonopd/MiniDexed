@@ -658,6 +658,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
+	setOPMask(0b111111, nTG);
 
 	if (m_pConfig->GetMIDIAutoVoiceDumpOnPC())
 	{
@@ -1178,23 +1179,22 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 
 	if (nOP < 6)
 	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+
 		if (uchOffset == DEXED_OP_ENABLE)
 		{
 			if (uchValue)
 			{
-				m_uchOPMask[nTG] |= 1 << nOP;
+				setOPMask(m_uchOPMask[nTG] | 1 << nOP, nTG);
 			}
 			else
 			{
-				m_uchOPMask[nTG] &= ~(1 << nOP);
+				setOPMask(m_uchOPMask[nTG] & ~(1 << nOP), nTG);
 			}
 
-			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
 
 			return;
-		}
-
-		nOP = 5 - nOP;		// OPs are in reverse order
+		}		
 	}
 
 	uchOffset += nOP * 21;
@@ -1213,12 +1213,12 @@ uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned
 
 	if (nOP < 6)
 	{
+		nOP = 5 - nOP;		// OPs are in reverse order
+
 		if (uchOffset == DEXED_OP_ENABLE)
 		{
 			return !!(m_uchOPMask[nTG] & (1 << nOP));
 		}
-
-		nOP = 5 - nOP;		// OPs are in reverse order
 	}
 
 	uchOffset += nOP * 21;
@@ -1237,7 +1237,7 @@ std::string CMiniDexed::GetVoiceName (unsigned nTG)
 	if (nTG < m_nToneGenerators)
 	{
 		assert (m_pTG[nTG]);
-		m_pTG[nTG]->setName (VoiceName);
+		m_pTG[nTG]->getName (VoiceName);
 	}
 	std::string Result (VoiceName);
 	return Result;
@@ -1792,6 +1792,8 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 
 	m_pTG[nTG]->loadVoiceParameters(&voice[6]);
 	m_pTG[nTG]->doRefreshVoice();
+	setOPMask(0b111111, nTG);
+
 	m_UI.ParameterChanged ();
 }
 
@@ -1846,6 +1848,12 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	}
 	dest[161] = checksum & 0x7f; // Checksum
 	dest[162] = 0xF7; // SysEx end
+}
+
+void CMiniDexed::setOPMask(uint8_t uchOPMask, uint8_t nTG)
+{
+	m_uchOPMask[nTG] = uchOPMask;
+	m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
 }
 
 void CMiniDexed::setMasterVolume(float32_t vol)
@@ -2022,6 +2030,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			{
 			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
+			setOPMask(0b111111, nTG);
 			}
 			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
@@ -2080,7 +2089,7 @@ void CMiniDexed::SetVoiceName (const std::string &VoiceName, unsigned nTG)
 	char Name[11];
 	strncpy(Name, VoiceName.c_str(),10);
 	Name[10] = '\0';
-	m_pTG[nTG]->getName (Name);
+	m_pTG[nTG]->setName (Name);
 }
 
 bool CMiniDexed::DeletePerformance(unsigned nID)
@@ -2309,6 +2318,7 @@ void CMiniDexed::UpdateNetwork()
 
 		if (m_pConfig->GetSyslogEnabled())
 		{
+			LOGNOTE ("Syslog server is enabled in configuration");
 			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
 			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
@@ -2320,6 +2330,14 @@ void CMiniDexed::UpdateNetwork()
 
 				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
 			}
+			else
+			{
+				LOGNOTE ("Syslog server IP not set");
+			}	
+		}
+		else
+		{
+			LOGNOTE ("Syslog server is not enabled in configuration");
 		}
 		m_bNetworkReady = true;
 	}
