@@ -657,6 +657,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->loadVoiceParameters (Buffer);
+	setOPMask(0b111111, nTG);
 
 	if (m_pConfig->GetMIDIAutoVoiceDumpOnPC())
 	{
@@ -1183,14 +1184,13 @@ void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigne
 		{
 			if (uchValue)
 			{
-				m_uchOPMask[nTG] |= 1 << nOP;
+				setOPMask(m_uchOPMask[nTG] | 1 << nOP, nTG);
 			}
 			else
 			{
-				m_uchOPMask[nTG] &= ~(1 << nOP);
+				setOPMask(m_uchOPMask[nTG] & ~(1 << nOP), nTG);
 			}
 
-			m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
 
 			return;
 		}		
@@ -1791,6 +1791,8 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 
 	m_pTG[nTG]->loadVoiceParameters(&voice[6]);
 	m_pTG[nTG]->doRefreshVoice();
+	setOPMask(0b111111, nTG);
+
 	m_UI.ParameterChanged ();
 }
 
@@ -1845,6 +1847,12 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	}
 	dest[161] = checksum & 0x7f; // Checksum
 	dest[162] = 0xF7; // SysEx end
+}
+
+void CMiniDexed::setOPMask(uint8_t uchOPMask, uint8_t nTG)
+{
+	m_uchOPMask[nTG] = uchOPMask;
+	m_pTG[nTG]->setOPAll (m_uchOPMask[nTG]);
 }
 
 void CMiniDexed::setMasterVolume(float32_t vol)
@@ -2021,6 +2029,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			{
 			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
 			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
+			setOPMask(0b111111, nTG);
 			}
 			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
 			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
