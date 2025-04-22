@@ -122,6 +122,7 @@ public:
 	void loadVoiceParameters(const uint8_t* data, uint8_t nTG);
 	void setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG);
 	void getSysExVoiceDump(uint8_t* dest, uint8_t nTG);
+	void setOPMask(uint8_t uchOPMask, uint8_t nTG);
 
 	void setModController (unsigned controller, unsigned parameter, uint8_t value, uint8_t nTG);
 	unsigned getModController (unsigned controller, unsigned parameter, uint8_t nTG);
