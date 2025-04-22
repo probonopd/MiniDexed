@@ -2307,6 +2307,7 @@ void CMiniDexed::UpdateNetwork()
 
 		if (m_pConfig->GetSyslogEnabled())
 		{
+			LOGNOTE ("Syslog server is enabled in configuration");
 			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
 			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
@@ -2318,6 +2319,14 @@ void CMiniDexed::UpdateNetwork()
 
 				new CSysLogDaemon (m_pNet, ServerIP, usServerPort);
 			}
+			else
+			{
+				LOGNOTE ("Syslog server IP not set");
+			}	
+		}
+		else
+		{
+			LOGNOTE ("Syslog server is not enabled in configuration");
 		}
 		m_bNetworkReady = true;
 	}
