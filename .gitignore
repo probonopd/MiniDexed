@@ -46,6 +46,14 @@ sdcard
 *.swp
 *.swo
 
+.vscode/
+
+# temporary tests
+src/test/*.bin
+src/test/bin
+src/test/results
+src/test/objects
+
 CMSIS_5/
 Synth_Dexed/
 circle-stdlib/

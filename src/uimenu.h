@@ -129,6 +129,15 @@ private:
 
 	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext);
+
+	static int GetRandomValue(int min, int max);
+	static void GenerateRandomOperator(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomOperatorTG(CUIMenu *pUIMenu, size_t nTG, size_t nOp);
+	static void GenerateRandomVoice(CUIMenu *pUIMenu, size_t nTG);
+	static void GenerateRandomPreset(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomPresetTG(CUIMenu *pUIMenu, size_t nTG);
+	static void GenerateRandomFX(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void GenerateRandomPerformance(CUIMenu *pUIMenu, TMenuEvent Event);
 	 
 private:
 	CUserInterface *m_pUI;
