@@ -253,6 +253,7 @@ public:
 	CIPAddress GetNetworkDNSServer (void) const;
 	bool GetSyslogEnabled (void) const;
 	CIPAddress GetNetworkSyslogServerIPAddress (void) const;
+	bool GetNetworkFTPEnabled (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -382,6 +383,7 @@ private:
 	CIPAddress m_INetworkDNSServer;
 	bool m_bSyslogEnabled;
 	CIPAddress m_INetworkSyslogServerIPAddress;
+	bool m_bNetworkFTPEnabled;
 };
 
 #endif

@@ -2305,18 +2305,23 @@ void CMiniDexed::UpdateNetwork()
 			m_UDPMIDI->Initialize();
 		}
 
-		m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+		if (m_pConfig->GetNetworkFTPEnabled()) {
+			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
 
-		if (!m_pFTPDaemon->Initialize())
-		{
-			LOGERR("Failed to init FTP daemon");
-			delete m_pFTPDaemon;
-			m_pFTPDaemon = nullptr;
+			if (!m_pFTPDaemon->Initialize())
+			{
+				LOGERR("Failed to init FTP daemon");
+				delete m_pFTPDaemon;
+				m_pFTPDaemon = nullptr;
+			}
+			else 
+			{
+				LOGNOTE("FTP daemon initialized");
+			}
+		} else {
+			LOGNOTE("FTP daemon not started (NetworkFTPEnabled=0)");
 		}
-		else 
-		{
-			LOGNOTE("FTP daemon initialized");
-		}
+
 		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1);
 
 		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);

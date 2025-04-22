@@ -40,7 +40,7 @@
 
 constexpr u16 PassivePortBase = 9000;
 constexpr size_t TextBufferSize = 512;
-constexpr unsigned int SocketTimeout = 20;
+constexpr unsigned int SocketTimeout = 60;
 constexpr unsigned int NumRetries = 3;
 
 #ifndef MT32_PI_VERSION
@@ -48,7 +48,7 @@ constexpr unsigned int NumRetries = 3;
 #endif
 
 const char MOTDBanner[] = "Welcome to the MiniDexed " MT32_PI_VERSION " embedded FTP server!";
-const char* exclude_filename = "SD:/wpa_supplicant.conf";
+const char* exclude_filename = "wpa_supplicant.conf";
 
 enum class TDirectoryListEntryType
 {
@@ -616,10 +616,16 @@ bool CFTPWorker::Retrieve(const char* pArgs)
 
 	FIL File;
 	CString Path = RealPath(pArgs);
-	typedef const char* LPCTSTR;
-	//printf("%s\n", (LPCTSTR)Path);
-	//printf("%s\n", exclude_filename );
-	if (strcmp((LPCTSTR)Path, exclude_filename) == 0)
+
+	// Disallow any file named wpa_supplicant.conf (case-insensitive) in any directory
+	const char* pathStr = Path;
+	const char* lastSep = nullptr;
+	for (const char* p = pathStr; *p; ++p) {
+		if (*p == '/' || *p == ':') lastSep = p;
+	}
+	const char* filename = lastSep ? lastSep + 1 : pathStr;
+	// Case-insensitive compare using strcasecmp if available
+	if (strcasecmp(filename, "wpa_supplicant.conf") == 0)
 	{
 		SendStatus(TFTPStatus::FileNameNotAllowed, "Reading this file is not allowed");
 		return false;
