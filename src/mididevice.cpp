@@ -386,6 +386,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
 
+						case MIDI_CC_PORTAMENTO_TIME:
+							m_pSynthesizer->setPortamentoTime (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							break;
+
 						case MIDI_CC_BREATH_CONTROLLER:
 							m_pSynthesizer->setBreathController (pMessage[2], nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
@@ -416,6 +420,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		
 						case MIDI_CC_BANK_SUSTAIN:
 							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+							break;
+
+						case MIDI_CC_SOSTENUTO:
+							m_pSynthesizer->setSostenuto (pMessage[2] >= 64, nTG);
+							break;
+		
+						case MIDI_CC_PORTAMENTO:
+							m_pSynthesizer->setPortamentoMode (pMessage[2] >= 64, nTG);
+							break;
+
+						case MIDI_CC_HOLD2:
+							m_pSynthesizer->setHoldMode (pMessage[2] >= 64, nTG);
 							break;
 		
 						case MIDI_CC_RESONANCE:
