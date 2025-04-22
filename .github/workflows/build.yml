@@ -89,7 +89,7 @@ jobs:
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build64
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_64bit
           path: sdcard/*
           
   build32:
@@ -130,20 +130,11 @@ jobs:
           RPI=1 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
-      # For the 32-bit build, assume that the additional folders/files are shared so copy them as well.
-      - name: Copy extra files for 32-bit
-        run: |
-          mkdir -p sdcard/firmware sdcard/hardware sdcard/performance
-          cp -r ./firmware/* sdcard/firmware/ || true
-          cp -r ./hardware/* sdcard/hardware/ || true
-          cp -r ./performance/* sdcard/performance/ || true
-          cp ./wpa_supplicant.conf sdcard/ || true
-
       - name: Upload 32-bit artifacts
         id: upload32
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build32
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_32bit
           path: sdcard/*
 
   combine:
@@ -151,26 +142,17 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [ build64, build32 ]
     steps:
-      - name: Download 64-bit artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build64
-          path: combined
-      - name: Download 32-bit artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build32
+          pattern: MiniDexed_*
+          merge-multiple: true
           path: combined
       - name: Create combined ZIP file
         run: |
           cd combined
           zip -r ../MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip .
           cd ..
-      - name: Upload combined ZIP artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_combined
-          path: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip
       - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
