@@ -30,7 +30,7 @@ jobs:
 
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../${{ steps.gitinfo.outputs.git_info }}/g" src/userinterface.cpp
+          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
 
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
