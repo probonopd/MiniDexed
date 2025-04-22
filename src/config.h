@@ -117,8 +117,12 @@ public:
 	unsigned GetChunkSize (void) const;
 	unsigned GetDACI2CAddress (void) const;		// 0 for auto probing
 	bool GetChannelsSwapped (void) const;
+
+  unsigned GetVelocityScale (void) const;
+
 	unsigned GetEngineType (void) const;
 	bool GetQuadDAC8Chan (void) const; // false if not specified
+
 
 	// MIDI
 	unsigned GetMIDIBaudRate (void) const;
@@ -269,6 +273,9 @@ private:
 	unsigned m_nChunkSize;
 	unsigned m_nDACI2CAddress;
 	bool m_bChannelsSwapped;
+
+  unsigned m_VelocityScale;
+
 	unsigned m_EngineType;
 	bool m_bQuadDAC8Chan;
 

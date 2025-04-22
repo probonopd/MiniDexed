@@ -115,6 +115,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		
 		m_nReverbSend[i] = 0;
 
+		m_pTG[i] = new CDexedAdapter (CConfig::MaxNotes, pConfig->GetSampleRate ());
+		assert (m_pTG[i]);
+
+		m_pTG[i]->setVelocityScale(pConfig->GetVelocityScale ());
+		
 		// Active the required number of active TGs
 		if (i<m_nToneGenerators)
 		{
