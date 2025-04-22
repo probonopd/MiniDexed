@@ -65,7 +65,6 @@ jobs:
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
           cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
-          cp ./wpa_supplicant.conf sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
           # Performances
           git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
