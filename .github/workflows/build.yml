@@ -2,6 +2,7 @@ name: Build
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GIT_INFO: ""
 
 on:
   push:
@@ -17,13 +18,15 @@ jobs:
       artifact-path: ${{ steps.upload64.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
+      - name: Compute Git Info for Artifact Name
+        run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
 
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
@@ -86,7 +89,7 @@ jobs:
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build64
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build64
           path: sdcard/*
           
   build32:
@@ -96,13 +99,15 @@ jobs:
       artifact-path: ${{ steps.upload32.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
+      - name: Compute Git Info for Artifact Name
+        run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
+          sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
 
       # Install 32-bit toolchain (arm-none-eabi)
       - name: Install 32-bit toolchain
@@ -138,7 +143,7 @@ jobs:
         id: upload32
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build32
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build32
           path: sdcard/*
 
   combine:
@@ -149,23 +154,23 @@ jobs:
       - name: Download 64-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build64
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build64
           path: combined
       - name: Download 32-bit artifacts
         uses: actions/download-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_build32
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_build32
           path: combined
       - name: Create combined ZIP file
         run: |
           cd combined
-          zip -r ../MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip .
+          zip -r ../MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip .
           cd ..
       - name: Upload combined ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)_combined
-          path: MiniDexed_${{ github.run_number }}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_combined
+          path: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip
       - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
