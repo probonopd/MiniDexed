@@ -117,10 +117,13 @@ boolean CmDNSPublisher::UnpublishService (const char *pServiceName)
 		return FALSE;
 	}
 	LOGDBG ("Unpublish service %s", (const char *) pService->ServiceName);
+	SendResponse (pService, FALSE);
+	/*
 	if (!SendResponse (pService, TRUE))
 	{
 		LOGWARN ("Send failed");
 	}
+	*/
 	for (unsigned i = 0; i < pService->nTextRecords; i++)
 	{
 		delete pService->ppText[i];
@@ -172,10 +175,13 @@ void CmDNSPublisher::Run (void)
 				TService *pService =
 					static_cast<TService *> (CPtrList::GetPtr (pElement));
 				assert (pService);
+				SendResponse (pService, FALSE);
+				/*
 				if (!SendResponse (pService, FALSE))
 				{
 					LOGWARN ("Send failed");
 				}
+				*/
 				pElement = m_ServiceList.GetNext (pElement);
 			}
 			m_Mutex.Release ();

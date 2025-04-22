@@ -1,9 +1,8 @@
-# Build 32-bit and 64-bit separately
-
 name: Build
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GIT_INFO: ""
 
 on:
   push:
@@ -19,14 +18,16 @@ jobs:
       artifact-path: ${{ steps.upload64.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
+      - name: Compute Git Info for Artifact Name
+        run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
-          
+          sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
+
       # Install 64-bit toolchain (aarch64)
       - name: Install 64-bit toolchain
         run: |
@@ -65,15 +66,30 @@ jobs:
           cd -
           cp -r ./circle-stdlib/libs/circle/boot/* sdcard
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
-          cp ./src/config.txt ./src/minidexed.ini ./src/*img ./src/performance.ini sdcard/
+          cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
-          
+          # Performances
+          git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
+          cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
+          # Hardware configuration
+          cd hwconfig
+          sh -ex ./customize.sh
+          cd -
+          mkdir -p ./sdcard/hardware/
+          cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
+          # WLAN firmware
+          mkdir -p sdcard/firmware
+          cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
+          cd sdcard/firmware
+          make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
+          cd -
+
       - name: Upload 64-bit artifacts
         id: upload64
         uses: actions/upload-artifact@v4
         with:
-          name: build64-artifacts
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_64bit
           path: sdcard/*
           
   build32:
@@ -83,14 +99,16 @@ jobs:
       artifact-path: ${{ steps.upload32.outputs.artifact-path }}
     steps:
       - uses: actions/checkout@v2
+      - name: Compute Git Info for Artifact Name
+        run: echo "GIT_INFO=$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Get specific commits of git submodules
         run: sh -ex ./submod.sh
       - name: Create sdcard directory
         run: mkdir -p ./sdcard/
       - name: Put git hash in startup message
         run: |
-          sed -i "s/Loading.../$(date +%Y%m%d)-$(git rev-parse --short HEAD)/g" src/userinterface.cpp
-          
+          sed -i "s/Loading.../${{ env.GIT_INFO }}/g" src/userinterface.cpp
+
       # Install 32-bit toolchain (arm-none-eabi)
       - name: Install 32-bit toolchain
         run: |
@@ -116,7 +134,7 @@ jobs:
         id: upload32
         uses: actions/upload-artifact@v4
         with:
-          name: build32-artifacts
+          name: MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}_32bit
           path: sdcard/*
 
   combine:
@@ -124,32 +142,23 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [ build64, build32 ]
     steps:
-      - name: Download 64-bit artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build64-artifacts
-          path: combined
-      - name: Download 32-bit artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build32-artifacts
+          pattern: MiniDexed_*
+          merge-multiple: true
           path: combined
       - name: Create combined ZIP file
         run: |
           cd combined
-          zip -r ../MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip .
+          zip -r ../MiniDexed_${{ github.run_number }}_${{ env.GIT_INFO }}.zip .
           cd ..
-      - name: Upload combined ZIP artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: combined-artifact
-          path: MiniDexed_${GITHUB_RUN_NUMBER}_$(date +%Y-%m-%d)-$(git rev-parse --short HEAD).zip
       - name: Upload to GitHub Releases (only when building from main branch)
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-             set -ex
-             export UPLOADTOOL_ISPRERELEASE=true
-             export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
-             export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
-             wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-             bash ./upload.sh ./MiniDexed*.zip
+          set -ex
+          export UPLOADTOOL_ISPRERELEASE=true
+          export UPLOADTOOL_PR_BODY="This is a continuous build. Feedback is appreciated."
+          export UPLOADTOOL_BODY="This is a continuous build. Feedback is appreciated."
+          wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+          bash ./upload.sh ./MiniDexed*.zip

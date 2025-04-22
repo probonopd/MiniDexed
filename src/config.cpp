@@ -209,7 +209,7 @@ void CConfig::Load (void)
 	m_INetworkIPAddress = m_Properties.GetIPAddress("NetworkIPAddress") != 0;
 	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
 	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
-	m_bSyslogEnabled  = m_Properties.GetNumber ("SyslogEnabled", 0) != 0;
+	m_bSyslogEnabled  = m_Properties.GetNumber ("NetworkSyslogEnabled", 0) != 0;
 	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
 
 	const u8 *pSyslogServerIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress");
