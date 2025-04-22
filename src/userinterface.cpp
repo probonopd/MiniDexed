@@ -154,7 +154,8 @@ bool CUserInterface::Initialize (void)
 
 		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
-
+		// clear sceen and go to top left corner
+		LCDWrite ("\x1B[H\x1B[J");		// cursor home and clear screen
 		LCDWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
 		LCDWrite ("MiniDexed\nLoading...");
 		m_pLCDBuffered->Update ();
