@@ -65,12 +65,19 @@ jobs:
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
           cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
-          mkdir -p sdcard/firmware sdcard/hardware sdcard/performance
-          cp -r ./hardware sdcard/
-          cp -r ./performance sdcard/
           cp ./wpa_supplicant.conf sdcard/
           echo "usbspeed=full" > sdcard/cmdline.txt
+          # Performances
+          git clone https://github.com/Banana71/Soundplantage --depth 1 # depth 1 means only the latest commit
+          cp -r ./Soundplantage/performance ./Soundplantage/*.pdf ./sdcard/
+          # Hardware configuration
+          cd hwconfig
+          sh -ex ./customize.sh
+          cd -
+          mkdir -p ./sdcard/hardware/
+          cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
           # WLAN firmware
+          mkdir -p sdcard/firmware
           cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
           cd sdcard/firmware
           make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
