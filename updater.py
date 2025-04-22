@@ -168,6 +168,10 @@ if __name__ == "__main__":
         print("Failed to get the release URL.")
         sys.exit(1)
 
+    # Ask user if they want to update Performances (default no)
+    update_perf = input("Do you want to update the Performances? This will OVERWRITE all existing performances. [y/N]: ").strip().lower()
+    update_performances = update_perf == 'y'
+
     # Log into the selected device and upload the new version of MiniDexed
     print(f"Connecting to {selected_name} ({selected_ip})...")
     try:
@@ -178,6 +182,72 @@ if __name__ == "__main__":
         ftp.login("admin", "admin")
         ftp.set_pasv(True)
         print(f"Connected to {selected_ip} (passive mode).")
+        # --- Performances update logic ---
+        if update_performances:
+            print("Updating Performance: recursively deleting and uploading /SD/performance directory...")
+            def ftp_rmdirs(ftp, path):
+                try:
+                    items = ftp.nlst(path)
+                except Exception as e:
+                    print(f"[WARN] Could not list {path}: {e}")
+                    return
+                for item in items:
+                    if item in ['.', '..', path]:
+                        continue
+                    full_path = f"{path}/{item}" if not item.startswith(path) else item
+                    try:
+                        # Try to delete as a file first
+                        ftp.delete(full_path)
+                        print(f"Deleted file: {full_path}")
+                    except Exception:
+                        # If not a file, try as a directory
+                        try:
+                            ftp_rmdirs(ftp, full_path)
+                            ftp.rmd(full_path)
+                            print(f"Deleted directory: {full_path}")
+                        except Exception as e:
+                            print(f"[WARN] Could not delete {full_path}: {e}")
+            try:
+                ftp_rmdirs(ftp, '/SD/performance')
+                try:
+                    ftp.rmd('/SD/performance')
+                    print("Deleted /SD/performance on device.")
+                except Exception as e:
+                    print(f"[WARN] Could not delete /SD/performance directory itself: {e}")
+            except Exception as e:
+                print(f"Warning: Could not delete /SD/performance: {e}")
+            # Upload extracted performance/ recursively
+            local_perf = os.path.join(extract_path, 'performance')
+            def ftp_mkdirs(ftp, path):
+                try:
+                    ftp.mkd(path)
+                except Exception:
+                    pass
+            def ftp_upload_dir(ftp, local_dir, remote_dir):
+                ftp_mkdirs(ftp, remote_dir)
+                for item in os.listdir(local_dir):
+                    lpath = os.path.join(local_dir, item)
+                    rpath = f"{remote_dir}/{item}"
+                    if os.path.isdir(lpath):
+                        ftp_upload_dir(ftp, lpath, rpath)
+                    else:
+                        with open(lpath, 'rb') as fobj:
+                            ftp.storbinary(f'STOR {rpath}', fobj)
+                        print(f"Uploaded {rpath}")
+            if os.path.isdir(local_perf):
+                ftp_upload_dir(ftp, local_perf, '/SD/performance')
+                print("Uploaded new /SD/performance directory.")
+            else:
+                print("No extracted performance/ directory found, skipping upload.")
+            # Upload performance.ini if it exists in extract_path
+            local_perfini = os.path.join(extract_path, 'performance.ini')
+            if os.path.isfile(local_perfini):
+                with open(local_perfini, 'rb') as fobj:
+                    ftp.storbinary('STOR /SD/performance.ini', fobj)
+                print("Uploaded /SD/performance.ini.")
+            else:
+                print("No extracted performance.ini found, skipping upload.")
+        # Upload kernel files
         for root, dirs, files in os.walk(extract_path):
             for file in files:
                 if file.startswith("kernel") and file.endswith(".img"):
