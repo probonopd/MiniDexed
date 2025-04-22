@@ -12,6 +12,7 @@
    MIT License.  use at your own risk.
 */
 
+#include <algorithm>
 #include <circle/logger.h>
 #include <cstdlib>
 #include "effect_compressor.h"
@@ -203,7 +204,7 @@ void Compressor::setPreGain_dB(float32_t gain_dB)
 
 void Compressor::setCompressionRatio(float32_t cr)
 {
-      comp_ratio = max(0.001f, cr); //limit to positive values
+      comp_ratio = std::max(0.001f, cr); //limit to positive values
       updateThresholdAndCompRatioConstants();
 }
 
@@ -213,7 +214,7 @@ void Compressor::setAttack_sec(float32_t a, float32_t fs_Hz)
       attack_const = expf(-1.0f / (attack_sec * fs_Hz)); //expf() is much faster than exp()
 
       //also update the time constant for the envelope extraction
-      setLevelTimeConst_sec(min(attack_sec,release_sec) / 5.0, fs_Hz);  //make the level time-constant one-fifth the gain time constants
+      setLevelTimeConst_sec(std::min(attack_sec,release_sec) / 5.0, fs_Hz);  //make the level time-constant one-fifth the gain time constants
 } 
 
 void Compressor::setRelease_sec(float32_t r, float32_t fs_Hz)
@@ -222,13 +223,13 @@ void Compressor::setRelease_sec(float32_t r, float32_t fs_Hz)
       release_const = expf(-1.0f / (release_sec * fs_Hz)); //expf() is much faster than exp()
 
       //also update the time constant for the envelope extraction
-      setLevelTimeConst_sec(min(attack_sec,release_sec) / 5.0, fs_Hz);  //make the level time-constant one-fifth the gain time constants
+      setLevelTimeConst_sec(std::min(attack_sec,release_sec) / 5.0, fs_Hz);  //make the level time-constant one-fifth the gain time constants
 }
 
 void Compressor::setLevelTimeConst_sec(float32_t t_sec, float32_t fs_Hz)
 {
       const float32_t min_t_sec = 0.002f;  //this is the minimum allowed value
-      level_lp_sec = max(min_t_sec,t_sec);
+      level_lp_sec = std::max(min_t_sec,t_sec);
       level_lp_const = expf(-1.0f / (level_lp_sec * fs_Hz)); //expf() is much faster than exp()
 }
 
