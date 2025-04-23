@@ -133,17 +133,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				fprintf (stderr, "MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
+				LOGNOTE("MIDI%u: %02X", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			fprintf (stderr, "MIDI%u: %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			fprintf (stderr, "MIDI%u: %02X %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
@@ -152,17 +152,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					fprintf(stderr, "MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+					LOGNOTE("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 16) == 0)
-							fprintf(stderr, "\n%04d:",i);
-						fprintf(stderr, " 0x%02x",pMessage[i]);
+							LOGNOTE("%04d:",i);
+						LOGNOTE(" 0x%02x",pMessage[i]);
 					}
-					fprintf(stderr, "\n");
+					LOGNOTE("");
 					break;
 				default:
-					fprintf(stderr, "MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
+					LOGNOTE("MIDI%u: Unhandled MIDI event type %0x02x",nCable,pMessage[0]);
 			}
 			break;
 		}
@@ -323,7 +323,109 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
-					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+
+					// Check for TX216/TX816 style performance sysex messages
+					
+					if (pMessage[3] == 0x04)
+					{
+						// TX816/TX216 Performance SysEx message
+						uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
+						uint8_t par = pMessage[4];
+						uint8_t val = pMessage[5];
+
+						if (nTG != mTG) continue;
+
+						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
+
+						switch (par)
+						{
+						case 1: // MIDI Channel
+							LOGNOTE("MIDI-SYSEX: Set MIDI Channel %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
+							break;
+						case 2: // Poly/Mono
+							LOGNOTE("MIDI-SYSEX: Set Poly/Mono %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setMonoMode(val ? true : false, mTG);
+							break;
+						case 3: // Pitch Bend Range
+							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Range %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setPitchbendRange(val, mTG);
+							break;
+						case 4: // Pitch Bend Step
+							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Step %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setPitchbendStep(val, mTG);
+							break;
+						case 5: // Portamento Time
+							LOGNOTE("MIDI-SYSEX: Set Portamento Time %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoTime(val, mTG);
+							break;
+						case 6: // Portamento/Glissando
+							LOGNOTE("MIDI-SYSEX: Set Portamento/Glissando %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoGlissando(val, mTG);
+							break;
+						case 7: // Portamento Mode
+							LOGNOTE("MIDI-SYSEX: Set Portamento Mode %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoMode(val, mTG);
+							break;
+						case 9: // Mod Wheel Sensitivity
+							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Sensitivity %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setModWheelRange(val, mTG);
+							break;
+						case 10: // Mod Wheel Assign
+							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Assign %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setModWheelTarget(val, mTG);
+							break;
+						case 11: // Foot Controller Sensitivity
+							LOGNOTE("MIDI-SYSEX: Set Foot Controller Sensitivity %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setFootControllerRange(val, mTG);
+							break;
+						case 12: // Foot Controller Assign
+							LOGNOTE("MIDI-SYSEX: Set Foot Controller Assign %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setFootControllerTarget(val, mTG);
+							break;
+						case 13: // Aftertouch Sensitivity
+							LOGNOTE("MIDI-SYSEX: Set Aftertouch Sensitivity %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setAftertouchRange(val, mTG);
+							break;
+						case 14: // Aftertouch Assign
+							LOGNOTE("MIDI-SYSEX: Set Aftertouch Assign %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setAftertouchTarget(val, mTG);
+							break;
+						case 15: // Breath Controller Sensitivity
+							LOGNOTE("MIDI-SYSEX: Set Breath Controller Sensitivity %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setBreathControllerRange(val, mTG);
+							break;
+						case 16: // Breath Controller Assign
+							LOGNOTE("MIDI-SYSEX: Set Breath Controller Assign %d to %d", mTG, val & 0x0F);
+							m_pSynthesizer->setBreathControllerTarget(val, mTG);
+							break;
+						case 26: // Audio Output Level Attenuator (if supported)
+							LOGNOTE("MIDI-SYSEX: TODO: Set Audio Output Level Attenuator %d to %d", mTG, val & 0x0F);
+							// m_pSynthesizer->setOutputAttenuator(val, mTG); // Uncomment if implemented
+							break;
+						case 64: // Master Tuning
+							LOGNOTE("MIDI-SYSEX: Set Master Tuning");
+							if (val == 0)
+							{
+								// 0 to 127, with 0 being no detune effect applied at all
+								m_pSynthesizer->SetMasterTune(0, mTG);
+							}
+							else
+							{
+								// Scale to -99 to +99 cents
+								m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -99, 99), mTG);
+							}
+							break;
+						default:
+							// Unknown or unsupported parameter
+							LOGNOTE("MIDI-SYSEX: Unknown parameter %d for TG %d", par, mTG);
+							break;
+						}
+					}
+					else
+					{
+						HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+					}
 				}
 			}
 			else
@@ -421,19 +523,19 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						case MIDI_CC_BANK_SUSTAIN:
 							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
 							break;
-
+						/*
 						case MIDI_CC_SOSTENUTO:
 							m_pSynthesizer->setSostenuto (pMessage[2] >= 64, nTG);
 							break;
-		
+						*/
 						case MIDI_CC_PORTAMENTO:
 							m_pSynthesizer->setPortamentoMode (pMessage[2] >= 64, nTG);
 							break;
-
+						/*
 						case MIDI_CC_HOLD2:
 							m_pSynthesizer->setHoldMode (pMessage[2] >= 64, nTG);
 							break;
-		
+						*/
 						case MIDI_CC_RESONANCE:
 							m_pSynthesizer->SetResonance (maplong (pMessage[2], 0, 127, 0, 99), nTG);
 							break;
@@ -449,11 +551,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						case MIDI_CC_DETUNE_LEVEL:
 							if (pMessage[2] == 0)
 							{
-								// "0 to 127, with 0 being no celeste (detune) effect applied at all."
+								// 0 to 127, with 0 being no detune effect applied at all
 								m_pSynthesizer->SetMasterTune (0, nTG);
 							}
 							else
 							{
+								// Scale to -99 to +99 cents
 								m_pSynthesizer->SetMasterTune (maplong (pMessage[2], 1, 127, -99, 99), nTG);
 							}
 							break;
@@ -559,10 +662,12 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCDetune][tg]) {
 				if (ucCCval == 0)
 				{
+					// 0 to 127, with 0 being no detune effect applied at all
 					m_pSynthesizer->SetMasterTune (0, tg);
 				}
 				else
 				{
+					// Scale to -99 to +99 cents
 					m_pSynthesizer->SetMasterTune (maplong (ucCCval, 1, 127, -99, 99), tg);
 				}
 				return true;
@@ -614,62 +719,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
     case -11:
       LOGERR("Unknown SysEx message.");
       break;
-    case 64:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setMonoMode(pMessage[5],nTG);
-      break;
-    case 65:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendRange(pMessage[5],nTG);
-      break;
-    case 66:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendStep(pMessage[5],nTG);
-      break;
-    case 67:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoMode(pMessage[5],nTG);
-      break;
-    case 68:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoGlissando(pMessage[5],nTG);
-      break;
-    case 69:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoTime(pMessage[5],nTG);
-      break;
-    case 70:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelRange(pMessage[5],nTG);
-      break;
-    case 71:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelTarget(pMessage[5],nTG);
-      break;
-    case 72:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerRange(pMessage[5],nTG);
-      break;
-    case 73:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerTarget(pMessage[5],nTG);
-      break;
-    case 74:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerRange(pMessage[5],nTG);
-      break;
-    case 75:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerTarget(pMessage[5],nTG);
-      break;
-    case 76:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchRange(pMessage[5],nTG);
-      break;
-    case 77:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
-      break;
     case 100:
       // load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
@@ -716,4 +765,4 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable
     Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
     // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
   }
-} 
+}
