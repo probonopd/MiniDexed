@@ -32,7 +32,6 @@
 
 LOGMODULE ("mididevice");
 
-
 // MIDI "System" level (i.e. all TG) custom CC maps
 // Note: Even if number of TGs is not 8, there are only 8
 //       available to be used in the mappings here.
@@ -63,6 +62,7 @@ CMIDIDevice::CMIDIDevice (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInter
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 	{
 		m_ChannelMap[nTG] = Disabled;
+		m_PreviousChannelMap[nTG] = Disabled; // Initialize previous channel map
 	}
 
 	m_nMIDISystemCCVol = m_pConfig->GetMIDISystemCCVol();
@@ -111,6 +111,12 @@ CMIDIDevice::~CMIDIDevice (void)
 void CMIDIDevice::SetChannel (u8 ucChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
+	
+	// When changing to OMNI mode, store the previous channel
+	if (ucChannel == OmniMode && m_ChannelMap[nTG] != OmniMode) {
+		m_PreviousChannelMap[nTG] = m_ChannelMap[nTG];
+	}
+	
 	m_ChannelMap[nTG] = ucChannel;
 }
 
@@ -133,17 +139,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				fprintf (stderr, "MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
+				LOGNOTE("MIDI%u: %02X", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			fprintf (stderr, "MIDI%u: %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			fprintf (stderr, "MIDI%u: %02X %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
@@ -152,17 +158,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					fprintf(stderr, "MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+					LOGNOTE("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 16) == 0)
-							fprintf(stderr, "\n%04d:",i);
-						fprintf(stderr, " 0x%02x",pMessage[i]);
+							LOGNOTE("%04d:",i);
+						LOGNOTE(" 0x%02x",pMessage[i]);
 					}
-					fprintf(stderr, "\n");
+					LOGNOTE("");
 					break;
 				default:
-					fprintf(stderr, "MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
+					LOGNOTE("MIDI%u: Unhandled MIDI event type %0x02x",nCable,pMessage[0]);
 			}
 			break;
 		}
@@ -470,6 +476,35 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							{
 								m_pSynthesizer->notesOff (pMessage[2], nTG);
 							}
+							break;
+
+						case MIDI_CC_OMNI_MODE_OFF:
+							// Sets to "Omni Off" mode
+							if (m_ChannelMap[nTG] == OmniMode) {
+								// Restore the previous channel if available, otherwise use current channel
+								u8 channelToRestore = (m_PreviousChannelMap[nTG] != Disabled) ? 
+									m_PreviousChannelMap[nTG] : ucChannel;
+								m_pSynthesizer->SetMIDIChannel(channelToRestore, nTG);
+								LOGDBG("Omni Mode Off: TG %d restored to MIDI channel %d", nTG, channelToRestore+1);
+							}
+							break;
+						
+						case MIDI_CC_OMNI_MODE_ON:
+							// Sets to "Omni On" mode
+							m_pSynthesizer->SetMIDIChannel(OmniMode, nTG);
+							LOGDBG("Omni Mode On: TG %d set to OMNI", nTG);
+							break;
+
+						case MIDI_CC_MONO_MODE_ON:
+							// Sets monophonic mode
+							m_pSynthesizer->setMonoMode(1, nTG);
+							LOGDBG("Mono Mode On: TG %d set to MONO", nTG);
+							break;
+
+						case MIDI_CC_POLY_MODE_ON:
+							// Sets polyphonic mode
+							m_pSynthesizer->setMonoMode(0, nTG);
+							LOGDBG("Poly Mode On: TG %d set to POLY", nTG);
 							break;
 
 						default:
