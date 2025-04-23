@@ -276,61 +276,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 	else
 	{
-		// Handle Voice Dump Request SysEx (Format 0)
-		if (nLength == 5 &&
-			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
-			pMessage[1] == 0x43 &&  // Yamaha manufacturer ID
-			(pMessage[2] & 0xF0) == 0x20 && // Status byte with channel (0x2n)
-			pMessage[3] == 0x00 &&  // Format 0 (single voice)
-			pMessage[4] == MIDI_SYSTEM_EXCLUSIVE_END) {
-			uint8_t channel = pMessage[2] & 0x0F;
-			LOGDBG("Voice Dump Request (Format 0) received for channel %d", channel);
-			
-			// Find TG matching this channel
-			bool found = false;
-			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
-				if (m_ChannelMap[nTG] == channel || m_ChannelMap[nTG] == OmniMode) {
-					SendSystemExclusiveVoice(0, nCable, nTG);
-					found = true;
-					// Don't break here to allow multiple TGs on same channel to respond
-				}
-			}
-			
-			if (!found) {
-				// If no specific TG is found for this channel, respond with TG 0
-				SendSystemExclusiveVoice(0, nCable, 0);
-			}
-			return;
-		}
-
-		// Operator enable/disable SysEx handling - Format F0 43 11 g=0 h=1 1B p F7
-		// Where 1B (27) is parameter for operator on/off
-		// And p is a bitmask for operators (bit 0=OP6, bit 1=OP5, bit 2=OP4, bit 3=OP3, bit 4=OP2, bit 5=OP1)
-		if (nLength == 7 &&
-			pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
-			pMessage[1] == 0x43 && // Yamaha manufacturer ID
-			pMessage[2] == 0x11 && // Sub-status byte (parameter change)
-			pMessage[3] == 0x01 && // Format byte (h=1, g=0)
-			pMessage[4] == 0x1B && // Parameter 27 (0x1B) - operator on/off
-			pMessage[5] <= 0x3F && // Value (6-bit mask, 0x00-0x3F valid range)
-			pMessage[6] == MIDI_SYSTEM_EXCLUSIVE_END) {
-			
-			uint8_t operatorMask = pMessage[5];
-			LOGDBG("Operator On/Off SysEx received: Mask 0x%02X", operatorMask);
-
-			// Apply to MIDI channel-specific TGs
-			uint8_t channel = 0; // Default to first channel if not specified
-			
-			// Find TGs to apply this to (apply to all TGs if from UI)
-			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
-				// Set the operator mask directly (no toggling)
-				m_pSynthesizer->setOperatorMask(operatorMask, nTG);
-				// Also update the actual voice data parameter OPE (offset 155)
-				m_pSynthesizer->setVoiceDataElement(155, operatorMask, nTG);
-			}
-			return;
-		}
-
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
 		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
