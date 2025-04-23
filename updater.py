@@ -172,7 +172,7 @@ if __name__ == "__main__":
     browser = ServiceBrowser(zeroconf, "_ftp._tcp.local.", listener)
     try:
         print("Searching for devices...")
-        time.sleep(5)
+        time.sleep(10)
         if ip_addresses:
             print("Devices found:")
             for idx, (name, ip) in enumerate(zip(device_names, ip_addresses)):
