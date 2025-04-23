@@ -27,36 +27,10 @@
 #include "config.h"
 #include <stdio.h>
 #include <assert.h>
+#include "midi.h"
 #include "userinterface.h"
 
 LOGMODULE ("mididevice");
-
-#define MIDI_NOTE_OFF		0b1000
-#define MIDI_NOTE_ON		0b1001
-#define MIDI_AFTERTOUCH		0b1010			// TODO
-#define MIDI_CHANNEL_AFTERTOUCH 0b1101   // right now Synth_Dexed just manage Channel Aftertouch not Polyphonic AT -> 0b1010
-#define MIDI_CONTROL_CHANGE	0b1011
-	#define MIDI_CC_BANK_SELECT_MSB		0
-	#define MIDI_CC_MODULATION		1
-	#define MIDI_CC_BREATH_CONTROLLER	2 
-	#define MIDI_CC_FOOT_PEDAL 		4
-	#define MIDI_CC_VOLUME			7
-	#define MIDI_CC_PAN_POSITION		10
-	#define MIDI_CC_EXPRESSION		11
-	#define MIDI_CC_BANK_SELECT_LSB		32
-	#define MIDI_CC_BANK_SUSTAIN		64
-	#define MIDI_CC_RESONANCE		71
-	#define MIDI_CC_FREQUENCY_CUTOFF	74
-	#define MIDI_CC_REVERB_LEVEL		91
-	#define MIDI_CC_DETUNE_LEVEL		94
-	#define MIDI_CC_ALL_SOUND_OFF		120
-	#define MIDI_CC_ALL_NOTES_OFF		123
-	#define MIDI_CC_OMNI_MODE_OFF		124
-	#define MIDI_CC_OMNI_MODE_ON		125
-	#define MIDI_CC_MONO_MODE_ON		126
-	#define MIDI_CC_POLY_MODE_ON		127
-#define MIDI_PROGRAM_CHANGE	0b1100
-#define MIDI_PITCH_BEND		0b1110
 
 // MIDI "System" level (i.e. all TG) custom CC maps
 // Note: Even if number of TGs is not 8, there are only 8
@@ -297,6 +271,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					else
 					{
 						// Ignore any other CC messages at this time
+						LOGNOTE("Ignoring CC %d (%d) on Performance Select Channel %d\n", pMessage[1], pMessage[2], nPerfCh);
 					}
 				}
 			}
@@ -313,7 +288,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 			if (nLength == 3)
 			{
-				m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+				m_pUI->UIMIDICmdHandler (ucChannel, ucType, pMessage[1], pMessage[2]);
 			}
 			break;
 
@@ -323,7 +298,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			{
 				break;
 			}
-			m_pUI->UIMIDICmdHandler (ucChannel, ucStatus & 0xF0, pMessage[1], pMessage[2]);
+			m_pUI->UIMIDICmdHandler (ucChannel, ucType, pMessage[1], pMessage[2]);
 			break;
 
 		case MIDI_PROGRAM_CHANGE:
@@ -417,6 +392,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->ControllersRefresh (nTG);
 							break;
 
+						case MIDI_CC_PORTAMENTO_TIME:
+							m_pSynthesizer->setPortamentoTime (maplong (pMessage[2], 0, 127, 0, 99), nTG);
+							break;
+
 						case MIDI_CC_BREATH_CONTROLLER:
 							m_pSynthesizer->setBreathController (pMessage[2], nTG);
 							m_pSynthesizer->ControllersRefresh (nTG);
@@ -447,6 +426,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		
 						case MIDI_CC_BANK_SUSTAIN:
 							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
+							break;
+
+						case MIDI_CC_SOSTENUTO:
+							m_pSynthesizer->setSostenuto (pMessage[2] >= 64, nTG);
+							break;
+		
+						case MIDI_CC_PORTAMENTO:
+							m_pSynthesizer->setPortamentoMode (pMessage[2] >= 64, nTG);
+							break;
+
+						case MIDI_CC_HOLD2:
+							m_pSynthesizer->setHoldMode (pMessage[2] >= 64, nTG);
 							break;
 		
 						case MIDI_CC_RESONANCE:

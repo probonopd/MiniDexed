@@ -45,6 +45,7 @@ public:
 	void Process (void);
 
 	void ParameterChanged (void);
+	void DisplayChanged (void);
 
 	// Write to display in this format:
 	// +----------------+
@@ -55,7 +56,7 @@ public:
 			   bool bArrowDown, bool bArrowUp);
 
 	// To be called from the MIDI device on reception of a MIDI CC message
-	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiCmd, unsigned nMidiData1, unsigned nMidiData2);
+	void UIMIDICmdHandler (unsigned nMidiCh, unsigned nMidiType, unsigned nMidiData1, unsigned nMidiData2);
 
 private:
 	void LCDWrite (const char *pString);		// Print to optional HD44780 display
