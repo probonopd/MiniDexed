@@ -228,6 +228,12 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
 
     rv_time = rv_time_k;
 
+    if (need_cleanup)
+    {
+        cleanup();
+        need_cleanup = false;
+    }
+
     for (uint16_t i=0; i < len; i++) 
     {
         // do the LFOs

@@ -1015,7 +1015,7 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
 		if (nValue)
-			reverb->cleanup ();
+			reverb->set_need_cleanup ();
 		m_ReverbSpinLock.Release ();
 		break;
 

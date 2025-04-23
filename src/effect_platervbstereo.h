@@ -106,8 +106,10 @@ public:
 
     float32_t get_size(void) {return rv_time_k;}
     float32_t get_level(void) {return reverb_level;}
+    void set_need_cleanup(void) {need_cleanup = true;};
     void cleanup(void);
 private:
+    bool need_cleanup = false;
     float32_t reverb_level;
     float32_t input_attn;
 
