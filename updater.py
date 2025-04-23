@@ -85,20 +85,84 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     import time
+    # Check for local kernel*.img files
+    local_kernel_dir = os.path.join(os.path.dirname(__file__), 'src')
+    local_kernel_imgs = [f for f in os.listdir(local_kernel_dir) if f.startswith('kernel') and f.endswith('.img')]
+    has_local_build = len(local_kernel_imgs) > 0
+
     # Ask user which release to download (numbered choices)
     release_options = [
         ("Latest official release", "https://github.com/probonopd/MiniDexed/releases/expanded_assets/latest"),
         ("Continuous (experimental) build", "https://github.com/probonopd/MiniDexed/releases/expanded_assets/continuous")
     ]
-    print("Which release do you want to download?")
+    if has_local_build:
+        release_options.append(("Local build (from src/)", None))
+    print("Which release do you want to update?")
     for idx, (desc, _) in enumerate(release_options):
         print(f"  [{idx+1}] {desc}")
     while True:
         choice = input(f"Enter the number of your choice (1-{len(release_options)}): ").strip()
         if choice.isdigit() and 1 <= int(choice) <= len(release_options):
-            github_url = release_options[int(choice)-1][1]
+            selected_idx = int(choice)-1
+            github_url = release_options[selected_idx][1]
             break
         print("Invalid selection. Please enter a valid number.")
+
+    # If local build is selected, skip all GitHub/zip logic and do not register cleanup
+    use_local_build = has_local_build and selected_idx == len(release_options)-1
+    if use_local_build:
+        # Remove cleanup function if registered
+        atexit.unregister(cleanup_temp_files)
+        print("Using local build: src/kernel*.img will be uploaded.")
+        extract_path = None
+    else:
+        # Use the selected GitHub URL for release
+        def get_release_url(github_url):
+            print(f"Fetching release page: {github_url}")
+            response = requests.get(github_url)
+            print(f"HTTP status code: {response.status_code}")
+            if response.status_code == 200:
+                print("Successfully fetched release page. Scanning for MiniDexed*.zip links...")
+                # Find all <a ... href="..."> tags with a <span class="Truncate-text text-bold">MiniDexed*.zip</span>
+                pattern = re.compile(r'<a[^>]+href=["\']([^"\']+\.zip)["\'][^>]*>\s*<span[^>]*class=["\']Truncate-text text-bold["\'][^>]*>(MiniDexed[^<]*?\.zip)</span>', re.IGNORECASE)
+                matches = pattern.findall(response.text)
+                print(f"Found {len(matches)} candidate .zip links.")
+                for href, filename in matches:
+                    print(f"Examining link: href={href}, filename={filename}")
+                    if filename.startswith("MiniDexed") and filename.endswith(".zip"):
+                        if href.startswith('http'):
+                            print(f"Selected direct link: {href}")
+                            return href
+                        else:
+                            full_url = f"https://github.com{href}"
+                            print(f"Selected relative link, full URL: {full_url}")
+                            return full_url
+                print("No valid MiniDexed*.zip link found.")
+            else:
+                print(f"Failed to fetch release page. Status code: {response.status_code}")
+            return None
+
+        latest_release_url = get_release_url(github_url)
+        if latest_release_url:
+            print(f"Release URL: {latest_release_url}")
+            zip_path = download_latest_release(latest_release_url)
+            if zip_path:
+                print(f"Downloaded to: {zip_path}")
+                extract_path = extract_zip(zip_path)
+                print(f"Extracted to: {extract_path}")
+            else:
+                print("Failed to download the release.")
+                sys.exit(1)
+        else:
+            print("Failed to get the release URL.")
+            sys.exit(1)
+
+    # Ask user if they want to update Performances (default no)
+    if not use_local_build:
+        update_perf = input("Do you want to update the Performances? This will OVERWRITE all existing performances. [y/N]: ").strip().lower()
+        update_performances = update_perf == 'y'
+    else:
+        update_performances = False
 
     # Using mDNS to find the IP address of the device(s) that advertise the FTP service "_ftp._tcp."
     ip_addresses = []
@@ -127,51 +191,6 @@ if __name__ == "__main__":
         zeroconf.close()
         print("Devices found:", list(zip(device_names, ip_addresses)))
 
-    # Use the selected GitHub URL for release
-    def get_release_url(github_url):
-        print(f"Fetching release page: {github_url}")
-        response = requests.get(github_url)
-        print(f"HTTP status code: {response.status_code}")
-        if response.status_code == 200:
-            print("Successfully fetched release page. Scanning for MiniDexed*.zip links...")
-            # Find all <a ... href="..."> tags with a <span class="Truncate-text text-bold">MiniDexed*.zip</span>
-            pattern = re.compile(r'<a[^>]+href=["\']([^"\']+\.zip)["\'][^>]*>\s*<span[^>]*class=["\']Truncate-text text-bold["\'][^>]*>(MiniDexed[^<]*?\.zip)</span>', re.IGNORECASE)
-            matches = pattern.findall(response.text)
-            print(f"Found {len(matches)} candidate .zip links.")
-            for href, filename in matches:
-                print(f"Examining link: href={href}, filename={filename}")
-                if filename.startswith("MiniDexed") and filename.endswith(".zip"):
-                    if href.startswith('http'):
-                        print(f"Selected direct link: {href}")
-                        return href
-                    else:
-                        full_url = f"https://github.com{href}"
-                        print(f"Selected relative link, full URL: {full_url}")
-                        return full_url
-            print("No valid MiniDexed*.zip link found.")
-        else:
-            print(f"Failed to fetch release page. Status code: {response.status_code}")
-        return None
-
-    latest_release_url = get_release_url(github_url)
-    if latest_release_url:
-        print(f"Release URL: {latest_release_url}")
-        zip_path = download_latest_release(latest_release_url)
-        if zip_path:
-            print(f"Downloaded to: {zip_path}")
-            extract_path = extract_zip(zip_path)
-            print(f"Extracted to: {extract_path}")
-        else:
-            print("Failed to download the release.")
-            sys.exit(1)
-    else:
-        print("Failed to get the release URL.")
-        sys.exit(1)
-
-    # Ask user if they want to update Performances (default no)
-    update_perf = input("Do you want to update the Performances? This will OVERWRITE all existing performances. [y/N]: ").strip().lower()
-    update_performances = update_perf == 'y'
-
     # Log into the selected device and upload the new version of MiniDexed
     print(f"Connecting to {selected_name} ({selected_ip})...")
     try:
@@ -183,7 +202,7 @@ if __name__ == "__main__":
         ftp.set_pasv(True)
         print(f"Connected to {selected_ip} (passive mode).")
         # --- Performances update logic ---
-        if update_performances:
+        if update_performances and not use_local_build:
             print("Updating Performance: recursively deleting and uploading /SD/performance directory...")
             def ftp_rmdirs(ftp, path):
                 try:
@@ -248,32 +267,58 @@ if __name__ == "__main__":
             else:
                 print("No extracted performance.ini found, skipping upload.")
         # Upload kernel files
-        for root, dirs, files in os.walk(extract_path):
-            for file in files:
-                if file.startswith("kernel") and file.endswith(".img"):
-                    local_path = os.path.join(root, file)
-                    remote_path = f"/SD/{file}"
-                    # Check if file exists on FTP server
+        if use_local_build:
+            for file in local_kernel_imgs:
+                local_path = os.path.join(local_kernel_dir, file)
+                remote_path = f"/SD/{file}"
+                # Check if file exists on FTP server
+                file_exists = False
+                try:
+                    ftp.cwd("/SD")
+                    if file in ftp.nlst():
+                        file_exists = True
+                except Exception as e:
+                    print(f"Error checking for {file} on FTP server: {e}")
                     file_exists = False
-                    try:
-                        ftp.cwd("/SD")
-                        if file in ftp.nlst():
-                            file_exists = True
-                    except Exception as e:
-                        print(f"Error checking for {file} on FTP server: {e}")
+                if not file_exists:
+                    print(f"Skipping {file}: does not exist on device.")
+                    continue
+                filesize = os.path.getsize(local_path)
+                uploaded = [0]
+                def progress_callback(data):
+                    uploaded[0] += len(data)
+                    percent = uploaded[0] * 100 // filesize
+                    print(f"\rUploading {file}: {percent}%", end="", flush=True)
+                with open(local_path, 'rb') as f:
+                    ftp.storbinary(f'STOR {remote_path}', f, 8192, callback=progress_callback)
+                print(f"\nUploaded {file} to {selected_ip}.")
+        else:
+            for root, dirs, files in os.walk(extract_path):
+                for file in files:
+                    if file.startswith("kernel") and file.endswith(".img"):
+                        local_path = os.path.join(root, file)
+                        remote_path = f"/SD/{file}"
+                        # Check if file exists on FTP server
                         file_exists = False
-                    if not file_exists:
-                        print(f"Skipping {file}: does not exist on device.")
-                        continue
-                    filesize = os.path.getsize(local_path)
-                    uploaded = [0]
-                    def progress_callback(data):
-                        uploaded[0] += len(data)
-                        percent = uploaded[0] * 100 // filesize
-                        print(f"\rUploading {file}: {percent}%", end="", flush=True)
-                    with open(local_path, 'rb') as f:
-                        ftp.storbinary(f'STOR {remote_path}', f, 8192, callback=progress_callback)
-                    print(f"\nUploaded {file} to {selected_ip}.")
+                        try:
+                            ftp.cwd("/SD")
+                            if file in ftp.nlst():
+                                file_exists = True
+                        except Exception as e:
+                            print(f"Error checking for {file} on FTP server: {e}")
+                            file_exists = False
+                        if not file_exists:
+                            print(f"Skipping {file}: does not exist on device.")
+                            continue
+                        filesize = os.path.getsize(local_path)
+                        uploaded = [0]
+                        def progress_callback(data):
+                            uploaded[0] += len(data)
+                            percent = uploaded[0] * 100 // filesize
+                            print(f"\rUploading {file}: {percent}%", end="", flush=True)
+                        with open(local_path, 'rb') as f:
+                            ftp.storbinary(f'STOR {remote_path}', f, 8192, callback=progress_callback)
+                        print(f"\nUploaded {file} to {selected_ip}.")
         ftp.sendcmd("BYE")
         print(f"Disconnected from {selected_ip}.")
     except ftplib.all_errors as e:

@@ -35,7 +35,7 @@
 # Toolchain
 gcc-*
 
-# Build artefacts
+# Build artifacts
 kernel*
 MiniDexed*
 sdcard
@@ -46,7 +46,10 @@ sdcard
 *.swp
 *.swo
 
-CMSIS_5/
-Synth_Dexed/
-circle-stdlib/
+# git submodules
+CMSIS_5
+circle-stdlib
+Synth_Dexed
+
+# Build directories
 minidexed_*
