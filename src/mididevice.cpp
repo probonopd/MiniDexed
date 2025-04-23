@@ -343,7 +343,110 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
-					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+
+					/*
+					 * Recognize TX216/TX816 style performance sysex messages
+					 * such as, but not limited to, the following.
+					 * Performance data are using group=1 (2 bits shifted, thus 0x04)
+					 * in the 4th byte of the sysex message
+
+					Portamento Time = 0 and 2, MIDI Ch = 1:
+					out: f0 43 10 04 05 00 f7
+					out: f0 43 10 04 05 02 f7
+
+					Detune first 4 modules, Ch 1..4 (32h is 440 Hz):
+					out: f0 43 10 04 40 2f f7
+					out: f0 43 11 04 40 37 f7
+					out: f0 43 12 04 40 40 f7
+					out: f0 43 13 04 40 48 f7
+
+					Set Module 1 to Poly and Mono:
+					out: f0 43 13 04 02 00 f7
+					out: f0 43 13 04 02 01 f7
+
+					ModWheel Sensivity:
+					out: f0 43 13 04 02 01 f7
+					*/
+
+					// Check for TX216/TX816 style performance sysex messages
+					
+					if (pMessage[3] == 0x04)
+					{
+						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
+
+						// TX816/TX216 Performance SysEx message
+						uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
+						uint8_t par = pMessage[4];
+						uint8_t val = pMessage[5];
+						switch (par)
+						{
+						case 0: // MIDI Channel
+							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
+							break;
+						case 1: // Poly/Mono
+							m_pSynthesizer->setMonoMode(val ? true : false, mTG);
+							break;
+						case 2: // Pitch Bend Range
+							m_pSynthesizer->setPitchbendRange(val, mTG);
+							break;
+						case 3: // Pitch Bend Step
+							m_pSynthesizer->setPitchbendStep(val, mTG);
+							break;
+						case 4: // Portamento Time
+							m_pSynthesizer->setPortamentoTime(val, mTG);
+							break;
+						case 5: // Portamento/Glissando
+							m_pSynthesizer->setPortamentoGlissando(val, mTG);
+							break;
+						case 6: // Portamento Mode
+							m_pSynthesizer->setPortamentoMode(val, mTG);
+							break;
+						case 9: // Mod Wheel Sensitivity
+							m_pSynthesizer->setModWheelRange(val, mTG);
+							break;
+						case 10: // Mod Wheel Assign
+							m_pSynthesizer->setModWheelTarget(val, mTG);
+							break;
+						case 11: // Foot Controller Sensitivity
+							m_pSynthesizer->setFootControllerRange(val, mTG);
+							break;
+						case 12: // Foot Controller Assign
+							m_pSynthesizer->setFootControllerTarget(val, mTG);
+							break;
+						case 13: // Aftertouch Sensitivity
+							m_pSynthesizer->setAftertouchRange(val, mTG);
+							break;
+						case 14: // Aftertouch Assign
+							m_pSynthesizer->setAftertouchTarget(val, mTG);
+							break;
+						case 15: // Breath Controller Sensitivity
+							m_pSynthesizer->setBreathControllerRange(val, mTG);
+							break;
+						case 16: // Breath Controller Assign
+							m_pSynthesizer->setBreathControllerTarget(val, mTG);
+							break;
+						case 26: // Audio Output Level Attenuator (if supported)
+							// m_pSynthesizer->setOutputAttenuator(val, mTG); // Uncomment if implemented
+							break;
+						case 64: // Master Tuning
+							m_pSynthesizer->SetMasterTune(val, mTG);
+							break;
+						default:
+							// Unknown or unsupported parameter
+							break;
+						}
+					}
+					else if (pMessage[3] == 0x10)
+					{
+						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x10");
+
+					}
+					else
+					{
+						LOGNOTE("MIDI-SYSEX: Sending to Synth_Dexed for handling");
+					}
+						HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+					}
 				}
 			}
 			else
@@ -701,71 +804,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
         LOGDBG("SysEx send voice %u request",sysex_return-500);
         SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
       }
-      else if (nLength == 7 && pMessage[0] == 0xF0 && pMessage[1] == 0x43 && (pMessage[2] & 0xF0) == 0x10 && pMessage[3] == 0x04 && pMessage[6] == 0xF7)
-      {
-        // TX816/TX216 Performance SysEx message
-        uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
-        uint8_t par = pMessage[4];
-        uint8_t val = pMessage[5];
-        switch (par)
-        {
-          case 0: // MIDI Channel
-            m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
-            break;
-          case 1: // Poly/Mono
-            m_pSynthesizer->setMonoMode(val ? true : false, mTG);
-            break;
-          case 2: // Pitch Bend Range
-            m_pSynthesizer->setPitchbendRange(val, mTG);
-            break;
-          case 3: // Pitch Bend Step
-            m_pSynthesizer->setPitchbendStep(val, mTG);
-            break;
-          case 4: // Portamento Time
-            m_pSynthesizer->setPortamentoTime(val, mTG);
-            break;
-          case 5: // Portamento/Glissando
-            m_pSynthesizer->setPortamentoGlissando(val, mTG);
-            break;
-          case 6: // Portamento Mode
-            m_pSynthesizer->setPortamentoMode(val, mTG);
-            break;
-          case 9: // Mod Wheel Sensitivity
-            m_pSynthesizer->setModWheelRange(val, mTG);
-            break;
-          case 10: // Mod Wheel Assign
-            m_pSynthesizer->setModWheelTarget(val, mTG);
-            break;
-          case 11: // Foot Controller Sensitivity
-            m_pSynthesizer->setFootControllerRange(val, mTG);
-            break;
-          case 12: // Foot Controller Assign
-            m_pSynthesizer->setFootControllerTarget(val, mTG);
-            break;
-          case 13: // Aftertouch Sensitivity
-            m_pSynthesizer->setAftertouchRange(val, mTG);
-            break;
-          case 14: // Aftertouch Assign
-            m_pSynthesizer->setAftertouchTarget(val, mTG);
-            break;
-          case 15: // Breath Controller Sensitivity
-            m_pSynthesizer->setBreathControllerRange(val, mTG);
-            break;
-          case 16: // Breath Controller Assign
-            m_pSynthesizer->setBreathControllerTarget(val, mTG);
-            break;
-          case 26: // Audio Output Level Attenuator (if supported)
-            // m_pSynthesizer->setOutputAttenuator(val, mTG); // Uncomment if implemented
-            break;
-          case 64: // Master Tuning
-            m_pSynthesizer->SetMasterTune(val, mTG);
-            break;
-          default:
-            // Unknown or unsupported parameter
-            break;
-        }
-      }
-      break;
   }
 }
 
