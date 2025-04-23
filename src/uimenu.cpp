@@ -74,8 +74,8 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
-#endif
 	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
+#endif
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
@@ -563,6 +563,7 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -608,6 +609,7 @@ void CUIMenu::EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -652,6 +654,7 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -741,6 +744,7 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -794,6 +798,7 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -847,6 +852,7 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -900,6 +906,7 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	switch (Event)
 	{
 	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
 		break;
 
 	case MenuEventStepDown:
@@ -1788,9 +1795,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 
 	pUIMenu->m_pUI->DisplayWrite (pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name, nPSelected.c_str(),
-							Value.c_str (),
-							nValue > 0,
-							nValue < pUIMenu->m_pMiniDexed->GetLastPerformanceBank()-1);
+							Value.c_str (), true, true);
 }
 
 void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
