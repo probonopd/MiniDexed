@@ -2,7 +2,7 @@
 // minidexed.h
 //
 // MiniDexed - Dexed FM synthesizer for bare metal Raspberry Pi
-// Copyright (C) 2022-25  The MiniDexed Team
+// Copyright (C) 2022  The MiniDexed Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -228,8 +228,6 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-
-	void setOperatorMask(uint8_t operatorMask, unsigned nTG); // Set operators enabled/disabled from bitmask
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
