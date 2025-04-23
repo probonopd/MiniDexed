@@ -156,6 +156,62 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
     reverb_level = 0.0f;
 }
 
+void AudioEffectPlateReverb::cleanup(void)
+{
+        memset(in_allp1_bufL, 0, sizeof(in_allp1_bufL));
+        memset(in_allp2_bufL, 0, sizeof(in_allp2_bufL));
+        memset(in_allp3_bufL, 0, sizeof(in_allp3_bufL));
+        memset(in_allp4_bufL, 0, sizeof(in_allp4_bufL));
+        in_allp1_idxL = 0;
+        in_allp2_idxL = 0;
+        in_allp3_idxL = 0;
+        in_allp4_idxL = 0;
+
+        memset(in_allp1_bufR, 0, sizeof(in_allp1_bufR));
+        memset(in_allp2_bufR, 0, sizeof(in_allp2_bufR));
+        memset(in_allp3_bufR, 0, sizeof(in_allp3_bufR));
+        memset(in_allp4_bufR, 0, sizeof(in_allp4_bufR));
+        in_allp1_idxR = 0;
+        in_allp2_idxR = 0;
+        in_allp3_idxR = 0;
+        in_allp4_idxR = 0;
+
+        memset(lp_allp1_buf, 0, sizeof(lp_allp1_buf));
+        memset(lp_allp2_buf, 0, sizeof(lp_allp2_buf));
+        memset(lp_allp3_buf, 0, sizeof(lp_allp3_buf));
+        memset(lp_allp4_buf, 0, sizeof(lp_allp4_buf));
+        lp_allp1_idx = 0;
+        lp_allp2_idx = 0;
+        lp_allp3_idx = 0;
+        lp_allp4_idx = 0;
+        lp_allp_out = 0.0f;
+
+        memset(lp_dly1_buf, 0, sizeof(lp_dly1_buf));
+        memset(lp_dly2_buf, 0, sizeof(lp_dly2_buf));
+        memset(lp_dly3_buf, 0, sizeof(lp_dly3_buf));
+        memset(lp_dly4_buf, 0, sizeof(lp_dly4_buf));
+        lp_dly1_idx = 0;
+        lp_dly2_idx = 0;
+        lp_dly3_idx = 0;
+        lp_dly4_idx = 0;
+
+        lpf1 = 0.0f;
+        lpf2 = 0.0f;
+        lpf3 = 0.0f;
+        lpf4 = 0.0f;
+
+        hpf1 = 0.0f;
+        hpf2 = 0.0f;
+        hpf3 = 0.0f;
+        hpf4 = 0.0f;
+
+        master_lowpass_l = 0.0f;
+        master_lowpass_r = 0.0f;
+
+        lfo1_phase_acc = 0;
+        lfo2_phase_acc = 0;
+}
+
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
 void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR, uint16_t len)
@@ -169,36 +225,6 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
     int32_t y0, y1;
     int64_t y;
     uint32_t idx;
-    static bool cleanup_done = false;
-
-    // handle bypass, 1st call will clean the buffers to avoid continuing the previous reverb tail
-    if (bypass)
-    {
-        if (!cleanup_done)
-        {
-            memset(in_allp1_bufL, 0, sizeof(in_allp1_bufL));
-            memset(in_allp2_bufL, 0, sizeof(in_allp2_bufL));
-            memset(in_allp3_bufL, 0, sizeof(in_allp3_bufL));
-            memset(in_allp4_bufL, 0, sizeof(in_allp4_bufL));
-            memset(in_allp1_bufR, 0, sizeof(in_allp1_bufR));
-            memset(in_allp2_bufR, 0, sizeof(in_allp2_bufR));
-            memset(in_allp3_bufR, 0, sizeof(in_allp3_bufR));
-            memset(in_allp4_bufR, 0, sizeof(in_allp4_bufR));
-            memset(lp_allp1_buf, 0, sizeof(lp_allp1_buf));
-            memset(lp_allp2_buf, 0, sizeof(lp_allp2_buf));
-            memset(lp_allp3_buf, 0, sizeof(lp_allp3_buf));
-            memset(lp_allp4_buf, 0, sizeof(lp_allp4_buf));
-            memset(lp_dly1_buf, 0, sizeof(lp_dly1_buf));
-            memset(lp_dly2_buf, 0, sizeof(lp_dly2_buf));
-            memset(lp_dly3_buf, 0, sizeof(lp_dly3_buf));
-            memset(lp_dly4_buf, 0, sizeof(lp_dly4_buf));
-
-            cleanup_done = true;
-        }
-
-        return;
-    }
-    cleanup_done = false;
 
     rv_time = rv_time_k;
 

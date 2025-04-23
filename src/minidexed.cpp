@@ -1014,7 +1014,8 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
-		reverb->set_bypass (!nValue);
+		if (nValue)
+			reverb->cleanup ();
 		m_ReverbSpinLock.Release ();
 		break;
 
