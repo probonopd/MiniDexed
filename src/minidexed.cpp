@@ -898,7 +898,7 @@ void CMiniDexed::setSustain(bool sustain, unsigned nTG)
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setSustain (sustain);
 }
-
+/*
 void CMiniDexed::setSostenuto(bool sostenuto, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -916,7 +916,7 @@ void CMiniDexed::setHoldMode(bool holdmode, unsigned nTG)
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->setHold (holdmode);
 }
-
+*/
 void CMiniDexed::panic(uint8_t value, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
