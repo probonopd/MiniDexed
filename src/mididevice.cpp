@@ -139,17 +139,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			if (   pMessage[0] != MIDI_TIMING_CLOCK
 			    && pMessage[0] != MIDI_ACTIVE_SENSING)
 			{
-				fprintf (stderr, "MIDI%u: %02X\n", nCable, (unsigned) pMessage[0]);
+				LOGNOTE("MIDI%u: %02X", nCable, (unsigned) pMessage[0]);
 			}
 			break;
 
 		case 2:
-			fprintf (stderr, "MIDI%u: %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1]);
 			break;
 
 		case 3:
-			fprintf (stderr, "MIDI%u: %02X %02X %02X\n", nCable,
+			LOGNOTE("MIDI%u: %02X %02X %02X", nCable,
 				(unsigned) pMessage[0], (unsigned) pMessage[1],
 				(unsigned) pMessage[2]);
 			break;
@@ -158,17 +158,17 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			switch(pMessage[0])
 			{
 				case MIDI_SYSTEM_EXCLUSIVE_BEGIN:
-					fprintf(stderr, "MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
+					LOGNOTE("MIDI%u: SysEx data length: [%d]:",nCable, uint16_t(nLength));
 					for (uint16_t i = 0; i < nLength; i++)
 					{
 						if((i % 16) == 0)
-							fprintf(stderr, "\n%04d:",i);
-						fprintf(stderr, " 0x%02x",pMessage[i]);
+							LOGNOTE("%04d:",i);
+						LOGNOTE(" 0x%02x",pMessage[i]);
 					}
-					fprintf(stderr, "\n");
+					LOGNOTE("");
 					break;
 				default:
-					fprintf(stderr, "MIDI%u: Unhandled MIDI event type %0x02x\n",nCable,pMessage[0]);
+					LOGNOTE("MIDI%u: Unhandled MIDI event type %0x02x",nCable,pMessage[0]);
 			}
 			break;
 		}
