@@ -29,6 +29,7 @@
 #include <cmath>
 #include <circle/sysconfig.h>
 #include <assert.h>
+#include <cstddef>
 
 using namespace std;
 LOGMODULE ("uimenu");
@@ -63,6 +64,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #endif
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+	{"Master Volume", EditMasterVolume, 0, 0},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -2015,4 +2017,30 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 				      Value.c_str (),
 				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 				   
+}
+
+void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
+{
+    TParameter rParam = {0, 127, 8, ToVolume};
+    int nValue = pUIMenu->m_pMiniDexed->GetMasterVolume127();
+    switch (Event)
+    {
+    case MenuEventUpdate:
+    case MenuEventUpdateParameter:
+        break;
+    case MenuEventStepDown:
+        nValue -= rParam.Increment;
+        if (nValue < rParam.Minimum) nValue = rParam.Minimum;
+        pUIMenu->m_pMiniDexed->setMasterVolume(nValue / 127.0f);
+        break;
+    case MenuEventStepUp:
+        nValue += rParam.Increment;
+        if (nValue > rParam.Maximum) nValue = rParam.Maximum;
+        pUIMenu->m_pMiniDexed->setMasterVolume(nValue / 127.0f);
+        break;
+    default:
+        return;
+    }
+    std::string valueStr = ToVolume(pUIMenu->m_pMiniDexed->GetMasterVolume127());
+    pUIMenu->m_pUI->DisplayWrite("Master Volume", "", valueStr.c_str(), nValue > rParam.Minimum, nValue < rParam.Maximum);
 }

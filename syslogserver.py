@@ -48,7 +48,10 @@ class SyslogServer:
         print(f"{relative_time} {message}")
 
     def wait_for_input(self):
-        input("Press any key to exit...")
+        try:
+            input("Press any key to exit...")
+        except EOFError:
+            pass
         self.running = False
 
 if __name__ == "__main__":
