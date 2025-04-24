@@ -411,16 +411,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 						case 64: // Master Tuning
 							LOGNOTE("MIDI-SYSEX: Set Master Tuning");
-							if (val == 0)
-							{
-								// 0 to 127, with 0 being no detune effect applied at all
-								m_pSynthesizer->SetMasterTune(0, mTG);
-							}
-							else
-							{
-								// Scale to -99 to +99 cents
-								m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -99, 99), mTG);
-							}
+
+							// Scale to -75 to +75 cents (TX816 range)
+							m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -75, 75), mTG);
+
 							break;
 						default:
 							// Unknown or unsupported parameter
