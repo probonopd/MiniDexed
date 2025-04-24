@@ -1570,9 +1570,11 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 	std::string Value;
 		
-	if (Event == MenuEventUpdate)
+	if (Event == MenuEventUpdate || Event == MenuEventUpdateParameter)
 	{
 		pUIMenu->m_bPerformanceDeleteMode=false;
+		// Ensure selected performance matches the actual loaded one
+		pUIMenu->m_nSelectedPerformanceID = pUIMenu->m_pMiniDexed->GetActualPerformanceID();
 	}
 	
 	if (pUIMenu->m_bSplashShow)
@@ -1701,7 +1703,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 		nPPerf = nPPerf.substr(nPPerf.length()-3,3);
 
 		nPSelected += ":"+nPPerf;
-		if(nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
+		if(bPerformanceSelectToLoad && nValue == pUIMenu->m_pMiniDexed->GetActualPerformanceID())
 		{
 			nPSelected += " [L]";
 		}
@@ -1789,7 +1791,7 @@ void CUIMenu::EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	nPSelected += std::to_string(nValue+1);  // Convert to user-facing number rather than index
 	nPSelected = nPSelected.substr(nPSelected.length()-3,3);
 
-	if(nValue == (unsigned)pUIMenu->m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceBank))
+	if(bPerformanceSelectToLoad && nValue == (unsigned)pUIMenu->m_pMiniDexed->GetParameter (CMiniDexed::ParameterPerformanceBank))
 	{
 		nPSelected += " [L]";
 	}
