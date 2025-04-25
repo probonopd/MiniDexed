@@ -90,6 +90,8 @@ def extract_zip(zip_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniDexed Updater")
     parser.add_argument("-v", action="store_true", help="Enable verbose FTP debug output")
+    parser.add_argument("--ip", type=str, help="IP address of the device to upload to (skip mDNS discovery)")
+    parser.add_argument("--version", type=int, choices=[1,2,3], help="Version to upload: 1=Latest official, 2=Continuous, 3=Local build (skip prompt)")
     args = parser.parse_args()
 
     import time
@@ -105,16 +107,24 @@ if __name__ == "__main__":
     ]
     if has_local_build:
         release_options.append(("Local build (from src/)", None))
-    print("Which release do you want to update?")
-    for idx, (desc, _) in enumerate(release_options):
-        print(f"  [{idx+1}] {desc}")
-    while True:
-        choice = input(f"Enter the number of your choice (1-{len(release_options)}): ").strip()
-        if choice.isdigit() and 1 <= int(choice) <= len(release_options):
-            selected_idx = int(choice)-1
-            github_url = release_options[selected_idx][1]
-            break
-        print("Invalid selection. Please enter a valid number.")
+
+    if args.version:
+        selected_idx = args.version - 1
+        if selected_idx < 0 or selected_idx >= len(release_options):
+            print(f"Invalid version selection: {args.version}")
+            sys.exit(1)
+        github_url = release_options[selected_idx][1]
+    else:
+        print("Which release do you want to update?")
+        for idx, (desc, _) in enumerate(release_options):
+            print(f"  [{idx+1}] {desc}")
+        while True:
+            choice = input(f"Enter the number of your choice (1-{len(release_options)}): ").strip()
+            if choice.isdigit() and 1 <= int(choice) <= len(release_options):
+                selected_idx = int(choice)-1
+                github_url = release_options[selected_idx][1]
+                break
+            print("Invalid selection. Please enter a valid number.")
 
     # If local build is selected, skip all GitHub/zip logic and do not register cleanup
     use_local_build = has_local_build and selected_idx == len(release_options)-1
@@ -175,29 +185,35 @@ if __name__ == "__main__":
     # Using mDNS to find the IP address of the device(s) that advertise the FTP service "_ftp._tcp."
     ip_addresses = []
     device_names = []
-    zeroconf = Zeroconf()
-    listener = MyListener(ip_addresses, device_names)
-    browser = ServiceBrowser(zeroconf, "_ftp._tcp.local.", listener)
-    try:
-        print("Searching for devices...")
-        time.sleep(10)
-        if ip_addresses:
-            print("Devices found:")
-            for idx, (name, ip) in enumerate(zip(device_names, ip_addresses)):
-                print(f"  [{idx+1}] {name} ({ip})")
-            while True:
-                selection = input(f"Enter the number of the device to upload to (1-{len(ip_addresses)}): ").strip()
-                if selection.isdigit() and 1 <= int(selection) <= len(ip_addresses):
-                    selected_ip = ip_addresses[int(selection)-1]
-                    selected_name = device_names[int(selection)-1]
-                    break
-                print("Invalid selection. Please enter a valid number.")
-        else:
-            print("No devices found.")
-            sys.exit(1)
-    finally:
-        zeroconf.close()
-        print("Devices found:", list(zip(device_names, ip_addresses)))
+    selected_ip = None
+    selected_name = None
+    if args.ip:
+        selected_ip = args.ip
+        selected_name = args.ip
+    else:
+        zeroconf = Zeroconf()
+        listener = MyListener(ip_addresses, device_names)
+        browser = ServiceBrowser(zeroconf, "_ftp._tcp.local.", listener)
+        try:
+            print("Searching for devices...")
+            time.sleep(10)
+            if ip_addresses:
+                print("Devices found:")
+                for idx, (name, ip) in enumerate(zip(device_names, ip_addresses)):
+                    print(f"  [{idx+1}] {name} ({ip})")
+                while True:
+                    selection = input(f"Enter the number of the device to upload to (1-{len(ip_addresses)}): ").strip()
+                    if selection.isdigit() and 1 <= int(selection) <= len(ip_addresses):
+                        selected_ip = ip_addresses[int(selection)-1]
+                        selected_name = device_names[int(selection)-1]
+                        break
+                    print("Invalid selection. Please enter a valid number.")
+            else:
+                print("No devices found.")
+                sys.exit(1)
+        finally:
+            zeroconf.close()
+            print("Devices found:", list(zip(device_names, ip_addresses)))
 
     # Log into the selected device and upload the new version of MiniDexed
     print(f"Connecting to {selected_name} ({selected_ip})...")
