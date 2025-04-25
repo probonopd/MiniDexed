@@ -36,10 +36,18 @@ class MyListener(ServiceListener):
         info = zc.get_service_info(type_, name)
         print(f"Service {name} added, service info: {info}")
         if info and info.addresses:
-            ip = socket.inet_ntoa(info.addresses[0])
-            if ip not in self.ip_list:
-                self.ip_list.append(ip)
-                self.name_list.append(info.server.rstrip('.'))
+            # Only add if TXT record contains 'MiniDexed'
+            txt_records = info.properties
+            if txt_records:
+                for k, v in txt_records.items():
+                    # v may be bytes, decode if needed
+                    val = v.decode() if isinstance(v, bytes) else v
+                    if (b"MiniDexed" in k or b"MiniDexed" in v) or ("MiniDexed" in str(k) or "MiniDexed" in str(val)):
+                        ip = socket.inet_ntoa(info.addresses[0])
+                        if ip not in self.ip_list:
+                            self.ip_list.append(ip)
+                            self.name_list.append(info.server.rstrip('.'))
+                        break
 
 
 # Constants
