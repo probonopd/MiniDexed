@@ -379,33 +379,45 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->setPortamentoMode(val, nTG);
 							break;
 						case 9: // Mod Wheel Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Sensitivity %d to %d", nTG, val & 0x0F);
-							m_pSynthesizer->setModWheelRange(val, nTG);
-							break;
+						{
+							int scaled = (val * 99) / 15;
+							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Sensitivity %d to %d (scaled %d)", nTG, val & 0x0F, scaled);
+							m_pSynthesizer->setModWheelRange(scaled, nTG);
+						}
+						break;
 						case 10: // Mod Wheel Assign
 							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Assign %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setModWheelTarget(val, nTG);
 							break;
 						case 11: // Foot Controller Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Foot Controller Sensitivity %d to %d", nTG, val & 0x0F);
-							m_pSynthesizer->setFootControllerRange(val, nTG);
-							break;
+						{
+							int scaled = (val * 99) / 15;
+							LOGNOTE("MIDI-SYSEX: Set Foot Controller Sensitivity %d to %d (scaled %d)", nTG, val & 0x0F, scaled);
+							m_pSynthesizer->setFootControllerRange(scaled, nTG);
+						}
+						break;
 						case 12: // Foot Controller Assign
 							LOGNOTE("MIDI-SYSEX: Set Foot Controller Assign %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setFootControllerTarget(val, nTG);
 							break;
 						case 13: // Aftertouch Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Aftertouch Sensitivity %d to %d", nTG, val & 0x0F);
-							m_pSynthesizer->setAftertouchRange(val, nTG);
-							break;
+						{
+							int scaled = (val * 99) / 15;
+							LOGNOTE("MIDI-SYSEX: Set Aftertouch Sensitivity %d to %d (scaled %d)", nTG, val & 0x0F, scaled);
+							m_pSynthesizer->setAftertouchRange(scaled, nTG);
+						}
+						break;
 						case 14: // Aftertouch Assign
 							LOGNOTE("MIDI-SYSEX: Set Aftertouch Assign %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setAftertouchTarget(val, nTG);
 							break;
 						case 15: // Breath Controller Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Breath Controller Sensitivity %d to %d", nTG, val & 0x0F);
-							m_pSynthesizer->setBreathControllerRange(val, nTG);
-							break;
+						{
+							int scaled = (val * 99) / 15;
+							LOGNOTE("MIDI-SYSEX: Set Breath Controller Sensitivity %d to %d (scaled %d)", nTG, val & 0x0F, scaled);
+							m_pSynthesizer->setBreathControllerRange(scaled, nTG);
+						}
+						break;
 						case 16: // Breath Controller Assign
 							LOGNOTE("MIDI-SYSEX: Set Breath Controller Assign %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setBreathControllerTarget(val, nTG);
