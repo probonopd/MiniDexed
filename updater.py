@@ -327,7 +327,15 @@ if __name__ == "__main__":
                         with open(local_path, 'rb') as f:
                             ftp.storbinary(f'STOR {remote_path}', f, 8192, callback=progress_callback)
                         print(f"\nUploaded {file} to {selected_ip}.")
+    except ftplib.all_errors as e:
+        print(f"FTP error: {e}")
+
+    try:
         ftp.sendcmd("BYE")
         print(f"Disconnected from {selected_ip}.")
     except ftplib.all_errors as e:
-        print(f"FTP error: {e}")
+        if str(e).strip().lower() == "timed out":
+            # Suppress expected timeout after BYE
+            print(f"Disconnected from {selected_ip}.")
+        else:
+            print(f"FTP error after BYE: {e}")
