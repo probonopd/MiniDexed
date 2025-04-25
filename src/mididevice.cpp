@@ -339,17 +339,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						uint8_t par = pMessage[4];
 						uint8_t val = pMessage[5];
 
-						// For all parameters except "Set MIDI Channel", only process for the TG matching the MIDI channel.
-						// For "Set MIDI Channel" message, apply that to the TG with the number in pMessage[2], 
-						// NOT to the TG that is set to the MIDI channel in pMessage[2].
-						// This may not entirely be true to the TX216/TX816, but it is more suitable for MiniDexed.
-						if (par != 1 && nTG != mTG) continue;
+						// For parameter 1 (Set MIDI Channel), only process for the TG with the number in pMessage[2]
 						if (par == 1) {
-							// Only process Set MIDI Channel for the TG with the number in pMessage[2]
 							if (nTG != mTG) continue;
 						} else {
-							// For all other parameters, only process for the TG matching the MIDI channel
-							if (!(m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)) continue;
+							// For all other parameters, process for all TGs listening on the MIDI channel mTG or OmniMode
+							if (!(m_ChannelMap[nTG] == mTG || m_ChannelMap[nTG] == OmniMode)) continue;
 						}
 						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
 
@@ -360,75 +355,73 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
 							break;
 						case 2: // Poly/Mono
-							LOGNOTE("MIDI-SYSEX: Set Poly/Mono %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setMonoMode(val ? true : false, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Poly/Mono %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setMonoMode(val ? true : false, nTG);
 							break;
 						case 3: // Pitch Bend Range
-							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Range %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setPitchbendRange(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Range %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setPitchbendRange(val, nTG);
 							break;
 						case 4: // Pitch Bend Step
-							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Step %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setPitchbendStep(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Pitch Bend Step %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setPitchbendStep(val, nTG);
 							break;
 						case 5: // Portamento Time
-							LOGNOTE("MIDI-SYSEX: Set Portamento Time %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setPortamentoTime(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Portamento Time %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoTime(val, nTG);
 							break;
 						case 6: // Portamento/Glissando
-							LOGNOTE("MIDI-SYSEX: Set Portamento/Glissando %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setPortamentoGlissando(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Portamento/Glissando %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoGlissando(val, nTG);
 							break;
 						case 7: // Portamento Mode
-							LOGNOTE("MIDI-SYSEX: Set Portamento Mode %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setPortamentoMode(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Portamento Mode %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setPortamentoMode(val, nTG);
 							break;
 						case 9: // Mod Wheel Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Sensitivity %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setModWheelRange(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Sensitivity %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setModWheelRange(val, nTG);
 							break;
 						case 10: // Mod Wheel Assign
-							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Assign %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setModWheelTarget(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Mod Wheel Assign %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setModWheelTarget(val, nTG);
 							break;
 						case 11: // Foot Controller Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Foot Controller Sensitivity %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setFootControllerRange(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Foot Controller Sensitivity %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setFootControllerRange(val, nTG);
 							break;
 						case 12: // Foot Controller Assign
-							LOGNOTE("MIDI-SYSEX: Set Foot Controller Assign %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setFootControllerTarget(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Foot Controller Assign %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setFootControllerTarget(val, nTG);
 							break;
 						case 13: // Aftertouch Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Aftertouch Sensitivity %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setAftertouchRange(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Aftertouch Sensitivity %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setAftertouchRange(val, nTG);
 							break;
 						case 14: // Aftertouch Assign
-							LOGNOTE("MIDI-SYSEX: Set Aftertouch Assign %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setAftertouchTarget(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Aftertouch Assign %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setAftertouchTarget(val, nTG);
 							break;
 						case 15: // Breath Controller Sensitivity
-							LOGNOTE("MIDI-SYSEX: Set Breath Controller Sensitivity %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setBreathControllerRange(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Breath Controller Sensitivity %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setBreathControllerRange(val, nTG);
 							break;
 						case 16: // Breath Controller Assign
-							LOGNOTE("MIDI-SYSEX: Set Breath Controller Assign %d to %d", mTG, val & 0x0F);
-							m_pSynthesizer->setBreathControllerTarget(val, mTG);
+							LOGNOTE("MIDI-SYSEX: Set Breath Controller Assign %d to %d", nTG, val & 0x0F);
+							m_pSynthesizer->setBreathControllerTarget(val, nTG);
 							break;
 						case 26: // Audio Output Level Attenuator (if supported)
-							LOGNOTE("MIDI-SYSEX: TODO: Set Audio Output Level Attenuator %d to %d", mTG, val & 0x0F);
-							// m_pSynthesizer->setOutputAttenuator(val, mTG); // Uncomment if implemented
+							LOGNOTE("MIDI-SYSEX: TODO: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
+							// m_pSynthesizer->setOutputAttenuator(val, nTG); // Uncomment if implemented
 							break;
 						case 64: // Master Tuning
 							LOGNOTE("MIDI-SYSEX: Set Master Tuning");
-
 							// Scale to -75 to +75 cents (TX816 range)
-							m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -75, 75), mTG);
-
+							m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -75, 75), nTG);
 							break;
 						default:
 							// Unknown or unsupported parameter
-							LOGNOTE("MIDI-SYSEX: Unknown parameter %d for TG %d", par, mTG);
+							LOGNOTE("MIDI-SYSEX: Unknown parameter %d for TG %d", par, nTG);
 							break;
 						}
 					}
