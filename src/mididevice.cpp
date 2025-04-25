@@ -339,14 +339,24 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						uint8_t par = pMessage[4];
 						uint8_t val = pMessage[5];
 
-						if (nTG != mTG) continue;
-
+						// For all parameters except "Set MIDI Channel", only process for the TG matching the MIDI channel.
+						// For "Set MIDI Channel" message, apply that to the TG with the number in pMessage[2], 
+						// NOT to the TG that is set to the MIDI channel in pMessage[2].
+						// This may not entirely be true to the TX216/TX816, but it is more suitable for MiniDexed.
+						if (par != 1 && nTG != mTG) continue;
+						if (par == 1) {
+							// Only process Set MIDI Channel for the TG with the number in pMessage[2]
+							if (nTG != mTG) continue;
+						} else {
+							// For all other parameters, only process for the TG matching the MIDI channel
+							if (!(m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)) continue;
+						}
 						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
 
 						switch (par)
 						{
 						case 1: // MIDI Channel
-							LOGNOTE("MIDI-SYSEX: Set MIDI Channel %d to %d", mTG, val & 0x0F);
+							LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG, val & 0x0F);
 							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
 							break;
 						case 2: // Poly/Mono
