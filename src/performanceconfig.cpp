@@ -209,8 +209,15 @@ bool CPerformanceConfig::Load (void)
 		
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
-		
-		}
+
+		// Unison parameters
+		PropertyName.Format ("UnisonVoices%u", nTG+1);
+		m_nUnisonVoices[nTG] = m_Properties.GetNumber(PropertyName, 1);
+		PropertyName.Format ("UnisonDetune%u", nTG+1);
+		m_nUnisonDetune[nTG] = m_Properties.GetNumber(PropertyName, 0);
+		PropertyName.Format ("UnisonSpread%u", nTG+1);
+		m_nUnisonSpread[nTG] = m_Properties.GetNumber(PropertyName, 0);
+	}
 
 	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
@@ -326,9 +333,16 @@ bool CPerformanceConfig::Save (void)
 		m_Properties.SetNumber (PropertyName, m_nAftertouchRange[nTG]);	
 		
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
-		m_Properties.SetNumber (PropertyName, m_nAftertouchTarget[nTG]);			
+		m_Properties.SetNumber (PropertyName, m_nAftertouchTarget[nTG]);
 
-		}
+		// Unison parameters
+		PropertyName.Format ("UnisonVoices%u", nTG+1);
+		m_Properties.SetNumber(PropertyName, m_nUnisonVoices[nTG]);
+		PropertyName.Format ("UnisonDetune%u", nTG+1);
+		m_Properties.SetNumber(PropertyName, m_nUnisonDetune[nTG]);
+		PropertyName.Format ("UnisonSpread%u", nTG+1);
+		m_Properties.SetNumber(PropertyName, m_nUnisonSpread[nTG]);
+	}
 
 	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
 
@@ -1327,4 +1341,29 @@ bool CPerformanceConfig::IsValidPerformanceBank(unsigned nBankID)
 		return false;
 	}
 	return true;
+}
+
+unsigned CPerformanceConfig::GetUnisonVoices(unsigned nTG) const {
+	assert(nTG < CConfig::AllToneGenerators);
+	return m_nUnisonVoices[nTG];
+}
+unsigned CPerformanceConfig::GetUnisonDetune(unsigned nTG) const {
+	assert(nTG < CConfig::AllToneGenerators);
+	return m_nUnisonDetune[nTG];
+}
+unsigned CPerformanceConfig::GetUnisonSpread(unsigned nTG) const {
+	assert(nTG < CConfig::AllToneGenerators);
+	return m_nUnisonSpread[nTG];
+}
+void CPerformanceConfig::SetUnisonVoices(unsigned nValue, unsigned nTG) {
+	assert(nTG < CConfig::AllToneGenerators);
+	m_nUnisonVoices[nTG] = nValue;
+}
+void CPerformanceConfig::SetUnisonDetune(unsigned nValue, unsigned nTG) {
+	assert(nTG < CConfig::AllToneGenerators);
+	m_nUnisonDetune[nTG] = nValue;
+}
+void CPerformanceConfig::SetUnisonSpread(unsigned nValue, unsigned nTG) {
+	assert(nTG < CConfig::AllToneGenerators);
+	m_nUnisonSpread[nTG] = nValue;
 }

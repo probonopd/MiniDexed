@@ -31,6 +31,9 @@
 #include <assert.h>
 #include "arm_float_to_q23.h"
 
+// Forward declaration for getPhysicalTG
+static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices);
+
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
 #define FTPUSERNAME "admin"
@@ -126,6 +129,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 			m_pTG[i]->setEngineType(pConfig->GetEngineType ());
 			m_pTG[i]->activate ();
 		}
+		m_nUnisonVoices[i] = 1;
+		m_nUnisonDetune[i] = 0;
+		m_nUnisonSpread[i] = 0;
 	}
 
 	unsigned nUSBGadgetPin = pConfig->GetUSBGadgetPin();
@@ -848,9 +854,34 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	assert (m_pTG[nTG]);
 
 	pitch = ApplyNoteLimits (pitch, nTG);
-	if (pitch >= 0)
-	{
-		m_pTG[nTG]->keyup (pitch);
+	if (pitch < 0) return;
+
+	unsigned unisonVoices = m_nUnisonVoices[nTG];
+	if (unisonVoices < 1) unisonVoices = 1;
+
+	int baseDetune = m_nMasterTune[nTG];
+	unsigned basePan = m_nPan[nTG];
+	unsigned unisonDetune = m_nUnisonDetune[nTG];
+	unsigned unisonSpread = m_nUnisonSpread[nTG];
+
+	for (unsigned v = 0; v < unisonVoices; ++v) {
+		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		if (physicalTG >= m_nToneGenerators) break;
+		// Ensure virtual TG plays the same voice as logical TG
+		if (physicalTG != nTG) {
+			uint8_t voiceData[156];
+			m_pTG[nTG]->getVoiceData(voiceData);
+			m_pTG[physicalTG]->loadVoiceParameters(voiceData);
+		}
+		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
+		float panOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonSpread;
+		int detune = baseDetune + (int)detuneOffset;
+		unsigned pan = basePan + (int)panOffset;
+		detune = constrain(detune, -99, 99);
+		pan = constrain((int)pan, 0, 127);
+		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
+		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
+		m_pTG[physicalTG]->keyup(pitch);
 	}
 }
 
@@ -862,9 +893,30 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	assert (m_pTG[nTG]);
 
 	pitch = ApplyNoteLimits (pitch, nTG);
-	if (pitch >= 0)
-	{
-		m_pTG[nTG]->keydown (pitch, velocity);
+	if (pitch < 0) return;
+
+	unsigned unisonVoices = m_nUnisonVoices[nTG];
+	if (unisonVoices < 1) unisonVoices = 1;
+	unsigned maxLogicalTGs = m_nToneGenerators / unisonVoices;
+	if (nTG >= maxLogicalTGs) return; // Don't exceed available physical TGs
+
+	int baseDetune = m_nMasterTune[nTG];
+	unsigned basePan = m_nPan[nTG];
+	unsigned unisonDetune = m_nUnisonDetune[nTG];
+	unsigned unisonSpread = m_nUnisonSpread[nTG];
+
+	for (unsigned v = 0; v < unisonVoices; ++v) {	
+		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		if (physicalTG >= m_nToneGenerators) break;
+		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
+		float panOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonSpread;
+		int detune = baseDetune + (int)detuneOffset;
+		unsigned pan = basePan + (int)panOffset;
+		detune = constrain(detune, -99, 99);
+		pan = constrain((int)pan, 0, 127);
+		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
+		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
+		m_pTG[physicalTG]->keydown(pitch, velocity);
 	}
 }
 
@@ -1129,11 +1181,21 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 		break;
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
-
-	default:
-		assert (0);
-		break;
+		
+		case TGParameterUnisonVoices:
+			m_nUnisonVoices[nTG] = constrain(nValue, 1, 4);
+			break;
+		case TGParameterUnisonDetune:
+			m_nUnisonDetune[nTG] = constrain(nValue, 0, 99);
+			break;
+		case TGParameterUnisonSpread:
+			m_nUnisonSpread[nTG] = constrain(nValue, 0, 99);
+			break;
+		case TGParameterUnknown:
+			// No action needed for unknown parameter
+			break;
 	}
+
 }
 
 int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
@@ -1180,7 +1242,12 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
 	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
 	
-	
+	case TGParameterUnisonVoices:
+		return m_nUnisonVoices[nTG];
+	case TGParameterUnisonDetune:
+		return m_nUnisonDetune[nTG];
+	case TGParameterUnisonSpread:
+		return m_nUnisonSpread[nTG];
 	default:
 		assert (0);
 		return 0;
@@ -1802,11 +1869,11 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 	memcpy(voice, data, sizeof(uint8_t)*161);
 
 	// fix voice name
-	for (uint8_t i = 0; i < 10; i++)
+	for (uint8_t i = 0; i <10; i++)
 	{
 		if (voice[151 + i] > 126) // filter characters
-			voice[151 + i] = 32;
-	}
+			voice[151 +i] = 32;
+		}
 
 	m_pTG[nTG]->loadVoiceParameters(&voice[6]);
 	m_pTG[nTG]->doRefreshVoice();
@@ -2024,58 +2091,60 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 void CMiniDexed::LoadPerformanceParameters(void)
 {
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
-		{
-			
-			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
-			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
-			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
-			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
-			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
-			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
-			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
-			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
-			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
-			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
-			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
-			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
-			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
+	{
+		BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
+		ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
+		SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
+		SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
+		SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
+		SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
+		SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
+		SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
+		setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
+		setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
+		setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
+		setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
+		setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
 
-			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
-			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
-			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
-			
-			if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
-			{
-			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
-			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
-			setOPMask(0b111111, nTG);
-			}
-			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
-			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
-					
-			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
-			setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
-			setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
-			setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
-			setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
-			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
-			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
-			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
-			
+		m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
+		m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
+		m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
 		
+		if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
+		{
+		uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
+		m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
+		setOPMask(0b111111, nTG);
 		}
+		setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
+		SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
+				
+		setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
+		setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
+		setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
+		setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
+		setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
+		setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
+		setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
+		setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
+		
+		// Unison parameters
+		m_nUnisonVoices[nTG] = m_PerformanceConfig.GetUnisonVoices(nTG);
+		m_nUnisonDetune[nTG] = m_PerformanceConfig.GetUnisonDetune(nTG);
+		m_nUnisonSpread[nTG] = m_PerformanceConfig.GetUnisonSpread(nTG);
+	}
 
-		// Effects
-		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
-		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
-		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
-		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
-		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
-		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
-		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
-		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+	// Effects
+	SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+	SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+	SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+	SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+	SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+	SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+	SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+	SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 
-		m_UI.DisplayChanged ();
+	m_UI.DisplayChanged ();
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
@@ -2492,4 +2561,10 @@ bool CMiniDexed::InitNetwork()
 		LOGNOTE("CMiniDexed::InitNetwork: Network is not enabled in configuration");
 		return false;
 	}
+}
+
+// Forward declaration and definition for getPhysicalTG
+static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices);
+static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices) {
+    return logicalTG * unisonVoices + unisonVoice;
 }

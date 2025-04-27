@@ -70,6 +70,12 @@ public:
 	unsigned GetBreathControlTarget (unsigned nTG) const;  // 0 .. 7
 	unsigned GetAftertouchRange (unsigned nTG) const; // 0 .. 99
 	unsigned GetAftertouchTarget (unsigned nTG) const;  // 0 .. 7
+	unsigned GetUnisonVoices(unsigned nTG) const; // 1..4
+	unsigned GetUnisonDetune(unsigned nTG) const; // 0..99
+	unsigned GetUnisonSpread(unsigned nTG) const; // 0..99
+	void SetUnisonVoices(unsigned nValue, unsigned nTG);
+	void SetUnisonDetune(unsigned nValue, unsigned nTG);
+	void SetUnisonSpread(unsigned nValue, unsigned nTG);
 
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
@@ -182,6 +188,9 @@ private:
 	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];	
 	unsigned m_nAftertouchRange[CConfig::AllToneGenerators];	
 	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];	
+	unsigned m_nUnisonVoices[CConfig::AllToneGenerators];
+	unsigned m_nUnisonDetune[CConfig::AllToneGenerators];
+	unsigned m_nUnisonSpread[CConfig::AllToneGenerators];
 
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  

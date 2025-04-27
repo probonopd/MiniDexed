@@ -71,22 +71,25 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 {
-	{"Voice",	EditProgramNumber},
-	{"Bank",	EditVoiceBankNumber},
-	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
+	{"Voice", EditProgramNumber},
+	{"Bank", EditVoiceBankNumber},
+	{"Volume", EditTGParameter, 0, CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
-	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
+	{"Pan",  EditTGParameter, 0, CMiniDexed::TGParameterPan},
+	{"Reverb-Send", EditTGParameter, 0, CMiniDexed::TGParameterReverbSend},
 #endif
-	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
-	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
-	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
-	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
-	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
-	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
-	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
-	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{"Detune", EditTGParameter, 0, CMiniDexed::TGParameterMasterTune},
+	{"Cutoff", EditTGParameter, 0, CMiniDexed::TGParameterCutoff},
+	{"Resonance", EditTGParameter, 0, CMiniDexed::TGParameterResonance},
+	{"Unison Voices", EditTGParameter, 0, CMiniDexed::TGParameterUnisonVoices},
+	{"Unison Detune", EditTGParameter, 0, CMiniDexed::TGParameterUnisonDetune},
+	{"Unison Spread", EditTGParameter, 0, CMiniDexed::TGParameterUnisonSpread},
+	{"Pitch Bend", MenuHandler,  s_EditPitchBendMenu},
+	{"Portamento",  MenuHandler,  s_EditPortamentoMenu},
+	{"Poly/Mono",  EditTGParameter, 0, CMiniDexed::TGParameterMonoMode}, 
+	{"Modulation",  MenuHandler,  s_ModulationMenu},
+	{"Channel", EditTGParameter, 0, CMiniDexed::TGParameterMIDIChannel},
+	{"Edit Voice", MenuHandler,  s_EditVoiceMenu},
 	{0}
 };
 
@@ -265,7 +268,10 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias
+	{1, 4, 1}, // Unison Voices
+	{0, 99, 1}, // Unison Detune
+	{0, 99, 1}, // Unison Spread
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
