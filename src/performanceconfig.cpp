@@ -1290,12 +1290,6 @@ std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
 	{
 		// Performance Banks directories in format "001_Bank Name"
 		std::string Index;
-		if (nBankID == 0)
-		{
-			// Legacy: Bank 1 is the default performance directory
-			return "";
-		}
-
 		if (nBankID < 9)
 		{
 			Index = "00" + std::to_string(nBankID+1);
