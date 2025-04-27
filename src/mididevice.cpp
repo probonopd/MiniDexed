@@ -425,7 +425,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						case 26: // Audio Output Level Attenuator
 							LOGNOTE("MIDI-SYSEX: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
 							// Set Master volume (0-99) for the TG. Scale from 0-7 to what Synth_Dexed uses (0-99)
-							m_pSynthesizer->setMasterVolume(maplong(val, 0, 7, 0, 1), nTG);
+							m_pSynthesizer->setMasterVolume(maplong(val, 0, 7, 0, 1));
 							break;
 						case 64: // Master Tuning
 							LOGNOTE("MIDI-SYSEX: Set Master Tuning");
