@@ -422,14 +422,15 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							LOGNOTE("MIDI-SYSEX: Set Breath Controller Assign %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setBreathControllerTarget(val, nTG);
 							break;
-						case 26: // Audio Output Level Attenuator (if supported)
-							LOGNOTE("MIDI-SYSEX: TODO: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
-							// m_pSynthesizer->setOutputAttenuator(val, nTG); // Uncomment if implemented
+						case 26: // Audio Output Level Attenuator
+							LOGNOTE("MIDI-SYSEX: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
+							// Set Master volume (0-99) for the TG. Scale from 0-7 to what Synth_Dexed uses (0-99)
+							m_pSynthesizer->SetMasterVolume(maplong(val, 0, 7, 0, 1), nTG);
 							break;
 						case 64: // Master Tuning
 							LOGNOTE("MIDI-SYSEX: Set Master Tuning");
-							// Scale to -75 to +75 cents (TX816 range)
-							m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -75, 75), nTG);
+							// TX812 scales from -75 to +75 cents.
+							m_pSynthesizer->SetMasterTune(maplong(val, 1, 127, -37, 37), nTG); // Would need 37.5 here, due to wrong constrain on dexed_synth module?
 							break;
 						default:
 							// Unknown or unsupported parameter
