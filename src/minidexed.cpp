@@ -833,7 +833,7 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 
 	assert (nActiveTGs <= 8);
 	static const unsigned Log2[] = {0, 0, 1, 2, 2, 3, 3, 3, 3};
-	m_nActiveTGsLog2 = Log2[nActiveTGs];
+		m_nActiveTGsLog2 = Log2[nActiveTGs];
 */
 #endif
 
@@ -2334,7 +2334,8 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
-		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		static const char *ftpTxt[] = { "app=MiniDexed", nullptr };
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21, ftpTxt))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
@@ -2384,7 +2385,8 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
-		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21))
+		static const char *ftpTxt[] = { "app=MiniDexed", nullptr };
+		if (!m_pmDNSPublisher->PublishService (m_pConfig->GetNetworkHostname(), ServiceTypeFTP, 21, ftpTxt))
 		{
 			LOGPANIC ("Cannot publish mdns service");
 		}
