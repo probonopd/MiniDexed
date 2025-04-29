@@ -777,6 +777,11 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       //TODO: add code for storing a bank bulk upload
       LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
       break;
+    case 455:
+      // Parameter 155 + 300 added by Synth_Dexed = 455
+      LOGDBG("Operators enabled: %d%d%d%d%d%d", (pMessage[5] & 0x20) ? 1 : 0, (pMessage[5] & 0x10) ? 1 : 0, (pMessage[5] & 0x08) ? 1 : 0, (pMessage[5] & 0x04) ? 1 : 0, (pMessage[5] & 0x02) ? 1 : 0, (pMessage[5] & 0x01) ? 1 : 0);
+      m_pSynthesizer->setOPMask(pMessage[5], nTG);
+      break;
     default:
       if(sysex_return >= 300 && sysex_return < 500)
       {
