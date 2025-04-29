@@ -330,6 +330,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				{
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
 					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+					break; // Only the first TG listening to the MIDI channel can handle the SysEx message (e.g., voice dump); may need to restrict this to dump requests only
 				}
 			}
 			else
@@ -610,6 +611,23 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
+
+  // Check if it is a dump request; these have the format F0 43 2n ff F7
+  // with n = the MIDI channel and ff = 00 for voice or 09 for bank
+  // It was confirmed that on the TX816, the device number is interpreted as the MIDI channel; 
+  if (nLength == 5 && pMessage[3] == 0x00)
+  {
+	LOGDBG("SysEx voice dump request: device %d", nTG);
+	SendSystemExclusiveVoice(nTG, m_DeviceName, nCable, nTG);
+	return;
+  }
+  else if (nLength == 5 && pMessage[3] == 0x09)
+  {
+	LOGDBG("SysEx bank dump request: device %d", nTG);
+	LOGDBG("Still to be implemented");
+	return;
+  }
+
   int16_t sysex_return;
 
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
@@ -735,25 +753,19 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if(sysex_return >= 500 && sysex_return < 600)
       {
         LOGDBG("SysEx send voice %u request",sysex_return-500);
-        SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
+        SendSystemExclusiveVoice(sysex_return-500, m_DeviceName, nCable, nTG);
       }
       break;
   }
 }
 
-void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
+void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
 {
-  uint8_t voicedump[163];
-
-  // Get voice sysex dump from TG
-  m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
-
-  TDeviceMap::const_iterator Iterator;
-
-  // send voice dump to all MIDI interfaces
-  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
-  {
-    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
-    // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
-  }
-} 
+    uint8_t voicedump[163];
+    m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
+    TDeviceMap::const_iterator Iterator = s_DeviceMap.find(deviceName);
+    if (Iterator != s_DeviceMap.end()) {
+        Iterator->second->Send(voicedump, sizeof(voicedump), nCable);
+        LOGDBG("Send SYSEX voice dump %u to \"%s\"", nVoice, deviceName.c_str());
+    }
+}

@@ -29,6 +29,7 @@
 #include "config.h"
 #include "net/applemidi.h"
 #include "net/udpmidi.h"
+#include "midi.h"
 
 class CMiniDexed;
 
@@ -43,6 +44,7 @@ public:
 	virtual void OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName) override;
 	virtual void OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName) override;
 	virtual void OnUDPMIDIDataReceived(const u8* pData, size_t nSize) override;
+	virtual void Send(const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
 
 private:
 	CMiniDexed *m_pSynthesizer;
@@ -50,6 +52,11 @@ private:
 	CBcmRandomNumberGenerator m_Random;
 	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
 	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
+	CSocket* m_pUDPSendSocket = nullptr;
+	CIPAddress m_UDPDestAddress;
+	unsigned m_UDPDestPort = 1999;
+	CIPAddress m_LastUDPSenderAddress;
+	unsigned m_LastUDPSenderPort = 0;
 };
 
 #endif
