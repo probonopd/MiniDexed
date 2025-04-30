@@ -32,6 +32,8 @@
 
 class CDexedAdapter : public Dexed
 {
+private:
+	CSpinLock m_SpinLock;
 public:
 	CDexedAdapter (uint8_t maxnotes, int rate)
 	: Dexed (maxnotes, rate)
@@ -80,8 +82,46 @@ public:
 		m_SpinLock.Release ();
 	}
 
-private:
-	CSpinLock m_SpinLock;
+	// Unison wrapper: for now, simulate unison by calling keydown/keyup multiple times with detune/pan offsets
+	void keydown_unison(int16_t pitch, uint8_t velo, unsigned unisonVoices, unsigned unisonDetune, unsigned unisonSpread, int baseDetune, unsigned basePan) {
+		if (unisonVoices < 1) unisonVoices = 1;
+		for (unsigned v = 0; v < unisonVoices; ++v) {
+			float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
+			int detune = baseDetune + (int)detuneOffset;
+			m_SpinLock.Acquire();
+			this->setMasterTune((int8_t)detune);
+			Dexed::keydown(pitch, velo);
+			m_SpinLock.Release();
+		}
+	}
+	void keyup_unison(int16_t pitch, unsigned unisonVoices, unsigned unisonDetune, unsigned unisonSpread, int baseDetune, unsigned basePan) {
+		if (unisonVoices < 1) unisonVoices = 1;
+		for (unsigned v = 0; v < unisonVoices; ++v) {
+			float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
+			int detune = baseDetune + (int)detuneOffset;
+			m_SpinLock.Acquire();
+			this->setMasterTune((int8_t)detune);
+			Dexed::keyup(pitch);
+			m_SpinLock.Release();
+		}
+	}
+
+#ifdef ARM_ALLOW_MULTI_CORE
+	// Stereo version for unison pan
+	void getSamplesStereo(float32_t* bufferL, float32_t* bufferR, uint16_t n_samples) {
+		m_SpinLock.Acquire();
+		Dexed::getSamplesStereo(bufferL, bufferR, n_samples);
+		m_SpinLock.Release();
+	}
+	// Set unison parameters for Dexed, now with base pan
+	void setUnisonParameters(unsigned voices, unsigned detune, unsigned spread, float basePan) {
+		m_SpinLock.Acquire();
+		// Map detune: 0..99 -> 0..0.02 (2 cents)
+		float detuneCents = ((float)detune / 99.0f) * 0.02f;
+		Dexed::setUnisonParameters((uint8_t)voices, detuneCents, (float)spread / 99.0f, basePan);
+		m_SpinLock.Release();
+	}
+#endif
 };
 
-#endif
+#endif // _dexedadapter_h

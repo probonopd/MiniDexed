@@ -64,7 +64,7 @@ public:
 
     void size(float n)
     {
-        n = constrain(n, 0.0f, 1.0f);
+        n = clamp(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.2f, rv_time_k_max);
         float32_t attn = mapfloat(n, 0.0f, rv_time_k_max, 0.5f, 0.25f);
         rv_time_k = n;
@@ -73,27 +73,27 @@ public:
 
     void hidamp(float n)
     {
-        n = constrain(n, 0.0f, 1.0f);
+        n = clamp(n, 0.0f, 1.0f);
         lp_hidamp_k = 1.0f - n;
     }
     
     void lodamp(float n)
     {
-        n = constrain(n, 0.0f, 1.0f);
+        n = clamp(n, 0.0f, 1.0f);
         lp_lodamp_k = -n;
         rv_time_scaler = 1.0f - n * 0.12f;        // limit the max reverb time, otherwise it will clip
     }
 
     void lowpass(float n)
     {
-        n = constrain(n, 0.0f, 1.0f);
+        n = clamp(n, 0.0f, 1.0f);
         n = mapfloat(n*n*n, 0.0f, 1.0f, 0.05f, 1.0f);
         master_lowpass_f = n;
     }
     
     void diffusion(float n)
     {
-        n = constrain(n, 0.0f, 1.0f);
+        n = clamp(n, 0.0f, 1.0f);
         n = mapfloat(n, 0.0f, 1.0f, 0.005f, 0.65f);
         in_allp_k = n;
         loop_allp_k = n;
@@ -101,7 +101,7 @@ public:
 
     void level(float n)
     {
-        reverb_level = constrain(n, 0.0f, 1.0f);
+        reverb_level = clamp(n, 0.0f, 1.0f);
     }
 
     float32_t get_size(void) {return rv_time_k;}

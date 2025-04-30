@@ -30,9 +30,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "arm_float_to_q23.h"
-
-// Forward declaration for getPhysicalTG
-static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices);
+#include "common.h"
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -846,100 +844,78 @@ void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 	m_UI.ParameterChanged ();
 }
 
-void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
-{
-	assert (nTG < CConfig::AllToneGenerators);
-	if (nTG >= m_nToneGenerators) return;  // Not an active TG
-
-	assert (m_pTG[nTG]);
-
-	pitch = ApplyNoteLimits (pitch, nTG);
-	if (pitch < 0) return;
-
-	unsigned unisonVoices = m_nUnisonVoices[nTG];
-	if (unisonVoices < 1) unisonVoices = 1;
-
-	int baseDetune = m_nMasterTune[nTG];
-	unsigned basePan = m_nPan[nTG];
-	unsigned unisonDetune = m_nUnisonDetune[nTG];
-	unsigned unisonSpread = m_nUnisonSpread[nTG];
-
-	for (unsigned v = 0; v < unisonVoices; ++v) {
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
-		if (physicalTG >= m_nToneGenerators) break;
-		// Ensure virtual TG plays the same voice as logical TG
-		if (physicalTG != nTG) {
-			uint8_t voiceData[156];
-			m_pTG[nTG]->getVoiceData(voiceData);
-			m_pTG[physicalTG]->loadVoiceParameters(voiceData);
-		}
-		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
-		float panOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonSpread;
-		int detune = baseDetune + (int)detuneOffset;
-		unsigned pan = basePan + (int)panOffset;
-		detune = constrain(detune, -99, 99);
-		pan = constrain((int)pan, 0, 127);
-		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
-		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
-		m_pTG[physicalTG]->keyup(pitch);
-	}
-}
-
+#ifndef ARM_ALLOW_MULTI_CORE
+// Use original mono logic for single-core
 void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return;  // Not an active TG
-
 	assert (m_pTG[nTG]);
-
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch < 0) return;
-
-	unsigned unisonVoices = m_nUnisonVoices[nTG];
-	if (unisonVoices < 1) unisonVoices = 1;
-	unsigned maxLogicalTGs = m_nToneGenerators / unisonVoices;
-	if (nTG >= maxLogicalTGs) return; // Don't exceed available physical TGs
-
-	int baseDetune = m_nMasterTune[nTG];
-	unsigned basePan = m_nPan[nTG];
-	unsigned unisonDetune = m_nUnisonDetune[nTG];
-	unsigned unisonSpread = m_nUnisonSpread[nTG];
-
-	for (unsigned v = 0; v < unisonVoices; ++v) {	
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
-		if (physicalTG >= m_nToneGenerators) break;
-		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
-		float panOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonSpread;
-		int detune = baseDetune + (int)detuneOffset;
-		unsigned pan = basePan + (int)panOffset;
-		detune = constrain(detune, -99, 99);
-		pan = constrain((int)pan, 0, 127);
-		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
-		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
-		m_pTG[physicalTG]->keydown(pitch, velocity);
-	}
+	m_pTG[nTG]->keydown(pitch, velocity);
 }
-
-int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
+void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
-	if (nTG >= m_nToneGenerators) return -1;  // Not an active TG
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+	assert (m_pTG[nTG]);
+	pitch = ApplyNoteLimits (pitch, nTG);
+	if (pitch < 0) return;
+	m_pTG[nTG]->keyup(pitch);
+}
+#endif
+#ifdef ARM_ALLOW_MULTI_CORE
+// Use unison/stereo logic for multicore
+void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+	assert (m_pTG[nTG]);
+	pitch = ApplyNoteLimits (pitch, nTG);
+	if (pitch < 0) return;
+	// Set unison parameters for Dexed engine before keydown
+	m_pTG[nTG]->setUnisonParameters(
+		m_nUnisonVoices[nTG],
+		m_nUnisonDetune[nTG],
+		m_nUnisonSpread[nTG],
+		mapfloat(m_nPan[nTG], 0, 127, 0.0f, 1.0f)
+	);
+	m_pTG[nTG]->keydown(pitch, velocity);
+}
+void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+	assert (m_pTG[nTG]);
+	pitch = ApplyNoteLimits (pitch, nTG);
+	if (pitch < 0) return;
+	// Set unison parameters for Dexed engine before keyup
+	m_pTG[nTG]->setUnisonParameters(
+		m_nUnisonVoices[nTG],
+		m_nUnisonDetune[nTG],
+		m_nUnisonSpread[nTG],
+		mapfloat(m_nPan[nTG], 0, 127, 0.0f, 1.0f)
+	);
+	m_pTG[nTG]->keyup(pitch);
+}
+#endif
 
-	if (   pitch < (int16_t) m_nNoteLimitLow[nTG]
-	    || pitch > (int16_t) m_nNoteLimitHigh[nTG])
-	{
-		return -1;
-	}
+// Complete the ApplyNoteLimits function definition
+int16_t CMiniDexed::ApplyNoteLimits(int16_t pitch, unsigned nTG)
+{
+    assert (nTG < CConfig::AllToneGenerators);
+    if (nTG >= m_nToneGenerators) return -1;  // Not an active TG
 
-	pitch += m_nNoteShift[nTG];
+    if (pitch < (int16_t)m_nNoteLimitLow[nTG] || pitch > (int16_t)m_nNoteLimitHigh[nTG])
+        return -1;
 
-	if (   pitch < 0
-	    || pitch > 127)
-	{
-		return -1;
-	}
+    pitch += m_nNoteShift[nTG];
 
-	return pitch;
+    if (pitch < 0 || pitch > 127)
+        return -1;
+
+    return pitch;
 }
 
 void CMiniDexed::setSustain(bool sustain, unsigned nTG)
@@ -1182,18 +1158,19 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 		
-		case TGParameterUnisonVoices:
-			m_nUnisonVoices[nTG] = constrain(nValue, 1, 4);
-			break;
-		case TGParameterUnisonDetune:
-			m_nUnisonDetune[nTG] = constrain(nValue, 0, 99);
-			break;
-		case TGParameterUnisonSpread:
-			m_nUnisonSpread[nTG] = constrain(nValue, 0, 99);
-			break;
-		case TGParameterUnknown:
-			// No action needed for unknown parameter
-			break;
+	case TGParameterUnisonVoices:
+		m_nUnisonVoices[nTG] = constrain(nValue, 1, 4);
+		panic(0, nTG); // Stop all notes on TG when unison voices changes
+		break;
+	case TGParameterUnisonDetune:
+		m_nUnisonDetune[nTG] = constrain(nValue, 0, 99);
+		break;
+	case TGParameterUnisonSpread:
+		m_nUnisonSpread[nTG] = constrain(nValue, 0, 99);
+		break;
+	case TGParameterUnknown:
+		// No action needed for unknown parameter
+		break;
 	}
 
 }
@@ -1342,12 +1319,16 @@ void CMiniDexed::ProcessSound (void)
 			m_GetChunkTimer.Start ();
 		}
 
-		float32_t SampleBuffer[nFrames];
-		m_pTG[0]->getSamples (SampleBuffer, nFrames);
+		float32_t SampleBufferL[nFrames];
+		float32_t SampleBufferR[nFrames];
+		m_pTG[0]->getSamplesStereo(SampleBufferL, SampleBufferR, nFrames);
 
-		// Convert single float array (mono) to int16 array
-		int32_t tmp_int[nFrames];
-		arm_float_to_q23(SampleBuffer,tmp_int,nFrames);
+		// Convert stereo float arrays to interleaved int32 array
+		int32_t tmp_int[nFrames * 2];
+		for (unsigned i = 0; i < nFrames; ++i) {
+			tmp_int[i*2] = float_to_q23(SampleBufferL[i]);
+			tmp_int[i*2+1] = float_to_q23(SampleBufferR[i]);
+		}
 
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
@@ -1888,8 +1869,10 @@ void CMiniDexed::setVoiceDataElement(uint8_t data, uint8_t number, uint8_t nTG)
 	if (nTG >= m_nToneGenerators) return;  // Not an active TG
 
 	assert (m_pTG[nTG]);
+	assert (number <= 99);
+	assert (data <= 155);
 
-	m_pTG[nTG]->setVoiceDataElement(constrain(data, 0, 155),constrain(number, 0, 99));
+	m_pTG[nTG]->setVoiceDataElement (data, number);
 	m_UI.ParameterChanged ();
 }
 
@@ -2174,7 +2157,8 @@ void CMiniDexed::SetVoiceName (const std::string &VoiceName, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	char Name[11];
-	strncpy(Name, VoiceName.c_str(),10);
+	// Fix strncpy overload issue by casting to const char*
+	strncpy(Name, VoiceName.c_str(), 10);
 	Name[10] = '\0';
 	m_pTG[nTG]->setName (Name);
 }
@@ -2561,10 +2545,4 @@ bool CMiniDexed::InitNetwork()
 		LOGNOTE("CMiniDexed::InitNetwork: Network is not enabled in configuration");
 		return false;
 	}
-}
-
-// Forward declaration and definition for getPhysicalTG
-static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices);
-static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices) {
-    return logicalTG * unisonVoices + unisonVoice;
 }
