@@ -746,9 +746,16 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 }
 
-void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+void CUIMenu::EditTGParameter(CUIMenu *pUIMenu, TMenuEvent Event)
 {
-	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
+	unsigned nTG = 0;
+	// Always determine the correct logical TG from the menu stack
+	if (pUIMenu->m_nCurrentMenuDepth >= 2) {
+		nTG = pUIMenu->m_nMenuStackParameter[1];
+	} else if (pUIMenu->m_nCurrentMenuDepth >= 1) {
+		nTG = pUIMenu->m_nMenuStackParameter[0];
+	}
+	if (nTG >= pUIMenu->m_nToneGenerators) nTG = 0;
 
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
 	const TParameter &rParam = s_TGParameter[Param];
@@ -788,15 +795,15 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string TG ("TG");
-	TG += to_string (nTG+1);
+	std::string TG ("TG");
+	TG += std::to_string (nTG+1);
 
-	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+	std::string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+		pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+		Value.c_str (),
+		nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second menu level. Redundant code but in order to not modified original code

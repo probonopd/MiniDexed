@@ -44,7 +44,10 @@
 	}} 
 
 // Forward declaration for getPhysicalTG
-static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices);
+static constexpr unsigned maxUnisonVoices = 4;
+static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned /*unisonVoices*/) {
+    return logicalTG * maxUnisonVoices + unisonVoice;
+}
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -2673,11 +2676,4 @@ bool CMiniDexed::InitNetwork()
 		LOGNOTE("CMiniDexed::InitNetwork: Network is not enabled in configuration");
 		return false;
 	}
-}
-
-// Forward declaration and definition for getPhysicalTG
-static unsigned getPhysicalTG(unsigned logicalTG, unsigned unisonVoice, unsigned unisonVoices) {
-    // Default mapping: physical TGs are grouped by logical TG, unison voices are consecutive
-    // e.g. for 4 unison voices: TG0: 0,1,2,3; TG1: 4,5,6,7, etc.
-    return logicalTG * unisonVoices + unisonVoice;
 }
