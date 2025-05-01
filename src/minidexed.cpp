@@ -1679,7 +1679,7 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetCutoff (m_nCutoff[nTG], nTG);
 		m_PerformanceConfig.SetResonance (m_nResonance[nTG], nTG);
 		m_PerformanceConfig.SetPitchBendRange (m_nPitchBendRange[nTG], nTG);
-		m_PerformanceConfig.SetPitchBendStep	(m_nPitchBendStep[nTG], nTG);
+		m_PerformanceConfig.SetPitchBendStep (m_nPitchBendStep[nTG], nTG);
 		m_PerformanceConfig.SetPortamentoMode (m_nPortamentoMode[nTG], nTG);
 		m_PerformanceConfig.SetPortamentoGlissando (m_nPortamentoGlissando[nTG], nTG);
 		m_PerformanceConfig.SetPortamentoTime (m_nPortamentoTime[nTG], nTG);
@@ -1705,8 +1705,11 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetBreathControlTarget (m_nBreathControlTarget[nTG], nTG);
 		m_PerformanceConfig.SetAftertouchRange (m_nAftertouchRange[nTG], nTG);
 		m_PerformanceConfig.SetAftertouchTarget (m_nAftertouchTarget[nTG], nTG);
-		
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
+
+		m_PerformanceConfig.SetUnisonVoices(m_nUnisonVoices[nTG], nTG);
+		m_PerformanceConfig.SetUnisonDetune(m_nUnisonDetune[nTG], nTG);
+		m_PerformanceConfig.SetUnisonSpread(m_nUnisonSpread[nTG], nTG);
 	}
 
 	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
