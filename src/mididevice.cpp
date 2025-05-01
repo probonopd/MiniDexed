@@ -426,7 +426,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							{
 								LOGNOTE("MIDI-SYSEX: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
 								// Example: F0 43 10 04 1A 00 F7 to F0 43 10 04 1A 07 F7
-								unsigned newVolume = (unsigned)((val & 0x07) * 127 / 7);
+								// Apply logarithmic scaling for volume
+								unsigned attenVal = val & 0x07;
+								unsigned newVolume = (unsigned)(127.0 * pow(attenVal / 7.0, 2.0) + 0.5); // Logarithmic mapping
 								m_pSynthesizer->SetVolume(newVolume, nTG);
 							}
 							break;
