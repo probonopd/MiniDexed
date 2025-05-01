@@ -1215,6 +1215,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterUnisonSpread:
 		m_nUnisonSpread[nTG] = constrain(nValue, 0, 99);
 		break;
+
 	case TGParameterMIDIChannel:
 		SetMIDIChannel(nValue, nTG);
 		break;
@@ -2450,7 +2451,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		if (m_pConfig->GetNetworkFTPEnabled()) {
-			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD, m_pmDNSPublisher, m_pConfig);
 
 			if (!m_pFTPDaemon->Initialize())
 			{
