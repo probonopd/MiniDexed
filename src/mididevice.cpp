@@ -767,5 +767,7 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& de
     if (Iterator != s_DeviceMap.end()) {
         Iterator->second->Send(voicedump, sizeof(voicedump), nCable);
         LOGDBG("Send SYSEX voice dump %u to \"%s\"", nVoice, deviceName.c_str());
+    } else {
+        LOGWARN("No device found in s_DeviceMap for name: %s", deviceName.c_str());
     }
 }
