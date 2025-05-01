@@ -320,24 +320,21 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		// Process MIDI for each active Tone Generator
 		bool bSystemCCHandled = false;
 		bool bSystemCCChecked = false;
-		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
-		{
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
-			{
-				// MIDI SYSEX per MIDI channel
-				uint8_t ucSysExChannel = (pMessage[2] & 0x0F);
-				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
-				{
+		if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN) {
+			uint8_t ucSysExChannel = (pMessage[2] & 0x0F);
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode) {
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
 					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
-					break; // Only the first TG listening to the MIDI channel can handle the SysEx message (e.g., voice dump); may need to restrict this to dump requests only
+					if (nLength == 5) {
+						break; // Send dump request only to the first TG that matches the MIDI channel requested via the SysEx message device ID
+					}
 				}
 			}
-			else
-			{
+		} else {
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++) {
 				if (   m_ChannelMap[nTG] == ucChannel
-				    || m_ChannelMap[nTG] == OmniMode)
-				{
+				    || m_ChannelMap[nTG] == OmniMode) {
 					switch (ucType)
 					{
 					case MIDI_NOTE_ON:
@@ -761,6 +758,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
 
 void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
 {
+	// Example: F0 43 20 00 F7
     uint8_t voicedump[163];
     m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
     TDeviceMap::const_iterator Iterator = s_DeviceMap.find(deviceName);
