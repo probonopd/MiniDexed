@@ -1194,21 +1194,45 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
 	
 	case TGParameterUnisonVoices: {
-			unsigned oldUnisonVoices = m_nUnisonVoices[nTG];
-			unsigned newUnisonVoices = constrain(nValue, 1, 4);
-			if (newUnisonVoices < oldUnisonVoices) {
-				// For each note and each physical TG that is no longer mapped, send keyup if needed
-				for (unsigned midiNote = 0; midiNote < 128; ++midiNote) {
-					for (unsigned v = newUnisonVoices; v < oldUnisonVoices; ++v) {
-						unsigned physicalTG = getPhysicalTG(nTG, v, oldUnisonVoices);
-						if (physicalTG >= m_nToneGenerators) continue;
-						m_pTG[physicalTG]->keyup(midiNote);
-					}
+		unsigned oldUnisonVoices = m_nUnisonVoices[nTG];
+		unsigned newUnisonVoices = constrain(nValue, 1, 4);
+		if (newUnisonVoices < oldUnisonVoices) {
+			// For each note and each physical TG that is no longer mapped, send keyup if needed
+			for (unsigned midiNote = 0; midiNote < 128; ++midiNote) {
+				for (unsigned v = newUnisonVoices; v < oldUnisonVoices; ++v) {
+					unsigned physicalTG = getPhysicalTG(nTG, v, oldUnisonVoices);
+					if (physicalTG >= m_nToneGenerators) continue;
+					m_pTG[physicalTG]->keyup(midiNote);
 				}
 			}
-			m_nUnisonVoices[nTG] = newUnisonVoices;
-			break;
+		} else if (newUnisonVoices > oldUnisonVoices) {
+			// Configure new auxiliary TGs with the current voice data
+			uint8_t voiceData[161];
+			m_pTG[nTG]->getVoiceData(&voiceData[6]); // getVoiceData expects pointer to voice data (skipping 6 bytes header)
+			for (unsigned v = oldUnisonVoices; v < newUnisonVoices; ++v) {
+				unsigned physicalTG = getPhysicalTG(nTG, v, newUnisonVoices);
+				if (physicalTG >= m_nToneGenerators) continue;
+				m_pTG[physicalTG]->loadVoiceParameters(&voiceData[6]);
+				m_pTG[physicalTG]->doRefreshVoice();
+				setOPMask(0b111111, physicalTG);
+				// Apply per-voice detune and pan
+				int baseDetune = m_nMasterTune[nTG];
+				unsigned basePan = m_nPan[nTG];
+				unsigned unisonDetune = m_nUnisonDetune[nTG];
+				unsigned unisonSpread = m_nUnisonSpread[nTG];
+				float detuneOffset = ((float)v - (newUnisonVoices - 1) / 2.0f) * (float)unisonDetune;
+				float panOffset = ((float)v - (newUnisonVoices - 1) / 2.0f) * (float)unisonSpread;
+				int detune = baseDetune + (int)detuneOffset;
+				unsigned pan = basePan + (int)panOffset;
+				detune = constrain(detune, -99, 99);
+				pan = constrain((int)pan, 0, 127);
+				m_pTG[physicalTG]->setMasterTune((int8_t)detune);
+				tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
+			}
 		}
+		m_nUnisonVoices[nTG] = newUnisonVoices;
+		break;
+	}
 	case TGParameterUnisonDetune:
 		m_nUnisonDetune[nTG] = constrain(nValue, 0, 99);
 		break;
@@ -1951,6 +1975,15 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
 		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
 	}
+
+	// Silence any unused auxiliary TGs (to prevent leftover sound/crackle)
+	for (unsigned v = unisonVoices; v < 4; ++v) { // 4 is the max unison voices
+		unsigned physicalTG = getPhysicalTG(nTG, v, 4);
+		if (physicalTG >= m_nToneGenerators) continue;
+		m_pTG[physicalTG]->notesOff();
+		m_pTG[physicalTG]->panic();
+	}
+
 	m_UI.ParameterChanged ();
 }
 
