@@ -81,15 +81,21 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Detune", EditTGParameter, 0, CMiniDexed::TGParameterMasterTune},
 	{"Cutoff", EditTGParameter, 0, CMiniDexed::TGParameterCutoff},
 	{"Resonance", EditTGParameter, 0, CMiniDexed::TGParameterResonance},
-	{"Unison Voices", EditTGParameter, 0, CMiniDexed::TGParameterUnisonVoices},
-	{"Unison Detune", EditTGParameter, 0, CMiniDexed::TGParameterUnisonDetune},
-	{"Unison Spread", EditTGParameter, 0, CMiniDexed::TGParameterUnisonSpread},
+	{"Unison", MenuHandler, s_UnisonMenu},
 	{"Pitch Bend", MenuHandler,  s_EditPitchBendMenu},
 	{"Portamento",  MenuHandler,  s_EditPortamentoMenu},
 	{"Poly/Mono",  EditTGParameter, 0, CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",  MenuHandler,  s_ModulationMenu},
 	{"Channel", EditTGParameter, 0, CMiniDexed::TGParameterMIDIChannel},
 	{"Edit Voice", MenuHandler,  s_EditVoiceMenu},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_UnisonMenu[] =
+{
+	{"Voices", EditTGParameter, 0, CMiniDexed::TGParameterUnisonVoices},
+	{"Detune", EditTGParameter, 0, CMiniDexed::TGParameterUnisonDetune},
+	{"Spread", EditTGParameter, 0, CMiniDexed::TGParameterUnisonSpread},
 	{0}
 };
 
@@ -1104,7 +1110,7 @@ string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
 
 string CUIMenu::ToVolume (int nValue)
 {
-	static const size_t MaxChars = CConfig::LCDColumns-2;
+	static const std::size_t MaxChars = CConfig::LCDColumns-2;
 	char VolumeBar[MaxChars+1];
 	memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
 	VolumeBar[nValue * MaxChars / 127] = '\0';
@@ -1115,7 +1121,7 @@ string CUIMenu::ToVolume (int nValue)
 string CUIMenu::ToPan (int nValue)
 {
 	assert (CConfig::LCDColumns == 16);
-	static const size_t MaxChars = CConfig::LCDColumns-3;
+	static const std::size_t MaxChars = CConfig::LCDColumns-3;
 	char PanMarker[MaxChars+1] = "......:......";
 	unsigned nIndex = nValue * MaxChars / 127;
 	if (nIndex == MaxChars)
