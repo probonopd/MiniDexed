@@ -126,7 +126,7 @@ inline bool DirectoryCaseInsensitiveAscending(const TDirectoryListEntry& EntryA,
 }
 
 
-CFTPWorker::CFTPWorker(CSocket* pControlSocket, const char* pExpectedUser, const char* pExpectedPassword)
+CFTPWorker::CFTPWorker(CSocket* pControlSocket, const char* pExpectedUser, const char* pExpectedPassword, CmDNSPublisher* pMDNSPublisher, CConfig* pConfig)
 	: CTask(TASK_STACK_SIZE),
 	  m_LogName(),
 	  m_pExpectedUser(pExpectedUser),
@@ -142,7 +142,9 @@ CFTPWorker::CFTPWorker(CSocket* pControlSocket, const char* pExpectedUser, const
 	  m_DataType(TDataType::ASCII),
 	  m_TransferMode(TTransferMode::Active),
 	  m_CurrentPath(),
-	  m_RenameFrom()
+	  m_RenameFrom(),
+	  m_pmDNSPublisher(pMDNSPublisher),
+	  m_pConfig(pConfig)
 {
 	++s_nInstanceCount;
 	m_LogName.Format("ftpd[%d]", s_nInstanceCount);
@@ -562,7 +564,7 @@ bool CFTPWorker::Passive(const char* pArgs)
 		IPAddress[2],
 		IPAddress[3],
 		(m_nDataSocketPort >> 8) & 0xFF,
-		m_nDataSocketPort & 0xFF
+		(m_nDataSocketPort & 0xFF)
 	);
 
 	SendStatus(TFTPStatus::EnteringPassiveMode, Buffer);
@@ -1058,9 +1060,24 @@ bool CFTPWorker::Bye(const char* pArgs)
 	SendStatus(TFTPStatus::ClosingControl, "Goodbye.");
 	delete m_pControlSocket;
 	m_pControlSocket = nullptr;
-	
+
+	// Unpublish the mDNS services
+	if (m_pmDNSPublisher && m_pConfig)
+	{
+		m_pmDNSPublisher->UnpublishService(m_pConfig->GetNetworkHostname());
+		m_pmDNSPublisher->UnpublishService(m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeAppleMIDI, 5004);
+		m_pmDNSPublisher->UnpublishService(m_pConfig->GetNetworkHostname(), CmDNSPublisher::ServiceTypeFTP, 21);
+	}
+
+	// Non-blocking 2 second delay before reboot
+	CTimer* const pTimer = CTimer::Get();
+	unsigned int start = pTimer->GetTicks();
+	while ((pTimer->GetTicks() - start) < 2 * HZ) {
+		CScheduler::Get()->Yield();
+	}
+
 	// Reboot the system if the user disconnects in order to apply any changes made
-	reboot ();
+	reboot();
 	return true;
 }
 

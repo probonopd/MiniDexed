@@ -39,7 +39,7 @@ public:
 class CAppleMIDIParticipant : protected CTask
 {
 public:
-	CAppleMIDIParticipant(CBcmRandomNumberGenerator* pRandom, CAppleMIDIHandler* pHandler);
+	CAppleMIDIParticipant(CBcmRandomNumberGenerator* pRandom, CAppleMIDIHandler* pHandler, const char* pSessionName);
 	virtual ~CAppleMIDIParticipant() override;
 
 	bool Initialize();
@@ -106,6 +106,8 @@ private:
 	u16 m_nSequence = 0;
 	u16 m_nLastFeedbackSequence = 0;
 	u64 m_nLastFeedbackTime = 0;
+
+	const char* m_pSessionName;
 };
 
 #endif
