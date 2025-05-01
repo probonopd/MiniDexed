@@ -33,7 +33,6 @@ LOGMODULE ("Performance");
 #define PERFORMANCE_DIR "performance" 
 #define DEFAULT_PERFORMANCE_FILENAME "performance.ini"
 #define DEFAULT_PERFORMANCE_NAME "Default"
-#define DEFAULT_PERFORMANCE_BANK_NAME "Default"
 
 CPerformanceConfig::CPerformanceConfig (FATFS *pFileSystem)
 :	m_Properties (DEFAULT_PERFORMANCE_FILENAME, pFileSystem)
@@ -1182,10 +1181,6 @@ bool CPerformanceConfig::ListPerformanceBanks()
 	}
 
 	unsigned nNumBanks = 0;
-	
-	// Add in the default performance directory as the first bank
-	m_PerformanceBankName[0] = DEFAULT_PERFORMANCE_BANK_NAME;
-	nNumBanks = 1;
 	m_nLastPerformanceBank = 0;
 
 	// List directories with names in format 01_Perf Bank Name
@@ -1291,10 +1286,7 @@ std::string CPerformanceConfig::GetPerformanceBankName(unsigned nBankID)
 	{
 		return m_PerformanceBankName[nBankID];
 	}
-	else
-	{
-		return DEFAULT_PERFORMANCE_BANK_NAME;
-	}
+	return "";
 }
 
 std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
@@ -1304,12 +1296,6 @@ std::string CPerformanceConfig::AddPerformanceBankDirName(unsigned nBankID)
 	{
 		// Performance Banks directories in format "001_Bank Name"
 		std::string Index;
-		if (nBankID == 0)
-		{
-			// Legacy: Bank 1 is the default performance directory
-			return "";
-		}
-
 		if (nBankID < 9)
 		{
 			Index = "00" + std::to_string(nBankID+1);
