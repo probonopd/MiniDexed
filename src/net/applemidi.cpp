@@ -457,7 +457,7 @@ bool ParseMIDIPacket(const u8* pBuffer, size_t nSize, TRTPMIDI* pOutPacket, CApp
 	return ParseMIDICommandSection(pMIDICommandSection, nRemaining, pHandler);
 }
 
-CAppleMIDIParticipant::CAppleMIDIParticipant(CBcmRandomNumberGenerator* pRandom, CAppleMIDIHandler* pHandler)
+CAppleMIDIParticipant::CAppleMIDIParticipant(CBcmRandomNumberGenerator* pRandom, CAppleMIDIHandler* pHandler, const char* pSessionName)
 	: CTask(TASK_STACK_SIZE, true),
 
 	  m_pRandom(pRandom),
@@ -489,7 +489,9 @@ CAppleMIDIParticipant::CAppleMIDIParticipant(CBcmRandomNumberGenerator* pRandom,
 
 	  m_nSequence(0),
 	  m_nLastFeedbackSequence(0),
-	  m_nLastFeedbackTime(0)
+	  m_nLastFeedbackTime(0),
+
+      m_pSessionName(pSessionName)
 {
 }
 
@@ -802,8 +804,11 @@ bool CAppleMIDIParticipant::SendAcceptInvitationPacket(CSocket* pSocket, CIPAddr
 		{'\0'}
 	};
 
-	// TODO: configurable name
-	strncpy(AcceptPacket.Name, "MiniDexed", sizeof(AcceptPacket.Name));
+	// Use hostname as the session name
+	if (m_pSessionName && m_pSessionName[0])
+		strncpy(AcceptPacket.Name, m_pSessionName, sizeof(AcceptPacket.Name));
+	else
+		strncpy(AcceptPacket.Name, "MiniDexed", sizeof(AcceptPacket.Name));
 
 #ifdef APPLEMIDI_DEBUG
 	LOGNOTE("--> Accept invitation");

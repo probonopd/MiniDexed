@@ -32,6 +32,7 @@ class CmDNSPublisher : public CTask	/// mDNS / Bonjour client task
 {
 public:
 	static constexpr const char *ServiceTypeAppleMIDI = "_apple-midi._udp";
+	static constexpr const char *ServiceTypeFTP = "_ftp._tcp";
 public:
 	/// \param pNet Pointer to the network subsystem object
 	CmDNSPublisher (CNetSubSystem *pNet);
@@ -50,6 +51,12 @@ public:
 	/// \param pServiceName Name of the service to be unpublished (same as when published)
 	/// \return Operation successful?
 	boolean UnpublishService (const char *pServiceName);
+	/// \brief Stop publishing a service
+	/// \param pServiceName Name of the service to be unpublished
+	/// \param pServiceType Type of the service to be unpublished
+	/// \param usServicePort Port number of the service to be unpublished
+	/// \return Operation successful?
+	boolean UnpublishService (const char *pServiceName, const char *pServiceType, u16 usServicePort);
 	void Run (void) override;
 private:
 	static const unsigned MaxTextRecords = 10;
