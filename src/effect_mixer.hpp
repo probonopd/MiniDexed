@@ -55,6 +55,22 @@ public:
 		multiplier[channel] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
 	}
 
+	// Add a raw parameter to allow bypassing the powf(gain, 4) curve
+	void gain(uint8_t channel, float32_t gain, bool raw)
+	{
+		if (channel >= NN) return;
+
+		if (gain > MAX_GAIN)
+			gain = MAX_GAIN;
+		else if (gain < MIN_GAIN)
+			gain = MIN_GAIN;
+		if (raw) {
+			multiplier[channel] = gain;
+		} else {
+			multiplier[channel] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+		}
+	}
+
 	void gain(float32_t gain)
 	{
 		for (uint8_t i = 0; i < NN; i++)

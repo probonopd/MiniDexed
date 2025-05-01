@@ -314,7 +314,8 @@ private:
 	unsigned m_nUnisonSpread[CConfig::AllToneGenerators];
 	uint8_t m_nRawVoiceData[156]; 
 	
-	
+	uint8_t m_noteOnCount[CConfig::AllToneGenerators][128];
+
 	float32_t nMasterVolume;
 
 	CUserInterface m_UI;
