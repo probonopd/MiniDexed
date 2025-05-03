@@ -345,13 +345,18 @@ if __name__ == "__main__":
                         print(f"\nUploaded {file} to {selected_ip}.")
     except ftplib.all_errors as e:
         print(f"FTP error: {e}")
+        ftp = None  # Mark ftp as unusable
 
+    # Only attempt to send BYE if ftp is connected and has a socket
     try:
-        ftp.sendcmd("BYE")
-        print(f"Disconnected from {selected_ip}.")
-    except ftplib.all_errors as e:
-        if str(e).strip().lower() == "timed out":
-            # Suppress expected timeout after BYE
+        if ftp is not None and getattr(ftp, 'sock', None) is not None:
+            ftp.sendcmd("BYE")
             print(f"Disconnected from {selected_ip}.")
+        else:
+            print(f"No active FTP connection to disconnect from.")
+    except (*ftplib.all_errors, AttributeError) as e:
+        # Handle timeout or already closed connection
+        if isinstance(e, TimeoutError) or (str(e).strip().lower() == "timed out"):
+            print(f"Disconnected from {selected_ip} (timeout after BYE, device likely restarted).")
         else:
             print(f"FTP error after BYE: {e}")

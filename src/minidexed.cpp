@@ -1123,6 +1123,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
 	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
 	
+	
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
 		SetMIDIChannel ((uint8_t) nValue, nTG);
@@ -2306,7 +2307,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		if (m_pConfig->GetNetworkFTPEnabled()) {
-			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD, m_pmDNSPublisher, m_pConfig);
 
 			if (!m_pFTPDaemon->Initialize())
 			{
