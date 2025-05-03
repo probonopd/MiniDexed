@@ -131,6 +131,45 @@ boolean CmDNSPublisher::UnpublishService (const char *pServiceName)
 	delete pService;
 	return TRUE;
 }
+boolean CmDNSPublisher::UnpublishService(const char *pServiceName, const char *pServiceType, u16 usServicePort)
+{
+	if (!m_bRunning)
+	{
+		return FALSE;
+	}
+	assert(pServiceName);
+	assert(pServiceType);
+	m_Mutex.Acquire();
+	TService *pService = nullptr;
+	TPtrListElement *pElement = m_ServiceList.GetFirst();
+	while (pElement)
+	{
+		pService = static_cast<TService *>(CPtrList::GetPtr(pElement));
+		assert(pService);
+		if (pService->ServiceName.Compare(pServiceName) == 0 &&
+		    pService->ServiceType.Compare(pServiceType) == 0 &&
+		    pService->usServicePort == usServicePort)
+		{
+			m_ServiceList.Remove(pElement);
+			break;
+		}
+		pService = nullptr;
+		pElement = m_ServiceList.GetNext(pElement);
+	}
+	m_Mutex.Release();
+	if (!pService)
+	{
+		return FALSE;
+	}
+	LOGDBG("Unpublish service %s %s %u", (const char *)pService->ServiceName, (const char *)pService->ServiceType, pService->usServicePort);
+	SendResponse(pService, FALSE);
+	for (unsigned i = 0; i < pService->nTextRecords; i++)
+	{
+		delete pService->ppText[i];
+	}
+	delete pService;
+	return TRUE;
+}
 void CmDNSPublisher::Run (void)
 {
 	assert (m_pNet);
