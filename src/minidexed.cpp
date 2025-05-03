@@ -38,7 +38,7 @@
 	unsigned unisonVoices = m_nUnisonVoices[nTG]; \
 	if (unisonVoices < 1) unisonVoices = 1; \
 	for (unsigned v = 0; v < unisonVoices; ++v) { \
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices); \
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices); \
 		if (physicalTG == nTG || physicalTG >= m_nToneGenerators) continue; \
 		code; \
 	}} 
@@ -692,7 +692,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	unsigned unisonDetune = m_nUnisonDetune[nTG];
 	unsigned unisonSpread = m_nUnisonSpread[nTG];
 	for (unsigned v = 0; v < unisonVoices; ++v) {
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 		LOGNOTE("  affected physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
 		if (physicalTG == nTG || physicalTG >= m_nToneGenerators) continue;
 		m_pTG[physicalTG]->loadVoiceParameters(Buffer);
@@ -895,7 +895,7 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	unsigned unisonSpread = m_nUnisonSpread[nTG];
 
 	for (unsigned v = 0; v < unisonVoices; ++v) {
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 		if (physicalTG >= m_nToneGenerators) break;
 		// Per-voice detune and pan
 		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
@@ -928,8 +928,10 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	unsigned unisonDetune = m_nUnisonDetune[nTG];
 	unsigned unisonSpread = m_nUnisonSpread[nTG];
 
+	LOGNOTE("Note ON: pitch=%d, velocity=%u, logicalTG=%u, unisonVoices=%u", pitch, velocity, nTG, unisonVoices);
 	for (unsigned v = 0; v < unisonVoices; ++v) {
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
+		LOGNOTE("  playing physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
 		if (physicalTG >= m_nToneGenerators) break;
 		// Per-voice detune and pan
 		float detuneOffset = ((float)v - (unisonVoices - 1) / 2.0f) * (float)unisonDetune;
@@ -1201,12 +1203,12 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	
 	case TGParameterUnisonVoices: {
 		unsigned oldUnisonVoices = m_nUnisonVoices[nTG];
-		unsigned newUnisonVoices = constrain(nValue, 1, 4);
+		unsigned newUnisonVoices = constrain(nValue, 1, maxUnisonVoices);
 		if (newUnisonVoices < oldUnisonVoices) {
 			// For each note and each physical TG that is no longer mapped, send keyup if needed
 			for (unsigned midiNote = 0; midiNote < 128; ++midiNote) {
 				for (unsigned v = newUnisonVoices; v < oldUnisonVoices; ++v) {
-					unsigned physicalTG = getPhysicalTG(nTG, v, oldUnisonVoices);
+					unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 					if (physicalTG >= m_nToneGenerators) continue;
 					m_pTG[physicalTG]->keyup(midiNote);
 				}
@@ -1216,7 +1218,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 			uint8_t voiceData[161];
 			m_pTG[nTG]->getVoiceData(&voiceData[6]); // getVoiceData expects pointer to voice data (skipping 6 bytes header)
 			for (unsigned v = oldUnisonVoices; v < newUnisonVoices; ++v) {
-				unsigned physicalTG = getPhysicalTG(nTG, v, newUnisonVoices);
+				unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 				if (physicalTG >= m_nToneGenerators) continue;
 				m_pTG[physicalTG]->loadVoiceParameters(&voiceData[6]);
 				m_pTG[physicalTG]->doRefreshVoice();
@@ -1323,7 +1325,7 @@ void CMiniDexed::SetVoiceParameter(uint8_t uchOffset, uint8_t uchValue, unsigned
     if (unisonVoices < 1) unisonVoices = 1;
     LOGNOTE("SetVoiceParameter: logicalTG=%u, unisonVoices=%u", nTG, unisonVoices);
     for (unsigned v = 0; v < unisonVoices; ++v) {
-        unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+        unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
         LOGNOTE("  -> physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
         if (physicalTG >= m_nToneGenerators) break;
         assert(m_pTG[physicalTG]);
@@ -1352,7 +1354,7 @@ uint8_t CMiniDexed::GetVoiceParameter(uint8_t uchOffset, unsigned nOP, unsigned 
 
     unsigned unisonVoices = m_nUnisonVoices[nTG];
     if (unisonVoices < 1) unisonVoices = 1;
-    unsigned physicalTG = getPhysicalTG(nTG, 0, unisonVoices); // Use first physical TG for this logical TG
+    unsigned physicalTG = getPhysicalTG(nTG, 0, maxUnisonVoices); // Use first physical TG for this logical TG
     LOGNOTE("GetVoiceParameter: logicalTG=%u, unisonVoices=%u, physicalTG=%u", nTG, unisonVoices, physicalTG);
     assert(m_pTG[physicalTG]);
     unsigned op = nOP;
@@ -1964,7 +1966,7 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 	unsigned unisonDetune = m_nUnisonDetune[nTG];
 	unsigned unisonSpread = m_nUnisonSpread[nTG];
 	for (unsigned v = 0; v < unisonVoices; ++v) {
-		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 		if (physicalTG == nTG || physicalTG >= m_nToneGenerators) continue;
 		m_pTG[physicalTG]->loadVoiceParameters(&voice[6]);
 		m_pTG[physicalTG]->doRefreshVoice();
@@ -1979,10 +1981,9 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 		m_pTG[physicalTG]->setMasterTune((int8_t)detune);
 		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
 	}
-
 	// Silence any unused auxiliary TGs (to prevent leftover sound/crackle)
 	for (unsigned v = unisonVoices; v < 4; ++v) { // 4 is the max unison voices
-		unsigned physicalTG = getPhysicalTG(nTG, v, 4);
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 		if (physicalTG >= m_nToneGenerators) continue;
 		m_pTG[physicalTG]->notesOff();
 		m_pTG[physicalTG]->panic();
@@ -2008,6 +2009,15 @@ int16_t CMiniDexed::checkSystemExclusive(const uint8_t* pMessage,const  uint16_t
 	if (nTG >= m_nToneGenerators) return 0;  // Not an active TG
 
 	assert (m_pTG[nTG]);
+
+	// Log which TGs are affected by SysEx voice load
+	unsigned unisonVoices = m_nUnisonVoices[nTG];
+	if (unisonVoices < 1) unisonVoices = 1;
+	LOGNOTE("SysEx voice load: logicalTG=%u, unisonVoices=%u", nTG, unisonVoices);
+	for (unsigned v = 0; v < unisonVoices; ++v) {
+		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
+		LOGNOTE("  affected physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
+	}
 
 	return(m_pTG[nTG]->checkSystemExclusive(pMessage, nLength));
 }
