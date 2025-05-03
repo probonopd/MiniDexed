@@ -71,7 +71,7 @@ jobs:
           # cp -r ./circle-stdlib/libs/circle/boot/* sdcard
           cd ./sdcard
           wget https://github.com/probonopd/MiniDexed/releases/download/assets/boot.zip
-          unzip boot.zip && rm boot zip
+          unzip boot.zip && rm boot.zip
           cd ..
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
           cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
