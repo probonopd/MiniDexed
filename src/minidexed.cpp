@@ -1982,7 +1982,7 @@ void CMiniDexed::loadVoiceParameters(const uint8_t* data, uint8_t nTG)
 		tg_mixer->pan(physicalTG, mapfloat(pan, 0, 127, 0.0f, 1.0f));
 	}
 	// Silence any unused auxiliary TGs (to prevent leftover sound/crackle)
-	for (unsigned v = unisonVoices; v < 4; ++v) { // 4 is the max unison voices
+	for (unsigned v = unisonVoices; v < maxUnisonVoices; ++v) { // maxUnisonVoices is the max unison voices
 		unsigned physicalTG = getPhysicalTG(nTG, v, maxUnisonVoices);
 		if (physicalTG >= m_nToneGenerators) continue;
 		m_pTG[physicalTG]->notesOff();
