@@ -673,6 +673,8 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return;  // Not an active TG
 
+	LOGNOTE("Voice change: logicalTG=%u, program=%u", nTG, nProgram);
+
 	m_nProgram[nTG] = nProgram;
 
 	uint8_t Buffer[156];
@@ -691,6 +693,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 	unsigned unisonSpread = m_nUnisonSpread[nTG];
 	for (unsigned v = 0; v < unisonVoices; ++v) {
 		unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+		LOGNOTE("  affected physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
 		if (physicalTG == nTG || physicalTG >= m_nToneGenerators) continue;
 		m_pTG[physicalTG]->loadVoiceParameters(Buffer);
 		setOPMask(0b111111, physicalTG);
@@ -1311,62 +1314,57 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	}
 }
 
-void CMiniDexed::SetVoiceParameter (uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
+void CMiniDexed::SetVoiceParameter(uint8_t uchOffset, uint8_t uchValue, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::AllToneGenerators);
-	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+    assert(nTG < CConfig::AllToneGenerators);
+    if (nTG >= m_nToneGenerators) return;  // Not an active TG
 
-	assert (m_pTG[nTG]);
-	assert (nOP <= 6);
-
-	if (nOP < 6)
-	{
-		nOP = 5 - nOP;		// OPs are in reverse order
-
-		if (uchOffset == DEXED_OP_ENABLE)
-		{
-			if (uchValue)
-			{
-				setOPMask(m_uchOPMask[nTG] | 1 << nOP, nTG);
-			}
-			else
-			{
-				setOPMask(m_uchOPMask[nTG] & ~(1 << nOP), nTG);
-			}
-
-
-			return;
-		}		
-	}
-
-	uchOffset += nOP * 21;
-	assert (uchOffset < 156);
-
-	m_pTG[nTG]->setVoiceDataElement (uchOffset, uchValue);
+    unsigned unisonVoices = m_nUnisonVoices[nTG];
+    if (unisonVoices < 1) unisonVoices = 1;
+    LOGNOTE("SetVoiceParameter: logicalTG=%u, unisonVoices=%u", nTG, unisonVoices);
+    for (unsigned v = 0; v < unisonVoices; ++v) {
+        unsigned physicalTG = getPhysicalTG(nTG, v, unisonVoices);
+        LOGNOTE("  -> physicalTG=%u (logicalTG=%u, unisonVoice=%u)", physicalTG, nTG, v);
+        if (physicalTG >= m_nToneGenerators) break;
+        assert(m_pTG[physicalTG]);
+        unsigned op = nOP;
+        if (op < 6) {
+            op = 5 - op; // OPs are in reverse order
+            if (uchOffset == DEXED_OP_ENABLE) {
+                if (uchValue) {
+                    setOPMask(m_uchOPMask[physicalTG] | 1 << op, physicalTG);
+                } else {
+                    setOPMask(m_uchOPMask[physicalTG] & ~(1 << op), physicalTG);
+                }
+                continue;
+            }
+        }
+        uint8_t offset = uchOffset + op * 21;
+        assert(offset < 156);
+        m_pTG[physicalTG]->setVoiceDataElement(offset, uchValue);
+    }
 }
 
-uint8_t CMiniDexed::GetVoiceParameter (uint8_t uchOffset, unsigned nOP, unsigned nTG)
+uint8_t CMiniDexed::GetVoiceParameter(uint8_t uchOffset, unsigned nOP, unsigned nTG)
 {
-	assert (nTG < CConfig::AllToneGenerators);
-	if (nTG >= m_nToneGenerators) return 0;  // Not an active TG
+    assert(nTG < CConfig::AllToneGenerators);
+    if (nTG >= m_nToneGenerators) return 0;  // Not an active TG
 
-	assert (m_pTG[nTG]);
-	assert (nOP <= 6);
-
-	if (nOP < 6)
-	{
-		nOP = 5 - nOP;		// OPs are in reverse order
-
-		if (uchOffset == DEXED_OP_ENABLE)
-		{
-			return !!(m_uchOPMask[nTG] & (1 << nOP));
-		}
-	}
-
-	uchOffset += nOP * 21;
-	assert (uchOffset < 156);
-
-	return m_pTG[nTG]->getVoiceDataElement (uchOffset);
+    unsigned unisonVoices = m_nUnisonVoices[nTG];
+    if (unisonVoices < 1) unisonVoices = 1;
+    unsigned physicalTG = getPhysicalTG(nTG, 0, unisonVoices); // Use first physical TG for this logical TG
+    LOGNOTE("GetVoiceParameter: logicalTG=%u, unisonVoices=%u, physicalTG=%u", nTG, unisonVoices, physicalTG);
+    assert(m_pTG[physicalTG]);
+    unsigned op = nOP;
+    if (op < 6) {
+        op = 5 - op; // OPs are in reverse order
+        if (uchOffset == DEXED_OP_ENABLE) {
+            return !!(m_uchOPMask[physicalTG] & (1 << op));
+        }
+    }
+    uint8_t offset = uchOffset + op * 21;
+    assert(offset < 156);
+    return m_pTG[physicalTG]->getVoiceDataElement(offset);
 }
 
 std::string CMiniDexed::GetVoiceName (unsigned nTG)

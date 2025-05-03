@@ -47,17 +47,17 @@ public:
 #if (RASPPI==4 || RASPPI==5)
 	// Pi 4 and 5 quad core
 	// These are max values, default is to support 8 in total with optional 16 TGs
-	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
-	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
-	static const unsigned TGsCore1Opt = 2;		// process optional additional 2 TGs on core 1
-	static const unsigned TGsCore23Opt = 3;		// process optional additional 3 TGs on core 2 and 3 each
+	static const unsigned TGsCore1 = 2*4;		// process 2 TGs on core 1
+	static const unsigned TGsCore23 = 3*4;		// process 3 TGs on core 2 and 3 each
+	static const unsigned TGsCore1Opt = 2*4;		// process optional additional 2 TGs on core 1
+	static const unsigned TGsCore23Opt = 3*4;		// process optional additional 3 TGs on core 2 and 3 each
 	static const unsigned MinToneGenerators = TGsCore1 + 2*TGsCore23;
 	static const unsigned AllToneGenerators = TGsCore1 + TGsCore1Opt + 2*TGsCore23 + 2*TGsCore23Opt;
 	static const unsigned DefToneGenerators = MinToneGenerators;
 #else
 	// Pi 2 or 3 quad core
-	static const unsigned TGsCore1 = 2;		// process 2 TGs on core 1
-	static const unsigned TGsCore23 = 3;		// process 3 TGs on core 2 and 3 each
+	static const unsigned TGsCore1 = 2*4;		// process 2 TGs on core 1
+	static const unsigned TGsCore23 = 3*4;		// process 3 TGs on core 2 and 3 each
 	static const unsigned TGsCore1Opt = 0;
 	static const unsigned TGsCore23Opt = 0;
 	static const unsigned MinToneGenerators = TGsCore1 + 2*TGsCore23;
