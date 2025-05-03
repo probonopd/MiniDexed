@@ -29,6 +29,7 @@
 #include <assert.h>
 #include "midi.h"
 #include "userinterface.h"
+#include "midichunker.h"
 
 LOGMODULE("midikeyboard");
 
@@ -607,146 +608,146 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
-
-  // Check if it is a dump request; these have the format F0 43 2n ff F7
-  // with n = the MIDI channel and ff = 00 for voice or 09 for bank
+    
+    // Check if it is a dump request; these have the format F0 43 2n ff F7
+// with n = the MIDI channel and ff = 00 for voice or 09 for bank
   // It was confirmed that on the TX816, the device number is interpreted as the MIDI channel; 
-  if (nLength == 5 && pMessage[3] == 0x00)
-  {
-	LOGDBG("SysEx voice dump request: device %d", nTG);
-	SendSystemExclusiveVoice(nTG, m_DeviceName, nCable, nTG);
-	return;
-  }
-  else if (nLength == 5 && pMessage[3] == 0x09)
-  {
-	LOGDBG("SysEx bank dump request: device %d", nTG);
-	SendSystemExclusiveBank(nTG, m_DeviceName, nCable, nTG);
-	return;
-  }
+    if (nLength == 5 && pMessage[3] == 0x00)
+    {
+        LOGDBG("SysEx voice dump request: device %d", nTG);
+        SendSystemExclusiveVoice(nTG, m_DeviceName, nCable, nTG);
+                return;
+    }
+    else if (nLength == 5 && pMessage[3] == 0x09)
+    {
+        LOGDBG("SysEx bank dump request: device %d", nTG);
+        SendSystemExclusiveBank(nTG, m_DeviceName, nCable, nTG);
+                return;
+    }
 
-  int16_t sysex_return;
+    int16_t sysex_return;
 
-  sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
-  LOGDBG("SYSEX handler return value: %d", sysex_return);
+    sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
+    LOGDBG("SYSEX handler return value: %d", sysex_return);
 
-  switch (sysex_return)
-  {
-    case -1:
-      LOGERR("SysEx end status byte not detected.");
-      break;
-    case -2:
-      LOGERR("SysEx vendor not Yamaha.");
-      break;
-    case -3:
-      LOGERR("Unknown SysEx parameter change.");
-      break;
-    case -4:
-      LOGERR("Unknown SysEx voice or function.");
-      break;
-    case -5:
-      LOGERR("Not a SysEx voice bulk upload.");
-      break;
-    case -6:
-      LOGERR("Wrong length for SysEx voice bulk upload (not 155).");
-      break;
-    case -7:
-      LOGERR("Checksum error for one voice.");
-      break;
-    case -8:
-      LOGERR("Not a SysEx bank bulk upload.");
-      break;
-    case -9:
-      LOGERR("Wrong length for SysEx bank bulk upload (not 4096).");
-    case -10:
-      LOGERR("Checksum error for bank.");
-      break;
-    case -11:
-      LOGERR("Unknown SysEx message.");
-      break;
-    case 64:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setMonoMode(pMessage[5],nTG);
-      break;
-    case 65:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendRange(pMessage[5],nTG);
-      break;
-    case 66:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPitchbendStep(pMessage[5],nTG);
-      break;
-    case 67:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoMode(pMessage[5],nTG);
-      break;
-    case 68:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoGlissando(pMessage[5],nTG);
-      break;
-    case 69:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setPortamentoTime(pMessage[5],nTG);
-      break;
-    case 70:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelRange(pMessage[5],nTG);
-      break;
-    case 71:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setModWheelTarget(pMessage[5],nTG);
-      break;
-    case 72:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerRange(pMessage[5],nTG);
-      break;
-    case 73:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setFootControllerTarget(pMessage[5],nTG);
-      break;
-    case 74:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerRange(pMessage[5],nTG);
-      break;
-    case 75:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setBreathControllerTarget(pMessage[5],nTG);
-      break;
-    case 76:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchRange(pMessage[5],nTG);
-      break;
-    case 77:
-      LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
-      m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
-      break;
-    case 100:
-      // load sysex-data into voice memory
-      LOGDBG("One Voice bulk upload");
-      m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
-      break;
-    case 200:
-      LOGDBG("Bank bulk upload.");
-      //TODO: add code for storing a bank bulk upload
-      LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
-      break;
-    case 455:
-      // Parameter 155 + 300 added by Synth_Dexed = 455
-      LOGDBG("Operators enabled: %d%d%d%d%d%d", (pMessage[5] & 0x20) ? 1 : 0, (pMessage[5] & 0x10) ? 1 : 0, (pMessage[5] & 0x08) ? 1 : 0, (pMessage[5] & 0x04) ? 1 : 0, (pMessage[5] & 0x02) ? 1 : 0, (pMessage[5] & 0x01) ? 1 : 0);
-      m_pSynthesizer->setOPMask(pMessage[5], nTG);
-      break;
-    default:
-      if(sysex_return >= 300 && sysex_return < 500)
-      {
-        LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
-        m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
-        switch(pMessage[4] + ((pMessage[3] & 0x03) * 128))
-        {
-          case 134:
-            m_pSynthesizer->notesOff(0,nTG);
+    switch (sysex_return)
+    {
+        case -1:
+            LOGERR("SysEx end status byte not detected.");
             break;
-        }
-      }
-  }
+        case -2:
+            LOGERR("SysEx vendor not Yamaha.");
+            break;
+        case -3:
+            LOGERR("Unknown SysEx parameter change.");
+            break;
+        case -4:
+            LOGERR("Unknown SysEx voice or function.");
+            break;
+        case -5:
+            LOGERR("Not a SysEx voice bulk upload.");
+            break;
+        case -6:
+            LOGERR("Wrong length for SysEx voice bulk upload (not 155).");
+            break;
+        case -7:
+            LOGERR("Checksum error for one voice.");
+            break;
+        case -8:
+            LOGERR("Not a SysEx bank bulk upload.");
+            break;
+        case -9:
+            LOGERR("Wrong length for SysEx bank bulk upload (not 4096).");
+        case -10:
+            LOGERR("Checksum error for bank.");
+            break;
+        case -11:
+            LOGERR("Unknown SysEx message.");
+            break;
+        case 64:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setMonoMode(pMessage[5],nTG);
+            break;
+        case 65:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setPitchbendRange(pMessage[5],nTG);
+            break;
+        case 66:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setPitchbendStep(pMessage[5],nTG);
+            break;
+        case 67:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setPortamentoMode(pMessage[5],nTG);
+            break;
+        case 68:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setPortamentoGlissando(pMessage[5],nTG);
+            break;
+        case 69:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setPortamentoTime(pMessage[5],nTG);
+            break;
+        case 70:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setModWheelRange(pMessage[5],nTG);
+            break;
+        case 71:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setModWheelTarget(pMessage[5],nTG);
+            break;
+        case 72:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setFootControllerRange(pMessage[5],nTG);
+            break;
+        case 73:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setFootControllerTarget(pMessage[5],nTG);
+            break;
+        case 74:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setBreathControllerRange(pMessage[5],nTG);
+            break;
+        case 75:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setBreathControllerTarget(pMessage[5],nTG);
+            break;
+        case 76:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setAftertouchRange(pMessage[5],nTG);
+            break;
+        case 77:
+            LOGDBG("SysEx Function parameter change: %d Value %d",pMessage[4],pMessage[5]);
+            m_pSynthesizer->setAftertouchTarget(pMessage[5],nTG);
+            break;
+        case 100:
+            // load sysex-data into voice memory
+            LOGDBG("One Voice bulk upload");
+            m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
+            break;
+        case 200:
+            LOGDBG("Bank bulk upload.");
+            //TODO: add code for storing a bank bulk upload
+            LOGNOTE("Currently code  for storing a bulk bank upload is missing!");
+            break;
+        case 455:
+            // Parameter 155 + 300 added by Synth_Dexed = 455
+            LOGDBG("Operators enabled: %d%d%d%d%d%d", (pMessage[5] & 0x20) ? 1 : 0, (pMessage[5] & 0x10) ? 1 : 0, (pMessage[5] & 0x08) ? 1 : 0, (pMessage[5] & 0x04) ? 1 : 0, (pMessage[5] & 0x02) ? 1 : 0, (pMessage[5] & 0x01) ? 1 : 0);
+            m_pSynthesizer->setOPMask(pMessage[5], nTG);
+            break;
+        default:
+            if(sysex_return >= 300 && sysex_return < 500)
+            {
+                LOGDBG("SysEx voice parameter change: Parameter %d value: %d",pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5]);
+                m_pSynthesizer->setVoiceDataElement(pMessage[4] + ((pMessage[3] & 0x03) * 128), pMessage[5],nTG);
+                switch(pMessage[4] + ((pMessage[3] & 0x03) * 128))
+                {
+                    case 134:
+                        m_pSynthesizer->notesOff(0,nTG);
+                        break;
+                }
+            }
+    }
 }
 
 void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
@@ -765,14 +766,36 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& de
 
 void CMIDIDevice::SendSystemExclusiveBank(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
 {
-	// Example: F0 43 20 09 F7
-    static uint8_t voicedump[4104]; // Use static buffer, correct size for DX7 bank dump
+    LOGNOTE("SendSystemExclusiveBank");
+    static uint8_t voicedump[4096]; // Correct size for DX7 bank dump
     m_pSynthesizer->getSysExBankDump(voicedump, nTG);
+    LOGNOTE("SendSystemExclusiveBank: after getSysExBankDump");
+    LOGNOTE("SendSystemExclusiveBank: before chunking");
+    MIDISysExChunker chunker(voicedump, 4096, 512);
+    LOGNOTE("SendSystemExclusiveBank: after chunker creation");
     TDeviceMap::const_iterator Iterator = s_DeviceMap.find(deviceName);
     if (Iterator != s_DeviceMap.end()) {
-        Iterator->second->Send(voicedump, 4104, nCable);
-        LOGDBG("Send SYSEX bank dump %u to \"%s\"", nVoice, deviceName.c_str());
+        LOGNOTE("SendSystemExclusiveBank: device found, starting chunk send loop");
+        int chunkCount = 0;
+        while (chunker.hasNext()) {
+            std::vector<uint8_t> chunk = chunker.next();
+            // Pad chunk to a multiple of 4 bytes for USB MIDI
+            size_t pad = chunk.size() % 4;
+            if (pad != 0) {
+                chunk.resize(chunk.size() + (4 - pad), 0x00);
+            }
+            if (chunk.size() % 4 != 0) {
+                LOGERR("Chunk size %u is not a multiple of 4 before Send!", (unsigned)chunk.size());
+                assert(chunk.size() % 4 == 0);
+            }
+            LOGNOTE("SendSystemExclusiveBank: sending chunk %d, size=%u", chunkCount, (unsigned)chunk.size());
+            Iterator->second->Send(chunk.data(), chunk.size(), nCable);
+            chunkCount++;
+        }
+        LOGNOTE("SendSystemExclusiveBank: all chunks sent, total=%d", chunkCount);
+        LOGDBG("Send SYSEX bank dump %u to \"%s\" in 512-byte chunks", nVoice, deviceName.c_str());
     } else {
-        LOGWARN("No device found in s_DeviceMap for name: %s", deviceName.c_str());
+        LOGWARN("SendSystemExclusiveBank: No device found in s_DeviceMap for name: %s", deviceName.c_str());
     }
+    LOGNOTE("SendSystemExclusiveBank: exit");
 }

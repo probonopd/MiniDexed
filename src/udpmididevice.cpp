@@ -103,14 +103,14 @@ void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
     bool sentRTP = false;
     if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
         sentRTP = true;
-        LOGNOTE("Sent %zu bytes to RTP-MIDI host", nLength);
+        LOGNOTE("Sent %d bytes to RTP-MIDI host", nLength);
     }
     if (!sentRTP && m_pUDPSendSocket) {
         int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
         if (res < 0) {
-            LOGERR("Failed to send %zu bytes to UDP MIDI host", nLength);
+            LOGERR("Failed to send %d bytes to UDP MIDI host", nLength);
         } else {
-            LOGNOTE("Sent %zu bytes to UDP MIDI host (broadcast)", nLength);
+            LOGNOTE("Sent %d bytes to UDP MIDI host (broadcast)", nLength);
         }
     }
 }

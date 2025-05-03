@@ -65,6 +65,7 @@ void CMIDIKeyboard::Process (boolean bPlugAndPlayUpdated)
         // Only send one chunk per Process() call to avoid blocking or watchdog reset
         if (offset < m_QueuedSysEx.size()) {
             size_t chunk = std::min(kUSBMIDIMaxChunk, m_QueuedSysEx.size() - offset);
+            LOGNOTE("SendEventPackets: about to send chunk at offset %u, length=%u", offset, chunk);
             m_pMIDIDevice->SendEventPackets(m_QueuedSysEx.data() + offset, chunk);
             offset += chunk;
             // Save progress for next Process() call
