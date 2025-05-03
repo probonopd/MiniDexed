@@ -27,6 +27,8 @@
 #include <circle/net/socket.h>
 #include <circle/sched/task.h>
 #include <circle/string.h>
+#include "../config.h"
+#include "mdnspublisher.h"
 
 // TODO: These may be incomplete/inaccurate
 enum TFTPStatus
@@ -79,7 +81,7 @@ struct TDirectoryListEntry;
 class CFTPWorker : protected CTask
 {
 public:
-	CFTPWorker(CSocket* pControlSocket, const char* pExpectedUser, const char* pExpectedPassword);
+	CFTPWorker(CSocket* pControlSocket, const char* pExpectedUser, const char* pExpectedPassword, CmDNSPublisher* pMDNSPublisher, CConfig* pConfig);
 	virtual ~CFTPWorker() override;
 
 	virtual void Run() override;
@@ -141,6 +143,9 @@ private:
 	TTransferMode m_TransferMode;
 	CString m_CurrentPath;
 	CString m_RenameFrom;
+
+	CmDNSPublisher* m_pmDNSPublisher;
+	CConfig* m_pConfig;
 
 	static void FatFsPathToFTPPath(const char* pInBuffer, char* pOutBuffer, size_t nSize);
 	static void FTPPathToFatFsPath(const char* pInBuffer, char* pOutBuffer, size_t nSize);

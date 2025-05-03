@@ -15,6 +15,7 @@ class SyslogServer:
         self.port = port
         self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.server.bind((self.host, self.port))
+        self.server.settimeout(0.5)  # Set timeout to allow checking self.running
         self.start_time = None
         self.running = True
 
@@ -28,11 +29,16 @@ class SyslogServer:
             try:
                 data, address = self.server.recvfrom(1024)
                 self.handle_message(data)
+            except socket.timeout:
+                continue  # Check self.running again
             except KeyboardInterrupt:
                 self.running = False
 
     def handle_message(self, data):
         message = data[2:].decode('utf-8').strip()
+
+        if "Time exceeded (0)" in message:
+            return
 
         if self.start_time is None:
             self.start_time = time.time()
