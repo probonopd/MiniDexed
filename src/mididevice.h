@@ -56,6 +56,7 @@ public:
 	virtual void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) {}
 	// Change signature to specify device name
 	void SendSystemExclusiveVoice(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG);
+	void SendSystemExclusiveBank(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG);
 	const std::string& GetDeviceName() const { return m_DeviceName; }
 
 protected:

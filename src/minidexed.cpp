@@ -1868,6 +1868,49 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	dest[162] = 0xF7; // SysEx end
 }
 
+void CMiniDexed::getSysExBankDump(uint8_t* dest, uint8_t nTG)
+{
+    // DX7 Bulk Dump: 32 voices
+    // Header: F0 43 00 09 20 00
+    // Data:   4096 bytes (32 voices x 128 bytes packed)
+    // Checksum: 1 byte (2's complement of sum of 4096 data bytes, masked to 7 bits)
+    // Footer: F7
+    // Total: 4104 bytes
+
+    constexpr size_t kVoices = 32;
+    constexpr size_t kPackedVoiceSize = 128;
+    constexpr size_t kBulkDataSize = kVoices * kPackedVoiceSize; // 4096
+    constexpr size_t kHeaderSize = 6;
+    constexpr size_t kTotalSize = kHeaderSize + kBulkDataSize + 2; // +checksum +F7 = 4104
+
+    // Header (Yamaha DX7 standard)
+    dest[0] = 0xF0; // SysEx start
+    dest[1] = 0x43; // Yamaha ID
+    dest[2] = 0x00; // Sub-status (0), device/channel (0)
+    dest[3] = 0x09; // Format number (9 = 32 voices)
+    dest[4] = 0x20; // Byte count MSB (4096 = 0x1000, MSB=0x20)
+    dest[5] = 0x00; // Byte count LSB
+
+    // Fill packed voice data
+    uint8_t* pData = dest + kHeaderSize;
+    uint8_t checksum = 0;
+    for (size_t v = 0; v < kVoices; ++v) {
+        uint8_t packedVoice[kPackedVoiceSize];
+        m_SysExFileLoader.GetVoice(m_nVoiceBankID[nTG], v, packedVoice);
+        for (size_t b = 0; b < kPackedVoiceSize; ++b) {
+            pData[v * kPackedVoiceSize + b] = packedVoice[b];
+            checksum += packedVoice[b];
+        }
+    }
+
+    // Checksum: 2's complement, masked to 7 bits
+    checksum = (~checksum + 1) & 0x7F;
+    dest[kHeaderSize + kBulkDataSize] = checksum;
+
+    // Footer
+    dest[kHeaderSize + kBulkDataSize + 1] = 0xF7;
+}
+
 void CMiniDexed::setOPMask(uint8_t uchOPMask, uint8_t nTG)
 {
 	m_uchOPMask[nTG] = uchOPMask;

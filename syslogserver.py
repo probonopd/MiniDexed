@@ -34,6 +34,9 @@ class SyslogServer:
     def handle_message(self, data):
         message = data[2:].decode('utf-8').strip()
 
+        if "Time exceeded (0)" in message:
+            return
+
         if self.start_time is None:
             self.start_time = time.time()
             relative_time = "0:00:00.000"

@@ -30,7 +30,7 @@
 #include "midi.h"
 #include "userinterface.h"
 
-LOGMODULE ("mididevice");
+LOGMODULE("midikeyboard");
 
 // MIDI "System" level (i.e. all TG) custom CC maps
 // Note: Even if number of TGs is not 8, there are only 8
@@ -249,8 +249,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		m_pSynthesizer->setMasterVolume(fMasterVolume);
 	}
 	else
-	{
-		// Perform any MiniDexed level MIDI handling before specific Tone Generators
+	{		// Perform any MiniDexed level MIDI handling before specific Tone Generators
 		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
 		switch (ucType)
 		{
@@ -621,7 +620,7 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
   else if (nLength == 5 && pMessage[3] == 0x09)
   {
 	LOGDBG("SysEx bank dump request: device %d", nTG);
-	LOGDBG("Still to be implemented");
+	SendSystemExclusiveBank(nTG, m_DeviceName, nCable, nTG);
 	return;
   }
 
@@ -747,12 +746,6 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
             break;
         }
       }
-      else if(sysex_return >= 500 && sysex_return < 600)
-      {
-        LOGDBG("SysEx send voice %u request",sysex_return-500);
-        SendSystemExclusiveVoice(sysex_return-500, m_DeviceName, nCable, nTG);
-      }
-      break;
   }
 }
 
@@ -765,6 +758,20 @@ void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& de
     if (Iterator != s_DeviceMap.end()) {
         Iterator->second->Send(voicedump, sizeof(voicedump), nCable);
         LOGDBG("Send SYSEX voice dump %u to \"%s\"", nVoice, deviceName.c_str());
+    } else {
+        LOGWARN("No device found in s_DeviceMap for name: %s", deviceName.c_str());
+    }
+}
+
+void CMIDIDevice::SendSystemExclusiveBank(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
+{
+	// Example: F0 43 20 09 F7
+    static uint8_t voicedump[4104]; // Use static buffer, correct size for DX7 bank dump
+    m_pSynthesizer->getSysExBankDump(voicedump, nTG);
+    TDeviceMap::const_iterator Iterator = s_DeviceMap.find(deviceName);
+    if (Iterator != s_DeviceMap.end()) {
+        Iterator->second->Send(voicedump, 4104, nCable);
+        LOGDBG("Send SYSEX bank dump %u to \"%s\"", nVoice, deviceName.c_str());
     } else {
         LOGWARN("No device found in s_DeviceMap for name: %s", deviceName.c_str());
     }
