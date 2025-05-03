@@ -237,6 +237,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	float masterVolNorm = (float)(pConfig->GetMasterVolume()) / 127.0f;
 	setMasterVolume(masterVolNorm);
 
+	// Setup master volume fade-in (soft start)
+	m_fadeCurrentVolume = 0.0f;
+	m_fadeTargetVolume = nMasterVolume; // nMasterVolume is set by setMasterVolume above
+	m_fadeInActive = true;
+	m_fadeInFrames = 0;
+	// 50ms fade-in: total frames = 0.05 * sample rate
+	m_fadeInTotalFrames = (unsigned)(0.05f * (float)pConfig->GetSampleRate());
+
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
@@ -1340,6 +1348,21 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
+		// Fade-in logic (soft start)
+		float32_t fadeVolume = nMasterVolume;
+		if (m_fadeInActive) {
+			if (m_fadeInFrames < m_fadeInTotalFrames) {
+				float progress = (float)m_fadeInFrames / (float)m_fadeInTotalFrames;
+				m_fadeCurrentVolume = m_fadeTargetVolume * progress;
+				fadeVolume = m_fadeCurrentVolume;
+				m_fadeInFrames += nFrames;
+			} else {
+				m_fadeCurrentVolume = m_fadeTargetVolume;
+				fadeVolume = m_fadeCurrentVolume;
+				m_fadeInActive = false;
+			}
+		}
+
 		if (m_bQuadDAC8Chan) {
 			// This is only supported when there are 8 TGs
 			assert (m_nToneGenerators == 8);
@@ -1350,7 +1373,7 @@ void CMiniDexed::ProcessSound (void)
 			float32_t tmp_float[nFrames*Channels];
 			int32_t tmp_int[nFrames*Channels];
 
-			if(nMasterVolume > 0.0)
+			if(fadeVolume > 0.0)
 			{
 				// Convert dual float array (8 chan) to single int16 array (8 chan)
 				for(uint16_t i=0; i<nFrames;i++)
@@ -1360,11 +1383,11 @@ void CMiniDexed::ProcessSound (void)
 					// no additional processing.
 					for (uint8_t tg = 0; tg < Channels; tg++)
 					{
-						if(nMasterVolume >0.0 && nMasterVolume <1.0)
+						if(fadeVolume >0.0 && fadeVolume <1.0)
 						{
-							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * fadeVolume;
 						}
-						else if(nMasterVolume == 1.0)
+						else if(fadeVolume == 1.0)
 						{
 							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
 						}
@@ -1400,7 +1423,7 @@ void CMiniDexed::ProcessSound (void)
 			float32_t tmp_float[nFrames*2];
 			int32_t tmp_int[nFrames*2];
 
-			if(nMasterVolume > 0.0)
+			if(fadeVolume > 0.0)
 			{
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
@@ -1453,12 +1476,12 @@ void CMiniDexed::ProcessSound (void)
 				// Convert dual float array (left, right) to single int16 array (left/right)
 				for(uint16_t i=0; i<nFrames;i++)
 				{
-					if(nMasterVolume >0.0 && nMasterVolume <1.0)
+					if(fadeVolume >0.0 && fadeVolume <1.0)
 					{
-						tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
+						tmp_float[i*2]=SampleBuffer[indexL][i] * fadeVolume;
+						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * fadeVolume;
 					}
-					else if(nMasterVolume == 1.0)
+					else if(fadeVolume == 1.0)
 					{
 						tmp_float[i*2]=SampleBuffer[indexL][i];
 						tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
@@ -1886,6 +1909,10 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     vol = powf(vol, 2.0f);
 
     nMasterVolume = vol;
+    // If called during fade-in, update target
+    if (m_fadeInActive) {
+        m_fadeTargetVolume = nMasterVolume;
+    }
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)

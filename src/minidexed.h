@@ -311,6 +311,13 @@ private:
 	
 	float32_t nMasterVolume;
 
+	// Soft start (fade-in) for master volume
+	float32_t m_fadeCurrentVolume = 0.0f;
+	float32_t m_fadeTargetVolume = 1.0f;
+	bool m_fadeInActive = false;
+	unsigned m_fadeInFrames = 0;
+	unsigned m_fadeInTotalFrames = 0;
+
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
 	CPerformanceConfig m_PerformanceConfig;
