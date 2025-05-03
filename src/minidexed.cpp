@@ -1414,6 +1414,8 @@ void CMiniDexed::ProcessSound (void)
 				// END create SampleBuffer for holding audio data
 
 				// get the mix of all TGs
+				arm_fill_f32(0.0f, SampleBuffer[indexL], nFrames);
+				arm_fill_f32(0.0f, SampleBuffer[indexR], nFrames);
 				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
 
 				// BEGIN adding reverb
