@@ -1305,6 +1305,10 @@ void CMiniDexed::ProcessSound (void)
 	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail ();
 	if (nFrames >= m_nQueueSizeFrames/2)
 	{
+		// only process the minimum number of frames (== chunksize / 2)
+		// as the tg_mixer cannot process more
+		nFrames = m_nQueueSizeFrames / 2;
+
 		if (m_bProfileEnabled)
 		{
 			m_GetChunkTimer.Start ();
