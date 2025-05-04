@@ -426,9 +426,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							{
 								LOGNOTE("MIDI-SYSEX: Set Audio Output Level Attenuator %d to %d", nTG, val & 0x0F);
 								// Example: F0 43 10 04 1A 00 F7 to F0 43 10 04 1A 07 F7
-								// Logarithmic mapping for volume
 								unsigned attenVal = val & 0x07;
-								unsigned newVolume = (unsigned)(127.0 * pow(attenVal / 7.0, 2.0) + 0.5);
+								// unsigned newVolume = (unsigned)(127.0 * pow(attenVal / 7.0, 2.0) + 0.5); // Logarithmic mapping
+								// But on the T816, there is an exponential (not logarithmic!) mapping, and 0 results in the same volume as 1:
+								// 7=127, 6=63, 5=31, 4=15, 3=7, 2=3, 1=1, 0=1
+								unsigned newVolume = (attenVal == 0) ? 0 : (127 >> (7 - attenVal));
+								if (newVolume == 0) newVolume = 1; // 0 is like 1 to avoid silence
 								m_pSynthesizer->SetVolume(newVolume, nTG);
 							}
 							break;
