@@ -57,11 +57,6 @@ public:
 	};
 
 public:
-	CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
-
-	void EventHandler (TMenuEvent Event);
-	
-private:
 	typedef void TMenuHandler (CUIMenu *pUIMenu, TMenuEvent Event);
 
 	struct TMenuItem
@@ -72,6 +67,17 @@ private:
 		unsigned Parameter;
 	};
 
+	static const TMenuItem s_UnisonMenu[];
+	static void EditTGParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditVoiceParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void EditOPParameter(CUIMenu *pUIMenu, TMenuEvent Event);
+	static void SavePerformance(CUIMenu *pUIMenu, TMenuEvent Event);
+
+public:
+	CUIMenu(CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig);
+	void EventHandler(TMenuEvent Event);
+
+private:
 	typedef std::string TToString (int nValue);
 
 	struct TParameter
@@ -87,10 +93,6 @@ private:
 	static void EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditVoiceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event); 	
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);

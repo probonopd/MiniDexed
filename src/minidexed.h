@@ -222,6 +222,10 @@ public:
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
 		
+		TGParameterUnisonVoices,
+		TGParameterUnisonDetune,
+		TGParameterUnisonSpread,
+
 		TGParameterUnknown
 	};
 
@@ -305,10 +309,13 @@ private:
 	int m_nNoteShift[CConfig::AllToneGenerators];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
-  
+	unsigned m_nUnisonVoices[CConfig::AllToneGenerators];
+	unsigned m_nUnisonDetune[CConfig::AllToneGenerators];
+	unsigned m_nUnisonSpread[CConfig::AllToneGenerators];
 	uint8_t m_nRawVoiceData[156]; 
 	
-	
+	uint8_t m_noteOnCount[CConfig::AllToneGenerators][128];
+
 	float32_t nMasterVolume;
 
 	CUserInterface m_UI;

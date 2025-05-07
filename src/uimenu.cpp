@@ -71,22 +71,31 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 {
-	{"Voice",	EditProgramNumber},
-	{"Bank",	EditVoiceBankNumber},
-	{"Volume",	EditTGParameter,	0,	CMiniDexed::TGParameterVolume},
+	{"Voice", EditProgramNumber},
+	{"Bank", EditVoiceBankNumber},
+	{"Volume", EditTGParameter, 0, CMiniDexed::TGParameterVolume},
 #ifdef ARM_ALLOW_MULTI_CORE
-	{"Pan",		EditTGParameter,	0,	CMiniDexed::TGParameterPan},
-	{"Reverb-Send",	EditTGParameter,	0,	CMiniDexed::TGParameterReverbSend},
+	{"Pan",  EditTGParameter, 0, CMiniDexed::TGParameterPan},
+	{"Reverb-Send", EditTGParameter, 0, CMiniDexed::TGParameterReverbSend},
 #endif
-	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
-	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
-	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
-	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
-	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
-	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
-	{"Modulation",		MenuHandler,		s_ModulationMenu},
-	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
-	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{"Detune", EditTGParameter, 0, CMiniDexed::TGParameterMasterTune},
+	{"Cutoff", EditTGParameter, 0, CMiniDexed::TGParameterCutoff},
+	{"Resonance", EditTGParameter, 0, CMiniDexed::TGParameterResonance},
+	{"Unison", MenuHandler, s_UnisonMenu},
+	{"Pitch Bend", MenuHandler,  s_EditPitchBendMenu},
+	{"Portamento",  MenuHandler,  s_EditPortamentoMenu},
+	{"Poly/Mono",  EditTGParameter, 0, CMiniDexed::TGParameterMonoMode}, 
+	{"Modulation",  MenuHandler,  s_ModulationMenu},
+	{"Channel", EditTGParameter, 0, CMiniDexed::TGParameterMIDIChannel},
+	{"Edit Voice", MenuHandler,  s_EditVoiceMenu},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_UnisonMenu[] =
+{
+	{"Voices", EditTGParameter, 0, CMiniDexed::TGParameterUnisonVoices},
+	{"Detune", EditTGParameter, 0, CMiniDexed::TGParameterUnisonDetune},
+	{"Spread", EditTGParameter, 0, CMiniDexed::TGParameterUnisonSpread},
 	{0}
 };
 
@@ -265,7 +274,10 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias
+	{1, 4, 1}, // Unison Voices
+	{0, 99, 1}, // Unison Detune
+	{0, 99, 1}, // Unison Spread
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -734,9 +746,16 @@ void CUIMenu::EditProgramNumber (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 }
 
-void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
+void CUIMenu::EditTGParameter(CUIMenu *pUIMenu, TMenuEvent Event)
 {
-	unsigned nTG = pUIMenu->m_nMenuStackParameter[pUIMenu->m_nCurrentMenuDepth-1];
+	unsigned nTG = 0;
+	// Always determine the correct logical TG from the menu stack
+	if (pUIMenu->m_nCurrentMenuDepth >= 2) {
+		nTG = pUIMenu->m_nMenuStackParameter[1];
+	} else if (pUIMenu->m_nCurrentMenuDepth >= 1) {
+		nTG = pUIMenu->m_nMenuStackParameter[0];
+	}
+	if (nTG >= pUIMenu->m_nToneGenerators) nTG = 0;
 
 	CMiniDexed::TTGParameter Param = (CMiniDexed::TTGParameter) pUIMenu->m_nCurrentParameter;
 	const TParameter &rParam = s_TGParameter[Param];
@@ -776,15 +795,15 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	string TG ("TG");
-	TG += to_string (nTG+1);
+	std::string TG ("TG");
+	TG += std::to_string (nTG+1);
 
-	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+	std::string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+		pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
+		Value.c_str (),
+		nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
 
 void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second menu level. Redundant code but in order to not modified original code
@@ -1098,7 +1117,7 @@ string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
 
 string CUIMenu::ToVolume (int nValue)
 {
-	static const size_t MaxChars = CConfig::LCDColumns-2;
+	static const std::size_t MaxChars = CConfig::LCDColumns-2;
 	char VolumeBar[MaxChars+1];
 	memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
 	VolumeBar[nValue * MaxChars / 127] = '\0';
@@ -1109,7 +1128,7 @@ string CUIMenu::ToVolume (int nValue)
 string CUIMenu::ToPan (int nValue)
 {
 	assert (CConfig::LCDColumns == 16);
-	static const size_t MaxChars = CConfig::LCDColumns-3;
+	static const std::size_t MaxChars = CConfig::LCDColumns-3;
 	char PanMarker[MaxChars+1] = "......:......";
 	unsigned nIndex = nValue * MaxChars / 127;
 	if (nIndex == MaxChars)
