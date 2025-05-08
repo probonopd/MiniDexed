@@ -25,6 +25,8 @@
 #include <cstring>
 #include "udpmididevice.h"
 #include <assert.h>
+#include <circle/net/netsubsystem.h>
+#include <circle/net/in.h>
 
 #define VIRTUALCABLE 24
 
@@ -64,6 +66,13 @@ boolean CUDPMIDIDevice::Initialize (void)
 	}
 	else
 		LOGNOTE("UDP MIDI receiver initialized");
+
+	// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
+	CNetSubSystem* pNet = CNetSubSystem::Get();
+	m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
+	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
+	m_UDPDestPort = 1999;
+
 	return true;
 }
 
@@ -87,4 +96,21 @@ void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const c
 void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 {
 	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
+}
+
+void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
+{
+    bool sentRTP = false;
+    if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
+        sentRTP = true;
+        LOGNOTE("Sent %d bytes to RTP-MIDI host", nLength);
+    }
+    if (!sentRTP && m_pUDPSendSocket) {
+        int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
+        if (res < 0) {
+            LOGERR("Failed to send %d bytes to UDP MIDI host", nLength);
+        } else {
+            LOGNOTE("Sent %d bytes to UDP MIDI host (broadcast)", nLength);
+        }
+    }
 }

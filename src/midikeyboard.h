@@ -30,6 +30,7 @@
 #include <circle/string.h>
 #include <circle/types.h>
 #include <queue>
+#include <vector>
 
 #define USB_SYSEX_BUFFER_SIZE (MAX_DX7_SYSEX_LENGTH+128) // Allow a bit spare to handle unexpected SysEx messages
 
@@ -44,6 +45,14 @@ public:
 	void Process (boolean bPlugAndPlayUpdated);
 
 	void Send (const u8 *pMessage, size_t nLength, unsigned nCable = 0) override;
+
+	void QueueSysExResponse(const uint8_t* data, size_t len) {
+		m_QueuedSysEx.assign(data, data + len);
+		m_HasQueuedSysEx = true;
+	}
+	bool HasQueuedSysExResponse() const { return m_HasQueuedSysEx; }
+	void ClearQueuedSysExResponse() { m_QueuedSysEx.clear(); m_HasQueuedSysEx = false; }
+	const std::vector<uint8_t>& GetQueuedSysExResponse() const { return m_QueuedSysEx; }
 
 private:
 	static void MIDIPacketHandler (unsigned nCable, u8 *pPacket, unsigned nLength, unsigned nDevice, void *pParam);
@@ -68,6 +77,11 @@ private:
 	CUSBMIDIDevice * volatile m_pMIDIDevice;
 
 	std::queue<TSendQueueEntry> m_SendQueue;
+
+	std::vector<uint8_t> m_QueuedSysEx;
+	bool m_HasQueuedSysEx = false;
 };
+
+std::vector<std::vector<uint8_t>> SysExToUSBMIDIPackets(const uint8_t* data, size_t length, unsigned cable);
 
 #endif

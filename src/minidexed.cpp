@@ -666,7 +666,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 		// MIDI channel configured for this TG
 		if (m_nMIDIChannel[nTG] < CMIDIDevice::Channels)
 		{
-			m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
+			m_SerialMIDI.SendSystemExclusiveVoice(nProgram, m_SerialMIDI.GetDeviceName(), 0, nTG);
 		}
 	}
 
@@ -1871,6 +1871,67 @@ void CMiniDexed::getSysExVoiceDump(uint8_t* dest, uint8_t nTG)
 	}
 	dest[161] = checksum & 0x7f; // Checksum
 	dest[162] = 0xF7; // SysEx end
+}
+
+void CMiniDexed::getSysExBankDump(uint8_t* dest, uint8_t nTG)
+{
+    LOGNOTE("getSysExBankDump: called for TG=%u", nTG);
+	return;
+    constexpr size_t kVoices = 32;
+    constexpr size_t kPackedVoiceSize = 128;
+    constexpr size_t kBulkDataSize = kVoices * kPackedVoiceSize; // 4096
+    constexpr size_t kHeaderSize = 6;
+    constexpr size_t kTotalSize = kHeaderSize + kBulkDataSize + 2; // +checksum +F7 = 4104
+
+    // Header (Yamaha DX7 standard)
+    LOGNOTE("getSysExBankDump: writing header");
+    dest[0] = 0xF0; // SysEx start
+    dest[1] = 0x43; // Yamaha ID
+    dest[2] = 0x00; // Sub-status (0), device/channel (0)
+    dest[3] = 0x09; // Format number (9 = 32 voices)
+    dest[4] = 0x20; // Byte count MSB (4096 = 0x1000, MSB=0x20)
+    dest[5] = 0x00; // Byte count LSB
+
+    LOGNOTE("getSysExBankDump: header: %02X %02X %02X %02X %02X %02X", dest[0], dest[1], dest[2], dest[3], dest[4], dest[5]);
+
+    // Fill packed voice data
+    uint8_t* pData = dest + kHeaderSize;
+    uint8_t checksum = 0;
+    for (size_t v = 0; v < kVoices; ++v) {
+        uint8_t packedVoice[kPackedVoiceSize];
+        m_SysExFileLoader.GetVoice(m_nVoiceBankID[nTG], v, packedVoice);
+        for (size_t b = 0; b < kPackedVoiceSize; ++b) {
+            pData[v * kPackedVoiceSize + b] = packedVoice[b];
+            checksum += packedVoice[b];
+        }
+    }
+    LOGNOTE("getSysExBankDump: packed data filled, checksum before complement: %02X", checksum);
+
+    // Checksum: 2's complement, masked to 7 bits
+    checksum = (~checksum + 1) & 0x7F;
+    dest[kHeaderSize + kBulkDataSize] = checksum;
+    LOGNOTE("getSysExBankDump: checksum after complement: %02X", checksum);
+
+    // Footer
+    dest[kHeaderSize + kBulkDataSize + 1] = 0xF7;
+    LOGNOTE("getSysExBankDump: footer: %02X", dest[kHeaderSize + kBulkDataSize + 1]);
+
+    // Log summary of dump
+    LOGNOTE("getSysExBankDump: total size: %d bytes", kTotalSize);
+    std::string dumpStart, dumpEnd;
+    char buf[8];
+    for (size_t i = 0; i < 16; ++i) {
+        snprintf(buf, sizeof(buf), "%02X", dest[i]);
+        dumpStart += buf;
+        if (i < 15) dumpStart += " ";
+    }
+    for (size_t i = kTotalSize - 16; i < kTotalSize; ++i) {
+        snprintf(buf, sizeof(buf), "%02X", dest[i]);
+        dumpEnd += buf;
+        if (i < kTotalSize - 1) dumpEnd += " ";
+    }
+    LOGNOTE("getSysExBankDump: first 16 bytes: %s", dumpStart.c_str());
+    LOGNOTE("getSysExBankDump: last 16 bytes: %s", dumpEnd.c_str());
 }
 
 void CMiniDexed::setOPMask(uint8_t uchOPMask, uint8_t nTG)
