@@ -39,11 +39,6 @@ jobs:
           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
           tar xf gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
 
-      # Patch Synth_Dexed until the fix is merged upstream; see https://github.com/probonopd/MiniDexed/issues/889
-      - name: Patch Synth_Dexed
-        run: |
-          ( cd Synth_Dexed ; patch -p1 < ../src/patches/dx7note.patch )
-
       - name: Build for Raspberry Pi 5 (64-bit)
         run: |
           set -ex
@@ -69,11 +64,15 @@ jobs:
         run: |
           set -ex
           export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
-          cd ./circle-stdlib/libs/circle/boot
-          make
-          make armstub64
-          cd -
-          cp -r ./circle-stdlib/libs/circle/boot/* sdcard
+          # cd ./circle-stdlib/libs/circle/boot
+          # make
+          # make armstub64
+          # cd -
+          # cp -r ./circle-stdlib/libs/circle/boot/* sdcard
+          cd ./sdcard
+          wget https://github.com/probonopd/MiniDexed/releases/download/assets/boot.zip
+          unzip boot.zip && rm boot.zip
+          cd ..
           rm -rf sdcard/config*.txt sdcard/README sdcard/Makefile sdcard/armstub sdcard/COPYING.linux
           cp ./src/config.txt ./src/minidexed.ini ./src/performance.ini sdcard/
           cp ./getsysex.sh sdcard/
@@ -128,11 +127,6 @@ jobs:
           set -ex
           wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
           tar xf gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
-
-      # Patch Synth_Dexed until the fix is merged upstream; see https://github.com/probonopd/MiniDexed/issues/889
-      - name: Patch Synth_Dexed
-        run: |
-          ( cd Synth_Dexed ; patch -p1 < ../src/patches/dx7note.patch )
 
       - name: Build for Raspberry Pi 2 (32-bit)
         run: |

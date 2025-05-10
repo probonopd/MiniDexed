@@ -46,7 +46,7 @@ CUDPMIDIDevice::~CUDPMIDIDevice (void)
 
 boolean CUDPMIDIDevice::Initialize (void)
 {
-	m_pAppleMIDIParticipant = new CAppleMIDIParticipant(&m_Random, this);
+	m_pAppleMIDIParticipant = new CAppleMIDIParticipant(&m_Random, this, m_pConfig->GetNetworkHostname());
 	if (!m_pAppleMIDIParticipant->Initialize())
 	{
 		LOGERR("Failed to init RTP listener");

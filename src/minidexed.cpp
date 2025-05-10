@@ -1123,6 +1123,7 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterATAmplitude:				setModController(3, 2, nValue, nTG); break;
 	case TGParameterATEGBias:					setModController(3, 3, nValue, nTG); break;
 	
+	
 	case TGParameterMIDIChannel:
 		assert (0 <= nValue && nValue <= 255);
 		SetMIDIChannel ((uint8_t) nValue, nTG);
@@ -1304,6 +1305,10 @@ void CMiniDexed::ProcessSound (void)
 	unsigned nFrames = m_nQueueSizeFrames - m_pSoundDevice->GetQueueFramesAvail ();
 	if (nFrames >= m_nQueueSizeFrames/2)
 	{
+		// only process the minimum number of frames (== chunksize / 2)
+		// as the tg_mixer cannot process more
+		nFrames = m_nQueueSizeFrames / 2;
+
 		if (m_bProfileEnabled)
 		{
 			m_GetChunkTimer.Start ();
@@ -2306,7 +2311,7 @@ void CMiniDexed::UpdateNetwork()
 		}
 
 		if (m_pConfig->GetNetworkFTPEnabled()) {
-			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD);
+			m_pFTPDaemon = new CFTPDaemon(FTPUSERNAME, FTPPASSWORD, m_pmDNSPublisher, m_pConfig);
 
 			if (!m_pFTPDaemon->Initialize())
 			{
