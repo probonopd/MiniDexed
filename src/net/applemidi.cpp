@@ -31,6 +31,9 @@
 #include "applemidi.h"
 #include "byteorder.h"
 
+#define MAX_DX7_SYSEX_LENGTH 4104
+#define MAX_MIDI_MESSAGE MAX_DX7_SYSEX_LENGTH
+
 // #define APPLEMIDI_DEBUG
 
 LOGMODULE("applemidi");
@@ -876,4 +879,46 @@ bool CAppleMIDIParticipant::SendFeedbackPacket()
 #endif
 
 	return SendPacket(m_pControlSocket, &m_InitiatorIPAddress, m_nInitiatorControlPort, &FeedbackPacket, sizeof(FeedbackPacket));
+}
+
+bool CAppleMIDIParticipant::SendMIDIToHost(const u8* pData, size_t nSize)
+{
+	if (m_State != TState::Connected)
+		return false;
+
+	// Build RTP-MIDI packet
+	TRTPMIDI packet;
+	packet.nFlags = htons((RTPMIDIVersion << 14) | RTPMIDIPayloadType);
+	packet.nSequence = htons(++m_nSequence);
+	packet.nTimestamp = htonl(0); // No timestamping for now
+	packet.nSSRC = htonl(m_nSSRC);
+
+	// RTP-MIDI command section: header + MIDI data
+	// Header: 0x80 | length (if length < 0x0F)
+	u8 midiHeader = 0x00;
+	size_t midiLen = nSize;
+	if (midiLen < 0x0F) {
+		midiHeader = midiLen & 0x0F;
+	} else {
+		midiHeader = 0x80 | ((midiLen >> 8) & 0x0F);
+	}
+
+	u8 buffer[sizeof(TRTPMIDI) + 2 + MAX_MIDI_MESSAGE];
+	size_t offset = 0;
+	memcpy(buffer + offset, &packet, sizeof(TRTPMIDI));
+	offset += sizeof(TRTPMIDI);
+	buffer[offset++] = midiHeader;
+	if (midiLen >= 0x0F) {
+		buffer[offset++] = midiLen & 0xFF;
+	}
+	memcpy(buffer + offset, pData, midiLen);
+	offset += midiLen;
+
+	if (SendPacket(m_pMIDISocket, &m_InitiatorIPAddress, m_nInitiatorMIDIPort, buffer, offset) <= 0) {
+		LOGNOTE("Failed to send MIDI data to host");
+		return false;
+	}
+	
+	LOGDBG("Successfully sent %zu bytes of MIDI data", nSize);
+	return true;
 }
