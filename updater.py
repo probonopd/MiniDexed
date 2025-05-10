@@ -87,11 +87,61 @@ def extract_zip(zip_path):
         zip_ref.extractall(extract_path)
     return extract_path
 
+# Function to download the latest release asset using GitHub API
+def download_latest_release_github_api(release_type):
+    """
+    release_type: 'latest' or 'continuous'
+    Returns: path to downloaded zip or None
+    """
+    import json
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    repo = 'probonopd/MiniDexed'
+    if release_type == 'latest':
+        api_url = f'https://api.github.com/repos/{repo}/releases/latest'
+        resp = requests.get(api_url, headers=headers)
+        if resp.status_code != 200:
+            print(f"GitHub API error: {resp.status_code}")
+            return None
+        release = resp.json()
+        assets = release.get('assets', [])
+    elif release_type == 'continuous':
+        api_url = f'https://api.github.com/repos/{repo}/releases'
+        resp = requests.get(api_url, headers=headers)
+        if resp.status_code != 200:
+            print(f"GitHub API error: {resp.status_code}")
+            return None
+        releases = resp.json()
+        release = next((r for r in releases if 'continuous' in (r.get('tag_name','')+r.get('name','')).lower()), None)
+        if not release:
+            print("No continuous release found.")
+            return None
+        assets = release.get('assets', [])
+    else:
+        print(f"Unknown release type: {release_type}")
+        return None
+    asset = next((a for a in assets if a['name'].startswith('MiniDexed') and a['name'].endswith('.zip')), None)
+    if not asset:
+        print("No MiniDexed*.zip asset found in release.")
+        return None
+    url = asset['browser_download_url']
+    print(f"Downloading asset: {asset['name']} from {url}")
+    resp = requests.get(url, stream=True)
+    if resp.status_code == 200:
+        zip_path = os.path.join(TEMP_DIR, asset['name'])
+        with open(zip_path, 'wb') as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                f.write(chunk)
+        return zip_path
+    print(f"Failed to download asset: {resp.status_code}")
+    return None
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniDexed Updater")
     parser.add_argument("-v", action="store_true", help="Enable verbose FTP debug output")
     parser.add_argument("--ip", type=str, help="IP address of the device to upload to (skip mDNS discovery)")
     parser.add_argument("--version", type=int, choices=[1,2,3], help="Version to upload: 1=Latest official, 2=Continuous, 3=Local build (skip prompt)")
+    parser.add_argument("--pr", type=str, help="Pull request number or URL to fetch build artifacts from PR comment")
+    parser.add_argument("--github-token", type=str, help="GitHub personal access token for downloading PR artifacts (optional, can also use GITHUB_TOKEN env var)")
     args = parser.parse_args()
 
     import time
@@ -99,6 +149,9 @@ if __name__ == "__main__":
     local_kernel_dir = os.path.join(os.path.dirname(__file__), 'src')
     local_kernel_imgs = [f for f in os.listdir(local_kernel_dir) if f.startswith('kernel') and f.endswith('.img')]
     has_local_build = len(local_kernel_imgs) > 0
+
+    # Get GitHub token from argument or environment
+    github_token = args.github_token or os.environ.get("GITHUB_TOKEN")
 
     # Ask user which release to download (numbered choices)
     release_options = [
@@ -118,61 +171,137 @@ if __name__ == "__main__":
         print("Which release do you want to update?")
         for idx, (desc, _) in enumerate(release_options):
             print(f"  [{idx+1}] {desc}")
+        print("  [PR] Pull request build (enter PR number or URL)")
         while True:
-            choice = input(f"Enter the number of your choice (1-{len(release_options)}): ").strip()
+            choice = input(f"Enter the number of your choice (1-{len(release_options)}) or PR number: ").strip()
             if choice.isdigit() and 1 <= int(choice) <= len(release_options):
                 selected_idx = int(choice)-1
                 github_url = release_options[selected_idx][1]
+                args.pr = None
                 break
-            print("Invalid selection. Please enter a valid number.")
+            # Accept PR number, #NNN, or PR URL
+            pr_match = re.match(r'^(#?\d+|https?://github.com/[^/]+/[^/]+/pull/\d+)$', choice)
+            if pr_match:
+                args.pr = choice
+                selected_idx = None
+                github_url = None
+                break
+            print("Invalid selection. Please enter a valid number or PR number/URL.")
 
     # If local build is selected, skip all GitHub/zip logic and do not register cleanup
     use_local_build = has_local_build and selected_idx == len(release_options)-1
-    if use_local_build:
+    if args.pr:
+        # Extract PR number from input (accepts URL, #899, or 899)
+        import re
+        pr_input = args.pr.strip()
+        m = re.search(r'(\d+)$', pr_input)
+        if not m:
+            print(f"Could not parse PR number from: {pr_input}")
+            sys.exit(1)
+        pr_number = m.group(1)
+        # Fetch PR page HTML
+        pr_url = f"https://github.com/probonopd/MiniDexed/pull/{pr_number}"
+        print(f"Fetching PR page: {pr_url}")
+        resp = requests.get(pr_url)
+        if resp.status_code != 200:
+            print(f"Failed to fetch PR page: {resp.status_code}")
+            sys.exit(1)
+        html = resp.text
+        # Find all 'Build for testing' artifact blocks (look for <p dir="auto">Build for testing: ...</p>)
+        import html as ihtml
+        import re
+        pattern = re.compile(r'<p dir="auto">Build for testing:(.*?)Use at your own risk\.', re.DOTALL)
+        matches = pattern.findall(html)
+        if not matches:
+            print("No build artifact links found in PR comment.")
+            sys.exit(1)
+        last_block = matches[-1]
+        # Find all artifact links in the last block
+        link_pattern = re.compile(r'<a href="([^"]+)">([^<]+)</a>')
+        links = link_pattern.findall(last_block)
+        if not links:
+            print("No artifact links found in PR comment block.")
+            sys.exit(1)
+        # Download both 32bit and 64bit artifacts if present
+        artifact_paths = []
+        for url, name in links:
+            print(f"Downloading artifact: {name} from {url}")
+            # Try to extract the artifact ID from the URL
+            m = re.search(r'/artifacts/(\d+)', url)
+            if m and github_token:
+                artifact_id = m.group(1)
+                api_url = f"https://api.github.com/repos/probonopd/MiniDexed/actions/artifacts/{artifact_id}/zip"
+                headers = {
+                    "Authorization": f"Bearer {github_token}",
+                    "Accept": "application/vnd.github.v3+json",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+                }
+                resp = requests.get(api_url, stream=True, headers=headers)
+                if resp.status_code == 200:
+                    local_path = os.path.join(TEMP_DIR, name + ".zip")
+                    with open(local_path, 'wb') as f:
+                        for chunk in resp.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    artifact_paths.append(local_path)
+                else:
+                    print(f"Failed to download artifact {name} via GitHub API: {resp.status_code}")
+                    print(f"Request headers: {resp.request.headers}")
+                    print(f"Response headers: {resp.headers}")
+                    print(f"Response URL: {resp.url}")
+                    print(f"Response text (first 500 chars): {resp.text[:500]}")
+            else:
+                # Fallback to direct link if no artifact ID or no token
+                headers = {}
+                if github_token:
+                    headers["Authorization"] = f"Bearer {github_token}"
+                headers["Accept"] = "application/octet-stream"
+                headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+                resp = requests.get(url, stream=True, headers=headers)
+                if resp.status_code == 200:
+                    local_path = os.path.join(TEMP_DIR, name + ".zip")
+                    with open(local_path, 'wb') as f:
+                        for chunk in resp.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                    artifact_paths.append(local_path)
+                else:
+                    print(f"Failed to download artifact {name}: {resp.status_code}")
+                    print(f"Request headers: {resp.request.headers}")
+                    print(f"Response headers: {resp.headers}")
+                    print(f"Response URL: {resp.url}")
+                    print(f"Response text (first 500 chars): {resp.text[:500]}")
+                    if not github_token:
+                        print("You may need to provide a GitHub personal access token using --github-token or the GITHUB_TOKEN environment variable.")
+        if not artifact_paths:
+            print("No artifacts downloaded.")
+            sys.exit(1)
+        # Extract all downloaded zips
+        extract_paths = []
+        for path in artifact_paths:
+            ep = extract_zip(path)
+            print(f"Extracted {path} to {ep}")
+            extract_paths.append(ep)
+        # Use the first extracted path for further logic (or merge as needed)
+        extract_path = extract_paths[0] if extract_paths else None
+        use_local_build = False
+    elif use_local_build:
         # Remove cleanup function if registered
         atexit.unregister(cleanup_temp_files)
         print("Using local build: src/kernel*.img will be uploaded.")
         extract_path = None
     else:
-        # Use the selected GitHub URL for release
-        def get_release_url(github_url):
-            print(f"Fetching release page: {github_url}")
-            response = requests.get(github_url)
-            print(f"HTTP status code: {response.status_code}")
-            if response.status_code == 200:
-                print("Successfully fetched release page. Scanning for MiniDexed*.zip links...")
-                # Find all <a ... href="..."> tags with a <span class="Truncate-text text-bold">MiniDexed*.zip</span>
-                pattern = re.compile(r'<a[^>]+href=["\']([^"\']+\.zip)["\'][^>]*>\s*<span[^>]*class=["\']Truncate-text text-bold["\'][^>]*>(MiniDexed[^<]*?\.zip)</span>', re.IGNORECASE)
-                matches = pattern.findall(response.text)
-                print(f"Found {len(matches)} candidate .zip links.")
-                for href, filename in matches:
-                    print(f"Examining link: href={href}, filename={filename}")
-                    if filename.startswith("MiniDexed") and filename.endswith(".zip"):
-                        if href.startswith('http'):
-                            print(f"Selected direct link: {href}")
-                            return href
-                        else:
-                            full_url = f"https://github.com{href}"
-                            print(f"Selected relative link, full URL: {full_url}")
-                            return full_url
-                print("No valid MiniDexed*.zip link found.")
-            else:
-                print(f"Failed to fetch release page. Status code: {response.status_code}")
-            return None
-
-        latest_release_url = get_release_url(github_url)
-        if latest_release_url:
-            print(f"Release URL: {latest_release_url}")
-            zip_path = download_latest_release(latest_release_url)
-            if zip_path:
-                print(f"Downloaded to: {zip_path}")
-                extract_path = extract_zip(zip_path)
-                print(f"Extracted to: {extract_path}")
-            else:
-                print("Failed to download the release.")
-                sys.exit(1)
+        # Use GitHub API instead of HTML parsing
+        if selected_idx == 0:
+            zip_path = download_latest_release_github_api('latest')
+        elif selected_idx == 1:
+            zip_path = download_latest_release_github_api('continuous')
         else:
-            print("Failed to get the release URL.")
+            zip_path = None
+        if zip_path:
+            print(f"Downloaded to: {zip_path}")
+            extract_path = extract_zip(zip_path)
+            print(f"Extracted to: {extract_path}")
+        else:
+            print("Failed to download the release.")
             sys.exit(1)
 
     # Ask user if they want to update Performances (default no)

@@ -1098,12 +1098,14 @@ string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
 
 string CUIMenu::ToVolume (int nValue)
 {
-	static const size_t MaxChars = CConfig::LCDColumns-2;
-	char VolumeBar[MaxChars+1];
-	memset (VolumeBar, 0xFF, sizeof VolumeBar);	// 0xFF is the block character
-	VolumeBar[nValue * MaxChars / 127] = '\0';
-
-	return VolumeBar;
+    constexpr size_t NumSquares = 14;
+    char VolumeBar[NumSquares + 1];
+    size_t filled = (nValue * NumSquares + 63) / 127;
+    for (size_t i = 0; i < NumSquares; ++i) {
+        VolumeBar[i] = (i < filled) ? (char)0xFF : '.';
+    }
+    VolumeBar[NumSquares] = '\0';
+    return VolumeBar;
 }
 
 string CUIMenu::ToPan (int nValue)
@@ -1394,11 +1396,11 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 				|| voiceName == "----------"
 				|| voiceName == "~~~~~~~~~~" )
 			{
-				if (Event == MenuEventPgmUp) {
-					PgmUpDownHandler (MenuEventPgmUp);
+				if (Event == MenuEventStepUp) {
+					PgmUpDownHandler (MenuEventStepUp);
 				}
-				if (Event == MenuEventPgmDown) {
-					PgmUpDownHandler (MenuEventPgmDown);
+				if (Event == MenuEventStepDown) {
+					PgmUpDownHandler (MenuEventStepDown);
 				}
 			}
 		}
@@ -2043,6 +2045,15 @@ void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
     default:
         return;
     }
-    std::string valueStr = ToVolume(pUIMenu->m_pMiniDexed->GetMasterVolume127());
-    pUIMenu->m_pUI->DisplayWrite("Master Volume", "", valueStr.c_str(), nValue > rParam.Minimum, nValue < rParam.Maximum);
+    unsigned lcdCols = pUIMenu->m_pConfig->GetLCDColumns();
+    unsigned barLen = (lcdCols > 2) ? lcdCols - 2 : 0;
+    std::string valueStr(barLen, '.');
+    if (barLen > 0) {
+        size_t filled = (nValue * barLen + 63) / 127;
+        for (unsigned i = 0; i < barLen; ++i) {
+            if (i < filled) valueStr[i] = (char)0xFF;
+        }
+    }
+    // Do NOT add < or > here; let DisplayWrite handle it
+    pUIMenu->m_pUI->DisplayWrite("Master Volume", "", valueStr.c_str(), true, true);
 }
