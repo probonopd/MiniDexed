@@ -214,7 +214,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucType    = ucStatus >> 4;
 
 	// GLOBAL MIDI SYSEX
-	//
+
+	// Set MIDI Channel for TX816/TX216 SysEx; in MiniDexed, we interpret the device parameter as the number of the TG (unlike the TX816/TX216 which has a hardware switch to select the TG)
+	if (nLength >= 6 && pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[1] == 0x43 && pMessage[3] == 0x04 && pMessage[4] == 0x01) {
+		uint8_t mTG = pMessage[2] & 0x0F;
+		uint8_t val = pMessage[5];
+		LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG + 1, val & 0x0F);
+		m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
+		// Do not process this message further for any TGs
+		m_MIDISpinLock.Release();
+		return;
+	}
+
 	// Master Volume is set using a MIDI SysEx message as follows:
 	//   F0  Start of SysEx
 	//   7F  System Realtime SysEx
@@ -320,15 +331,16 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		// Process MIDI for each active Tone Generator
 		bool bSystemCCHandled = false;
 		bool bSystemCCChecked = false;
-		for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++)
-		{
-			if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN)
-			{
-				// MIDI SYSEX per MIDI channel
-				uint8_t ucSysExChannel = (pMessage[2] & 0x0F);
-				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode)
-				{
+		if (ucStatus == MIDI_SYSTEM_EXCLUSIVE_BEGIN) {
+			uint8_t ucSysExChannel = (pMessage[2] & 0x0F);
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators(); nTG++) {
+				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode) {
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
+
+					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+					if (nLength == 5) {
+						break; // Send dump request only to the first TG that matches the MIDI channel requested via the SysEx message device ID
+					}
 
 					// Check for TX216/TX816 style performance sysex messages
 					
@@ -339,21 +351,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						uint8_t par = pMessage[4];
 						uint8_t val = pMessage[5];
 
-						// For parameter 1 (Set MIDI Channel), only process for the TG with the number in pMessage[2]
-						if (par == 1) {
-							if (nTG != mTG) continue;
-						} else {
-							// For all other parameters, process for all TGs listening on the MIDI channel mTG or OmniMode
-							if (!(m_ChannelMap[nTG] == mTG || m_ChannelMap[nTG] == OmniMode)) continue;
-						}
+						if (!(m_ChannelMap[nTG] == mTG || m_ChannelMap[nTG] == OmniMode)) continue;
+
 						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
 
 						switch (par)
 						{
-						case 1: // MIDI Channel
-							LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG, val & 0x0F);
-							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
-							break;
 						case 2: // Poly/Mono
 							LOGNOTE("MIDI-SYSEX: Set Poly/Mono %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setMonoMode(val ? true : false, nTG);
@@ -452,11 +455,10 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					}
 				}
 			}
-			else
-			{
+		} else {
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++) {
 				if (   m_ChannelMap[nTG] == ucChannel
-				    || m_ChannelMap[nTG] == OmniMode)
-				{
+				    || m_ChannelMap[nTG] == OmniMode) {
 					switch (ucType)
 					{
 					case MIDI_NOTE_ON:
@@ -733,6 +735,25 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
+
+  LOGDBG("HandleSystemExclusive: TG %d, length %zu", nTG, nLength);
+
+  // Check if it is a dump request; these have the format F0 43 2n ff F7
+  // with n = the MIDI channel and ff = 00 for voice or 09 for bank
+  // It was confirmed that on the TX816, the device number is interpreted as the MIDI channel; 
+  if (nLength == 5 && pMessage[3] == 0x00)
+  {
+	LOGDBG("SysEx voice dump request: device %d", nTG);
+	SendSystemExclusiveVoice(nTG, m_DeviceName, nCable, nTG);
+	return;
+  }
+  else if (nLength == 5 && pMessage[3] == 0x09)
+  {
+	LOGDBG("SysEx bank dump request: device %d", nTG);
+	LOGDBG("Still to be implemented");
+	return;
+  }
+
   int16_t sysex_return;
 
   sysex_return = m_pSynthesizer->checkSystemExclusive(pMessage, nLength, nTG);
@@ -802,25 +823,22 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       else if(sysex_return >= 500 && sysex_return < 600)
       {
         LOGDBG("SysEx send voice %u request",sysex_return-500);
-        SendSystemExclusiveVoice(sysex_return-500, nCable, nTG);
+        SendSystemExclusiveVoice(sysex_return-500, m_DeviceName, nCable, nTG);
       }
       break;
   }
 }
 
-void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const unsigned nCable, uint8_t nTG)
+void CMIDIDevice::SendSystemExclusiveVoice(uint8_t nVoice, const std::string& deviceName, unsigned nCable, uint8_t nTG)
 {
-  uint8_t voicedump[163];
-
-  // Get voice sysex dump from TG
-  m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
-
-  TDeviceMap::const_iterator Iterator;
-
-  // send voice dump to all MIDI interfaces
-  for(Iterator = s_DeviceMap.begin(); Iterator != s_DeviceMap.end(); ++Iterator)
-  {
-    Iterator->second->Send (voicedump, sizeof(voicedump)*sizeof(uint8_t));
-    // LOGDBG("Send SYSEX voice dump %u to \"%s\"",nVoice,Iterator->first.c_str());
-  }
+	// Example: F0 43 20 00 F7
+    uint8_t voicedump[163];
+    m_pSynthesizer->getSysExVoiceDump(voicedump, nTG);
+    TDeviceMap::const_iterator Iterator = s_DeviceMap.find(deviceName);
+    if (Iterator != s_DeviceMap.end()) {
+        Iterator->second->Send(voicedump, sizeof(voicedump), nCable);
+        LOGDBG("Send SYSEX voice dump %u to \"%s\"", nVoice, deviceName.c_str());
+    } else {
+        LOGWARN("No device found in s_DeviceMap for name: %s", deviceName.c_str());
+    }
 }

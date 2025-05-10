@@ -46,6 +46,9 @@ public:
 
 	virtual void Run() override;
 
+public:
+	bool SendMIDIToHost(const u8* pData, size_t nSize);
+
 private:
 	void ControlInvitationState();
 	void MIDIInvitationState();

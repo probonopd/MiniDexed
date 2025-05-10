@@ -666,7 +666,7 @@ void CMiniDexed::ProgramChange (unsigned nProgram, unsigned nTG)
 		// MIDI channel configured for this TG
 		if (m_nMIDIChannel[nTG] < CMIDIDevice::Channels)
 		{
-			m_SerialMIDI.SendSystemExclusiveVoice(nProgram,0,nTG);
+			m_SerialMIDI.SendSystemExclusiveVoice(nProgram, m_SerialMIDI.GetDeviceName(), 0, nTG);
 		}
 	}
 
