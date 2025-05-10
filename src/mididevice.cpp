@@ -736,6 +736,8 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
 
+  LOGDBG("HandleSystemExclusive: TG %d, length %zu", nTG, nLength);
+
   // Check if it is a dump request; these have the format F0 43 2n ff F7
   // with n = the MIDI channel and ff = 00 for voice or 09 for bank
   // It was confirmed that on the TX816, the device number is interpreted as the MIDI channel; 
