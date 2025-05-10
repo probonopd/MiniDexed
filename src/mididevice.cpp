@@ -214,7 +214,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	u8 ucType    = ucStatus >> 4;
 
 	// GLOBAL MIDI SYSEX
-	//
+
+	// Set MIDI Channel for TX816/TX216 SysEx; in MiniDexed, we interpret the device parameter as the number of the TG (unlike the TX816/TX216 which has a hardware switch to select the TG)
+	if (nLength >= 6 && pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[1] == 0x43 && pMessage[3] == 0x04 && pMessage[4] == 0x01) {
+		uint8_t mTG = pMessage[2] & 0x0F;
+		uint8_t val = pMessage[5];
+		LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG + 1, val & 0x0F);
+		m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
+		// Do not process this message further for any TGs
+		m_MIDISpinLock.Release();
+		return;
+	}
+
 	// Master Volume is set using a MIDI SysEx message as follows:
 	//   F0  Start of SysEx
 	//   7F  System Realtime SysEx
@@ -329,7 +340,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
 					if (nLength == 5) {
 						break; // Send dump request only to the first TG that matches the MIDI channel requested via the SysEx message device ID
-          }
+					}
 
 					// Check for TX216/TX816 style performance sysex messages
 					
@@ -340,21 +351,12 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						uint8_t par = pMessage[4];
 						uint8_t val = pMessage[5];
 
-						// For parameter 1 (Set MIDI Channel), only process for the TG with the number in pMessage[2]
-						if (par == 1) {
-							if (nTG != mTG) continue;
-						} else {
-							// For all other parameters, process for all TGs listening on the MIDI channel mTG or OmniMode
-							if (!(m_ChannelMap[nTG] == mTG || m_ChannelMap[nTG] == OmniMode)) continue;
-						}
+						if (!(m_ChannelMap[nTG] == mTG || m_ChannelMap[nTG] == OmniMode)) continue;
+
 						LOGNOTE("MIDI-SYSEX: Assuming TX216/TX816 style performance sysex message because 4th byte is 0x04");
 
 						switch (par)
 						{
-						case 1: // MIDI Channel
-							LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG, val & 0x0F);
-							m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
-							break;
 						case 2: // Poly/Mono
 							LOGNOTE("MIDI-SYSEX: Set Poly/Mono %d to %d", nTG, val & 0x0F);
 							m_pSynthesizer->setMonoMode(val ? true : false, nTG);
