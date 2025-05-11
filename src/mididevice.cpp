@@ -29,6 +29,17 @@
 #include <assert.h>
 #include "midi.h"
 #include "userinterface.h"
+#include "performanceconfig.h"
+#include "performance_sysex.h"
+
+// RAII guard for MIDI spinlock
+class MIDISpinLockGuard {
+public:
+    MIDISpinLockGuard(CSpinLock& lock) : m_lock(lock) { m_lock.Acquire(); }
+    ~MIDISpinLockGuard() { m_lock.Release(); }
+private:
+    CSpinLock& m_lock;
+};
 
 LOGMODULE ("mididevice");
 
@@ -128,6 +139,8 @@ u8 CMIDIDevice::GetChannel (unsigned nTG) const
 
 void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsigned nCable)
 {
+	MIDISpinLockGuard guard(m_MIDISpinLock);
+
 	// The packet contents are just normal MIDI data - see
 	// https://www.midi.org/specifications/item/table-1-summary-of-midi-message
 
@@ -207,8 +220,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		return;
 	}
 
-	m_MIDISpinLock.Acquire ();
-
 	u8 ucStatus  = pMessage[0];
 	u8 ucChannel = ucStatus & 0x0F;
 	u8 ucType    = ucStatus >> 4;
@@ -222,14 +233,23 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 		LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG + 1, val & 0x0F);
 		m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
 		// Do not process this message further for any TGs
-		m_MIDISpinLock.Release();
 		return;
 	}
+
+	// Handle MiniDexed performance SysEx messages
+	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[1] == 0x7D ) {
+		LOGNOTE("MiniDexed SysEx handler entered, nLength=%u", nLength);
+		// Use performance_sysex.h to handle the SysEx message
+		handle_performance_sysex(pMessage, this, m_pSynthesizer->GetPerformanceConfig(), nCable);
+        return;
+    } else  {
+        LOGNOTE("MiniDexed SysEx handler NOT entered, nLength=%u", nLength);
+    }
 
 	// Master Volume is set using a MIDI SysEx message as follows:
 	//   F0  Start of SysEx
 	//   7F  System Realtime SysEx
-	//   7F  SysEx "channel" - 7F = all devices
+	//   7F  SysEx "channel" - 7F = all devices	
 	//   04  Device Control
 	//   01  Master Volume Device Control
 	//   LL  Low 7-bits of 14-bit volume
@@ -449,11 +469,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							break;
 						}
 					}
-					else
-					{
-						HandleSystemExclusive(pMessage, nLength, nCable, nTG);
-					}
 				}
+			
 			}
 		} else {
 			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++) {
@@ -671,7 +688,6 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 			}
 		}
 	}
-	m_MIDISpinLock.Release ();
 }
 
 void CMIDIDevice::AddDevice (const char *pDeviceName)
@@ -700,7 +716,7 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 	}
 
 	// Not looking for duplicate CCs so return once handled
-	for (unsigned tg=0; tg<8; tg++) {
+for (unsigned tg=0; tg<8; tg++) {
 		if (m_nMIDISystemCCVol != 0) {
 			if (ucCC == MIDISystemCCMap[m_nMIDISystemCCVol][tg]) {
 				m_pSynthesizer->SetVolume (ucCCval, tg);
@@ -736,7 +752,17 @@ bool CMIDIDevice::HandleMIDISystemCC(const u8 ucCC, const u8 ucCCval)
 void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nLength, const unsigned nCable, const uint8_t nTG)
 {
 
-  LOGDBG("HandleSystemExclusive: TG %d, length %zu", nTG, nLength);
+	LOGDBG("HandleSystemExclusive: TG %d, length %u", nTG, nLength);
+
+    // Only handle Yamaha (0x43) or MiniDexed (0x7D) SysEx
+    if (nLength < 2) {
+        LOGDBG("SysEx too short, ignoring");
+        return;
+    }
+    if (pMessage[1] != 0x43 && pMessage[1] != 0x7D) {
+        LOGDBG("Ignoring SysEx with manufacturer 0x%02X (not Yamaha or MiniDexed)", pMessage[1]);
+        return;
+    }
 
   // Check if it is a dump request; these have the format F0 43 2n ff F7
   // with n = the MIDI channel and ff = 00 for voice or 09 for bank

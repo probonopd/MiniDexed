@@ -57,6 +57,11 @@ private:
 	unsigned m_UDPDestPort = 1999;
 	CIPAddress m_LastUDPSenderAddress;
 	unsigned m_LastUDPSenderPort = 0;
+
+	// SysEx reassembly buffer for UDP/AppleMIDI
+	uint8_t m_SysExBuffer[MAX_MIDI_MESSAGE];
+	size_t m_SysExLen = 0;
+	bool m_SysExActive = false;
 };
 
 #endif

@@ -80,7 +80,25 @@ boolean CUDPMIDIDevice::Initialize (void)
 
 void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 {
-	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
+	for (size_t i = 0; i < nSize; ++i) {
+		u8 byte = pData[i];
+		if (byte == 0xF0 && !m_SysExActive) {
+			m_SysExActive = true;
+			m_SysExLen = 0;
+		}
+		if (m_SysExActive) {
+			if (m_SysExLen < MAX_MIDI_MESSAGE) {
+				m_SysExBuffer[m_SysExLen++] = byte;
+			}
+			if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+				MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+				m_SysExActive = false;
+				m_SysExLen = 0;
+			}
+			continue;
+		}
+		MIDIMessageHandler(&byte, 1, VIRTUALCABLE);
+	}
 }
 
 void CUDPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
@@ -95,7 +113,25 @@ void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const c
 
 void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 {
-	MIDIMessageHandler(pData, nSize, VIRTUALCABLE);
+	for (size_t i = 0; i < nSize; ++i) {
+		u8 byte = pData[i];
+		if (byte == 0xF0 && !m_SysExActive) {
+			m_SysExActive = true;
+			m_SysExLen = 0;
+		}
+		if (m_SysExActive) {
+			if (m_SysExLen < MAX_MIDI_MESSAGE) {
+				m_SysExBuffer[m_SysExLen++] = byte;
+			}
+			if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+				MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+				m_SysExActive = false;
+				m_SysExLen = 0;
+			}
+			continue;
+		}
+		MIDIMessageHandler(&byte, 1, VIRTUALCABLE);
+	}
 }
 
 void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
@@ -103,14 +139,14 @@ void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
     bool sentRTP = false;
     if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
         sentRTP = true;
-        LOGNOTE("Sent %zu bytes to RTP-MIDI host", nLength);
+        LOGNOTE("Sent %u bytes to RTP-MIDI host", nLength);
     }
     if (!sentRTP && m_pUDPSendSocket) {
         int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
         if (res < 0) {
-            LOGERR("Failed to send %zu bytes to UDP MIDI host", nLength);
+            LOGERR("Failed to send %u bytes to UDP MIDI host", nLength);
         } else {
-            LOGNOTE("Sent %zu bytes to UDP MIDI host (broadcast)", nLength);
+            LOGNOTE("Sent %u bytes to UDP MIDI host (broadcast)", nLength);
         }
     }
 }
