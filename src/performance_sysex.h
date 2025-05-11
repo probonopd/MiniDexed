@@ -29,7 +29,8 @@ class CMIDIDevice;
 // Handles a MiniDexed performance SysEx message.
 // pMessage: pointer to the SysEx message (must be at least 2 bytes)
 // pDevice: the MIDI device to send the response to
-// perf: the performance config to operate on
-void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CPerformanceConfig* perf, unsigned nCable = 0);
+// miniDexed: pointer to the main synth instance (for applying changes)
+// Protocol: 0x10 = global, 0x11 = per-TG
+void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, class CMiniDexed* miniDexed, unsigned nCable = 0);
 
 #endif // PERFORMANCE_SYSEX_H

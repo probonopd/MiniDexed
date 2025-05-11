@@ -239,8 +239,8 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// Handle MiniDexed performance SysEx messages
 	if (pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[1] == 0x7D ) {
 		LOGNOTE("MiniDexed SysEx handler entered, nLength=%u", nLength);
-		// Use performance_sysex.h to handle the SysEx message
-		handle_performance_sysex(pMessage, this, m_pSynthesizer->GetPerformanceConfig(), nCable);
+		// Update: Pass m_pSynthesizer to handle_performance_sysex for synth/GUI update
+		handle_performance_sysex(pMessage, this, m_pSynthesizer, nCable);
         return;
     } else  {
         LOGNOTE("MiniDexed SysEx handler NOT entered, nLength=%u", nLength);

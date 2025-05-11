@@ -30,8 +30,10 @@ LOGMODULE ("PerformanceSysEx");
 static constexpr uint8_t SYSEX_START = 0xF0;
 static constexpr uint8_t SYSEX_END   = 0xF7;
 static constexpr uint8_t MANUFACTURER_ID = 0x7D;
-static constexpr uint8_t CMD_GET = 0x10;
-static constexpr uint8_t CMD_SET = 0x20;
+static constexpr uint8_t GET_GLOBAL = 0x10;
+static constexpr uint8_t GET_TG     = 0x11;
+static constexpr uint8_t SET_GLOBAL = 0x20;
+static constexpr uint8_t SET_TG     = 0x21;
 
 static void send_sysex_response(const uint8_t* data, size_t len, CMIDIDevice* pDevice, unsigned nCable) {
     if (pDevice) {
@@ -40,9 +42,14 @@ static void send_sysex_response(const uint8_t* data, size_t len, CMIDIDevice* pD
     }
 }
 
-void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CPerformanceConfig* perf, unsigned nCable) {
-    if (!pMessage || !perf) {
-        LOGERR("handle_performance_sysex: Null pointer or PerformanceConfig not set");
+void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMiniDexed* miniDexed, unsigned nCable) {
+    if (!pMessage || !miniDexed) {
+        LOGERR("handle_performance_sysex: Null pointer or MiniDexed not set");
+        return;
+    }
+    CPerformanceConfig* perf = miniDexed->GetPerformanceConfig();
+    if (!perf) {
+        LOGERR("handle_performance_sysex: PerformanceConfig not set in MiniDexed");
         return;
     }
     if (pMessage[0] != SYSEX_START) {
@@ -64,15 +71,34 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CPe
     uint8_t cmd = 0;
     uint8_t offset = 0;
 
-    if (pMessage[2] == CMD_GET || pMessage[2] == CMD_SET) {
-        cmd = pMessage[2];
+    // New protocol: 0x10 = global GET, 0x11 = per-TG GET, 0x20 = global SET, 0x21 = per-TG SET
+    if (pMessage[2] == GET_GLOBAL) {
+        cmd = GET_GLOBAL;
         offset = 3;
-        LOGNOTE("SysEx: Global %s request", cmd == CMD_GET ? "GET" : "SET");
-    } else if (pMessage[2] < 0x80 && (pMessage[3] == CMD_GET || pMessage[3] == CMD_SET)) {
-        tg = pMessage[2];
-        cmd = pMessage[3];
+        LOGNOTE("SysEx: Global GET request");
+    } else if (pMessage[2] == GET_TG) {
+        cmd = GET_TG;
+        // Allow both F0 7D 11 <TG> F7 (all params) and F0 7D 11 <TG> <param> <param> F7 (single param)
+        if (len < 4) {
+            LOGERR("SysEx: Per-TG GET request too short");
+            return;
+        }
+        tg = pMessage[3];
         offset = 4;
-        LOGNOTE("SysEx: TG-specific %s request for TG %u", cmd == CMD_GET ? "GET" : "SET", tg);
+        LOGNOTE("SysEx: TG-specific GET request for TG %u", tg);
+    } else if (pMessage[2] == SET_GLOBAL) {
+        cmd = SET_GLOBAL;
+        offset = 3;
+        LOGNOTE("SysEx: Global SET request");
+    } else if (pMessage[2] == SET_TG) {
+        cmd = SET_TG;
+        if (len < 5) {
+            LOGERR("SysEx: Per-TG SET request too short");
+            return;
+        }
+        tg = pMessage[3];
+        offset = 4;
+        LOGNOTE("SysEx: TG-specific SET request for TG %u", tg);
     } else {
         LOGERR("SysEx: Unrecognized message structure");
         return;
@@ -80,92 +106,100 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CPe
 
     if (offset == len) {
         // Dump all global or all TG parameters
-        if (cmd == CMD_GET) {
-            if (tg == 0xFF) {
-                // Dump all global
-                size_t count = 0;
-                const uint16_t* params = CPerformanceConfig::GetAllGlobalParams(count);
-                uint16_t values[16] = {0};
-                if (perf->GetGlobalParameters(params, values, count)) {
-                    LOGNOTE("SysEx: Dumping all global parameters");
-                    uint8_t resp[64] = {0};
-                    resp[0] = SYSEX_START;
-                    resp[1] = MANUFACTURER_ID;
-                    resp[2] = CMD_GET;
-                    size_t idx = 3;
-                    for (size_t i = 0; i < count; ++i) {
-                        resp[idx++] = (params[i] >> 8) & 0xFF;
-                        resp[idx++] = params[i] & 0xFF;
-                        resp[idx++] = (values[i] >> 8) & 0xFF;
-                        resp[idx++] = values[i] & 0xFF;
-                        LOGNOTE("  Param 0x%04X = 0x%04X", params[i], values[i]);
-                    }
-                    resp[idx++] = SYSEX_END;
-                    send_sysex_response(resp, idx, pDevice, nCable);
-                } else {
-                    LOGERR("SysEx: Failed to get all global parameters");
+        if (cmd == GET_GLOBAL) {
+            // Dump all global
+            size_t count = 0;
+            const uint16_t* params = CPerformanceConfig::GetAllGlobalParams(count);
+            uint16_t values[16] = {0};
+            if (perf->GetGlobalParameters(params, values, count)) {
+                LOGNOTE("SysEx: Dumping all global parameters");
+                uint8_t resp[64] = {0};
+                resp[0] = SYSEX_START;
+                resp[1] = MANUFACTURER_ID;
+                resp[2] = SET_GLOBAL; // F0 7D 20 ...
+                size_t idx = 3;
+                for (size_t i = 0; i < count; ++i) {
+                    resp[idx++] = (params[i] >> 8) & 0xFF;
+                    resp[idx++] = params[i] & 0xFF;
+                    resp[idx++] = (values[i] >> 8) & 0xFF;
+                    resp[idx++] = values[i] & 0xFF;
+                    LOGNOTE("  Param 0x%04X = 0x%04X", params[i], values[i]);
                 }
+                resp[idx++] = SYSEX_END;
+                send_sysex_response(resp, idx, pDevice, nCable);
             } else {
-                // Dump all TG
-                size_t count = 0;
-                const uint16_t* params = CPerformanceConfig::GetAllTGParams(count);
-                uint16_t values[32] = {0};
-                if (perf->GetTGParameters(params, values, count, tg)) {
-                    LOGNOTE("SysEx: Dumping all TG parameters for TG %u", tg);
-                    uint8_t resp[128] = {0};
-                    resp[0] = SYSEX_START;
-                    resp[1] = MANUFACTURER_ID;
-                    resp[2] = tg;
-                    resp[3] = CMD_GET;
-                    size_t idx = 4;
-                    for (size_t i = 0; i < count; ++i) {
-                        resp[idx++] = (params[i] >> 8) & 0xFF;
-                        resp[idx++] = params[i] & 0xFF;
-                        resp[idx++] = (values[i] >> 8) & 0xFF;
-                        resp[idx++] = values[i] & 0xFF;
-                        LOGNOTE("  Param 0x%04X = 0x%04X", params[i], values[i]);
-                    }
-                    resp[idx++] = SYSEX_END;
-                    send_sysex_response(resp, idx, pDevice, nCable);
-                } else {
-                    LOGERR("SysEx: Failed to get all TG parameters for TG %u", tg);
+                LOGERR("SysEx: Failed to get all global parameters");
+            }
+        } else if (cmd == GET_TG) {
+            // Dump all TG
+            size_t count = 0;
+            const uint16_t* params = CPerformanceConfig::GetAllTGParams(count);
+            uint16_t values[32] = {0};
+            if (perf->GetTGParameters(params, values, count, tg)) {
+                LOGNOTE("SysEx: Dumping all TG parameters for TG %u", tg);
+                uint8_t resp[128] = {0};
+                resp[0] = SYSEX_START;
+                resp[1] = MANUFACTURER_ID;
+                resp[2] = SET_TG; // F0 7D 21 nn ...
+                resp[3] = tg;
+                size_t idx = 4;
+                for (size_t i = 0; i < count; ++i) {
+                    resp[idx++] = (params[i] >> 8) & 0xFF;
+                    resp[idx++] = params[i] & 0xFF;
+                    resp[idx++] = (values[i] >> 8) & 0xFF;
+                    resp[idx++] = values[i] & 0xFF;
+                    LOGNOTE("  Param 0x%04X = 0x%04X", params[i], values[i]);
                 }
+                resp[idx++] = SYSEX_END;
+                send_sysex_response(resp, idx, pDevice, nCable);
+            } else {
+                LOGERR("SysEx: Failed to get all TG parameters for TG %u", tg);
             }
         }
         return;
     }
     while (offset + 1 < len) {
+        if (pMessage[offset] == SYSEX_END) break;
         uint16_t param = (pMessage[offset] << 8) | pMessage[offset+1];
         offset += 2;
-        if (cmd == CMD_GET) {
+        if (cmd == GET_GLOBAL) {
             uint16_t value = 0;
             bool ok = false;
-            if (tg == 0xFF) {
-                ok = perf->GetGlobalParameters(&param, &value, 1);
-                LOGNOTE("SysEx: GET global param 0x%04X -> 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
-                // Build and send response
-                uint8_t resp[9] = {SYSEX_START, MANUFACTURER_ID, CMD_GET, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
-                send_sysex_response(resp, 8, pDevice, nCable);
-            } else {
-                ok = perf->GetTGParameters(&param, &value, 1, tg);
-                LOGNOTE("SysEx: GET TG %u param 0x%04X -> 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
-                uint8_t resp[10] = {SYSEX_START, MANUFACTURER_ID, tg, CMD_GET, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
-                send_sysex_response(resp, 9, pDevice, nCable);
-            }
-        } else if (cmd == CMD_SET) {
+            ok = perf->GetGlobalParameters(&param, &value, 1);
+            LOGNOTE("SysEx: GET global param 0x%04X -> 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
+            // Build and send response (use SET_GLOBAL as response type)
+            uint8_t resp[8] = {SYSEX_START, MANUFACTURER_ID, SET_GLOBAL, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
+            send_sysex_response(resp, 8, pDevice, nCable);
+        } else if (cmd == GET_TG) {
+            uint16_t value = 0;
+            bool ok = false;
+            ok = perf->GetTGParameters(&param, &value, 1, tg);
+            LOGNOTE("SysEx: GET TG %u param 0x%04X -> 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
+            uint8_t resp[10] = {SYSEX_START, MANUFACTURER_ID, SET_TG, tg, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
+            send_sysex_response(resp, 9, pDevice, nCable);
+        } else if (cmd == SET_GLOBAL) {
             if (offset + 1 >= len) {
-                LOGERR("SysEx: SET param 0x%04X missing value bytes", param);
+                LOGERR("SysEx: Global SET param 0x%04X missing value bytes", param);
                 break;
             }
             uint16_t value = (pMessage[offset] << 8) | pMessage[offset+1];
             offset += 2;
-            bool ok = false;
-            if (tg == 0xFF) {
-                ok = perf->SetGlobalParameters(&param, &value, 1);
-                LOGNOTE("SysEx: SET global param 0x%04X = 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
-            } else {
-                ok = perf->SetTGParameters(&param, &value, 1, tg);
-                LOGNOTE("SysEx: SET TG %u param 0x%04X = 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
+            bool ok = perf->SetGlobalParameters(&param, &value, 1);
+            LOGNOTE("SysEx: SET global param 0x%04X = 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
+            if (ok && miniDexed) {
+                miniDexed->LoadPerformanceParameters();
+            }
+        } else if (cmd == SET_TG) {
+            if (offset + 1 >= len) {
+                LOGERR("SysEx: TG SET param 0x%04X missing value bytes", param);
+                break;
+            }
+            uint16_t value = (pMessage[offset] << 8) | pMessage[offset+1];
+            offset += 2;
+            bool ok = perf->SetTGParameters(&param, &value, 1, tg);
+            LOGNOTE("SysEx: SET TG %u param 0x%04X = 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
+            if (ok && miniDexed) {
+                miniDexed->LoadPerformanceParameters();
             }
         }
     }
@@ -187,19 +221,18 @@ Examples of MiniDexed Performance SysEx messages and expected handler behavior:
   - Logs and dumps all global parameters and values.
 
 4. Get a TG Parameter (e.g., Volume for TG 2)
-  Send: F0 7D 02 10 00 03 F7
+  Send: F0 7D 11 02 00 03 F7
   - Logs GET for TG 2 param 0x0003, queries value, logs result.
 
 5. Set a TG Parameter (e.g., Pan for TG 1 to 64)
-  Send: F0 7D 01 20 00 04 00 40 F7
+  Send: F0 7D 21 01 00 04 00 40 F7
   - Logs SET for TG 1 param 0x0004, updates value, logs result.
 
 6. Get All Parameters for TG 0
-  Send: F0 7D 00 10 F7
+  Send: F0 7D 11 00 F7
   - Logs and dumps all TG 0 parameters and values.
 
 7. Malformed or Unknown Parameter
   Send: F0 7D 10 12 34 F7
   - Logs GET for global param 0x1234, logs FAIL if unsupported.
-
 */
