@@ -25,6 +25,21 @@
 #include "minidexed.h"
 #include "mididevice.h"
 
+// Helper functions for 2's complement 14-bit MIDI-safe encoding/decoding
+static void encode_midi14_signed_7bit(int value, uint8_t& msb, uint8_t& lsb) {
+    // Clamp to 14-bit signed range
+    if (value < -8192) value = -8192;
+    if (value > 8191) value = 8191;
+    uint16_t midi14 = (value < 0) ? (0x2000 + value) : value;
+    midi14 &= 0x3FFF;
+    msb = (midi14 >> 7) & 0x7F;
+    lsb = midi14 & 0x7F;
+}
+static int decode_midi14_signed_7bit(uint8_t msb, uint8_t lsb) {
+    uint16_t midi14 = ((msb & 0x7F) << 7) | (lsb & 0x7F);
+    return (midi14 & 0x2000) ? (midi14 - 0x4000) : midi14;
+}
+
 LOGMODULE ("PerformanceSysEx");
 
 static constexpr uint8_t SYSEX_START = 0xF0;
@@ -166,6 +181,13 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMi
             uint16_t value = 0;
             bool ok = false;
             ok = perf->GetGlobalParameters(&param, &value, 1);
+            if (param == CPerformanceConfig::PARAM_DETUNE || param == CPerformanceConfig::PARAM_NOTE_SHIFT) {
+                uint8_t msb, lsb;
+                encode_midi14_signed_7bit((int16_t)value, msb, lsb);
+                uint8_t resp[9] = {SYSEX_START, MANUFACTURER_ID, SET_GLOBAL, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), msb, lsb, SYSEX_END};
+                send_sysex_response(resp, 8, pDevice, nCable);
+                continue;
+            }
             LOGNOTE("SysEx: GET global param 0x%04X -> 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
             // Build and send response (use SET_GLOBAL as response type)
             uint8_t resp[8] = {SYSEX_START, MANUFACTURER_ID, SET_GLOBAL, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
@@ -174,6 +196,13 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMi
             uint16_t value = 0;
             bool ok = false;
             ok = perf->GetTGParameters(&param, &value, 1, tg);
+            if (param == CPerformanceConfig::PARAM_DETUNE || param == CPerformanceConfig::PARAM_NOTE_SHIFT) {
+                uint8_t msb, lsb;
+                encode_midi14_signed_7bit((int16_t)value, msb, lsb);
+                uint8_t resp[11] = {SYSEX_START, MANUFACTURER_ID, SET_TG, tg, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), msb, lsb, SYSEX_END};
+                send_sysex_response(resp, 9, pDevice, nCable);
+                continue;
+            }
             LOGNOTE("SysEx: GET TG %u param 0x%04X -> 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
             uint8_t resp[10] = {SYSEX_START, MANUFACTURER_ID, SET_TG, tg, (uint8_t)(param >> 8), (uint8_t)(param & 0xFF), (uint8_t)(value >> 8), (uint8_t)(value & 0xFF), SYSEX_END};
             send_sysex_response(resp, 9, pDevice, nCable);
@@ -183,6 +212,10 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMi
                 break;
             }
             uint16_t value = (pMessage[offset] << 8) | pMessage[offset+1];
+            if (param == CPerformanceConfig::PARAM_DETUNE || param == CPerformanceConfig::PARAM_NOTE_SHIFT) {
+                int decoded = decode_midi14_signed_7bit(pMessage[offset], pMessage[offset+1]);
+                value = (uint16_t)decoded;
+            }
             offset += 2;
             bool ok = perf->SetGlobalParameters(&param, &value, 1);
             LOGNOTE("SysEx: SET global param 0x%04X = 0x%04X (%s)", param, value, ok ? "OK" : "FAIL");
@@ -195,6 +228,10 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMi
                 break;
             }
             uint16_t value = (pMessage[offset] << 8) | pMessage[offset+1];
+            if (param == CPerformanceConfig::PARAM_DETUNE || param == CPerformanceConfig::PARAM_NOTE_SHIFT) {
+                int decoded = decode_midi14_signed_7bit(pMessage[offset], pMessage[offset+1]);
+                value = (uint16_t)decoded;
+            }
             offset += 2;
             bool ok = perf->SetTGParameters(&param, &value, 1, tg);
             LOGNOTE("SysEx: SET TG %u param 0x%04X = 0x%04X (%s)", tg, param, value, ok ? "OK" : "FAIL");
@@ -204,35 +241,3 @@ void handle_performance_sysex(const uint8_t* pMessage, CMIDIDevice* pDevice, CMi
         }
     }
 }
-
-/*
-Examples of MiniDexed Performance SysEx messages and expected handler behavior:
-
-1. Get a Global Parameter (e.g., CompressorEnable)
-  Send: F0 7D 10 00 00 F7
-  - Logs GET for global param 0x0000, queries value, logs result.
-
-2. Set a Global Parameter (e.g., ReverbEnable ON)
-  Send: F0 7D 20 00 01 00 01 F7
-  - Logs SET for global param 0x0001, updates value, logs result.
-
-3. Get All Global Parameters
-  Send: F0 7D 10 F7
-  - Logs and dumps all global parameters and values.
-
-4. Get a TG Parameter (e.g., Volume for TG 2)
-  Send: F0 7D 11 02 00 03 F7
-  - Logs GET for TG 2 param 0x0003, queries value, logs result.
-
-5. Set a TG Parameter (e.g., Pan for TG 1 to 64)
-  Send: F0 7D 21 01 00 04 00 40 F7
-  - Logs SET for TG 1 param 0x0004, updates value, logs result.
-
-6. Get All Parameters for TG 0
-  Send: F0 7D 11 00 F7
-  - Logs and dumps all TG 0 parameters and values.
-
-7. Malformed or Unknown Parameter
-  Send: F0 7D 10 12 34 F7
-  - Logs GET for global param 0x1234, logs FAIL if unsupported.
-*/
