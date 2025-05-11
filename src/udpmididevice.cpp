@@ -76,6 +76,35 @@ boolean CUDPMIDIDevice::Initialize (void)
 	return true;
 }
 
+void CUDPMIDIDevice::UdpMidiReassembly(uint8_t byte, unsigned cable) {
+    // System Real Time messages (single byte)
+    if (byte == 0xF8 || byte == 0xFA || byte == 0xFB || byte == 0xFC || byte == 0xFE || byte == 0xFF) {
+        MIDIMessageHandler(&byte, 1, cable);
+        return;
+    }
+    // Status byte
+    if ((byte & 0x80) == 0x80 && (byte & 0xF0) != 0xF0) {
+        m_udpMidiMsg[0] = byte;
+        m_udpMidiState = 1;
+        return;
+    }
+    // Data byte
+    if (m_udpMidiState > 0) {
+        m_udpMidiMsg[m_udpMidiState++] = byte;
+        if ((m_udpMidiMsg[0] & 0xE0) == 0xC0 || (m_udpMidiMsg[0] & 0xF0) == 0xD0) {
+            // Program Change or Channel Pressure (2 bytes)
+            if (m_udpMidiState == 2) {
+                MIDIMessageHandler(m_udpMidiMsg, 2, cable);
+                m_udpMidiState = 0;
+            }
+        } else if (m_udpMidiState == 3) {
+            // All other channel messages (3 bytes)
+            MIDIMessageHandler(m_udpMidiMsg, 3, cable);
+            m_udpMidiState = 0;
+        }
+    }
+}
+
 // Methods to handle MIDI events
 
 void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
@@ -87,17 +116,22 @@ void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 			m_SysExLen = 0;
 		}
 		if (m_SysExActive) {
-			if (m_SysExLen < MAX_MIDI_MESSAGE) {
-				m_SysExBuffer[m_SysExLen++] = byte;
-			}
-			if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
-				MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+			if ((byte & 0x80) && byte != 0xF0 && byte != 0xF7) {
 				m_SysExActive = false;
 				m_SysExLen = 0;
+			} else {
+				if (m_SysExLen < MAX_MIDI_MESSAGE) {
+					m_SysExBuffer[m_SysExLen++] = byte;
+				}
+				if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+					MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+					m_SysExActive = false;
+					m_SysExLen = 0;
+				}
+				if (m_SysExActive) continue;
 			}
-			continue;
 		}
-		MIDIMessageHandler(&byte, 1, VIRTUALCABLE);
+		UdpMidiReassembly(byte, VIRTUALCABLE);
 	}
 }
 
@@ -120,17 +154,22 @@ void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 			m_SysExLen = 0;
 		}
 		if (m_SysExActive) {
-			if (m_SysExLen < MAX_MIDI_MESSAGE) {
-				m_SysExBuffer[m_SysExLen++] = byte;
-			}
-			if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
-				MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+			if ((byte & 0x80) && byte != 0xF0 && byte != 0xF7) {
 				m_SysExActive = false;
 				m_SysExLen = 0;
+			} else {
+				if (m_SysExLen < MAX_MIDI_MESSAGE) {
+					m_SysExBuffer[m_SysExLen++] = byte;
+				}
+				if (byte == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+					MIDIMessageHandler(m_SysExBuffer, m_SysExLen, VIRTUALCABLE);
+					m_SysExActive = false;
+					m_SysExLen = 0;
+				}
+				if (m_SysExActive) continue;
 			}
-			continue;
 		}
-		MIDIMessageHandler(&byte, 1, VIRTUALCABLE);
+		UdpMidiReassembly(byte, VIRTUALCABLE);
 	}
 }
 

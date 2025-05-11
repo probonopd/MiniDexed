@@ -85,15 +85,22 @@ void CSerialMIDIDevice::Process (void)
 			m_SysExLen = 0;
 		}
 		if (m_SysExActive) {
-			if (m_SysExLen < MAX_MIDI_MESSAGE) {
-				m_SysExBuffer[m_SysExLen++] = uchData;
-			}
-			if (uchData == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
-				MIDIMessageHandler(m_SysExBuffer, m_SysExLen, 0);
+			if ((uchData & 0x80) && uchData != 0xF0 && uchData != 0xF7) {
+				// Abort SysEx on new status byte (except 0xF0/0xF7)
 				m_SysExActive = false;
 				m_SysExLen = 0;
+				// Process this byte as normal MIDI below
+			} else {
+				if (m_SysExLen < MAX_MIDI_MESSAGE) {
+					m_SysExBuffer[m_SysExLen++] = uchData;
+				}
+				if (uchData == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+					MIDIMessageHandler(m_SysExBuffer, m_SysExLen, 0);
+					m_SysExActive = false;
+					m_SysExLen = 0;
+				}
+				if (m_SysExActive) continue;
 			}
-			continue;
 		}
 
 		// System Real Time messages may appear anywhere in the byte stream, so handle them specially
