@@ -244,8 +244,9 @@ public:
 	bool InitNetwork();
 	void UpdateNetwork();
 
-public:
 	void LoadPerformanceParameters(void); 
+
+	void GetCurrentVoiceData(uint8_t* dest, unsigned nTG);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note

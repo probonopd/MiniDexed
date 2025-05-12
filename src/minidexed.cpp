@@ -2498,3 +2498,9 @@ bool CMiniDexed::InitNetwork()
 		return false;
 	}
 }
+
+void CMiniDexed::GetCurrentVoiceData(uint8_t* dest, unsigned nTG) {
+    if (nTG < m_nToneGenerators && m_pTG[nTG]) {
+        m_pTG[nTG]->getVoiceData(dest);
+    }
+}

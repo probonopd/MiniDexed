@@ -816,9 +816,15 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       LOGERR("Unknown SysEx message.");
       break;
     case 100:
-      // load sysex-data into voice memory
+      // Load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
       m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
+      // Also update performance config so the new voice is not lost
+      if (m_pSynthesizer && m_pSynthesizer->GetPerformanceConfig()) {
+        uint8_t unpackedVoice[156];
+        m_pSynthesizer->GetCurrentVoiceData(unpackedVoice, nTG);
+        m_pSynthesizer->GetPerformanceConfig()->SetVoiceDataToTxt(unpackedVoice, nTG);
+      }
       break;
     case 200:
       LOGDBG("Bank bulk upload.");
