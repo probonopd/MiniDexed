@@ -919,6 +919,6 @@ bool CAppleMIDIParticipant::SendMIDIToHost(const u8* pData, size_t nSize)
 		return false;
 	}
 	
-	LOGDBG("Successfully sent %zu bytes of MIDI data", nSize);
+	LOGDBG("Successfully sent %u bytes of MIDI data", nSize);
 	return true;
 }
