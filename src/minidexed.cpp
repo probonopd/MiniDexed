@@ -2504,3 +2504,9 @@ void CMiniDexed::GetCurrentVoiceData(uint8_t* dest, unsigned nTG) {
         m_pTG[nTG]->getVoiceData(dest);
     }
 }
+
+void CMiniDexed::SetPendingVoicePerformanceUpdate(const uint8_t* voiceData, uint8_t tg) {
+    m_PendingVoicePerformanceUpdate.pending = true;
+    memcpy(m_PendingVoicePerformanceUpdate.voiceData, voiceData, 156);
+    m_PendingVoicePerformanceUpdate.tg = tg;
+}

@@ -819,11 +819,14 @@ void CMIDIDevice::HandleSystemExclusive(const uint8_t* pMessage, const size_t nL
       // Load sysex-data into voice memory
       LOGDBG("One Voice bulk upload");
       m_pSynthesizer->loadVoiceParameters(pMessage,nTG);
-      // Also update performance config so the new voice is not lost
+      // Defer performance config update to main loop
       if (m_pSynthesizer && m_pSynthesizer->GetPerformanceConfig()) {
         uint8_t unpackedVoice[156];
         m_pSynthesizer->GetCurrentVoiceData(unpackedVoice, nTG);
-        m_pSynthesizer->GetPerformanceConfig()->SetVoiceDataToTxt(unpackedVoice, nTG);
+        CMiniDexed* pMiniDexed = static_cast<CMiniDexed*>(m_pSynthesizer);
+        if (pMiniDexed) {
+          pMiniDexed->SetPendingVoicePerformanceUpdate(unpackedVoice, nTG);
+        }
       }
       break;
     case 200:
