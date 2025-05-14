@@ -25,19 +25,18 @@
 #include "minidexed.h"
 #include "mididevice.h"
 
-// Helper functions for 2's complement 14-bit MIDI-safe encoding/decoding
+// Helper functions for standard MIDI 14-bit signed value encoding/decoding (offset method)
 static void encode_midi14_signed_7bit(int value, uint8_t& msb, uint8_t& lsb) {
     // Clamp to 14-bit signed range
     if (value < -8192) value = -8192;
     if (value > 8191) value = 8191;
-    uint16_t midi14 = (value < 0) ? (0x2000 + value) : value;
-    midi14 &= 0x3FFF;
+    uint16_t midi14 = (uint16_t)(value + 8192); // MIDI standard: center is 8192
     msb = (midi14 >> 7) & 0x7F;
     lsb = midi14 & 0x7F;
 }
 static int decode_midi14_signed_7bit(uint8_t msb, uint8_t lsb) {
     uint16_t midi14 = ((msb & 0x7F) << 7) | (lsb & 0x7F);
-    return (midi14 & 0x2000) ? (midi14 - 0x4000) : midi14;
+    return (int)midi14 - 8192;
 }
 
 LOGMODULE ("PerformanceSysEx");
