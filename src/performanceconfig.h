@@ -33,6 +33,47 @@
 class CPerformanceConfig	// Performance configuration
 {
 public:
+	// Parameter numbers for SysEx (MiniDexed Format)
+	enum ParameterNumber {
+		// Global parameters (pp pp)
+		PARAM_COMPRESSOR_ENABLE    = 0x0000,
+		PARAM_REVERB_ENABLE        = 0x0001,
+		PARAM_REVERB_SIZE          = 0x0002,
+		PARAM_REVERB_HIGHDAMP      = 0x0003,
+		PARAM_REVERB_LOWDAMP       = 0x0004,
+		PARAM_REVERB_LOWPASS       = 0x0005,
+		PARAM_REVERB_DIFFUSION     = 0x0006,
+		PARAM_REVERB_LEVEL         = 0x0007,
+
+		// TG-specific parameters (pp pp)
+		PARAM_BANK_NUMBER          = 0x0000,
+		PARAM_VOICE_NUMBER         = 0x0001,
+		PARAM_MIDI_CHANNEL         = 0x0002,
+		PARAM_VOLUME               = 0x0003,
+		PARAM_PAN                  = 0x0004,
+		PARAM_DETUNE               = 0x0005,
+		PARAM_CUTOFF               = 0x0006,
+		PARAM_RESONANCE            = 0x0007,
+		PARAM_NOTE_LIMIT_LOW       = 0x0008,
+		PARAM_NOTE_LIMIT_HIGH      = 0x0009,
+		PARAM_NOTE_SHIFT           = 0x000A,
+		PARAM_REVERB_SEND          = 0x000B,
+		PARAM_PITCH_BEND_RANGE     = 0x000C,
+		PARAM_PITCH_BEND_STEP      = 0x000D,
+		PARAM_PORTAMENTO_MODE      = 0x000E,
+		PARAM_PORTAMENTO_GLISSANDO = 0x000F,
+		PARAM_PORTAMENTO_TIME      = 0x0010,
+		PARAM_MONO_MODE            = 0x0011,
+		PARAM_MODWHEEL_RANGE       = 0x0012,
+		PARAM_MODWHEEL_TARGET      = 0x0013,
+		PARAM_FOOTCTRL_RANGE       = 0x0014,
+		PARAM_FOOTCTRL_TARGET      = 0x0015,
+		PARAM_BREATHCTRL_RANGE     = 0x0016,
+		PARAM_BREATHCTRL_TARGET    = 0x0017,
+		PARAM_AFTERTOUCH_RANGE     = 0x0018,
+		PARAM_AFTERTOUCH_TARGET    = 0x0019
+	};
+
 	CPerformanceConfig (FATFS *pFileSystem);
 	~CPerformanceConfig (void);
 	
@@ -148,6 +189,14 @@ public:
 	unsigned GetPerformanceBank(void);
 	std::string GetPerformanceBankName(unsigned nBankID);
 	bool IsValidPerformanceBank(unsigned nBankID);
+
+	bool GetGlobalParameters(const uint16_t *params, uint16_t *values, size_t count) const;
+	bool SetGlobalParameters(const uint16_t *params, const uint16_t *values, size_t count);
+	bool GetTGParameters(const uint16_t *params, uint16_t *values, size_t count, unsigned tg) const;
+	bool SetTGParameters(const uint16_t *params, const uint16_t *values, size_t count, unsigned tg);
+
+	static const uint16_t* GetAllGlobalParams(size_t& count);
+	static const uint16_t* GetAllTGParams(size_t& count);
 
 private:
 	CPropertiesFatFsFile m_Properties;

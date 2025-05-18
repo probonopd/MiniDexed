@@ -53,6 +53,11 @@ private:
 	u8 m_SerialMessage[MAX_MIDI_MESSAGE];
 
 	CWriteBufferDevice m_SendBuffer;
+
+	// SysEx reassembly buffer for serial MIDI
+	uint8_t m_SysExBuffer[MAX_MIDI_MESSAGE];
+	size_t m_SysExLen = 0;
+	bool m_SysExActive = false;
 };
 
 #endif

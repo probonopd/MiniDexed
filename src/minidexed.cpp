@@ -2498,3 +2498,24 @@ bool CMiniDexed::InitNetwork()
 		return false;
 	}
 }
+
+void CMiniDexed::GetCurrentVoiceData(uint8_t* dest, unsigned nTG) {
+    if (nTG < m_nToneGenerators && m_pTG[nTG]) {
+        m_pTG[nTG]->getVoiceData(dest);
+    }
+}
+
+void CMiniDexed::SetPendingVoicePerformanceUpdate(unsigned nTG) {
+    if (nTG < m_nToneGenerators && m_pTG[nTG]) {
+		// Get the current voice data from the synthesizer
+		uint8_t currentVoiceData[155];
+		m_pTG[nTG]->getVoiceData(currentVoiceData);
+		// We need to set the voice data in the synthesizer's performance config
+		// to ensure that the performance is not changed back to the previous one
+		// when a parameter is changed.
+		// This is a workaround for the fact that the performance config
+		// is not updated when the voice data is changed because it would be
+		// too costly to do in the thread.
+		this->GetPerformanceConfig()->SetVoiceDataToTxt(currentVoiceData, nTG);
+    }
+}
