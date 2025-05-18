@@ -249,7 +249,7 @@ public:
 	void GetCurrentVoiceData(uint8_t* dest, unsigned nTG);
 
 public:
-    void SetPendingVoicePerformanceUpdate(const uint8_t* voiceData, uint8_t tg);
+    void SetPendingVoicePerformanceUpdate(unsigned nTG);
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
