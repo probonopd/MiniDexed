@@ -284,7 +284,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 						float fMasterVolume = (float)pMessage[2] / 127.0f;
 						m_pSynthesizer->setMasterVolume(fMasterVolume);
 						LOGNOTE("MIDI CC07 (Volume) on PCCH: Set Master Volume to %d (%.3f)", pMessage[2], fMasterVolume);
-						break; // Do not process further for TGs
+						return; // Do not process further for TGs
 					}
 					else
 					{
