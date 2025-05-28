@@ -95,52 +95,58 @@ void CMIDIKeyboard::USBMIDIMessageHandler (u8 *pPacket, unsigned nLength, unsign
 	if ((pPacket[0] == 0xF0) && (m_nSysExIdx == 0))
 	{
 		// Start of SysEx message
-		//printf("SysEx Start  Idx=%d, (%d)\n", m_nSysExIdx, nLength);
 		for (unsigned i=0; i<USB_SYSEX_BUFFER_SIZE; i++) {
 			m_SysEx[i] = 0;
 		}
 		for (unsigned i=0; i<nLength; i++) {
 			m_SysEx[m_nSysExIdx++] = pPacket[i];
 		}
+		// Early check for manufacturer ID after at least 2 bytes
+		if (m_nSysExIdx > 2 && m_SysEx[1] != 0x43 && m_SysEx[1] != 0x7D) {
+			// LOGNOTE("Aborting SysEx assembly: manufacturer 0x%02X not Yamaha or MiniDexed", m_SysEx[1]);
+			m_nSysExIdx = 0;
+			// Do not process remaining bytes as MIDI events
+		}
 	}
 	else if (m_nSysExIdx != 0)
 	{
-		// Continue processing SysEx message
-		//printf("SysEx Packet Idx=%d, (%d)\n", m_nSysExIdx, nLength);
 		for (unsigned i=0; i<nLength; i++) {
 			if (pPacket[i] == 0xF8 || pPacket[i] == 0xFA || pPacket[i] == 0xFB || pPacket[i] == 0xFC || pPacket[i] == 0xFE || pPacket[i] == 0xFF) {
-				// Singe-byte System Realtime Messages can happen at any time!
 				MIDIMessageHandler (&pPacket[i], 1, nCable);
 			}
 			else if (m_nSysExIdx >= USB_SYSEX_BUFFER_SIZE) {
-				// Run out of space, so reset and ignore rest of the message
+				// LOGERR("SysEx buffer overflow, resetting SysEx assembly");
 				m_nSysExIdx = 0;
 				break;
 			}
 			else if (pPacket[i] == 0xF7) {
-				// End of SysEx message
 				m_SysEx[m_nSysExIdx++] = pPacket[i];
-				//printf ("SysEx End    Idx=%d\n", m_nSysExIdx);
-				MIDIMessageHandler (m_SysEx, m_nSysExIdx, nCable);
-				// Reset ready for next time
+				// Check manufacturer ID before passing to handler
+				if (m_SysEx[1] == 0x43 || m_SysEx[1] == 0x7D) {
+					MIDIMessageHandler (m_SysEx, m_nSysExIdx, nCable);
+				} else {
+					// LOGNOTE("Ignoring completed SysEx: manufacturer 0x%02X not Yamaha or MiniDexed", m_SysEx[1]);
+				}
 				m_nSysExIdx = 0;
 			}
 			else if ((pPacket[i] & 0x80) != 0) {
-				// Received another command, so reset processing as something has gone wrong
-				//printf ("SysEx Reset\n");
+				// LOGERR("Unexpected status byte 0x%02X in SysEx, resetting", pPacket[i]);
 				m_nSysExIdx = 0;
 				break;
 			}
-			else
-			{
-				// Store the byte
+			else {
 				m_SysEx[m_nSysExIdx++] = pPacket[i];
+				// Early check for manufacturer ID after at least 2 bytes
+				if (m_nSysExIdx == 2 && m_SysEx[1] != 0x43 && m_SysEx[1] != 0x7D) {
+					// LOGNOTE("Aborting SysEx assembly: manufacturer 0x%02X not Yamaha or MiniDexed", m_SysEx[1]);
+					m_nSysExIdx = 0;
+					// Do not process remaining bytes as MIDI events
+				}
 			}
 		}
 	}
 	else
 	{
-		// Assume it is a standard message
 		MIDIMessageHandler (pPacket, nLength, nCable);
 	}
 }

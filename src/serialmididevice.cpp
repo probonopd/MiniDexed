@@ -75,31 +75,32 @@ void CSerialMIDIDevice::Process (void)
 		return;
 	}
 
-/*        if (m_pConfig->GetMIDIDumpEnabled ())
-	{
-		printf("Incoming MIDI data:");
-		for (uint16_t i = 0; i < nResult; i++)
-		{
-			if((i % 8) == 0)
-				printf("\n%04d:",i);
-			printf(" 0x%02x",Buffer[i]);
-		}
-		printf("\n");
-	}*/
-
-	// Process MIDI messages
-	// See: https://www.midi.org/specifications/item/table-1-summary-of-midi-message
-	// "Running status" see: https://www.lim.di.unimi.it/IEEE/MIDI/SOT5.HTM#Running-	
-	
 	for (int i = 0; i < nResult; i++)
 	{
 		u8 uchData = Buffer[i];
 
-		if(uchData == 0xF0)
-		{
-			// SYSEX found
-			m_SerialMessage[m_nSysEx++]=uchData;
-			continue;
+		// SysEx reassembly logic
+		if (uchData == 0xF0 && !m_SysExActive) {
+			m_SysExActive = true;
+			m_SysExLen = 0;
+		}
+		if (m_SysExActive) {
+			if ((uchData & 0x80) && uchData != 0xF0 && uchData != 0xF7) {
+				// Abort SysEx on new status byte (except 0xF0/0xF7)
+				m_SysExActive = false;
+				m_SysExLen = 0;
+				// Process this byte as normal MIDI below
+			} else {
+				if (m_SysExLen < MAX_MIDI_MESSAGE) {
+					m_SysExBuffer[m_SysExLen++] = uchData;
+				}
+				if (uchData == 0xF7 || m_SysExLen >= MAX_MIDI_MESSAGE) {
+					MIDIMessageHandler(m_SysExBuffer, m_SysExLen, 0);
+					m_SysExActive = false;
+					m_SysExLen = 0;
+				}
+				if (m_SysExActive) continue;
+			}
 		}
 
 		// System Real Time messages may appear anywhere in the byte stream, so handle them specially

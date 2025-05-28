@@ -830,6 +830,26 @@ std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
 	}
 }
 
+std::string CPerformanceConfig::GetPerformanceDisplayName(unsigned nID, unsigned maxLength)
+{
+	std::string fullName = GetPerformanceName(nID);
+	if (fullName.length() > maxLength && maxLength > 3)
+	{
+		return fullName.substr(0, maxLength - 3) + "...";
+	}
+	return fullName;
+}
+
+std::string CPerformanceConfig::GetPerformanceBankDisplayName(unsigned nBankID, unsigned maxLength)
+{
+	std::string fullName = GetPerformanceBankName(nBankID);
+	if (fullName.length() > maxLength && maxLength > 3)
+	{
+		return fullName.substr(0, maxLength - 3) + "...";
+	}
+	return fullName;
+}
+
 unsigned CPerformanceConfig::GetLastPerformance()
 {
 	return m_nLastPerformance;
@@ -938,7 +958,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	}		
 	else
 	{
-		nFileName +=sPerformanceName.substr(0,14);
+		nFileName += sPerformanceName;
 	}
 	nFileName += ".ini";
 	m_PerformanceFileName[nNewPerformance]= sPerformanceName;
@@ -965,7 +985,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	
 	m_nLastPerformance = nNewPerformance;
 	m_nActualPerformance = nNewPerformance;
-	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
+	m_Properties = CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
 	
 	return true;
 }
@@ -1007,7 +1027,7 @@ bool CPerformanceConfig::ListPerformances()
 			{
 				std::string OriFileName = FileInfo.fname;
 				size_t nLen = OriFileName.length();
-				if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
+				if (   nLen > 8 && nLen < 255 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
 				{
 					// Note: m_nLastPerformance - refers to the number (index) of the last performance in memory,
 					//       which includes a default performance.
@@ -1033,12 +1053,12 @@ bool CPerformanceConfig::ListPerformances()
 						nPIndex = nPIndex-1;
 						if (m_PerformanceFileName[nPIndex].empty())
 						{
-							if(nPIndex > m_nLastPerformance)
+							if (nPIndex > m_nLastPerformance)
 							{
 								m_nLastPerformance=nPIndex;
 							}
 
-							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
+						    std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7);
 
 							m_PerformanceFileName[nPIndex] = FileName;
 #ifdef VERBOSE_DEBUG
@@ -1067,7 +1087,7 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 	m_nActualPerformance=nID;
 	std::string FileN = GetPerformanceFullFilePath(nID);
 
-	new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
+	m_Properties = CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
 #ifdef VERBOSE_DEBUG
 	LOGNOTE("Selecting Performance: %d (%s)", nID+1, FileN.c_str());
 #endif
@@ -1183,7 +1203,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 			//
 			std::string OriFileName = FileInfo.fname;
 			size_t nLen = OriFileName.length();
-			if (   nLen > 4 && nLen <26	 && strcmp(OriFileName.substr(3,1).c_str(), "_")==0)
+			if (   nLen > 4 && nLen < 255 && strcmp(OriFileName.substr(3,1).c_str(), "_")==0)
 			{
 				unsigned nBankIndex = stoi(OriFileName.substr(0,3));
 				// Recall user index numbered 002..NUM_PERFORMANCE_BANKS
@@ -1194,7 +1214,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 					nBankIndex = nBankIndex-1;
 					if (m_PerformanceBankName[nBankIndex].empty())
 					{
-						std::string BankName = OriFileName.substr(4,nLen);
+						std::string BankName = OriFileName.substr(4);
 
 						m_PerformanceBankName[nBankIndex] = BankName;
 #ifdef VERBOSE_DEBUG
@@ -1313,4 +1333,308 @@ bool CPerformanceConfig::IsValidPerformanceBank(unsigned nBankID)
 		return false;
 	}
 	return true;
+}
+
+// Static arrays for all parameter numbers
+static const uint16_t s_globalParams[] = {
+    CPerformanceConfig::PARAM_COMPRESSOR_ENABLE,
+    CPerformanceConfig::PARAM_REVERB_ENABLE,
+    CPerformanceConfig::PARAM_REVERB_SIZE,
+    CPerformanceConfig::PARAM_REVERB_HIGHDAMP,
+    CPerformanceConfig::PARAM_REVERB_LOWDAMP,
+    CPerformanceConfig::PARAM_REVERB_LOWPASS,
+    CPerformanceConfig::PARAM_REVERB_DIFFUSION,
+    CPerformanceConfig::PARAM_REVERB_LEVEL
+};
+static const uint16_t s_tgParams[] = {
+    CPerformanceConfig::PARAM_BANK_NUMBER,
+    CPerformanceConfig::PARAM_VOICE_NUMBER,
+    CPerformanceConfig::PARAM_MIDI_CHANNEL,
+    CPerformanceConfig::PARAM_VOLUME,
+    CPerformanceConfig::PARAM_PAN,
+    CPerformanceConfig::PARAM_DETUNE,
+    CPerformanceConfig::PARAM_CUTOFF,
+    CPerformanceConfig::PARAM_RESONANCE,
+    CPerformanceConfig::PARAM_NOTE_LIMIT_LOW,
+    CPerformanceConfig::PARAM_NOTE_LIMIT_HIGH,
+    CPerformanceConfig::PARAM_NOTE_SHIFT,
+    CPerformanceConfig::PARAM_REVERB_SEND,
+    CPerformanceConfig::PARAM_PITCH_BEND_RANGE,
+    CPerformanceConfig::PARAM_PITCH_BEND_STEP,
+    CPerformanceConfig::PARAM_PORTAMENTO_MODE,
+    CPerformanceConfig::PARAM_PORTAMENTO_GLISSANDO,
+    CPerformanceConfig::PARAM_PORTAMENTO_TIME,
+    CPerformanceConfig::PARAM_MONO_MODE,
+    CPerformanceConfig::PARAM_MODWHEEL_RANGE,
+    CPerformanceConfig::PARAM_MODWHEEL_TARGET,
+    CPerformanceConfig::PARAM_FOOTCTRL_RANGE,
+    CPerformanceConfig::PARAM_FOOTCTRL_TARGET,
+    CPerformanceConfig::PARAM_BREATHCTRL_RANGE,
+    CPerformanceConfig::PARAM_BREATHCTRL_TARGET,
+    CPerformanceConfig::PARAM_AFTERTOUCH_RANGE,
+    CPerformanceConfig::PARAM_AFTERTOUCH_TARGET
+};
+
+const uint16_t* CPerformanceConfig::GetAllGlobalParams(size_t& count) {
+    count = sizeof(s_globalParams) / sizeof(s_globalParams[0]);
+    return s_globalParams;
+}
+const uint16_t* CPerformanceConfig::GetAllTGParams(size_t& count) {
+    count = sizeof(s_tgParams) / sizeof(s_tgParams[0]);
+    return s_tgParams;
+}
+
+// Generic parameter access for SysEx (pp pp, vv vv scheme)
+bool CPerformanceConfig::GetGlobalParameters(const uint16_t *params, uint16_t *values, size_t count) const {
+	bool allOk = true;
+	for (size_t i = 0; i < count; ++i) {
+		switch (params[i]) {
+			case PARAM_COMPRESSOR_ENABLE:
+				values[i] = GetCompressorEnable() ? 1 : 0;
+				break;
+			case PARAM_REVERB_ENABLE:
+				values[i] = GetReverbEnable() ? 1 : 0;
+				break;
+			case PARAM_REVERB_SIZE:
+				values[i] = GetReverbSize();
+				break;
+			case PARAM_REVERB_HIGHDAMP:
+				values[i] = GetReverbHighDamp();
+				break;
+			case PARAM_REVERB_LOWDAMP:
+				values[i] = GetReverbLowDamp();
+				break;
+			case PARAM_REVERB_LOWPASS:
+				values[i] = GetReverbLowPass();
+				break;
+			case PARAM_REVERB_DIFFUSION:
+				values[i] = GetReverbDiffusion();
+				break;
+			case PARAM_REVERB_LEVEL:
+				values[i] = GetReverbLevel();
+				break;
+			default:
+				allOk = false;
+				break;
+		}
+	}
+	return allOk;
+}
+
+bool CPerformanceConfig::SetGlobalParameters(const uint16_t *params, const uint16_t *values, size_t count) {
+	bool allOk = true;
+	for (size_t i = 0; i < count; ++i) {
+		switch (params[i]) {
+			case PARAM_COMPRESSOR_ENABLE:
+				SetCompressorEnable(values[i] != 0);
+				break;
+			case PARAM_REVERB_ENABLE:
+				SetReverbEnable(values[i] != 0);
+				break;
+			case PARAM_REVERB_SIZE:
+				SetReverbSize(values[i]);
+				break;
+			case PARAM_REVERB_HIGHDAMP:
+				SetReverbHighDamp(values[i]);
+				break;
+			case PARAM_REVERB_LOWDAMP:
+				SetReverbLowDamp(values[i]);
+				break;
+			case PARAM_REVERB_LOWPASS:
+				SetReverbLowPass(values[i]);
+				break;
+			case PARAM_REVERB_DIFFUSION:
+				SetReverbDiffusion(values[i]);
+				break;
+			case PARAM_REVERB_LEVEL:
+				SetReverbLevel(values[i]);
+				break;
+			default:
+				allOk = false;
+				break;
+		}
+	}
+	return allOk;
+}
+
+bool CPerformanceConfig::GetTGParameters(const uint16_t *params, uint16_t *values, size_t count, unsigned tg) const {
+	if (tg >= CConfig::AllToneGenerators) return false;
+	bool allOk = true;
+	for (size_t i = 0; i < count; ++i) {
+		switch (params[i]) {
+			case PARAM_BANK_NUMBER:
+				values[i] = GetBankNumber(tg);
+				break;
+			case PARAM_VOICE_NUMBER:
+				values[i] = GetVoiceNumber(tg);
+				break;
+			case PARAM_MIDI_CHANNEL:
+				values[i] = GetMIDIChannel(tg);
+				break;
+			case PARAM_VOLUME:
+				values[i] = GetVolume(tg);
+				break;
+			case PARAM_PAN:
+				values[i] = GetPan(tg);
+				break;
+			case PARAM_DETUNE:
+				values[i] = static_cast<uint16_t>(GetDetune(tg));
+				break;
+			case PARAM_CUTOFF:
+				values[i] = GetCutoff(tg);
+				break;
+			case PARAM_RESONANCE:
+				values[i] = GetResonance(tg);
+				break;
+			case PARAM_NOTE_LIMIT_LOW:
+				values[i] = GetNoteLimitLow(tg);
+				break;
+			case PARAM_NOTE_LIMIT_HIGH:
+				values[i] = GetNoteLimitHigh(tg);
+				break;
+			case PARAM_NOTE_SHIFT:
+				values[i] = static_cast<uint16_t>(GetNoteShift(tg));
+				break;
+			case PARAM_REVERB_SEND:
+				values[i] = GetReverbSend(tg);
+				break;
+			case PARAM_PITCH_BEND_RANGE:
+				values[i] = GetPitchBendRange(tg);
+				break;
+			case PARAM_PITCH_BEND_STEP:
+				values[i] = GetPitchBendStep(tg);
+				break;
+			case PARAM_PORTAMENTO_MODE:
+				values[i] = GetPortamentoMode(tg);
+				break;
+			case PARAM_PORTAMENTO_GLISSANDO:
+				values[i] = GetPortamentoGlissando(tg);
+				break;
+			case PARAM_PORTAMENTO_TIME:
+				values[i] = GetPortamentoTime(tg);
+				break;
+			case PARAM_MONO_MODE:
+				values[i] = GetMonoMode(tg) ? 1 : 0;
+				break;
+			case PARAM_MODWHEEL_RANGE:
+				values[i] = GetModulationWheelRange(tg);
+				break;
+			case PARAM_MODWHEEL_TARGET:
+				values[i] = GetModulationWheelTarget(tg);
+				break;
+			case PARAM_FOOTCTRL_RANGE:
+				values[i] = GetFootControlRange(tg);
+				break;
+			case PARAM_FOOTCTRL_TARGET:
+				values[i] = GetFootControlTarget(tg);
+				break;
+			case PARAM_BREATHCTRL_RANGE:
+				values[i] = GetBreathControlRange(tg);
+				break;
+			case PARAM_BREATHCTRL_TARGET:
+				values[i] = GetBreathControlTarget(tg);
+				break;
+			case PARAM_AFTERTOUCH_RANGE:
+				values[i] = GetAftertouchRange(tg);
+				break;
+			case PARAM_AFTERTOUCH_TARGET:
+				values[i] = GetAftertouchTarget(tg);
+				break;
+			default:
+				allOk = false;
+				break;
+		}
+	}
+	return allOk;
+}
+
+bool CPerformanceConfig::SetTGParameters(const uint16_t *params, const uint16_t *values, size_t count, unsigned tg) {
+	if (tg >= CConfig::AllToneGenerators) return false;
+	bool allOk = true;
+	for (size_t i = 0; i < count; ++i) {
+		switch (params[i]) {
+			case PARAM_BANK_NUMBER:
+				SetBankNumber(values[i], tg);
+				break;
+			case PARAM_VOICE_NUMBER:
+				SetVoiceNumber(values[i], tg);
+				break;
+			case PARAM_MIDI_CHANNEL:
+				SetMIDIChannel(values[i], tg);
+				break;
+			case PARAM_VOLUME:
+				SetVolume(values[i], tg);
+				break;
+			case PARAM_PAN:
+				SetPan(values[i], tg);
+				break;
+			case PARAM_DETUNE:
+				SetDetune(static_cast<int16_t>(values[i]), tg);
+				break;
+			case PARAM_CUTOFF:
+				SetCutoff(values[i], tg);
+				break;
+			case PARAM_RESONANCE:
+				SetResonance(values[i], tg);
+				break;
+			case PARAM_NOTE_LIMIT_LOW:
+				SetNoteLimitLow(values[i], tg);
+				break;
+			case PARAM_NOTE_LIMIT_HIGH:
+				SetNoteLimitHigh(values[i], tg);
+				break;
+			case PARAM_NOTE_SHIFT:
+				SetNoteShift(static_cast<int16_t>(values[i]), tg);
+				break;
+			case PARAM_REVERB_SEND:
+				SetReverbSend(values[i], tg);
+				break;
+			case PARAM_PITCH_BEND_RANGE:
+				SetPitchBendRange(values[i], tg);
+				break;
+			case PARAM_PITCH_BEND_STEP:
+				SetPitchBendStep(values[i], tg);
+				break;
+			case PARAM_PORTAMENTO_MODE:
+				SetPortamentoMode(values[i], tg);
+				break;
+			case PARAM_PORTAMENTO_GLISSANDO:
+				SetPortamentoGlissando(values[i], tg);
+				break;
+			case PARAM_PORTAMENTO_TIME:
+				SetPortamentoTime(values[i], tg);
+				break;
+			case PARAM_MONO_MODE:
+				SetMonoMode(values[i] != 0, tg);
+				break;
+			case PARAM_MODWHEEL_RANGE:
+				SetModulationWheelRange(values[i], tg);
+				break;
+			case PARAM_MODWHEEL_TARGET:
+				SetModulationWheelTarget(values[i], tg);
+				break;
+			case PARAM_FOOTCTRL_RANGE:
+				SetFootControlRange(values[i], tg);
+				break;
+			case PARAM_FOOTCTRL_TARGET:
+				SetFootControlTarget(values[i], tg);
+				break;
+			case PARAM_BREATHCTRL_RANGE:
+				SetBreathControlRange(values[i], tg);
+				break;
+			case PARAM_BREATHCTRL_TARGET:
+				SetBreathControlTarget(values[i], tg);
+				break;
+			case PARAM_AFTERTOUCH_RANGE:
+				SetAftertouchRange(values[i], tg);
+				break;
+			case PARAM_AFTERTOUCH_TARGET:
+				SetAftertouchTarget(values[i], tg);
+				break;
+			default:
+				allOk = false;
+				break;
+		}
+	}
+	return allOk;
 }

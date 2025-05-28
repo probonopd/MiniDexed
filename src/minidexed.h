@@ -244,10 +244,16 @@ public:
 	bool InitNetwork();
 	void UpdateNetwork();
 
+	void LoadPerformanceParameters(void); 
+
+	void GetCurrentVoiceData(uint8_t* dest, unsigned nTG);
+
+public:
+    void SetPendingVoicePerformanceUpdate(unsigned nTG);
+
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
-	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
 	const char* GetNetworkDeviceShortName() const;
 
@@ -364,6 +370,13 @@ private:
 	bool m_bLoadPerformanceBusy;
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
+
+	// Add for deferred performance update after SysEx voice load
+	struct PendingVoicePerformanceUpdate {
+		bool pending = false;
+		uint8_t voiceData[156];
+		uint8_t tg = 0;
+	} m_PendingVoicePerformanceUpdate;
 };
 
 #endif
