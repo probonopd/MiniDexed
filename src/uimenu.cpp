@@ -1614,7 +1614,7 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			break;
 
 		case MenuEventStepUp:
-			do
+							do
 			{
 				if (nValue == nLastPerformance)
 				{
@@ -1821,7 +1821,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 	{
 		case 1: // save new performance
 			NoValidChars = {92, 47, 58, 42, 63, 34, 60,62, 124};
-			MaxChars=14;
+			MaxChars=64;  // Support longer performance names
 			MenuTitleL="Performance Name";
 			MenuTitleR="";
 			OkTitleL="New Performance"; // \E[?25l
@@ -1830,7 +1830,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		 
 		case 2: // Rename performance - NOT Implemented yet
 			NoValidChars = {92, 47, 58, 42, 63, 34, 60,62, 124};
-			MaxChars=14;
+			MaxChars=64;  // Support longer performance names
 			MenuTitleL="Performance Name";
 			MenuTitleR="";
 			OkTitleL="Rename Perf."; // \E[?25l
@@ -1863,8 +1863,9 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		if(pUIMenu->m_nCurrentParameter == 1 || pUIMenu->m_nCurrentParameter == 2)
 		{
 			pUIMenu->m_InputText = pUIMenu->m_pMiniDexed->GetNewPerformanceDefaultName();
-			pUIMenu->m_InputText += "              ";
-			pUIMenu->m_InputText =  pUIMenu->m_InputText.substr(0,14);
+			// Pad to MaxChars instead of hardcoded 14
+			pUIMenu->m_InputText += std::string(MaxChars, ' ');
+			pUIMenu->m_InputText =  pUIMenu->m_InputText.substr(0, MaxChars);
 			pUIMenu->m_InputTextPosition=0;
 			nPosition=pUIMenu->m_InputTextPosition;
 			nChar = pUIMenu->m_InputText[nPosition];

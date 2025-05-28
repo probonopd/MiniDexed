@@ -830,6 +830,26 @@ std::string CPerformanceConfig::GetPerformanceName(unsigned nID)
 	}
 }
 
+std::string CPerformanceConfig::GetPerformanceDisplayName(unsigned nID, unsigned maxLength)
+{
+	std::string fullName = GetPerformanceName(nID);
+	if (fullName.length() > maxLength && maxLength > 3)
+	{
+		return fullName.substr(0, maxLength - 3) + "...";
+	}
+	return fullName;
+}
+
+std::string CPerformanceConfig::GetPerformanceBankDisplayName(unsigned nBankID, unsigned maxLength)
+{
+	std::string fullName = GetPerformanceBankName(nBankID);
+	if (fullName.length() > maxLength && maxLength > 3)
+	{
+		return fullName.substr(0, maxLength - 3) + "...";
+	}
+	return fullName;
+}
+
 unsigned CPerformanceConfig::GetLastPerformance()
 {
 	return m_nLastPerformance;
@@ -938,7 +958,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	}		
 	else
 	{
-		nFileName +=sPerformanceName.substr(0,14);
+		nFileName += sPerformanceName;
 	}
 	nFileName += ".ini";
 	m_PerformanceFileName[nNewPerformance]= sPerformanceName;
@@ -965,7 +985,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	
 	m_nLastPerformance = nNewPerformance;
 	m_nActualPerformance = nNewPerformance;
-	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
+	m_Properties = CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
 	
 	return true;
 }
@@ -1007,7 +1027,7 @@ bool CPerformanceConfig::ListPerformances()
 			{
 				std::string OriFileName = FileInfo.fname;
 				size_t nLen = OriFileName.length();
-				if (   nLen > 8 && nLen <26	 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
+				if (   nLen > 8 && nLen < 255 && strcmp(OriFileName.substr(6,1).c_str(), "_")==0)
 				{
 					// Note: m_nLastPerformance - refers to the number (index) of the last performance in memory,
 					//       which includes a default performance.
@@ -1033,12 +1053,12 @@ bool CPerformanceConfig::ListPerformances()
 						nPIndex = nPIndex-1;
 						if (m_PerformanceFileName[nPIndex].empty())
 						{
-							if(nPIndex > m_nLastPerformance)
+							if (nPIndex > m_nLastPerformance)
 							{
 								m_nLastPerformance=nPIndex;
 							}
 
-							std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7,14);
+						    std::string FileName = OriFileName.substr(0,OriFileName.length()-4).substr(7);
 
 							m_PerformanceFileName[nPIndex] = FileName;
 #ifdef VERBOSE_DEBUG
@@ -1067,7 +1087,7 @@ void CPerformanceConfig::SetNewPerformance (unsigned nID)
 	m_nActualPerformance=nID;
 	std::string FileN = GetPerformanceFullFilePath(nID);
 
-	new (&m_Properties) CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
+	m_Properties = CPropertiesFatFsFile(FileN.c_str(), m_pFileSystem);
 #ifdef VERBOSE_DEBUG
 	LOGNOTE("Selecting Performance: %d (%s)", nID+1, FileN.c_str());
 #endif
@@ -1183,7 +1203,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 			//
 			std::string OriFileName = FileInfo.fname;
 			size_t nLen = OriFileName.length();
-			if (   nLen > 4 && nLen <26	 && strcmp(OriFileName.substr(3,1).c_str(), "_")==0)
+			if (   nLen > 4 && nLen < 255 && strcmp(OriFileName.substr(3,1).c_str(), "_")==0)
 			{
 				unsigned nBankIndex = stoi(OriFileName.substr(0,3));
 				// Recall user index numbered 002..NUM_PERFORMANCE_BANKS
@@ -1194,7 +1214,7 @@ bool CPerformanceConfig::ListPerformanceBanks()
 					nBankIndex = nBankIndex-1;
 					if (m_PerformanceBankName[nBankIndex].empty())
 					{
-						std::string BankName = OriFileName.substr(4,nLen);
+						std::string BankName = OriFileName.substr(4);
 
 						m_PerformanceBankName[nBankIndex] = BankName;
 #ifdef VERBOSE_DEBUG

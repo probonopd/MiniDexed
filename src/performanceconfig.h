@@ -169,6 +169,8 @@ public:
 	std::string GetPerformanceFileName(unsigned nID);
 	std::string GetPerformanceFullFilePath(unsigned nID);
 	std::string GetPerformanceName(unsigned nID);
+	std::string GetPerformanceDisplayName(unsigned nID, unsigned maxLength = 14);
+	std::string GetPerformanceBankDisplayName(unsigned nBankID, unsigned maxLength = 20);
 	unsigned GetLastPerformance();
 	unsigned GetLastPerformanceBank();
 	void SetActualPerformanceID(unsigned nID);
