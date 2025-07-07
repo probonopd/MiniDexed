@@ -813,6 +813,8 @@ bool CAppleMIDIParticipant::SendAcceptInvitationPacket(CSocket* pSocket, CIPAddr
 	else
 		strncpy(AcceptPacket.Name, "MiniDexed", sizeof(AcceptPacket.Name));
 
+	AcceptPacket.Name[sizeof(AcceptPacket.Name) - 1] = 0;
+
 #ifdef APPLEMIDI_DEBUG
 	LOGNOTE("--> Accept invitation");
 #endif
