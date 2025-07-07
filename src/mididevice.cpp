@@ -339,7 +339,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 
 					// Check for TX216/TX816 style performance sysex messages
 					
-					if (pMessage[3] == 0x04)
+					if (nLength == 7 && pMessage[3] == 0x04)
 					{
 						// TX816/TX216 Performance SysEx message
 						uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
