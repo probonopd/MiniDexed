@@ -12,10 +12,10 @@ git submodule update --init --recursive -f
 cd -
 
 # Optional update submodules explicitly
-#cd circle-stdlib/libs/circle
-#git reset --hard
-#git checkout tags/Step49
-#cd -
+cd circle-stdlib/libs/circle
+git reset --hard
+git checkout f18c60fa38042ea7132533e658abfafd5bd63435
+cd -
 #cd circle-stdlib/libs/circle-newlib
 #git checkout develop
 #cd -
