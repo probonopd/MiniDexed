@@ -35,6 +35,7 @@ CKernel::CKernel (void)
 :	
 	CStdlibAppStdio ("minidexed"),
 	m_Config (&mFileSystem),
+	m_CPUThrottle (CPUSpeedMaximum),
 	m_GPIOManager (&mInterrupt),
  	m_I2CMaster (CMachineInfo::Get ()->GetDevice (DeviceI2CMaster), TRUE),
 	m_pSPIMaster (nullptr),
