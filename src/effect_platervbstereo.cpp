@@ -85,6 +85,7 @@ const int16_t AudioWaveformSine[257] = {
 
 AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
 {
+    m_samplerate = samplerate;
     input_attn = 0.5f;
     in_allp_k = INP_ALLP_COEFF;
 
@@ -200,7 +201,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
     }
     cleanup_done = false;
 
-    rv_time = rv_time_k;
+    rv_time = rv_time_k * (48000.0f / m_samplerate);
 
     for (uint16_t i=0; i < len; i++) 
     {
