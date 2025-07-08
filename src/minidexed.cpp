@@ -70,11 +70,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
-	m_bSetNewPerformance (false),
+	m_bSetNewPerformance{},
 	m_bSetNewPerformanceBank (false),
 	m_bSetFirstPerformance (false),
 	m_bDeletePerformance (false),
-	m_bLoadPerformanceBusy(false),
+	m_bLoadPerformanceBusy{},
 	m_bLoadPerformanceBankBusy(false)
 {
 	assert (m_pConfig);
@@ -244,17 +244,22 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 	// BEGIN setup reverb
 	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
-	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
-	SetParameter (ParameterReverbEnable, 1);
-	SetParameter (ParameterReverbSize, 70);
-	SetParameter (ParameterReverbHighDamp, 50);
-	SetParameter (ParameterReverbLowDamp, 50);
-	SetParameter (ParameterReverbLowPass, 30);
-	SetParameter (ParameterReverbDiffusion, 65);
-	SetParameter (ParameterReverbLevel, 99);
-	// END setup reverb
+	for (int part = 0; part < NPART; ++part)
+	{
+		reverb[part] = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+		
+		SetParameter (part, ParameterReverbEnable, 1);
+		SetParameter (part, ParameterReverbSize, 70);
+		SetParameter (part, ParameterReverbHighDamp, 50);
+		SetParameter (part, ParameterReverbLowDamp, 50);
+		SetParameter (part, ParameterReverbLowPass, 30);
+		SetParameter (part, ParameterReverbDiffusion, 65);
+		SetParameter (part, ParameterReverbLevel, 99);
+		// END setup reverb
 
-	SetParameter (ParameterCompressorEnable, 1);
+		SetParameter (part, ParameterCompressorEnable, 1);
+
+	}
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 		
@@ -330,7 +335,7 @@ bool CMiniDexed::Initialize (void)
 	m_PerformanceConfig.Init(m_nToneGenerators);
 	if (m_PerformanceConfig.Load ())
 	{
-		LoadPerformanceParameters(); 
+		LoadPerformanceParameters(0); 
 	}
 	else
 	{
@@ -421,7 +426,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		pScheduler->Yield();
 	}
 	
-	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	if (m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy[0] && !m_bLoadPerformanceBankBusy)
 	{
 		DoSetNewPerformanceBank ();
 		if (m_nSetNewPerformanceBankID == GetActualPerformanceBankID())
@@ -432,21 +437,24 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		// If there is no pending SetNewPerformance already, then see if we need to find the first performance to load
 		// NB: If called from the UI, then there will not be a SetNewPerformance, so load the first existing one.
 		//     If called from MIDI, there will probably be a SetNewPerformance alongside the Bank select.
-		if (!m_bSetNewPerformance && m_bSetFirstPerformance)
+		if (!m_bSetNewPerformance[0] && m_bSetFirstPerformance)
 		{
 			DoSetFirstPerformance();
 		}
 		pScheduler->Yield();
 	}
 	
-	if (m_bSetNewPerformance && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy && !m_bLoadPerformanceBankBusy)
+	for (int part=0; part<NPART; ++part)
 	{
-		DoSetNewPerformance ();
-		if (m_nSetNewPerformanceID == GetActualPerformanceID())
+		if (m_bSetNewPerformance[part] && !m_bSetNewPerformanceBank && !m_bLoadPerformanceBusy[part] && !m_bLoadPerformanceBankBusy)
 		{
-			m_bSetNewPerformance = false;
+			DoSetNewPerformance (part);
+			if (m_nSetNewPerformanceID[part] == GetActualPerformanceID())
+			{
+				m_bSetNewPerformance[part] = false;
+			}
+			pScheduler->Yield();
 		}
-		pScheduler->Yield();
 	}
 	
 	if(m_bDeletePerformance)
@@ -683,7 +691,7 @@ void CMiniDexed::ProgramChangePerformance (unsigned nProgram)
 		// Program Change messages change Performances.
 		if (m_PerformanceConfig.IsValidPerformance(nProgram))
 		{
-			SetNewPerformance(nProgram);
+			SetNewPerformance(0, nProgram);
 		}
 		m_UI.ParameterChanged ();
 	}
@@ -999,15 +1007,21 @@ void CMiniDexed::ControllersRefresh (unsigned nTG)
 
 void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 {
-	assert (reverb);
+	SetParameter (0, Parameter, nValue);
+}
+
+void CMiniDexed::SetParameter (unsigned part, TParameter Parameter, int nValue)
+{
+	assert (reverb[part]);
 
 	assert (Parameter < ParameterUnknown);
-	m_nParameter[Parameter] = nValue;
+	if (part == 0)
+		m_nParameter[Parameter] = nValue;
 
 	switch (Parameter)
 	{
 	case ParameterCompressorEnable:
-		for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
+		for (unsigned nTG = part*8; nTG < part*8+8; nTG++)
 		{
 			assert (m_pTG[nTG]);
 			m_pTG[nTG]->setCompressor (!!nValue);
@@ -1017,49 +1031,49 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
-		reverb->set_bypass (!nValue);
+		reverb[part]->set_bypass (!nValue);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbSize:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->size (nValue / 99.0f);
+		reverb[part]->size (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbHighDamp:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->hidamp (nValue / 99.0f);
+		reverb[part]->hidamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowDamp:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->lodamp (nValue / 99.0f);
+		reverb[part]->lodamp (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLowPass:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->lowpass (nValue / 99.0f);
+		reverb[part]->lowpass (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbDiffusion:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->diffusion (nValue / 99.0f);
+		reverb[part]->diffusion (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
 	case ParameterReverbLevel:
 		nValue=constrain((int)nValue,0,99);
 		m_ReverbSpinLock.Acquire ();
-		reverb->level (nValue / 99.0f);
+		reverb[part]->level (nValue / 99.0f);
 		m_ReverbSpinLock.Release ();
 		break;
 
@@ -1402,7 +1416,7 @@ void CMiniDexed::ProcessSound (void)
 
 			for (uint8_t i = 0; i < m_nToneGenerators; i++)
 			{
-				tg_mixer->doAddMix(i,m_OutputLevel[i]);
+				tg_mixer->doAddMix(i, m_OutputLevel[i]);
 			}
 			// END TG mixing
 
@@ -1412,18 +1426,22 @@ void CMiniDexed::ProcessSound (void)
 				float32_t *ReverbSendBuffer[2];
 				reverb_send_mixer->getBuffers(ReverbSendBuffer);
 
-				reverb_send_mixer->zeroFill();
-
-				for (uint8_t i = 0; i < m_nToneGenerators; i++)
+				for (int part = 0; part < NPART; ++part)
 				{
-					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+					reverb_send_mixer->zeroFill();
+
+					for (uint8_t i = part*8; i < part*8+8; i++)
+					{
+						reverb_send_mixer->doAddMix(i, m_OutputLevel[i]);
+					}
+
+					m_ReverbSpinLock.Acquire ();
+
+					reverb[part]->addReverb(ReverbSendBuffer[0], ReverbSendBuffer[1], SampleBuffer[0], SampleBuffer[1], nFrames);
+
+					m_ReverbSpinLock.Release ();
 				}
-
-				m_ReverbSpinLock.Acquire ();
-
-				reverb->addReverb(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
-
-				m_ReverbSpinLock.Release ();
+				
 			}
 			// END adding reverb
 
@@ -1899,10 +1917,10 @@ void CMiniDexed::SetActualPerformanceBankID(unsigned nBankID)
 	m_PerformanceConfig.SetActualPerformanceBankID(nBankID);
 }
 
-bool CMiniDexed::SetNewPerformance(unsigned nID)
+bool CMiniDexed::SetNewPerformance(unsigned part, unsigned nID)
 {
-	m_bSetNewPerformance = true;
-	m_nSetNewPerformanceID = nID;
+	m_bSetNewPerformance[part] = true;
+	m_nSetNewPerformanceID[part] = nID;
 
 	return true;
 }
@@ -1921,26 +1939,27 @@ void CMiniDexed::SetFirstPerformance(void)
 	return;
 }
 
-bool CMiniDexed::DoSetNewPerformance (void)
+bool CMiniDexed::DoSetNewPerformance (unsigned part)
 {
-	m_bLoadPerformanceBusy = true;
+	m_bLoadPerformanceBusy[part] = true;
 	
-	unsigned nID = m_nSetNewPerformanceID;
+	unsigned nID = m_nSetNewPerformanceID[part];
 	m_PerformanceConfig.SetNewPerformance(nID);
 	
 	if (m_PerformanceConfig.Load ())
 	{
-		LoadPerformanceParameters();
-		m_bLoadPerformanceBusy = false;
+		LoadPerformanceParameters(part);
+		m_bLoadPerformanceBusy[part] = false;
 		return true;
 	}
 	else
 	{
 		SetMIDIChannel (CMIDIDevice::OmniMode, 0);
-		m_bLoadPerformanceBusy = false;
+		m_bLoadPerformanceBusy[part] = false;
 		return false;
 	}
 }
+
 
 bool CMiniDexed::DoSetNewPerformanceBank (void)
 {
@@ -1956,7 +1975,7 @@ bool CMiniDexed::DoSetNewPerformanceBank (void)
 void CMiniDexed::DoSetFirstPerformance(void)
 {
 	unsigned nID = m_PerformanceConfig.FindFirstPerformance();
-	SetNewPerformance(nID);
+	SetNewPerformance(0, nID);
 	m_bSetFirstPerformance = false;
 	return;
 }
@@ -1988,61 +2007,84 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 }
 
 
-void CMiniDexed::LoadPerformanceParameters(void)
+void CMiniDexed::LoadPerformanceParameters(unsigned part)
 {
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 		{
-			
-			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTG);
-			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTG);
-			SetMIDIChannel (m_PerformanceConfig.GetMIDIChannel (nTG), nTG);
-			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTG);
-			SetPan (m_PerformanceConfig.GetPan (nTG), nTG);
-			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTG);
-			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTG);
-			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTG);
-			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTG);
-			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTG);
-			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTG);
-			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTG);
-			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTG);
+			unsigned nTargetTG = part * 8 + nTG;
+			unsigned nChannel = m_PerformanceConfig.GetMIDIChannel (nTG);
 
-			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
-			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
-			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+			if (nTargetTG >= CConfig::AllToneGenerators)
+				break;
+
+			if (nTG >= 8 && nChannel == CMIDIDevice::Disabled)
+				continue;
+
+			//if (part == 0 && nChannel + 0 < CMIDIDevice::Channels)
+			//	nChannel += 0;
+
+			if (part == 1 && nChannel + 3 < CMIDIDevice::Channels)
+				nChannel += 3;
+
+			if (part == 2 && nChannel + 7 < CMIDIDevice::Channels)
+				nChannel += 7;
+
+			if (part == 3 && nChannel + 8 < CMIDIDevice::Channels)
+				nChannel += 8;
+
+			//if (part == 4 && nChannel + 0 < CMIDIDevice::Channels)
+			//	nChannel += 0;
+
+			BankSelect (m_PerformanceConfig.GetBankNumber (nTG), nTargetTG);
+			ProgramChange (m_PerformanceConfig.GetVoiceNumber (nTG), nTargetTG);
+			SetMIDIChannel (nChannel, nTargetTG);
+			SetVolume (m_PerformanceConfig.GetVolume (nTG), nTargetTG);
+			SetPan (m_PerformanceConfig.GetPan (nTG), nTargetTG);
+			SetMasterTune (m_PerformanceConfig.GetDetune (nTG), nTargetTG);
+			SetCutoff (m_PerformanceConfig.GetCutoff (nTG), nTargetTG);
+			SetResonance (m_PerformanceConfig.GetResonance (nTG), nTargetTG);
+			setPitchbendRange (m_PerformanceConfig.GetPitchBendRange (nTG), nTargetTG);
+			setPitchbendStep (m_PerformanceConfig.GetPitchBendStep (nTG), nTargetTG);
+			setPortamentoMode (m_PerformanceConfig.GetPortamentoMode (nTG), nTargetTG);
+			setPortamentoGlissando (m_PerformanceConfig.GetPortamentoGlissando  (nTG), nTargetTG);
+			setPortamentoTime (m_PerformanceConfig.GetPortamentoTime (nTG), nTargetTG);
+
+			m_nNoteLimitLow[nTargetTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
+			m_nNoteLimitHigh[nTargetTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
+			m_nNoteShift[nTargetTG] = m_PerformanceConfig.GetNoteShift (nTG);
 			
 			if(m_PerformanceConfig.VoiceDataFilled(nTG)) 
 			{
 			uint8_t* tVoiceData = m_PerformanceConfig.GetVoiceDataFromTxt(nTG);
-			m_pTG[nTG]->loadVoiceParameters(tVoiceData); 
-			setOPMask(0b111111, nTG);
+			m_pTG[nTargetTG]->loadVoiceParameters(tVoiceData); 
+			setOPMask(0b111111, nTargetTG);
 			}
-			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTG); 
-			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTG);
+			setMonoMode(m_PerformanceConfig.GetMonoMode(nTG) ? 1 : 0, nTargetTG); 
+			SetReverbSend (m_PerformanceConfig.GetReverbSend (nTG), nTargetTG);
 					
-			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTG);
-			setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTG);
-			setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTG);
-			setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTG);
-			setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTG);
-			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
-			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
-			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
+			setModWheelRange (m_PerformanceConfig.GetModulationWheelRange (nTG),  nTargetTG);
+			setModWheelTarget (m_PerformanceConfig.GetModulationWheelTarget (nTG),  nTargetTG);
+			setFootControllerRange (m_PerformanceConfig.GetFootControlRange (nTG),  nTargetTG);
+			setFootControllerTarget (m_PerformanceConfig.GetFootControlTarget (nTG),  nTargetTG);
+			setBreathControllerRange (m_PerformanceConfig.GetBreathControlRange (nTG),  nTargetTG);
+			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTargetTG);
+			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTargetTG);
+			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTargetTG);
 			
 		
 		}
 
-		// Effects
-		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
-		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
-		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
-		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
-		SetParameter (ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
-		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
-		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
-		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+	// Effects
+	SetParameter (part, ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
+	SetParameter (part, ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
+	SetParameter (part, ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
+	SetParameter (part, ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
+	SetParameter (part, ParameterReverbLowDamp, m_PerformanceConfig.GetReverbLowDamp ());
+	SetParameter (part, ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
+	SetParameter (part, ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
+	SetParameter (part, ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
 
-		m_UI.DisplayChanged ();
+	m_UI.DisplayChanged ();
 }
 
 std::string CMiniDexed::GetNewPerformanceDefaultName(void)	
@@ -2099,7 +2141,7 @@ bool CMiniDexed::DoDeletePerformance(void)
 	{
 		if (m_PerformanceConfig.Load ())
 		{
-			LoadPerformanceParameters();
+			LoadPerformanceParameters(0);
 			return true;
 		}
 		else

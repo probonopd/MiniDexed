@@ -52,6 +52,8 @@
 #include "udpmididevice.h"
 #include "net/ftpdaemon.h"
  
+#define NPART 5
+
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
 :	public CMultiCoreSupport
@@ -140,14 +142,14 @@ public:
 	void SetActualPerformanceID(unsigned nID);
 	unsigned GetActualPerformanceBankID();
 	void SetActualPerformanceBankID(unsigned nBankID);
-	bool SetNewPerformance(unsigned nID);
+	bool SetNewPerformance(unsigned part, unsigned nID);
 	bool SetNewPerformanceBank(unsigned nBankID);
 	void SetFirstPerformance(void);
 	void DoSetFirstPerformance(void);
 	bool SavePerformanceNewFile ();
 	
 	bool DoSavePerformanceNewFile (void);
-	bool DoSetNewPerformance (void);
+	bool DoSetNewPerformance (unsigned part);
 	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
@@ -173,6 +175,7 @@ public:
 	};
 
 	void SetParameter (TParameter Parameter, int nValue);
+	void SetParameter (unsigned part, TParameter Parameter, int nValue);
 	int GetParameter (TParameter Parameter);
 
 	std::string GetNewPerformanceDefaultName(void);
@@ -247,7 +250,7 @@ public:
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
-	void LoadPerformanceParameters(void); 
+	void LoadPerformanceParameters(unsigned part); 
 	void ProcessSound (void);
 	const char* GetNetworkDeviceShortName() const;
 
@@ -335,7 +338,7 @@ private:
 	CPerformanceTimer m_GetChunkTimer;
 	bool m_bProfileEnabled;
 
-	AudioEffectPlateReverb* reverb;
+	AudioEffectPlateReverb* reverb[NPART];
 	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
@@ -354,14 +357,14 @@ private:
 
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
-	bool m_bSetNewPerformance;
-	unsigned m_nSetNewPerformanceID;	
+	bool m_bSetNewPerformance[NPART];
+	unsigned m_nSetNewPerformanceID[NPART];
 	bool m_bSetNewPerformanceBank;
 	unsigned m_nSetNewPerformanceBankID;	
 	bool m_bSetFirstPerformance;
 	bool	m_bDeletePerformance;
 	unsigned m_nDeletePerformanceID;
-	bool m_bLoadPerformanceBusy;
+	bool m_bLoadPerformanceBusy[NPART];
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
 };

@@ -61,6 +61,30 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG14",	MenuHandler,	s_TGMenu, 13},
 	{"TG15",	MenuHandler,	s_TGMenu, 14},
 	{"TG16",	MenuHandler,	s_TGMenu, 15},
+	{"TG17",	MenuHandler,	s_TGMenu, 16},
+	{"TG18",	MenuHandler,	s_TGMenu, 17},
+	{"TG19",	MenuHandler,	s_TGMenu, 18},
+	{"TG20",	MenuHandler,	s_TGMenu, 19},
+	{"TG21",	MenuHandler,	s_TGMenu, 20},
+	{"TG22",	MenuHandler,	s_TGMenu, 21},
+	{"TG23",	MenuHandler,	s_TGMenu, 22},
+	{"TG24",	MenuHandler,	s_TGMenu, 23},
+	{"TG25",	MenuHandler,	s_TGMenu, 24},
+	{"TG26",	MenuHandler,	s_TGMenu, 25},
+	{"TG27",	MenuHandler,	s_TGMenu, 26},
+	{"TG28",	MenuHandler,	s_TGMenu, 27},
+	{"TG29",	MenuHandler,	s_TGMenu, 28},
+	{"TG30",	MenuHandler,	s_TGMenu, 29},
+	{"TG31",	MenuHandler,	s_TGMenu, 30},
+	{"TG32",	MenuHandler,	s_TGMenu, 31},
+	{"TG33",	MenuHandler,	s_TGMenu, 32},
+	{"TG34",	MenuHandler,	s_TGMenu, 33},
+	{"TG35",	MenuHandler,	s_TGMenu, 34},
+	{"TG36",	MenuHandler,	s_TGMenu, 35},
+	{"TG37",	MenuHandler,	s_TGMenu, 36},
+	{"TG38",	MenuHandler,	s_TGMenu, 37},
+	{"TG39",	MenuHandler,	s_TGMenu, 38},
+	{"TG40",	MenuHandler,	s_TGMenu, 39},
 #endif
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
@@ -337,9 +361,13 @@ static const unsigned NoteC3 = 39;
 
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
-	{"Load",	PerformanceMenu, 0, 0}, 
+	{"Part 1",	PerformanceMenu, 0, 0}, 
+	{"Part 2",	PerformanceMenu, 0, 1},
+	{"Part 3",	PerformanceMenu, 0, 2},
+	{"Part Drum",	PerformanceMenu, 0, 3},
+	{"Layer 1",	PerformanceMenu, 0, 4},
 	{"Save",	MenuHandler,	s_SaveMenu},
-	{"Delete",	PerformanceMenu, 0, 1},
+	{"Delete",	PerformanceMenu, 0, 10},
 	{"Bank",	EditPerformanceBankNumber, 0, 0},
 	{"PCCH",	EditGlobalParameter,	0,	CMiniDexed::ParameterPerformanceSelectChannel},
 	{0}
@@ -1323,7 +1351,7 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 				}
 			} while ((m_pMiniDexed->IsValidPerformance(nPerformance) != true) && (nPerformance != nStart));
 			m_nSelectedPerformanceID = nPerformance;
-			m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+			m_pMiniDexed->SetNewPerformance(0, m_nSelectedPerformanceID);
 			//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 		}
 		else // MenuEventPgmUp
@@ -1341,7 +1369,7 @@ void CUIMenu::PgmUpDownHandler (TMenuEvent Event)
 				}
 			} while ((m_pMiniDexed->IsValidPerformance(nPerformance) != true) && (nPerformance != nStart));
 			m_nSelectedPerformanceID = nPerformance;
-			m_pMiniDexed->SetNewPerformance(m_nSelectedPerformanceID);
+			m_pMiniDexed->SetNewPerformance(0, m_nSelectedPerformanceID);
 			//LOGNOTE("Performance new=%d, last=%d", m_nSelectedPerformanceID, nLastPerformance);
 		}
 	}
@@ -1612,9 +1640,9 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
-			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter != 10)
 			{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+				pUIMenu->m_pMiniDexed->SetNewPerformance(pUIMenu->m_nCurrentParameter, nValue);
 			}
 			break;
 
@@ -1632,9 +1660,9 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				}
 			} while ((pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true) && (nValue != nStart));
 			pUIMenu->m_nSelectedPerformanceID = nValue;
-			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter != 10)
 			{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+				pUIMenu->m_pMiniDexed->SetNewPerformance(pUIMenu->m_nCurrentParameter, nValue);
 			}
 			break;
 
@@ -1674,25 +1702,21 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			pUIMenu->m_pMiniDexed->SetFirstPerformance();
 			break;
 
-		case MenuEventSelect:	
-			switch (pUIMenu->m_nCurrentParameter)
+		case MenuEventSelect:
+			if (pUIMenu->m_nCurrentParameter != 10)
 			{
-			case 0:
 				if (bPerformanceSelectToLoad)
 				{
-				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+					pUIMenu->m_pMiniDexed->SetNewPerformance(pUIMenu->m_nCurrentParameter, nValue);
 				}
-
-				break;
-			case 1:
+			}
+			else // Delete
+			{
 				if (pUIMenu->m_pMiniDexed->IsValidPerformance(pUIMenu->m_nSelectedPerformanceID))
 				{
 					pUIMenu->m_bPerformanceDeleteMode=true;
 					pUIMenu->m_bConfirmDeletePerformance=false;
 				}
-				break;
-			default:
-				break;
 			}
 			break;
 		default:
