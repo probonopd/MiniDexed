@@ -1566,6 +1566,11 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 	unsigned nLastPerformance = pUIMenu->m_pMiniDexed->GetLastPerformance();
 	unsigned nValue = pUIMenu->m_nSelectedPerformanceID;
 	unsigned nStart = nValue;
+
+	unsigned nLastPerformanceBank = pUIMenu->m_pMiniDexed->GetLastPerformanceBank();
+	unsigned nBankValue = pUIMenu->m_nSelectedPerformanceBankID;
+	unsigned nBankStart = nValue;
+
 	if (pUIMenu->m_pMiniDexed->IsValidPerformance(nValue) != true)
 	{
 		// A bank change has left the selected performance out of sync
@@ -1631,6 +1636,42 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
 			}
+			break;
+
+		case MenuEventPressAndStepDown:
+			do
+			{
+				if (nBankValue == 0)
+				{
+					// Wrap around
+					nBankValue = nLastPerformanceBank;
+				}
+				else if (nBankValue > 0)
+				{
+					--nBankValue;
+				}
+			} while ((pUIMenu->m_pMiniDexed->IsValidPerformanceBank(nBankValue) != true) && (nBankValue != nBankStart));
+			pUIMenu->m_nSelectedPerformanceBankID = nBankValue;
+			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nBankValue);
+			pUIMenu->m_pMiniDexed->SetFirstPerformance();
+			break;
+		
+		case MenuEventPressAndStepUp:
+			do
+			{
+				if (nBankValue == nLastPerformanceBank)
+				{
+					// Wrap around
+					nBankValue = 0;
+				}
+				else if (nBankValue < nLastPerformanceBank)
+				{
+					++nBankValue;
+				}
+			} while ((pUIMenu->m_pMiniDexed->IsValidPerformanceBank(nBankValue) != true) && (nBankValue != nBankStart));
+			pUIMenu->m_nSelectedPerformanceBankID = nBankValue;
+			pUIMenu->m_pMiniDexed->SetParameter (CMiniDexed::ParameterPerformanceBank, nBankValue);
+			pUIMenu->m_pMiniDexed->SetFirstPerformance();
 			break;
 
 		case MenuEventSelect:	
