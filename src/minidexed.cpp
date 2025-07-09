@@ -214,10 +214,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 
 		m_pSoundDevice = new CHDMISoundBaseDevice (pInterrupt, pConfig->GetSampleRate (),
 							   pConfig->GetChunkSize ());
-
-		// The channels are swapped by default in the HDMI sound driver.
-		// TODO: Remove this line, when this has been fixed in the driver.
-		m_bChannelsSwapped = !m_bChannelsSwapped;
 #endif
 	}
 	else
