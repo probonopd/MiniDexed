@@ -23,5 +23,5 @@ cd -
 # Use fixed master branch of Synth_Dexed
 cd Synth_Dexed/
 git reset --hard
-git checkout 2ad9e43095 -f
+git checkout 3c683fc801 -f
 cd -
