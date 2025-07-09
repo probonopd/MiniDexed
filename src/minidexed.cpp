@@ -1430,11 +1430,6 @@ void CMiniDexed::ProcessSound (void)
 						reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
 					}
 
-					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-
 					m_ReverbSpinLock.Acquire ();
 
 					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
