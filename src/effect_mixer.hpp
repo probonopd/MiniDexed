@@ -168,6 +168,20 @@ public:
 			arm_fill_f32(0.0f, sumbufR, buffer_length);
 	}
 
+	void getBuffers(float32_t (*buffers[2]))
+	{
+		buffers[0] = sumbufL;
+		buffers[1] = sumbufR;
+	}
+
+	void zeroFill()
+	{
+		if(sumbufL)
+			arm_fill_f32(0.0f, sumbufL, buffer_length);
+		if(sumbufR)
+			arm_fill_f32(0.0f, sumbufR, buffer_length);
+	}
+
 protected:
 	using AudioMixer<NN>::sumbufL;
 	using AudioMixer<NN>::multiplier;

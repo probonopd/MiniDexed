@@ -1406,25 +1406,28 @@ void CMiniDexed::ProcessSound (void)
 
 			if(nMasterVolume > 0.0)
 			{
+				// get the mix buffer of all TGs
+				float32_t *SampleBuffer[2];
+				tg_mixer->getBuffers(SampleBuffer);
+
+				tg_mixer->zeroFill();
+
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
 					tg_mixer->doAddMix(i,m_OutputLevel[i]);
 				}
 				// END TG mixing
 
-				// BEGIN create SampleBuffer for holding audio data
-				float32_t SampleBuffer[2][nFrames];
-				// END create SampleBuffer for holding audio data
-
-				// get the mix of all TGs
-				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
-
 				// BEGIN adding reverb
 				if (m_nParameter[ParameterReverbEnable])
 				{
 					float32_t ReverbBuffer[2][nFrames];
-					float32_t ReverbSendBuffer[2][nFrames];
-					
+
+					float32_t *ReverbSendBuffer[2];
+					reverb_send_mixer->getBuffers(ReverbSendBuffer);
+
+					reverb_send_mixer->zeroFill();
+
 					for (uint8_t i = 0; i < m_nToneGenerators; i++)
 					{
 						reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
@@ -1432,7 +1435,6 @@ void CMiniDexed::ProcessSound (void)
 
 					m_ReverbSpinLock.Acquire ();
 
-					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
 					reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
 
 					// scale down and add left reverb buffer by reverb level 
