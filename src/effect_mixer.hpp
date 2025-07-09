@@ -135,23 +135,6 @@ public:
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 	}
 
-	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR)
-	{
-		float32_t tmp[buffer_length];
-
-		assert(inL);
-		assert(inR);
-
-		// left
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inL,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
-		// right
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
-	}
-
 	void getMix(float32_t* bufferL, float32_t* bufferR)
 	{
 		assert(bufferR);
