@@ -1409,7 +1409,6 @@ void CMiniDexed::ProcessSound (void)
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
 					tg_mixer->doAddMix(i,m_OutputLevel[i]);
-					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
 				}
 				// END TG mixing
 
@@ -1425,6 +1424,11 @@ void CMiniDexed::ProcessSound (void)
 				{
 					float32_t ReverbBuffer[2][nFrames];
 					float32_t ReverbSendBuffer[2][nFrames];
+					
+					for (uint8_t i = 0; i < m_nToneGenerators; i++)
+					{
+						reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
+					}
 
 					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
 					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
