@@ -337,14 +337,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				if (m_ChannelMap[nTG] == ucSysExChannel || m_ChannelMap[nTG] == OmniMode) {
 					LOGNOTE("MIDI-SYSEX: channel: %u, len: %u, TG: %u",m_ChannelMap[nTG],nLength,nTG);
 
-					HandleSystemExclusive(pMessage, nLength, nCable, nTG);
-					if (nLength == 5) {
-						break; // Send dump request only to the first TG that matches the MIDI channel requested via the SysEx message device ID
-					}
-
 					// Check for TX216/TX816 style performance sysex messages
 					
-					if (pMessage[3] == 0x04)
+					if (nLength == 7 && pMessage[3] == 0x04)
 					{
 						// TX816/TX216 Performance SysEx message
 						uint8_t mTG = pMessage[2] & 0x0F; // mTG = module/tone generator number (0-7)
@@ -452,6 +447,9 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					else
 					{
 						HandleSystemExclusive(pMessage, nLength, nCable, nTG);
+						if (nLength == 5) {
+							break; // Send dump request only to the first TG that matches the MIDI channel requested via the SysEx message device ID
+						}
 					}
 				}
 			}
