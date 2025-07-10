@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <assert.h>
 #include "arm_math.h"
+#include "arm_scale_zc_ramp_f32.h"
 
 #define UNITY_GAIN 1.0f
 #define MAX_GAIN 1.0f
@@ -57,13 +58,15 @@ public:
 
 	void gain(float32_t gain)
 	{
+		float32_t gain4 = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+
 		for (uint8_t i = 0; i < NN; i++)
 		{
 			if (gain > MAX_GAIN)
 				gain = MAX_GAIN;
 			else if (gain < MIN_GAIN)
 				gain = MIN_GAIN;
-			multiplier[i] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+			multiplier[i] = gain4;
 		} 
 	}
 
@@ -92,6 +95,8 @@ public:
 		{
 			panorama[i][0] = UNITY_PANORAMA;
 			panorama[i][1] = UNITY_PANORAMA;
+			mp[i][0] = mp_w[i][0] = UNITY_GAIN * UNITY_PANORAMA;
+			mp[i][1] = mp_w[i][1] = UNITY_GAIN * UNITY_PANORAMA;
 		}
 
 		sumbufR=new float32_t[buffer_length];
@@ -101,6 +106,37 @@ public:
 	~AudioStereoMixer()
 	{
 		delete [] sumbufR;
+	}
+
+	void gain(uint8_t channel, float32_t gain)
+	{
+		if (channel >= NN) return;
+
+		if (gain > MAX_GAIN)
+			gain = MAX_GAIN;
+		else if (gain < MIN_GAIN)
+			gain = MIN_GAIN;
+		multiplier[channel] = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+
+		mp_w[channel][0] = multiplier[channel] * panorama[channel][0];
+		mp_w[channel][1] = multiplier[channel] * panorama[channel][1];
+	}
+
+	void gain(float32_t gain)
+	{
+		float32_t gain4 = powf(gain, 4); // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+
+		for (uint8_t i = 0; i < NN; i++)
+		{
+			if (gain > MAX_GAIN)
+				gain = MAX_GAIN;
+			else if (gain < MIN_GAIN)
+				gain = MIN_GAIN;
+			multiplier[i] = gain4;
+
+			mp_w[i][0] = multiplier[i] * panorama[i][0];
+			mp_w[i][1] = multiplier[i] * panorama[i][1];
+		} 
 	}
 
         void pan(uint8_t channel, float32_t pan)
@@ -115,6 +151,9 @@ public:
 		// From: https://stackoverflow.com/questions/67062207/how-to-pan-audio-sample-data-naturally
 		panorama[channel][0]=arm_cos_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
 		panorama[channel][1]=arm_sin_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+
+		mp_w[channel][0] = multiplier[channel] * panorama[channel][0];
+		mp_w[channel][1] = multiplier[channel] * panorama[channel][1];
 	}
 
 	void doAddMix(uint8_t channel, float32_t* in)
@@ -123,11 +162,18 @@ public:
 
 		assert(in);
 
-		// left
-		arm_scale_f32(in, panorama[channel][0] * multiplier[channel], tmp, buffer_length);
+		if (mp[channel][0] == mp_w[channel][0])
+			arm_scale_f32(in, mp[channel][0], tmp, buffer_length);
+		else
+			arm_scale_zc_ramp_f32(in, &mp[channel][0], mp_w[channel][0], tmp, buffer_length);
+
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
-		// right
-		arm_scale_f32(in, panorama[channel][1] * multiplier[channel], tmp, buffer_length);
+
+		if (mp[channel][1] == mp_w[channel][1])
+			arm_scale_f32(in, mp[channel][1], tmp, buffer_length);
+		else
+			arm_scale_zc_ramp_f32(in, &mp[channel][1], mp_w[channel][1], tmp, buffer_length);
+
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 	}
 
@@ -166,6 +212,8 @@ protected:
 	using AudioMixer<NN>::multiplier;
 	using AudioMixer<NN>::buffer_length;
 	float32_t panorama[NN][2];
+	float32_t mp[NN][2];
+	float32_t mp_w[NN][2];
 	float32_t* sumbufR;
 };
 
