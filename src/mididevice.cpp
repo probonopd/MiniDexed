@@ -216,16 +216,20 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// GLOBAL MIDI SYSEX
 
 	// Set MIDI Channel for TX816/TX216 SysEx; in MiniDexed, we interpret the device parameter as the number of the TG (unlike the TX816/TX216 which has a hardware switch to select the TG)
-	if (nLength >= 6 && pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN && pMessage[1] == 0x43 && pMessage[3] == 0x04 && pMessage[4] == 0x01) {
+	if (nLength == 7 &&
+	    pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
+	    pMessage[1] == 0x43 &&
+	    // pMessage[2] & 0x0F = TG number
+	    pMessage[3] == 0x04 &&
+	    pMessage[4] == 0x01 &&
+	    // pMessage[5] = target MIDI channel (0-15)
+	    pMessage[6] == MIDI_SYSTEM_EXCLUSIVE_END)
+	{
 		uint8_t mTG = pMessage[2] & 0x0F;
 		uint8_t val = pMessage[5];
 		LOGNOTE("MIDI-SYSEX: Set TG%d to MIDI Channel %d", mTG + 1, val & 0x0F);
 		m_pSynthesizer->SetMIDIChannel(val & 0x0F, mTG);
-		// Do not process this message further for any TGs
-		m_MIDISpinLock.Release();
-		return;
 	}
-
 	// Master Volume is set using a MIDI SysEx message as follows:
 	//   F0  Start of SysEx
 	//   7F  System Realtime SysEx
@@ -242,7 +246,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	// Need to scale the volume parameter to fit
 	// a 14-bit value: 0..16383
 	// and then split into LSB/MSB.	
-	if (nLength == 8 &&
+	else if (nLength == 8 &&
 	    pMessage[0] == MIDI_SYSTEM_EXCLUSIVE_BEGIN &&
 	    pMessage[1] == 0x7F &&
 	    pMessage[2] == 0x7F &&
