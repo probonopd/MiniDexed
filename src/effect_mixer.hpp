@@ -113,8 +113,8 @@ public:
 			pan = MIN_PANORAMA;
 
 		// From: https://stackoverflow.com/questions/67062207/how-to-pan-audio-sample-data-naturally
-		panorama[channel][0]=arm_sin_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
-		panorama[channel][1]=arm_cos_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+		panorama[channel][0]=arm_cos_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
+		panorama[channel][1]=arm_sin_f32(mapfloat(pan, MIN_PANORAMA, MAX_PANORAMA, 0.0, M_PI/2.0));
 	}
 
 	void doAddMix(uint8_t channel, float32_t* in)
