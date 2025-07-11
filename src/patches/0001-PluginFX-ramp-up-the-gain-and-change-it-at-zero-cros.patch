@@ -1,0 +1,86 @@
+From bd8f52b72f411ef0a80f0ea12cb8455ca1c672f9 Mon Sep 17 00:00:00 2001
+From: Gergo Koteles <soyer@irl.hu>
+Date: Fri, 11 Jul 2025 20:28:52 +0200
+Subject: [PATCH] PluginFX: ramp up the gain and change it at zero crossings
+
+---
+ src/PluginFx.cpp | 31 +++++++++++++++++++++++++------
+ src/PluginFx.h   |  2 ++
+ 2 files changed, 27 insertions(+), 6 deletions(-)
+
+diff --git a/src/PluginFx.cpp b/src/PluginFx.cpp
+index 7c3a1ab..721a2f5 100644
+--- a/src/PluginFx.cpp
++++ b/src/PluginFx.cpp
+@@ -29,6 +29,9 @@
+ 
+ const float dc = 1e-18;
+ 
++const float ramp_dt = 1.0 / 254;
++const float ramp_eps = 1.0 / 127;
++
+ inline static float tptpc(float& state, float inp, float cutoff) {
+   float v = (inp - state) * cutoff / (1 + cutoff);
+   float res = v + state;
+@@ -56,6 +59,7 @@ PluginFx::PluginFx() {
+   Cutoff = 1.0;
+   Reso = 0.0;
+   Gain = 1.0;
++  aGain = 1.0;
+ }
+ 
+ void PluginFx::init(FRAC_NUM sr) {
+@@ -117,16 +121,31 @@ void PluginFx::process(float *work, uint16_t sampleSize) {
+ 
+   dc_od = work[sampleSize - 1];
+ 
+-  // Gain
+-  if (Gain == 0.0)
++  // Gain ramp and zero cross detection
++  if (Gain != aGain)
+   {
+     for (uint16_t i = 0; i < sampleSize; i++ )
+-      work[i] = 0.0;
++    {
++      if (i != 0 && aGain != Gain && (work[i] >= 0 && work[i-1] <= 0 || work[i] <= 0 && work[i-1] >= 0))
++      {
++        aGain += Gain > aGain ? ramp_dt : -ramp_dt;
++        if (fabs(aGain - Gain) < ramp_eps) aGain = Gain;
++      }
++      work[i] *= aGain;
++    }
+   }
+-  else if ( Gain != 1.0)
++  else
+   {
+-    for (uint16_t i = 0; i < sampleSize; i++ )
+-      work[i] *= Gain;
++    if (aGain == 0.0)
++    {
++      for (uint16_t i = 0; i < sampleSize; i++ )
++        work[i] = 0.0;
++    }
++    else if ( aGain != 1.0)
++    {
++      for (uint16_t i = 0; i < sampleSize; i++ )
++        work[i] *= aGain;
++    }
+   }
+ 
+   // don't apply the LPF if the cutoff is to maximum
+diff --git a/src/PluginFx.h b/src/PluginFx.h
+index 090e241..c27ccc5 100644
+--- a/src/PluginFx.h
++++ b/src/PluginFx.h
+@@ -67,6 +67,8 @@ class PluginFx {
+     float Reso;
+     float Gain;
+ 
++    float aGain;
++
+     void init(FRAC_NUM sampleRate);
+     void process(float *work, uint16_t sampleSize);
+     float getGain(void);
+-- 
+2.50.1
+
