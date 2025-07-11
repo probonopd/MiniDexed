@@ -338,6 +338,7 @@ static const unsigned NoteC3 = 39;
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
 	{"Load",	PerformanceMenu, 0, 0}, 
+	{"Load Part 2",	PerformanceMenu, 0, 2},
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1},
 	{"Bank",	EditPerformanceBankNumber, 0, 0},
@@ -1616,6 +1617,10 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
 			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==2)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
+			}
 			break;
 
 		case MenuEventStepUp:
@@ -1635,6 +1640,10 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==2)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
 			}
 			break;
 
@@ -1690,6 +1699,13 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 					pUIMenu->m_bPerformanceDeleteMode=true;
 					pUIMenu->m_bConfirmDeletePerformance=false;
 				}
+				break;
+			case 2:
+				if (bPerformanceSelectToLoad)
+				{
+				pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
+				}
+
 				break;
 			default:
 				break;
