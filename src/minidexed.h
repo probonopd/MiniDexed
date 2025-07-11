@@ -48,7 +48,6 @@
 #include "common.h"
 #include "effect_mixer.hpp"
 #include "effect_platervbstereo.h"
-#include "effect_compressor.h"
 #include "udpmididevice.h"
 #include "net/ftpdaemon.h"
  
