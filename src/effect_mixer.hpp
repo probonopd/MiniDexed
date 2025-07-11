@@ -124,31 +124,10 @@ public:
 		assert(in);
 
 		// left
-		arm_scale_f32(in, panorama[channel][0], tmp, buffer_length);
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
+		arm_scale_f32(in, panorama[channel][0] * multiplier[channel], tmp, buffer_length);
 		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
 		// right
-		arm_scale_f32(in, panorama[channel][1], tmp, buffer_length);
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(tmp,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
-	}
-
-	void doAddMix(uint8_t channel, float32_t* inL, float32_t* inR)
-	{
-		float32_t tmp[buffer_length];
-
-		assert(inL);
-		assert(inR);
-
-		// left
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inL,multiplier[channel],tmp,buffer_length);
-		arm_add_f32(sumbufL, tmp, sumbufL, buffer_length);
-		// right
-		if(multiplier[channel]!=UNITY_GAIN)
-			arm_scale_f32(inR,multiplier[channel],tmp,buffer_length);
+		arm_scale_f32(in, panorama[channel][1] * multiplier[channel], tmp, buffer_length);
 		arm_add_f32(sumbufR, tmp, sumbufR, buffer_length);
 	}
 
@@ -162,6 +141,20 @@ public:
 		arm_copy_f32 (sumbufL, bufferL, buffer_length);
 		arm_copy_f32 (sumbufR, bufferR, buffer_length);
 
+		if(sumbufL)
+			arm_fill_f32(0.0f, sumbufL, buffer_length);
+		if(sumbufR)
+			arm_fill_f32(0.0f, sumbufR, buffer_length);
+	}
+
+	void getBuffers(float32_t (*buffers[2]))
+	{
+		buffers[0] = sumbufL;
+		buffers[1] = sumbufR;
+	}
+
+	void zeroFill()
+	{
 		if(sumbufL)
 			arm_fill_f32(0.0f, sumbufL, buffer_length);
 		if(sumbufR)
