@@ -83,10 +83,10 @@ jobs:
           mkdir -p ./sdcard/hardware/
           cp -r ./hwconfig/minidexed_* ./sdcard/minidexed.ini ./sdcard/hardware/
           # WLAN firmware
-          # mkdir -p sdcard/firmware
-          # cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
-          # cd sdcard/firmware
-          # make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
+          mkdir -p sdcard/firmware
+          cp circle-stdlib/libs/circle/addon/wlan/sample/hello_wlan/wpa_supplicant.conf sdcard/
+          cd sdcard/firmware
+          make -f ../../circle-stdlib/libs/circle/addon/wlan/firmware/Makefile
           cd -
 
       - name: Upload 64-bit artifacts
