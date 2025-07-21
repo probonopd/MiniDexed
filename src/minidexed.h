@@ -238,7 +238,7 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-	int GetMasterVolume127() const { return (int)(nMasterVolume >= 1.0f ? 127 : (nMasterVolume <= 0.0f ? 0 : sqrtf(nMasterVolume) * 127.0f)); }
+	int GetMasterVolume127() const { return m_fMasterVolumeW >= 1.0f ? 127 : (m_fMasterVolumeW <= 0.0f ? 0 : sqrtf(m_fMasterVolumeW) * 127.0f); }
 
 	bool InitNetwork();
 	void UpdateNetwork();
@@ -307,8 +307,6 @@ private:
   
 	uint8_t m_nRawVoiceData[156]; 
 	
-	
-	float32_t nMasterVolume;
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;
@@ -317,6 +315,8 @@ private:
 	CMIDIKeyboard *m_pMIDIKeyboard[CConfig::MaxUSBMIDIDevices];
 	CPCKeyboard m_PCKeyboard;
 	CSerialMIDIDevice m_SerialMIDI;
+	float32_t m_fMasterVolume[8];
+	float32_t m_fMasterVolumeW;
 	bool m_bUseSerial;
 	bool m_bQuadDAC8Chan;
 

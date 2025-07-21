@@ -30,7 +30,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include "arm_float_to_q23.h"
+#include "arm_scale_zc_ramp_f32.h"
 #include "arm_scale_zip_f32.h"
+#include "arm_zip_f32.h"
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -50,6 +52,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig, &m_UI),
 	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
+	m_fMasterVolume{},
+	m_fMasterVolumeW(0),
 	m_bUseSerial (false),
 	m_bQuadDAC8Chan (false),
 	m_pSoundDevice (0),
@@ -1359,7 +1363,7 @@ void CMiniDexed::ProcessSound (void)
 				// no additional processing.
 				for (uint8_t tg = 0; tg < Channels; tg++)
 				{
-					tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+					tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * m_fMasterVolumeW;
 				}
 			}
 
@@ -1437,8 +1441,17 @@ void CMiniDexed::ProcessSound (void)
 				indexR=0;
 			}
 
-			// Convert dual float array (left, right) to single int16 array (left/right)
-			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_float, nFrames);
+			// Convert dual float array (left, right) to single int32 (q23) array (left/right)
+			if (m_fMasterVolume[0] == m_fMasterVolumeW && m_fMasterVolume[1] == m_fMasterVolumeW)
+			{
+				arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], m_fMasterVolumeW, tmp_float, nFrames);
+			}
+			else
+			{
+				arm_scale_zc_ramp_f32(SampleBuffer[0], &m_fMasterVolume[0], m_fMasterVolumeW, SampleBuffer[0], nFrames);
+				arm_scale_zc_ramp_f32(SampleBuffer[1], &m_fMasterVolume[1], m_fMasterVolumeW, SampleBuffer[1], nFrames);
+				arm_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], tmp_float, nFrames);
+			}
 
 			arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
 
@@ -1856,7 +1869,7 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     // Apply logarithmic scaling to match perceived loudness
     vol = powf(vol, 2.0f);
 
-    nMasterVolume = vol;
+    m_fMasterVolumeW = vol;
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
