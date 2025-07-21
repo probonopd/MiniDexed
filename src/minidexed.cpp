@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "arm_float_to_q23.h"
+#include "arm_scale_zip_f32.h"
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -1441,11 +1442,7 @@ void CMiniDexed::ProcessSound (void)
 			}
 
 			// Convert dual float array (left, right) to single int16 array (left/right)
-			for(uint16_t i=0; i<nFrames;i++)
-			{
-				tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-				tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
-			}
+			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_float, nFrames);
 
 			arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
 
