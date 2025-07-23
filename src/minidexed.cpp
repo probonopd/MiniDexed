@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "arm_float_to_q23.h"
+#include "arm_scale_zip_f32.h"
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -1354,32 +1355,19 @@ void CMiniDexed::ProcessSound (void)
 			float32_t tmp_float[nFrames*Channels];
 			int32_t tmp_int[nFrames*Channels];
 
-			if(nMasterVolume > 0.0)
+			// Convert dual float array (8 chan) to single int16 array (8 chan)
+			for(uint16_t i=0; i<nFrames;i++)
 			{
-				// Convert dual float array (8 chan) to single int16 array (8 chan)
-				for(uint16_t i=0; i<nFrames;i++)
+				// TGs will alternate on L/R channels for each output
+				// reading directly from the TG OutputLevel buffer with
+				// no additional processing.
+				for (uint8_t tg = 0; tg < Channels; tg++)
 				{
-					// TGs will alternate on L/R channels for each output
-					// reading directly from the TG OutputLevel buffer with
-					// no additional processing.
-					for (uint8_t tg = 0; tg < Channels; tg++)
-					{
-						if(nMasterVolume >0.0 && nMasterVolume <1.0)
-						{
-							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
-						}
-						else if(nMasterVolume == 1.0)
-						{
-							tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i];
-						}
-					}
+					tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
 				}
-				arm_float_to_q23(tmp_float,tmp_int,nFrames*Channels);
 			}
-			else
-			{
-				arm_fill_q31(0, tmp_int, nFrames*Channels);
-			}
+
+			arm_float_to_q23(tmp_float,tmp_int,nFrames*Channels);
 
 			// Prevent PCM510x analog mute from kicking in
 			for (uint8_t tg = 0; tg < Channels; tg++) 
@@ -1404,76 +1392,59 @@ void CMiniDexed::ProcessSound (void)
 			float32_t tmp_float[nFrames*2];
 			int32_t tmp_int[nFrames*2];
 
-			if(nMasterVolume > 0.0)
+			// get the mix buffer of all TGs
+			float32_t *SampleBuffer[2];
+			tg_mixer->getBuffers(SampleBuffer);
+
+			tg_mixer->zeroFill();
+
+			for (uint8_t i = 0; i < m_nToneGenerators; i++)
 			{
+				tg_mixer->doAddMix(i,m_OutputLevel[i]);
+			}
+			// END TG mixing
+
+			// BEGIN adding reverb
+			if (m_nParameter[ParameterReverbEnable])
+			{
+				float32_t ReverbBuffer[2][nFrames];
+
+				float32_t *ReverbSendBuffer[2];
+				reverb_send_mixer->getBuffers(ReverbSendBuffer);
+
+				reverb_send_mixer->zeroFill();
+
 				for (uint8_t i = 0; i < m_nToneGenerators; i++)
 				{
-					tg_mixer->doAddMix(i,m_OutputLevel[i]);
 					reverb_send_mixer->doAddMix(i,m_OutputLevel[i]);
 				}
-				// END TG mixing
 
-				// BEGIN create SampleBuffer for holding audio data
-				float32_t SampleBuffer[2][nFrames];
-				// END create SampleBuffer for holding audio data
+				m_ReverbSpinLock.Acquire ();
 
-				// get the mix of all TGs
-				tg_mixer->getMix(SampleBuffer[indexL], SampleBuffer[indexR]);
+				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
 
-				// BEGIN adding reverb
-				if (m_nParameter[ParameterReverbEnable])
-				{
-					float32_t ReverbBuffer[2][nFrames];
-					float32_t ReverbSendBuffer[2][nFrames];
+				// scale down and add left reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
+				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
+				// scale down and add right reverb buffer by reverb level 
+				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
+				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
 
-					arm_fill_f32(0.0f, ReverbBuffer[indexL], nFrames);
-					arm_fill_f32(0.0f, ReverbBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexR], nFrames);
-					arm_fill_f32(0.0f, ReverbSendBuffer[indexL], nFrames);
-
-					m_ReverbSpinLock.Acquire ();
-
-					reverb_send_mixer->getMix(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR]);
-					reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-
-					// scale down and add left reverb buffer by reverb level 
-					arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-					arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-					// scale down and add right reverb buffer by reverb level 
-					arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-					arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
-
-					m_ReverbSpinLock.Release ();
-				}
-				// END adding reverb
-
-				// swap stereo channels if needed prior to writing back out
-				if (m_bChannelsSwapped)
-				{
-					indexL=1;
-					indexR=0;
-				}
-
-				// Convert dual float array (left, right) to single int16 array (left/right)
-				for(uint16_t i=0; i<nFrames;i++)
-				{
-					if(nMasterVolume >0.0 && nMasterVolume <1.0)
-					{
-						tmp_float[i*2]=SampleBuffer[indexL][i] * nMasterVolume;
-						tmp_float[(i*2)+1]=SampleBuffer[indexR][i] * nMasterVolume;
-					}
-					else if(nMasterVolume == 1.0)
-					{
-						tmp_float[i*2]=SampleBuffer[indexL][i];
-						tmp_float[(i*2)+1]=SampleBuffer[indexR][i];
-					}
-				}
-				arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
+				m_ReverbSpinLock.Release ();
 			}
-			else
+			// END adding reverb
+
+			// swap stereo channels if needed prior to writing back out
+			if (m_bChannelsSwapped)
 			{
-				arm_fill_q31(0, tmp_int, nFrames * 2);
+				indexL=1;
+				indexR=0;
 			}
+
+			// Convert dual float array (left, right) to single int16 array (left/right)
+			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_float, nFrames);
+
+			arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
 
 			// Prevent PCM510x analog mute from kicking in
 			if (tmp_int[nFrames * 2 - 1] == 0)
