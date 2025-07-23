@@ -14,7 +14,7 @@ cd -
 # Optional update submodules explicitly
 cd circle-stdlib/libs/circle
 git reset --hard
-git checkout f18c60fa38042ea7132533e658abfafd5bd63435
+git checkout --recurse-submodules f18c60fa38042ea7132533e658abfafd5bd63435
 cd -
 #cd circle-stdlib/libs/circle-newlib
 #git checkout develop
