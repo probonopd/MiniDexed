@@ -1857,8 +1857,9 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     else if (vol > 1.0)
         vol = 1.0;
 
-    // Apply logarithmic scaling to match perceived loudness
-    vol = powf(vol, 2.0f);
+    // Apply scaling to match perceived loudness
+    // see: https://www.dr-lex.be/info-stuff/volumecontrols.html#ideal2
+    vol = powf(vol, 4.0f);
 
     nMasterVolume = vol;
 }
