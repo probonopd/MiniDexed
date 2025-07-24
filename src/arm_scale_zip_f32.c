@@ -28,21 +28,21 @@ void arm_scale_zip_f32(
 {
     uint32_t blkCnt;                               /* Loop counter */
 
-    f32x2x2_t res;
+    f32x4x2_t res;
 
-    /* Compute 2 outputs at a time */
-    blkCnt = blockSize >> 1U;
+    /* Compute 4 outputs at a time */
+    blkCnt = blockSize >> 2U;
 
     while (blkCnt > 0U)
     {
-        res.val[0] = vmul_n_f32(vld1_f32(pSrc1), scale);
-        res.val[1] = vmul_n_f32(vld1_f32(pSrc2), scale);
-        vst2_f32(pDst, res);
+        res.val[0] = vmulq_n_f32(vld1q_f32(pSrc1), scale);
+        res.val[1] = vmulq_n_f32(vld1q_f32(pSrc2), scale);
+        vst2q_f32(pDst, res);
 
         /* Increment pointers */
-        pSrc1 += 2;
-        pSrc2 += 2;
-        pDst += 4;
+        pSrc1 += 4;
+        pSrc2 += 4;
+        pDst += 8;
         
         /* Decrement the loop counter */
         blkCnt--;
@@ -50,7 +50,7 @@ void arm_scale_zip_f32(
 
     /* If the blockSize is not a multiple of 4, compute any remaining output samples here.
     ** No loop unrolling is used. */
-    blkCnt = blockSize & 1;
+    blkCnt = blockSize & 3;
 
     while (blkCnt > 0U)
     {
