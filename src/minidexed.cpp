@@ -235,9 +235,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	float masterVolNorm = (float)(pConfig->GetMasterVolume()) / 127.0f;
-	setMasterVolume(masterVolNorm);
-
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
@@ -245,6 +242,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// BEGIN setup reverb
 	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+
+	SetParameter (ParameterMasterVolume, pConfig->GetMasterVolume());
+
 	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
 	SetParameter (ParameterReverbHighDamp, 50);
@@ -1067,6 +1067,12 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	case ParameterPerformanceBank:
 		BankSelectPerformance(nValue);
+		break;
+
+	case ParameterMasterVolume:
+		nValue=constrain((int)nValue,0,127);
+		setMasterVolume (nValue / 127.0f);
+		m_UI.ParameterChanged ();
 		break;
 
 	default:

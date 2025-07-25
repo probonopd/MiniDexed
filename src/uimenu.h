@@ -96,7 +96,6 @@ private:
 	static void PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
-	static void EditMasterVolume (CUIMenu *pUIMenu, TMenuEvent Event);
 	
 	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
 	static std::string GetTGValueString (unsigned nTGParameter, int nValue);

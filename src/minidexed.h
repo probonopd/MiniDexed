@@ -168,6 +168,7 @@ public:
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
+		ParameterMasterVolume,
 		ParameterUnknown
 	};
 
@@ -238,7 +239,6 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-	int GetMasterVolume127() const { return (int)(nMasterVolume >= 1.0f ? 127 : (nMasterVolume <= 0.0f ? 0 : sqrtf(nMasterVolume) * 127.0f)); }
 
 	bool InitNetwork();
 	void UpdateNetwork();
