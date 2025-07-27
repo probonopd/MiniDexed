@@ -367,6 +367,8 @@ bool CMiniDexed::Initialize (void)
 
 	m_pSoundDevice->Start ();
 
+	m_UI.LoadDefaultScreen ();
+
 #ifdef ARM_ALLOW_MULTI_CORE
 	// start secondary cores
 	if (!CMultiCoreSupport::Initialize ())

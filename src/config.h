@@ -242,6 +242,8 @@ public:
 
 	unsigned GetMasterVolume() const { return m_nMasterVolume; }
 
+	unsigned GetDefaultScreen() const { return m_nDefaultScreen; }
+
 	// Network
 	bool GetNetworkEnabled (void) const;
 	bool GetNetworkDHCP (void) const;
@@ -371,6 +373,8 @@ private:
 	unsigned m_bPerformanceSelectChannel;
 
 	unsigned m_nMasterVolume; // Master volume 0-127
+	
+	unsigned m_nDefaultScreen; // 0 Default, 1 Performance
 
 	// Network
 	bool m_bNetworkEnabled;

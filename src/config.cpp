@@ -220,6 +220,8 @@ void CConfig::Load (void)
 	}
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
+
+	m_nDefaultScreen = m_Properties.GetNumber ("DefaultScreen", 0);
 }
 
 unsigned CConfig::GetToneGenerators (void) const
