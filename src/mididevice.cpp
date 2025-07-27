@@ -548,7 +548,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 							m_pSynthesizer->BankSelectLSB (pMessage[2], nTG);
 							break;
 		
-						case MIDI_CC_BANK_SUSTAIN:
+						case MIDI_CC_SUSTAIN:
 							m_pSynthesizer->setSustain (pMessage[2] >= 64, nTG);
 							break;
 

@@ -35,7 +35,7 @@
 #define MIDI_CC_PAN_POSITION		10
 #define MIDI_CC_EXPRESSION		11
 #define MIDI_CC_BANK_SELECT_LSB		32
-#define MIDI_CC_BANK_SUSTAIN		64
+#define MIDI_CC_SUSTAIN	                64
 #define MIDI_CC_PORTAMENTO		65
 #define MIDI_CC_SOSTENUTO		66
 #define MIDI_CC_HOLD2		        69
