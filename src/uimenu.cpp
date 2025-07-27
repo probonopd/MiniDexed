@@ -595,7 +595,9 @@ void CUIMenu::EditGlobalParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
 			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
 
-	string Value = GetGlobalValueString (Param, pUIMenu->m_pMiniDexed->GetParameter (Param));
+	string Value = GetGlobalValueString (Param,
+		pUIMenu->m_pMiniDexed->GetParameter (Param),
+		pUIMenu->m_pConfig->GetLCDColumns() - 2);
 
 	pUIMenu->m_pUI->DisplayWrite (pMenuName,
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
@@ -780,7 +782,9 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+	string Value = GetTGValueString (Param,
+		pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG),
+		pUIMenu->m_pConfig->GetLCDColumns() - 2);
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
@@ -834,7 +838,9 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+	string Value = GetTGValueString (Param,
+		pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG),
+		pUIMenu->m_pConfig->GetLCDColumns() - 2);
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
@@ -888,7 +894,7 @@ void CUIMenu::EditVoiceParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value = GetVoiceValueString (nParam, nValue);
+	string Value = GetVoiceValueString (nParam, nValue, pUIMenu->m_pConfig->GetLCDColumns() - 2);
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
@@ -991,7 +997,7 @@ void CUIMenu::EditOPParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 	}
 	else
 	{
-		Value = GetOPValueString (nParam, nValue);
+		Value = GetOPValueString (nParam, nValue, pUIMenu->m_pConfig->GetLCDColumns() - 2);
 	}
 
 	pUIMenu->m_pUI->DisplayWrite (OP.c_str (),
@@ -1021,7 +1027,7 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 }
 
-string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
+string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue, int nWidth)
 {
 	string Result;
 
@@ -1030,7 +1036,7 @@ string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
 	CUIMenu::TToString *pToString = CUIMenu::s_GlobalParameter[nParameter].ToString;
 	if (pToString)
 	{
-		Result = (*pToString) (nValue);
+		Result = (*pToString) (nValue, nWidth);
 	}
 	else
 	{
@@ -1040,7 +1046,7 @@ string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
 	return Result;
 }
 
-string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
+string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue, int nWidth)
 {
 	string Result;
 
@@ -1049,7 +1055,7 @@ string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
 	CUIMenu::TToString *pToString = CUIMenu::s_TGParameter[nTGParameter].ToString;
 	if (pToString)
 	{
-		Result = (*pToString) (nValue);
+		Result = (*pToString) (nValue, nWidth);
 	}
 	else
 	{
@@ -1059,7 +1065,7 @@ string CUIMenu::GetTGValueString (unsigned nTGParameter, int nValue)
 	return Result;
 }
 
-string CUIMenu::GetVoiceValueString (unsigned nVoiceParameter, int nValue)
+string CUIMenu::GetVoiceValueString (unsigned nVoiceParameter, int nValue, int nWidth)
 {
 	string Result;
 
@@ -1068,7 +1074,7 @@ string CUIMenu::GetVoiceValueString (unsigned nVoiceParameter, int nValue)
 	CUIMenu::TToString *pToString = CUIMenu::s_VoiceParameter[nVoiceParameter].ToString;
 	if (pToString)
 	{
-		Result = (*pToString) (nValue);
+		Result = (*pToString) (nValue, nWidth);
 	}
 	else
 	{
@@ -1078,7 +1084,7 @@ string CUIMenu::GetVoiceValueString (unsigned nVoiceParameter, int nValue)
 	return Result;
 }
 
-string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
+string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue, int nWidth)
 {
 	string Result;
 
@@ -1087,7 +1093,7 @@ string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
 	CUIMenu::TToString *pToString = CUIMenu::s_OPParameter[nOPParameter].ToString;
 	if (pToString)
 	{
-		Result = (*pToString) (nValue);
+		Result = (*pToString) (nValue, nWidth);
 	}
 	else
 	{
@@ -1097,34 +1103,31 @@ string CUIMenu::GetOPValueString (unsigned nOPParameter, int nValue)
 	return Result;
 }
 
-string CUIMenu::ToVolume (int nValue)
+string CUIMenu::ToVolume (int nValue, int nWidth)
 {
-    constexpr size_t NumSquares = 14;
-    char VolumeBar[NumSquares + 1];
-    size_t filled = (nValue * NumSquares + 63) / 127;
-    for (size_t i = 0; i < NumSquares; ++i) {
-        VolumeBar[i] = (i < filled) ? (char)0xFF : '.';
-    }
-    VolumeBar[NumSquares] = '\0';
-    return VolumeBar;
+	char buf[nWidth + 1];
+	unsigned nBarWidth = nWidth - 3;
+	unsigned nFillWidth = (nValue * nBarWidth + 63) / 127;
+	unsigned nDotWidth = nBarWidth - nFillWidth;
+	std::fill_n(buf, nFillWidth, 0xFF);
+	std::fill_n(buf + nFillWidth, nDotWidth, '.');
+	snprintf(buf + nFillWidth + nDotWidth, 4, "%3d", nValue);
+	return buf;
 }
 
-string CUIMenu::ToPan (int nValue)
+string CUIMenu::ToPan (int nValue, int nWidth)
 {
-	assert (CConfig::LCDColumns == 16);
-	static const size_t MaxChars = CConfig::LCDColumns-3;
-	char PanMarker[MaxChars+1] = "......:......";
-	unsigned nIndex = nValue * MaxChars / 127;
-	if (nIndex == MaxChars)
-	{
-		nIndex--;
-	}
-	PanMarker[nIndex] = '\xFF';			// 0xFF is the block character
-
-	return PanMarker;
+	char buf[nWidth + 1];
+	unsigned nBarWidth = nWidth - 3;
+	unsigned nIndex = std::min(nValue * nBarWidth / 127, nBarWidth - 1);
+	std::fill_n(buf, nBarWidth, '.');
+	buf[nBarWidth / 2] = ':';
+	buf[nIndex] = 0xFF; // 0xFF is the block character
+	snprintf(buf + nBarWidth, 4, "%3d", nValue);
+	return buf;
 }
 
-string CUIMenu::ToMIDIChannel (int nValue)
+string CUIMenu::ToMIDIChannel (int nValue, int nWidth)
 {
 	switch (nValue)
 	{
@@ -1134,12 +1137,12 @@ string CUIMenu::ToMIDIChannel (int nValue)
 	}
 }
 
-string CUIMenu::ToAlgorithm (int nValue)
+string CUIMenu::ToAlgorithm (int nValue, int nWidth)
 {
 	return to_string (nValue + 1);
 }
 
-string CUIMenu::ToOnOff (int nValue)
+string CUIMenu::ToOnOff (int nValue, int nWidth)
 {
 	static const char *OnOff[] = {"Off", "On"};
 
@@ -1148,7 +1151,7 @@ string CUIMenu::ToOnOff (int nValue)
 	return OnOff[nValue];
 }
 
-string CUIMenu::ToLFOWaveform (int nValue)
+string CUIMenu::ToLFOWaveform (int nValue, int nWidth)
 {
 	static const char *Waveform[] = {"Triangle", "Saw down", "Saw up",
 					 "Square", "Sine", "Sample/Hold"};
@@ -1158,7 +1161,7 @@ string CUIMenu::ToLFOWaveform (int nValue)
 	return Waveform[nValue];
 }
 
-string CUIMenu::ToTransposeNote (int nValue)
+string CUIMenu::ToTransposeNote (int nValue, int nWidth)
 {
 	nValue += NoteC3 - 24;
 
@@ -1167,14 +1170,14 @@ string CUIMenu::ToTransposeNote (int nValue)
 	return s_NoteName[nValue];
 }
 
-string CUIMenu::ToBreakpointNote (int nValue)
+string CUIMenu::ToBreakpointNote (int nValue, int nWidth)
 {
 	assert ((unsigned) nValue < sizeof s_NoteName / sizeof s_NoteName[0]);
 
 	return s_NoteName[nValue];
 }
 
-string CUIMenu::ToKeyboardCurve (int nValue)
+string CUIMenu::ToKeyboardCurve (int nValue, int nWidth)
 {
 	static const char *Curve[] = {"-Lin", "-Exp", "+Exp", "+Lin"};
 
@@ -1183,7 +1186,7 @@ string CUIMenu::ToKeyboardCurve (int nValue)
 	return Curve[nValue];
 }
 
-string CUIMenu::ToOscillatorMode (int nValue)
+string CUIMenu::ToOscillatorMode (int nValue, int nWidth)
 {
 	static const char *Mode[] = {"Ratio", "Fixed"};
 
@@ -1192,7 +1195,7 @@ string CUIMenu::ToOscillatorMode (int nValue)
 	return Mode[nValue];
 }
 
-string CUIMenu::ToOscillatorDetune (int nValue)
+string CUIMenu::ToOscillatorDetune (int nValue, int nWidth)
 {
 	string Result;
 
@@ -1210,7 +1213,7 @@ string CUIMenu::ToOscillatorDetune (int nValue)
 	return Result;
 }
 
-string CUIMenu::ToPortaMode (int nValue)
+string CUIMenu::ToPortaMode (int nValue, int nWidth)
 {
 	switch (nValue)
 	{
@@ -1220,7 +1223,7 @@ string CUIMenu::ToPortaMode (int nValue)
 	}
 };
 
-string CUIMenu::ToPortaGlissando (int nValue)
+string CUIMenu::ToPortaGlissando (int nValue, int nWidth)
 {
 	switch (nValue)
 	{
@@ -1230,7 +1233,7 @@ string CUIMenu::ToPortaGlissando (int nValue)
 	}
 };
 
-string CUIMenu::ToPolyMono (int nValue)
+string CUIMenu::ToPolyMono (int nValue, int nWidth)
 {
 	switch (nValue)
 	{
@@ -2056,7 +2059,9 @@ void CUIMenu::EditTGParameterModulation (CUIMenu *pUIMenu, TMenuEvent Event)
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
-	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
+	string Value = GetTGValueString (Param,
+		pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG),
+		pUIMenu->m_pConfig->GetLCDColumns() - 2);
 
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,

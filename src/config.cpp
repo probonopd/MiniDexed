@@ -144,8 +144,8 @@ void CConfig::Load (void)
 	m_nST7789Rotation = m_Properties.GetNumber ("ST7789Rotation", 0);
 	m_bST7789SmallFont = m_Properties.GetNumber ("ST7789SmallFont", 0) != 0;
 
-	m_nLCDColumns = m_Properties.GetNumber ("LCDColumns", 16);
-	m_nLCDRows = m_Properties.GetNumber ("LCDRows", 2);
+	m_nLCDColumns = std::max(MinLCDColumns, m_Properties.GetNumber ("LCDColumns", 16));
+	m_nLCDRows = std::max(MinLCDRows, m_Properties.GetNumber ("LCDRows", 2));
 
 	m_nButtonPinPrev = m_Properties.GetNumber ("ButtonPinPrev", 0);
 	m_nButtonPinNext = m_Properties.GetNumber ("ButtonPinNext", 0);

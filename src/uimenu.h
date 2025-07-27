@@ -72,7 +72,7 @@ private:
 		unsigned Parameter;
 	};
 
-	typedef std::string TToString (int nValue);
+	typedef std::string TToString (int nValue, int nWidth);
 
 	struct TParameter
 	{
@@ -97,26 +97,26 @@ private:
 	static void SavePerformanceNewFile (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void EditPerformanceBankNumber (CUIMenu *pUIMenu, TMenuEvent Event);
 	
-	static std::string GetGlobalValueString (unsigned nParameter, int nValue);
-	static std::string GetTGValueString (unsigned nTGParameter, int nValue);
-	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue);
-	static std::string GetOPValueString (unsigned nOPParameter, int nValue);
+	static std::string GetGlobalValueString (unsigned nParameter, int nValue, int nWidth);
+	static std::string GetTGValueString (unsigned nTGParameter, int nValue, int nWidth);
+	static std::string GetVoiceValueString (unsigned nVoiceParameter, int nValue, int nWidth);
+	static std::string GetOPValueString (unsigned nOPParameter, int nValue, int nWidth);
 
-	static std::string ToVolume (int nValue);
-	static std::string ToPan (int nValue);
-	static std::string ToMIDIChannel (int nValue);
+	static std::string ToVolume (int nValue, int nWidth);
+	static std::string ToPan (int nValue, int nWidth);
+	static std::string ToMIDIChannel (int nValue, int nWidth);
 
-	static std::string ToAlgorithm (int nValue);
-	static std::string ToOnOff (int nValue);
-	static std::string ToLFOWaveform (int nValue);
-	static std::string ToTransposeNote (int nValue);
-	static std::string ToBreakpointNote (int nValue);
-	static std::string ToKeyboardCurve (int nValue);
-	static std::string ToOscillatorMode (int nValue);
-	static std::string ToOscillatorDetune (int nValue);
-	static std::string ToPortaMode (int nValue);  
-	static std::string ToPortaGlissando (int nValue);   
-	static std::string ToPolyMono (int nValue);
+	static std::string ToAlgorithm (int nValue, int nWidth);
+	static std::string ToOnOff (int nValue, int nWidth);
+	static std::string ToLFOWaveform (int nValue, int nWidth);
+	static std::string ToTransposeNote (int nValue, int nWidth);
+	static std::string ToBreakpointNote (int nValue, int nWidth);
+	static std::string ToKeyboardCurve (int nValue, int nWidth);
+	static std::string ToOscillatorMode (int nValue, int nWidth);
+	static std::string ToOscillatorDetune (int nValue, int nWidth);
+	static std::string ToPortaMode (int nValue, int nWidth);
+	static std::string ToPortaGlissando (int nValue, int nWidth);
+	static std::string ToPolyMono (int nValue, int nWidth);
 
 	void TGShortcutHandler (TMenuEvent Event);
 	void OPShortcutHandler (TMenuEvent Event);
