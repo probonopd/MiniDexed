@@ -2258,6 +2258,14 @@ unsigned CMiniDexed::getModController (unsigned controller, unsigned parameter, 
 	
 }
 
+static void UpdateScreen(TKernelTimerHandle hTimer, void *pParam, void *pContext)
+{
+	CUserInterface *pUI = static_cast<CUserInterface *> (pContext);
+	assert (pUI);
+
+	pUI->DisplayChanged ();
+}
+
 void CMiniDexed::UpdateNetwork()
 {
 	if (!m_pNet) {
@@ -2300,7 +2308,8 @@ void CMiniDexed::UpdateNetwork()
 			LOGNOTE("FTP daemon not started (NetworkFTPEnabled=0)");
 		}
 
-		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1);
+		m_UI.DisplayWrite (IPString, "", "Network ready", 0, 1);
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (3000), UpdateScreen, 0, &m_UI);
 
 		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);
