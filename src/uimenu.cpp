@@ -216,7 +216,7 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 };
 
 // must match CMiniDexed::TParameter
-const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
+CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
 	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
@@ -232,7 +232,7 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 };
 
 // must match CMiniDexed::TTGParameter
-const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
+CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown] =
 {
 	{0,	CSysExFileLoader::MaxVoiceBankID,	1},			// TGParameterVoiceBank
 	{0, 0, 0},											// TGParameterVoiceBankMSB (not used in menus)
@@ -378,6 +378,13 @@ CUIMenu::CUIMenu (CUserInterface *pUI, CMiniDexed *pMiniDexed, CConfig *pConfig)
 		m_nMenuStackItem[0]	= 0;
 		m_nMenuStackSelection[0] = 0;
 		m_nMenuStackParameter[0] = 0;
+	}
+
+	if (m_pConfig->GetEncoderEnabled())
+	{
+		s_GlobalParameter[CMiniDexed::ParameterMasterVolume].Increment = 1;
+		s_TGParameter[CMiniDexed::TGParameterVolume].Increment = 1;
+		s_TGParameter[CMiniDexed::TGParameterPan].Increment = 1;
 	}
 }
 

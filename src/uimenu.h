@@ -165,8 +165,8 @@ private:
 	static const TMenuItem s_ModulationMenu[];
 	static const TMenuItem s_ModulationMenuParameters[];
 			
-	static const TParameter s_GlobalParameter[];
-	static const TParameter s_TGParameter[];
+	static TParameter s_GlobalParameter[];
+	static TParameter s_TGParameter[];
 	static const TParameter s_VoiceParameter[];
 	static const TParameter s_OPParameter[];
 
