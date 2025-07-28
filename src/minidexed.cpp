@@ -1410,8 +1410,6 @@ void CMiniDexed::ProcessSound (void)
 			// BEGIN adding reverb
 			if (m_nParameter[ParameterReverbEnable])
 			{
-				float32_t ReverbBuffer[2][nFrames];
-
 				float32_t *ReverbSendBuffer[2];
 				reverb_send_mixer->getBuffers(ReverbSendBuffer);
 
@@ -1424,14 +1422,7 @@ void CMiniDexed::ProcessSound (void)
 
 				m_ReverbSpinLock.Acquire ();
 
-				reverb->doReverb(ReverbSendBuffer[indexL],ReverbSendBuffer[indexR],ReverbBuffer[indexL], ReverbBuffer[indexR],nFrames);
-
-				// scale down and add left reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexL], reverb->get_level(), ReverbBuffer[indexL], nFrames);
-				arm_add_f32(SampleBuffer[indexL], ReverbBuffer[indexL], SampleBuffer[indexL], nFrames);
-				// scale down and add right reverb buffer by reverb level 
-				arm_scale_f32(ReverbBuffer[indexR], reverb->get_level(), ReverbBuffer[indexR], nFrames);
-				arm_add_f32(SampleBuffer[indexR], ReverbBuffer[indexR], SampleBuffer[indexR], nFrames);
+				reverb->addReverb(ReverbSendBuffer[indexL], ReverbSendBuffer[indexR], SampleBuffer[indexL], SampleBuffer[indexR], nFrames);
 
 				m_ReverbSpinLock.Release ();
 			}
