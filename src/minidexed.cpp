@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "arm_float_to_q23.h"
-#include "arm_scale_zip_f32.h"
+#include "arm_scale_zip_f32_to_q23.h"
 
 const char WLANFirmwarePath[] = "SD:firmware/";
 const char WLANConfigFile[]   = "SD:wpa_supplicant.conf";
@@ -1392,7 +1392,6 @@ void CMiniDexed::ProcessSound (void)
 			uint8_t indexL=0, indexR=1;
 
 			// BEGIN TG mixing
-			float32_t tmp_float[nFrames*2];
 			int32_t tmp_int[nFrames*2];
 
 			// get the mix buffer of all TGs
@@ -1436,9 +1435,7 @@ void CMiniDexed::ProcessSound (void)
 			}
 
 			// Convert dual float array (left, right) to single int16 array (left/right)
-			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_float, nFrames);
-
-			arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
+			arm_scale_zip_f32_to_q23(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_int, nFrames);
 
 			// Prevent PCM510x analog mute from kicking in
 			if (tmp_int[nFrames * 2 - 1] == 0)
