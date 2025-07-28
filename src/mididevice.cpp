@@ -258,10 +258,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	{
 		// Convert LSB/MSB to 14-bit integer volume
 		uint32_t nMasterVolume=((pMessage[5] & 0x7F) | ((pMessage[6] & 0x7F) <<7));
-		// Convert to value between 0.0 and 1.0
-		float32_t fMasterVolume = (float32_t)nMasterVolume / 16384.0;
-		//printf("Master volume: %f (%d)\n",fMasterVolume, nMasterVolume);
-		m_pSynthesizer->setMasterVolume(fMasterVolume);
+		m_pSynthesizer->SetParameter (CMiniDexed::ParameterMasterVolume, maplong (nMasterVolume, 0, 16383, 0, 127));
 	}
 	else
 	{

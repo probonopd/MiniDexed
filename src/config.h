@@ -89,9 +89,8 @@ public:
 	static const unsigned MaxUSBMIDIDevices = 4;
 #endif
 
-	// TODO - Leave this for uimenu.cpp for now, but it will need to be dynamic at some point...
-	static const unsigned LCDColumns = 16;		// HD44780 LCD
-	static const unsigned LCDRows = 2;
+	static const unsigned MinLCDColumns = 16;		// HD44780 LCD
+	static const unsigned MinLCDRows = 2;
 
 public:
 	CConfig (FATFS *pFileSystem);
