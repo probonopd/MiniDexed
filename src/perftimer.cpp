@@ -18,6 +18,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 #include "perftimer.h"
+#include <circle/cputhrottle.h>
 #include <iostream>
 
 CPerformanceTimer::CPerformanceTimer (const char *pName, unsigned nDeadlineMicros)
@@ -68,6 +69,11 @@ void CPerformanceTimer::Dump (unsigned nIntervalTicks)
 		{
 			std::cout << " (" << nMaximumMicros*100 / m_nDeadlineMicros << "%)";
 		}
+
+		CCPUThrottle *pCPUT = CCPUThrottle::Get ();
+
+		std::cout << " (CPU " << pCPUT->GetClockRate () / 1000000 << "/" << pCPUT->GetMaxClockRate() / 1000000 << " MHz ";
+		std::cout << pCPUT->GetTemperature () << "/" << pCPUT->GetMaxTemperature () << " C)";
 
 		std::cout << std::endl;
 	}
