@@ -36,11 +36,11 @@ void CPerformanceTimer::Start (void)
 void CPerformanceTimer::Stop (void)
 {
 	unsigned nEndTicks = CTimer::GetClockTicks ();
-	unsigned nMicros = (nEndTicks - m_nStartTicks) / (CLOCKHZ / 1000000);
+	m_nLastMicros = (nEndTicks - m_nStartTicks) / (CLOCKHZ / 1000000);
 
-	if (nMicros > m_nMaximumMicros)
+	if (m_nLastMicros > m_nMaximumMicros)
 	{
-		m_nMaximumMicros = nMicros;
+		m_nMaximumMicros = m_nLastMicros;
 	}
 }
 
@@ -53,8 +53,16 @@ void CPerformanceTimer::Dump (unsigned nIntervalTicks)
 		m_nLastDumpTicks = nTicks;
 
 		unsigned nMaximumMicros = m_nMaximumMicros;	// may be overwritten from interrupt
+		unsigned nLastMicros = m_nLastMicros;
 
-		std::cout << m_Name << ": Maximum duration was " << nMaximumMicros <<  "us";
+		std::cout << m_Name << ": Last duration was " << nLastMicros << "us";
+
+		if (m_nDeadlineMicros != 0)
+		{
+			std::cout << " (" << nLastMicros*100 / m_nDeadlineMicros << "%)";
+		}
+
+		std::cout << " Maximum was " << nMaximumMicros << "us";
 
 		if (m_nDeadlineMicros != 0)
 		{
