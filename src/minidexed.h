@@ -106,6 +106,8 @@ public:
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
+	void SetCompressorEnable (bool compressor, unsigned nTG);
+
 	void setMonoMode(uint8_t mono, uint8_t nTG);
 	void setPitchbendRange(uint8_t range, uint8_t nTG);
 	void setPitchbendStep(uint8_t step, uint8_t nTG);
@@ -158,7 +160,6 @@ public:
 	// Must match the order in CUIMenu::TParameter
 	enum TParameter
 	{
-		ParameterCompressorEnable,
 		ParameterReverbEnable,
 		ParameterReverbSize,
 		ParameterReverbHighDamp,
@@ -220,6 +221,8 @@ public:
 		TGParameterATPitch,
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
+
+		TGParameterCompressorEnable,
 		
 		TGParameterUnknown
 	};
@@ -304,6 +307,8 @@ private:
 	int m_nNoteShift[CConfig::AllToneGenerators];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
+
+	bool m_bCompressorEnable[CConfig::AllToneGenerators];
   
 	uint8_t m_nRawVoiceData[156]; 
 	

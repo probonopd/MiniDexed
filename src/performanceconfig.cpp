@@ -208,10 +208,11 @@ bool CPerformanceConfig::Load (void)
 		
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_nAftertouchTarget[nTG] = m_Properties.GetNumber (PropertyName, 0);
+
+		PropertyName.Format ("CompressorEnable%u", nTG+1);
+		m_bCompressorEnable[nTG] = m_Properties.GetNumber (PropertyName, 1);
 		
 		}
-
-	m_bCompressorEnable = m_Properties.GetNumber ("CompressorEnable", 1) != 0;
 
 	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
 	m_nReverbSize = m_Properties.GetNumber ("ReverbSize", 70);
@@ -220,6 +221,15 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
+
+	// Compatibility
+	if (m_Properties.IsSet ("CompressorEnable") && m_Properties.GetNumber ("CompressorEnable", 1) == 0)
+	{
+		for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
+		{
+			m_bCompressorEnable[nTG] = 0;
+		}
+	}
 
 	return bResult;
 }
@@ -327,9 +337,10 @@ bool CPerformanceConfig::Save (void)
 		PropertyName.Format ("AftertouchTarget%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_nAftertouchTarget[nTG]);			
 
-		}
+		PropertyName.Format ("CompressorEnable%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_bCompressorEnable[nTG]);
 
-	m_Properties.SetNumber ("CompressorEnable", m_bCompressorEnable ? 1 : 0);
+		}
 
 	m_Properties.SetNumber ("ReverbEnable", m_bReverbEnable ? 1 : 0);
 	m_Properties.SetNumber ("ReverbSize", m_nReverbSize);
@@ -486,11 +497,6 @@ void CPerformanceConfig::SetReverbSend (unsigned nValue, unsigned nTG)
 	m_nReverbSend[nTG] = nValue;
 }
 
-bool CPerformanceConfig::GetCompressorEnable (void) const
-{
-	return m_bCompressorEnable;
-}
-
 bool CPerformanceConfig::GetReverbEnable (void) const
 {
 	return m_bReverbEnable;
@@ -524,11 +530,6 @@ unsigned CPerformanceConfig::GetReverbDiffusion (void) const
 unsigned CPerformanceConfig::GetReverbLevel (void) const
 {
 	return m_nReverbLevel;
-}
-
-void CPerformanceConfig::SetCompressorEnable (bool bValue)
-{
-	m_bCompressorEnable = bValue;
 }
 
 void CPerformanceConfig::SetReverbEnable (bool bValue)
@@ -735,6 +736,18 @@ unsigned CPerformanceConfig::GetAftertouchTarget (unsigned nTG) const
 {
 	assert (nTG < CConfig::AllToneGenerators);
 	return m_nAftertouchTarget[nTG];
+}
+
+void CPerformanceConfig::SetCompressorEnable (bool bValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_bCompressorEnable[nTG] = bValue;
+}
+
+bool CPerformanceConfig::GetCompressorEnable (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_bCompressorEnable[nTG];
 }
 
 void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  

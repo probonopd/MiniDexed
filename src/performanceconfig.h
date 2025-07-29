@@ -71,6 +71,8 @@ public:
 	unsigned GetAftertouchRange (unsigned nTG) const; // 0 .. 99
 	unsigned GetAftertouchTarget (unsigned nTG) const;  // 0 .. 7
 
+	bool GetCompressorEnable (unsigned nTG) const; 		// 0 .. 1
+
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
 	void SetMIDIChannel (unsigned nValue, unsigned nTG);
@@ -101,8 +103,9 @@ public:
 	void SetAftertouchRange (unsigned nValue, unsigned nTG);
 	void SetAftertouchTarget (unsigned nValue, unsigned nTG);
 
+	void SetCompressorEnable (bool bCompressor, unsigned nTG);
+
 	// Effects
-	bool GetCompressorEnable (void) const;
 	bool GetReverbEnable (void) const;
 	unsigned GetReverbSize (void) const;			// 0 .. 99
 	unsigned GetReverbHighDamp (void) const;		// 0 .. 99
@@ -111,7 +114,6 @@ public:
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
 	unsigned GetReverbLevel (void) const;			// 0 .. 99
 
-	void SetCompressorEnable (bool bValue);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
 	void SetReverbHighDamp (unsigned nValue);
@@ -181,7 +183,9 @@ private:
 	unsigned m_nBreathControlRange[CConfig::AllToneGenerators];	
 	unsigned m_nBreathControlTarget[CConfig::AllToneGenerators];	
 	unsigned m_nAftertouchRange[CConfig::AllToneGenerators];	
-	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];	
+	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];
+	
+	bool m_bCompressorEnable[CConfig::AllToneGenerators];
 
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  
@@ -196,7 +200,6 @@ private:
 
 	std::string NewPerformanceName="";
 	
-	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;
 	unsigned m_nReverbHighDamp;

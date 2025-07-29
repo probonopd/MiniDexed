@@ -63,7 +63,9 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG16",	MenuHandler,	s_TGMenu, 15},
 #endif
 #endif
+#ifdef ARM_ALLOW_MULTI_CORE
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+#endif
 	{"Master Volume", EditMasterVolume, 0, 0},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
@@ -86,13 +88,19 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
+	{"Compressor",	MenuHandler,		s_EditCompressorMenu},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditCompressorMenu[] =
+{
+	{"Enable",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorEnable},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
-	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
 #endif
@@ -218,7 +226,6 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 // must match CMiniDexed::TParameter
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
@@ -265,7 +272,8 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias	
+	{0,	1,	1,	ToOnOff},	// TGParameterCompressorEnable
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
