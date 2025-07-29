@@ -50,6 +50,22 @@ CKernel::~CKernel(void)
 	s_pThis = 0;
 }
 
+static void SystemThrottledHandler (TSystemThrottledState CurrentState, void *pParam)
+{
+	LOGNOTE ("System Throttled");
+
+	if (CurrentState & SystemStateUnderVoltageOccurred)
+		LOGNOTE ("SystemStateUnderVoltageOccurred");
+	if (CurrentState & SystemStateFrequencyCappingOccurred)
+		LOGNOTE ("SystemStateFrequencyCappingOccurred");
+	if (CurrentState & SystemStateThrottlingOccurred)
+		LOGNOTE ("SystemStateThrottlingOccurred");
+	if (CurrentState & SystemStateSoftTempLimitOccurred)
+		LOGNOTE ("SystemStateSoftTempLimitOccurred");
+
+	CCPUThrottle::Get ()->DumpStatus ();
+}
+
 bool CKernel::Initialize (void)
 {
 	if (!CStdlibAppStdio::Initialize ())
@@ -70,6 +86,11 @@ bool CKernel::Initialize (void)
 	}
 
 	m_Config.Load ();
+
+	m_CPUThrottle.DumpStatus ();
+	m_CPUThrottle.RegisterSystemThrottledHandler ( SystemStateUnderVoltageOccurred |
+		SystemStateFrequencyCappingOccurred | SystemStateThrottlingOccurred |
+		SystemStateSoftTempLimitOccurred, SystemThrottledHandler, 0);
 	
 	unsigned nSPIMaster = m_Config.GetSPIBus();
 	unsigned nSPIMode = m_Config.GetSPIMode();
