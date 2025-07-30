@@ -19,5 +19,5 @@ cd -
 
 # Use fixed master branch of Synth_Dexed
 cd Synth_Dexed/
-git checkout -f 3c683fc801
+git checkout -f 2c9aefcae26765f50a0f61868208261972fd22ab
 cd -
