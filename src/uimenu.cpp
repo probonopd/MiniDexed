@@ -61,6 +61,22 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG14",	MenuHandler,	s_TGMenu, 13},
 	{"TG15",	MenuHandler,	s_TGMenu, 14},
 	{"TG16",	MenuHandler,	s_TGMenu, 15},
+	{"TG17",	MenuHandler,	s_TGMenu, 16},
+	{"TG18",	MenuHandler,	s_TGMenu, 17},
+	{"TG19",	MenuHandler,	s_TGMenu, 18},
+	{"TG20",	MenuHandler,	s_TGMenu, 19},
+	{"TG21",	MenuHandler,	s_TGMenu, 20},
+	{"TG22",	MenuHandler,	s_TGMenu, 21},
+	{"TG23",	MenuHandler,	s_TGMenu, 22},
+	{"TG24",	MenuHandler,	s_TGMenu, 23},
+	{"TG25",	MenuHandler,	s_TGMenu, 24},
+	{"TG26",	MenuHandler,	s_TGMenu, 25},
+	{"TG27",	MenuHandler,	s_TGMenu, 26},
+	{"TG28",	MenuHandler,	s_TGMenu, 27},
+	{"TG29",	MenuHandler,	s_TGMenu, 28},
+	{"TG30",	MenuHandler,	s_TGMenu, 29},
+	{"TG31",	MenuHandler,	s_TGMenu, 30},
+	{"TG32",	MenuHandler,	s_TGMenu, 31},
 #endif
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
@@ -338,6 +354,9 @@ static const unsigned NoteC3 = 39;
 const CUIMenu::TMenuItem CUIMenu::s_PerformanceMenu[] =
 {
 	{"Load",	PerformanceMenu, 0, 0}, 
+	{"Part 2",	PerformanceMenu, 0, 2},
+	{"Part 3",	PerformanceMenu, 0, 3},
+	{"Part 4",	PerformanceMenu, 0, 4},
 	{"Save",	MenuHandler,	s_SaveMenu},
 	{"Delete",	PerformanceMenu, 0, 1},
 	{"Bank",	EditPerformanceBankNumber, 0, 0},
@@ -1616,6 +1635,18 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
 			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==2)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==3)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance3(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==4)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance4(nValue);
+			}
 			break;
 
 		case MenuEventStepUp:
@@ -1635,6 +1666,18 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==0)
 			{
 				pUIMenu->m_pMiniDexed->SetNewPerformance(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==2)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==3)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance3(nValue);
+			}
+			if (!bPerformanceSelectToLoad && pUIMenu->m_nCurrentParameter==4)
+			{
+				pUIMenu->m_pMiniDexed->SetNewPerformance4(nValue);
 			}
 			break;
 
@@ -1689,6 +1732,24 @@ void CUIMenu::PerformanceMenu (CUIMenu *pUIMenu, TMenuEvent Event)
 				{
 					pUIMenu->m_bPerformanceDeleteMode=true;
 					pUIMenu->m_bConfirmDeletePerformance=false;
+				}
+				break;
+			case 2:
+				if (bPerformanceSelectToLoad)
+				{
+					pUIMenu->m_pMiniDexed->SetNewPerformance2(nValue);
+				}
+				break;
+			case 3:
+				if (bPerformanceSelectToLoad)
+				{
+					pUIMenu->m_pMiniDexed->SetNewPerformance3(nValue);
+				}
+				break;
+			case 4:
+				if (bPerformanceSelectToLoad)
+				{
+					pUIMenu->m_pMiniDexed->SetNewPerformance4(nValue);
 				}
 				break;
 			default:

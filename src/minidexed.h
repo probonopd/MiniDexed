@@ -30,6 +30,7 @@
 #include "serialmididevice.h"
 #include "perftimer.h"
 #include <fatfs/ff.h>
+#include <atomic>
 #include <stdint.h>
 #include <string>
 #include <circle/types.h>
@@ -140,6 +141,9 @@ public:
 	unsigned GetActualPerformanceBankID();
 	void SetActualPerformanceBankID(unsigned nBankID);
 	bool SetNewPerformance(unsigned nID);
+	bool SetNewPerformance2(unsigned nID);
+	bool SetNewPerformance3(unsigned nID);
+	bool SetNewPerformance4(unsigned nID);
 	bool SetNewPerformanceBank(unsigned nBankID);
 	void SetFirstPerformance(void);
 	void DoSetFirstPerformance(void);
@@ -147,6 +151,9 @@ public:
 	
 	bool DoSavePerformanceNewFile (void);
 	bool DoSetNewPerformance (void);
+	bool DoSetNewPerformance2 (void);
+	bool DoSetNewPerformance3 (void);
+	bool DoSetNewPerformance4 (void);
 	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
@@ -172,6 +179,9 @@ public:
 	};
 
 	void SetParameter (TParameter Parameter, int nValue);
+	void SetParameter2 (TParameter Parameter, int nValue);
+	void SetParameter3 (TParameter Parameter, int nValue);
+	void SetParameter4 (TParameter Parameter, int nValue);
 	int GetParameter (TParameter Parameter);
 
 	std::string GetNewPerformanceDefaultName(void);
@@ -246,7 +256,7 @@ public:
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
-	void LoadPerformanceParameters(void); 
+	void LoadPerformanceParameters(unsigned part); 
 	void ProcessSound (void);
 	const char* GetNetworkDeviceShortName() const;
 
@@ -326,8 +336,8 @@ private:
 
 #ifdef ARM_ALLOW_MULTI_CORE
 //	unsigned m_nActiveTGsLog2;
-	volatile TCoreStatus m_CoreStatus[CORES];
-	volatile unsigned m_nFramesToProcess;
+	std::atomic<TCoreStatus> m_CoreStatus[CORES];
+	std::atomic<unsigned> m_nFramesToProcess;
 	float32_t m_OutputLevel[CConfig::AllToneGenerators][CConfig::MaxChunkSize];
 #endif
 
@@ -335,6 +345,9 @@ private:
 	bool m_bProfileEnabled;
 
 	AudioEffectPlateReverb* reverb;
+	AudioEffectPlateReverb* reverb2;
+	AudioEffectPlateReverb* reverb3;
+	AudioEffectPlateReverb* reverb4;
 	AudioStereoMixer<CConfig::AllToneGenerators>* tg_mixer;
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
@@ -354,13 +367,22 @@ private:
 	bool m_bSavePerformance;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
-	unsigned m_nSetNewPerformanceID;	
+	bool m_bSetNewPerformance2;
+	bool m_bSetNewPerformance3;
+	bool m_bSetNewPerformance4;
+	unsigned m_nSetNewPerformanceID;
+	unsigned m_nSetNewPerformanceID2;
+	unsigned m_nSetNewPerformanceID3;
+	unsigned m_nSetNewPerformanceID4;
 	bool m_bSetNewPerformanceBank;
 	unsigned m_nSetNewPerformanceBankID;	
 	bool m_bSetFirstPerformance;
 	bool	m_bDeletePerformance;
 	unsigned m_nDeletePerformanceID;
 	bool m_bLoadPerformanceBusy;
+	bool m_bLoadPerformanceBusy2;
+	bool m_bLoadPerformanceBusy3;
+	bool m_bLoadPerformanceBusy4;
 	bool m_bLoadPerformanceBankBusy;
 	bool m_bSaveAsDeault;
 };
