@@ -116,6 +116,13 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		
 		m_nReverbSend[i] = 0;
 
+		m_bCompressorEnable[i] = 1;
+		m_nCompressorPreGain[i] = 0;
+		m_nCompressorAttack[i] = 5;
+		m_nCompressorRelease[i] = 200;
+		m_nCompressorThresh[i] = -20;
+		m_nCompressorRatio[i] = 5;
+
 		// Active the required number of active TGs
 		if (i<m_nToneGenerators)
 		{
@@ -253,8 +260,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
-
-	SetParameter (ParameterCompressorEnable, 1);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 		
@@ -1004,14 +1009,6 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	switch (Parameter)
 	{
-	case ParameterCompressorEnable:
-		for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
-		{
-			assert (m_pTG[nTG]);
-			m_pTG[nTG]->setCompressor (!!nValue);
-		}
-		break;
-
 	case ParameterReverbEnable:
 		nValue=constrain((int)nValue,0,1);
 		m_ReverbSpinLock.Acquire ();
@@ -1132,6 +1129,13 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 
 	case TGParameterReverbSend:	SetReverbSend (nValue, nTG);	break;
 
+	case TGParameterCompressorEnable:	SetCompressorEnable (nValue, nTG); break;
+	case TGParameterCompressorPreGain:	SetCompressorPreGain (nValue, nTG); break;
+	case TGParameterCompressorAttack:	SetCompressorAttack (nValue, nTG); break;
+	case TGParameterCompressorRelease:	SetCompressorRelease (nValue, nTG); break;
+	case TGParameterCompressorThresh:	SetCompressorThresh (nValue, nTG); break;
+	case TGParameterCompressorRatio:	SetCompressorRatio (nValue, nTG); break;
+
 	default:
 		assert (0);
 		break;
@@ -1182,7 +1186,13 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterATAmplitude:				return getModController(3, 2,  nTG); 
 	case TGParameterATEGBias:					return getModController(3, 3,  nTG); 
 	
-	
+	case TGParameterCompressorEnable:	return m_bCompressorEnable[nTG];
+	case TGParameterCompressorPreGain:	return m_nCompressorPreGain[nTG];
+	case TGParameterCompressorAttack:	return m_nCompressorAttack[nTG];
+	case TGParameterCompressorRelease:	return m_nCompressorRelease[nTG];
+	case TGParameterCompressorThresh:	return m_nCompressorThresh[nTG];
+	case TGParameterCompressorRatio:	return m_nCompressorRatio[nTG];
+
 	default:
 		assert (0);
 		return 0;
@@ -1547,9 +1557,15 @@ bool CMiniDexed::DoSavePerformance (void)
 		m_PerformanceConfig.SetAftertouchTarget (m_nAftertouchTarget[nTG], nTG);
 		
 		m_PerformanceConfig.SetReverbSend (m_nReverbSend[nTG], nTG);
+
+		m_PerformanceConfig.SetCompressorEnable (m_bCompressorEnable[nTG], nTG);
+		m_PerformanceConfig.SetCompressorPreGain (m_nCompressorPreGain[nTG], nTG);
+		m_PerformanceConfig.SetCompressorAttack (m_nCompressorAttack[nTG], nTG);
+		m_PerformanceConfig.SetCompressorRelease (m_nCompressorRelease[nTG], nTG);	
+		m_PerformanceConfig.SetCompressorThresh (m_nCompressorThresh[nTG], nTG);
+		m_PerformanceConfig.SetCompressorRatio (m_nCompressorRatio[nTG], nTG);
 	}
 
-	m_PerformanceConfig.SetCompressorEnable (!!m_nParameter[ParameterCompressorEnable]);
 	m_PerformanceConfig.SetReverbEnable (!!m_nParameter[ParameterReverbEnable]);
 	m_PerformanceConfig.SetReverbSize (m_nParameter[ParameterReverbSize]);
 	m_PerformanceConfig.SetReverbHighDamp (m_nParameter[ParameterReverbHighDamp]);
@@ -1565,6 +1581,77 @@ bool CMiniDexed::DoSavePerformance (void)
 		
 	}
 	return m_PerformanceConfig.Save ();
+}
+
+void CMiniDexed::SetCompressorEnable(bool compressor, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_bCompressorEnable[nTG] = compressor;
+	m_pTG[nTG]->setCompressor (compressor);
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetCompressorPreGain (int preGain, unsigned nTG)
+{
+	preGain = constrain (preGain, -20, 20);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_nCompressorPreGain[nTG] = preGain;
+	m_pTG[nTG]->setCompressorPreGain_dB (preGain);
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetCompressorAttack (unsigned attack, unsigned nTG)
+{
+	attack = constrain (attack, 0u, 1000u);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_nCompressorAttack[nTG] = attack;
+	m_pTG[nTG]->setCompressorAttack_sec (attack / 1000.0);
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetCompressorRelease (unsigned release, unsigned nTG)
+{
+	release = constrain (release, 0u, 1000u);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_nCompressorRelease[nTG] = release;
+	m_pTG[nTG]->setCompressorRelease_sec (release / 1000.0);
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetCompressorThresh (int thresh, unsigned nTG)
+{
+	thresh = constrain (thresh, -60, 0);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_nCompressorThresh[nTG] = thresh;
+	m_pTG[nTG]->setCompressorThresh_dBFS (thresh);
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetCompressorRatio (unsigned ratio, unsigned nTG)
+{
+	ratio = constrain (ratio, 1u, 20u);
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;  // Not an active TG
+
+	assert (m_pTG[nTG]);
+	m_nCompressorRatio[nTG] = ratio;
+	m_pTG[nTG]->setCompressionRatio (ratio);
+	m_UI.ParameterChanged ();
 }
 
 void CMiniDexed::setMonoMode(uint8_t mono, uint8_t nTG)
@@ -2037,12 +2124,16 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			setBreathControllerTarget (m_PerformanceConfig.GetBreathControlTarget (nTG),  nTG);
 			setAftertouchRange (m_PerformanceConfig.GetAftertouchRange (nTG),  nTG);
 			setAftertouchTarget (m_PerformanceConfig.GetAftertouchTarget (nTG),  nTG);
-			
-		
+
+			SetCompressorEnable (m_PerformanceConfig.GetCompressorEnable (nTG), nTG);
+			SetCompressorPreGain (m_PerformanceConfig.GetCompressorPreGain (nTG), nTG);
+			SetCompressorAttack (m_PerformanceConfig.GetCompressorAttack (nTG), nTG);;
+			SetCompressorRelease (m_PerformanceConfig.GetCompressorRelease (nTG), nTG);
+			SetCompressorThresh (m_PerformanceConfig.GetCompressorThresh (nTG), nTG);
+			SetCompressorRatio (m_PerformanceConfig.GetCompressorRatio (nTG), nTG);
 		}
 
 		// Effects
-		SetParameter (ParameterCompressorEnable, m_PerformanceConfig.GetCompressorEnable () ? 1 : 0);
 		SetParameter (ParameterReverbEnable, m_PerformanceConfig.GetReverbEnable () ? 1 : 0);
 		SetParameter (ParameterReverbSize, m_PerformanceConfig.GetReverbSize ());
 		SetParameter (ParameterReverbHighDamp, m_PerformanceConfig.GetReverbHighDamp ());
