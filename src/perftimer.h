@@ -38,6 +38,7 @@ private:
 	unsigned m_nDeadlineMicros;
 
 	unsigned m_nStartTicks;
+	unsigned m_nLastMicros;
 	unsigned m_nMaximumMicros;
 
 	unsigned m_nLastDumpTicks;
