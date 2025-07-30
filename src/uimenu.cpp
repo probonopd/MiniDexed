@@ -96,6 +96,11 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 const CUIMenu::TMenuItem CUIMenu::s_EditCompressorMenu[] =
 {
 	{"Enable",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorEnable},
+	{"Pre Gain",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorPreGain},
+	{"Attack",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorAttack},
+	{"Release",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorRelease},
+	{"Threshold",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorThresh},
+	{"Ratio",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorRatio},
 	{0}
 };
 
@@ -274,6 +279,11 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 1, 1, ToOnOff}, //AT Amp
 	{0, 1, 1, ToOnOff}, //AT EGBias	
 	{0,	1,	1,	ToOnOff},	// TGParameterCompressorEnable
+	{-20,	20,	1,	TodB},		// TGParameterCompressorPreGain
+	{0,	1000,	5,	ToMillisec},	// TGParameterCompressorAttack
+	{0,	1000,	5,	ToMillisec},	// TGParameterCompressorRelease
+	{-60,	0,	1,	TodBFS},	// TGParameterCompressorThresh
+	{1,	20,	1,	ToRatio},	// TGParameterCompressorRatio
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1245,6 +1255,26 @@ string CUIMenu::ToPolyMono (int nValue)
 	case 1:		return "Mono";
 	default:	return to_string (nValue);
 	}
+}
+
+std::string CUIMenu::TodB (int nValue)
+{
+	return std::to_string (nValue) + " dB";
+}
+
+std::string CUIMenu::TodBFS (int nValue)
+{
+	return std::to_string (nValue) + " dBFS";
+}
+
+std::string CUIMenu::ToMillisec (int nValue)
+{
+	return std::to_string (nValue) + " ms";
+}
+
+std::string CUIMenu::ToRatio (int nValue)
+{
+	return std::to_string (nValue) + ":1";
 }
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)

@@ -72,6 +72,11 @@ public:
 	unsigned GetAftertouchTarget (unsigned nTG) const;  // 0 .. 7
 
 	bool GetCompressorEnable (unsigned nTG) const; 		// 0 .. 1
+	int GetCompressorPreGain (unsigned nTG) const;
+	unsigned GetCompressorAttack (unsigned nTG) const;
+	unsigned GetCompressorRelease (unsigned nTG) const;
+	int GetCompressorThresh (unsigned nTG) const;
+	unsigned GetCompressorRatio (unsigned nTG) const;
 
 	void SetBankNumber (unsigned nValue, unsigned nTG);
 	void SetVoiceNumber (unsigned nValue, unsigned nTG);
@@ -103,7 +108,12 @@ public:
 	void SetAftertouchRange (unsigned nValue, unsigned nTG);
 	void SetAftertouchTarget (unsigned nValue, unsigned nTG);
 
-	void SetCompressorEnable (bool bCompressor, unsigned nTG);
+	void SetCompressorEnable (bool nValue, unsigned nTG);
+	void SetCompressorPreGain (int nValue, unsigned nTG);
+	void SetCompressorAttack (unsigned nValue, unsigned nTG);
+	void SetCompressorRelease (unsigned nValue, unsigned nTG);	
+	void SetCompressorThresh (int nValue, unsigned nTG);
+	void SetCompressorRatio (unsigned nValue, unsigned nTG);
 
 	// Effects
 	bool GetReverbEnable (void) const;
@@ -186,6 +196,11 @@ private:
 	unsigned m_nAftertouchTarget[CConfig::AllToneGenerators];
 	
 	bool m_bCompressorEnable[CConfig::AllToneGenerators];
+	int m_nCompressorPreGain[CConfig::AllToneGenerators];
+	unsigned m_nCompressorAttack[CConfig::AllToneGenerators];
+	unsigned m_nCompressorRelease[CConfig::AllToneGenerators];
+	int m_nCompressorThresh[CConfig::AllToneGenerators];
+	unsigned m_nCompressorRatio[CConfig::AllToneGenerators];
 
 	unsigned m_nLastPerformance;  
 	unsigned m_nActualPerformance = 0;  

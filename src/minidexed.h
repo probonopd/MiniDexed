@@ -106,7 +106,12 @@ public:
 
 	void SetReverbSend (unsigned nReverbSend, unsigned nTG);			// 0 .. 127
 
-	void SetCompressorEnable (bool compressor, unsigned nTG);
+	void SetCompressorEnable (bool compressor, unsigned nTG);	// 0 .. 1 (default 1)
+	void SetCompressorPreGain (int preGain, unsigned nTG);		// -20 .. 20 dB (default 0)
+	void SetCompressorAttack (unsigned attack, unsigned nTG);	// 0 .. 1000 ms (default 5)
+	void SetCompressorRelease (unsigned release, unsigned nTG);	// 0 .. 1000 ms (default 200)
+	void SetCompressorThresh (int thresh, unsigned nTG);		// -60 .. 0 dBFS (default -20)
+	void SetCompressorRatio (unsigned ratio, unsigned nTG);		// 1 .. 20 (default 5)
 
 	void setMonoMode(uint8_t mono, uint8_t nTG);
 	void setPitchbendRange(uint8_t range, uint8_t nTG);
@@ -223,6 +228,11 @@ public:
 		TGParameterATEGBias,
 
 		TGParameterCompressorEnable,
+		TGParameterCompressorPreGain,
+		TGParameterCompressorAttack,
+		TGParameterCompressorRelease,
+		TGParameterCompressorThresh,
+		TGParameterCompressorRatio,
 		
 		TGParameterUnknown
 	};
@@ -309,6 +319,11 @@ private:
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
 
 	bool m_bCompressorEnable[CConfig::AllToneGenerators];
+	int m_nCompressorPreGain[CConfig::AllToneGenerators];
+	unsigned m_nCompressorAttack[CConfig::AllToneGenerators];
+	unsigned m_nCompressorRelease[CConfig::AllToneGenerators];
+	int m_nCompressorThresh[CConfig::AllToneGenerators];
+	unsigned m_nCompressorRatio[CConfig::AllToneGenerators];
   
 	uint8_t m_nRawVoiceData[156]; 
 	

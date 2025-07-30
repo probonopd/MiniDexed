@@ -212,6 +212,21 @@ bool CPerformanceConfig::Load (void)
 		PropertyName.Format ("CompressorEnable%u", nTG+1);
 		m_bCompressorEnable[nTG] = m_Properties.GetNumber (PropertyName, 1);
 		
+		PropertyName.Format ("CompressorPreGain%u", nTG+1);
+		m_nCompressorPreGain[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
+
+		PropertyName.Format ("CompressorAttack%u", nTG+1);
+		m_nCompressorAttack[nTG] = m_Properties.GetNumber (PropertyName, 5);
+
+		PropertyName.Format ("CompressorRelease%u", nTG+1);
+		m_nCompressorRelease[nTG] = m_Properties.GetNumber (PropertyName, 200);
+
+		PropertyName.Format ("CompressorThresh%u", nTG+1);
+		m_nCompressorThresh[nTG] = m_Properties.GetSignedNumber (PropertyName, -20);
+
+		PropertyName.Format ("CompressorRatio%u", nTG+1);
+		m_nCompressorRatio[nTG] = m_Properties.GetNumber (PropertyName, 5);
+
 		}
 
 	m_bReverbEnable = m_Properties.GetNumber ("ReverbEnable", 1) != 0;
@@ -339,6 +354,21 @@ bool CPerformanceConfig::Save (void)
 
 		PropertyName.Format ("CompressorEnable%u", nTG+1);
 		m_Properties.SetNumber (PropertyName, m_bCompressorEnable[nTG]);
+
+		PropertyName.Format ("CompressorPreGain%u", nTG+1);
+		m_Properties.SetSignedNumber (PropertyName, m_nCompressorPreGain[nTG]);
+
+		PropertyName.Format ("CompressorAttack%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nCompressorAttack[nTG]);
+
+		PropertyName.Format ("CompressorRelease%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nCompressorRelease[nTG]);
+
+		PropertyName.Format ("CompressorThresh%u", nTG+1);
+		m_Properties.SetSignedNumber (PropertyName, m_nCompressorThresh[nTG]);
+
+		PropertyName.Format ("CompressorRatio%u", nTG+1);
+		m_Properties.SetNumber (PropertyName, m_nCompressorRatio[nTG]);
 
 		}
 
@@ -749,6 +779,67 @@ bool CPerformanceConfig::GetCompressorEnable (unsigned nTG) const
 	assert (nTG < CConfig::AllToneGenerators);
 	return m_bCompressorEnable[nTG];
 }
+
+void CPerformanceConfig::SetCompressorPreGain (int nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nCompressorPreGain[nTG] = nValue;
+}
+
+int CPerformanceConfig::GetCompressorPreGain (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nCompressorPreGain[nTG];
+}
+
+void CPerformanceConfig::SetCompressorAttack (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nCompressorAttack[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetCompressorAttack (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nCompressorAttack[nTG];
+}
+
+void CPerformanceConfig::SetCompressorRelease (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nCompressorRelease[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetCompressorRelease (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nCompressorRelease[nTG];
+}
+
+void CPerformanceConfig::SetCompressorThresh (int nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nCompressorThresh[nTG] = nValue;
+}
+
+int CPerformanceConfig::GetCompressorThresh (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nCompressorThresh[nTG];
+}
+
+void CPerformanceConfig::SetCompressorRatio (unsigned nValue, unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	m_nCompressorRatio[nTG] = nValue;
+}
+
+unsigned CPerformanceConfig::GetCompressorRatio (unsigned nTG) const
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	return m_nCompressorRatio[nTG];
+}
+
 
 void CPerformanceConfig::SetVoiceDataToTxt (const uint8_t *pData, unsigned nTG)  
 {
