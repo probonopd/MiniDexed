@@ -199,6 +199,17 @@ bool CUserInterface::Initialize (void)
 	return true;
 }
 
+void CUserInterface::LoadDefaultScreen ()
+{
+	// performance load
+	if (m_pConfig->GetDefaultScreen() == 1)
+	{
+		m_Menu.EventHandler (CUIMenu::MenuEventStepDown);
+		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+		m_Menu.EventHandler (CUIMenu::MenuEventSelect);
+	}
+}
+
 void CUserInterface::Process (void)
 {
 	if (m_pLCDBuffered)

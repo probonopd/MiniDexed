@@ -42,6 +42,8 @@ public:
 
 	bool Initialize (void);
 
+	void LoadDefaultScreen ();
+
 	void Process (void);
 
 	void ParameterChanged (void);
