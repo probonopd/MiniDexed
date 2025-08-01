@@ -198,6 +198,8 @@ void CConfig::Load (void)
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
+	m_bLogThrottling = m_Properties.GetNumber("LogThrottling", 0);
+
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 0) != 0;
 	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
 	
@@ -731,6 +733,11 @@ bool CConfig::GetMIDIDumpEnabled (void) const
 bool CConfig::GetProfileEnabled (void) const
 {
 	return m_bProfileEnabled;
+}
+
+bool CConfig::GetLogThrottling (void) const
+{
+	return m_bLogThrottling;
 }
 
 bool CConfig::GetPerformanceSelectToLoad (void) const

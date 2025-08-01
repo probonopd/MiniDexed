@@ -235,7 +235,8 @@ public:
 	// Debug
 	bool GetMIDIDumpEnabled (void) const;
 	bool GetProfileEnabled (void) const;
-	
+	bool GetLogThrottling (void) const;
+
 	// Load performance mode. 0 for load just rotating encoder, 1 load just when Select is pushed
 	bool GetPerformanceSelectToLoad (void) const;
 	unsigned GetPerformanceSelectChannel (void) const;
@@ -384,6 +385,8 @@ private:
 	bool m_bSyslogEnabled;
 	CIPAddress m_INetworkSyslogServerIPAddress;
 	bool m_bNetworkFTPEnabled;
+
+	bool m_bLogThrottling;
 };
 
 #endif
