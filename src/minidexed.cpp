@@ -48,11 +48,12 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_pConfig (pConfig),
 	m_UI (this, pGPIOManager, pI2CMaster, pSPIMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
+	m_pMIDIKeyboard {},
 	m_PCKeyboard (this, pConfig, &m_UI),
 	m_SerialMIDI (this, pInterrupt, pConfig, &m_UI),
 	m_bUseSerial (false),
 	m_bQuadDAC8Chan (false),
-	m_pSoundDevice (0),
+	m_pSoundDevice (nullptr),
 	m_bChannelsSwapped (pConfig->GetChannelsSwapped ()),
 #ifdef ARM_ALLOW_MULTI_CORE
 //	m_nActiveTGsLog2 (0),
@@ -60,6 +61,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
+	reverb(nullptr),
+	tg_mixer(nullptr),
+	reverb_send_mixer(nullptr),
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
 	m_WLAN(nullptr),
@@ -67,6 +71,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_bNetworkReady(false),
 	m_bNetworkInit(false),
 	m_UDPMIDI(nullptr),
+	m_pFTPDaemon(nullptr),
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
 	m_bSavePerformanceNewFile (false),
@@ -235,9 +240,6 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	}
 #endif
 
-	float masterVolNorm = (float)(pConfig->GetMasterVolume()) / 127.0f;
-	setMasterVolume(masterVolNorm);
-
 	// BEGIN setup tg_mixer
 	tg_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	// END setup tgmixer
@@ -245,6 +247,9 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	// BEGIN setup reverb
 	reverb_send_mixer = new AudioStereoMixer<CConfig::AllToneGenerators>(pConfig->GetChunkSize()/2);
 	reverb = new AudioEffectPlateReverb(pConfig->GetSampleRate());
+
+	SetParameter (ParameterMasterVolume, pConfig->GetMasterVolume());
+
 	SetParameter (ParameterReverbEnable, 1);
 	SetParameter (ParameterReverbSize, 70);
 	SetParameter (ParameterReverbHighDamp, 50);
@@ -1067,6 +1072,12 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	case ParameterPerformanceBank:
 		BankSelectPerformance(nValue);
+		break;
+
+	case ParameterMasterVolume:
+		nValue=constrain((int)nValue,0,127);
+		setMasterVolume (nValue / 127.0f);
+		m_UI.ParameterChanged ();
 		break;
 
 	default:
