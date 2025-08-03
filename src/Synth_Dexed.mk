@@ -45,5 +45,3 @@ DEFINE += -DARM_MATH_NEON
 DEFINE += -DARM_MATH_NEON_EXPERIMENTAL
 DEFINE += -DHAVE_NEON
 endif
-
-EXTRACLEAN = $(SYNTH_DEXED_DIR)/*.[od] $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/SupportFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/BasicMathFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/FastMathFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/FilteringFunctions/*.[od] $(CMSIS_DSP_SOURCE_DIR)/CommonTables/*.[od] $(CMSIS_DSP_COMPUTELIB_SRC_DIR)/*.[od]
