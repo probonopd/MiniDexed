@@ -237,6 +237,14 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
 
+	m_bLimiterEnable = m_Properties.GetNumber ("LimiterEnable", 1);
+	m_nLimiterPreGain = m_Properties.GetSignedNumber ("LimiterPreGain", 0);
+	m_nLimiterAttack = m_Properties.GetNumber ("LimiterAttack", 5);
+	m_nLimiterRelease = m_Properties.GetNumber ("LimiterRelease", 5);
+	m_nLimiterThresh = m_Properties.GetSignedNumber ("LimiterThresh", -3);
+	m_nLimiterRatio = m_Properties.GetNumber ("LimiterRatio", 20);
+	m_bLimiterHPFilterEnable = m_Properties.GetNumber ("LimiterHPFilterEnable", 0);
+
 	// Compatibility
 	if (m_Properties.IsSet ("CompressorEnable") && m_Properties.GetNumber ("CompressorEnable", 1) == 0)
 	{
@@ -379,6 +387,14 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
+
+	m_Properties.SetNumber ("LimiterEnable", m_bLimiterEnable);
+	m_Properties.SetSignedNumber ("LimiterPreGain", m_nLimiterPreGain);
+	m_Properties.SetNumber ("LimiterAttack", m_nLimiterAttack);
+	m_Properties.SetNumber ("LimiterRelease", m_nLimiterRelease);
+	m_Properties.SetSignedNumber ("LimiterThresh", m_nLimiterThresh);
+	m_Properties.SetNumber ("LimiterRatio", m_nLimiterRatio);
+	m_Properties.SetNumber ("LimiterHPFilterEnable", m_bLimiterHPFilterEnable);
 
 	return m_Properties.Save ();
 }
@@ -596,6 +612,77 @@ void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
 	m_nReverbLevel = nValue;
 }
+
+bool CPerformanceConfig::GetLimiterEnable () const
+{
+	return m_bLimiterEnable;
+}
+
+int CPerformanceConfig::GetLimiterPreGain () const
+{
+	return m_nLimiterPreGain;
+}
+
+unsigned CPerformanceConfig::GetLimiterAttack () const
+{
+	return m_nLimiterAttack;
+}
+
+unsigned CPerformanceConfig::GetLimiterRelease () const
+{
+	return m_nLimiterRelease;
+}
+
+int CPerformanceConfig::GetLimiterThresh () const
+{
+	return m_nLimiterThresh;
+}
+
+unsigned CPerformanceConfig::GetLimiterRatio () const
+{
+	return m_nLimiterRatio;
+}
+
+bool CPerformanceConfig::GetLimiterHPFilterEnable () const
+{
+	return m_bLimiterHPFilterEnable;
+}
+
+void CPerformanceConfig::SetLimiterEnable (bool nValue)
+{
+	m_bLimiterEnable = nValue;
+}
+
+void CPerformanceConfig::SetLimiterPreGain (int nValue)
+{
+	m_nLimiterPreGain= nValue;
+}
+
+void CPerformanceConfig::SetLimiterAttack (unsigned nValue)
+{
+	m_nLimiterAttack = nValue;
+}
+
+void CPerformanceConfig::SetLimiterRelease (unsigned nValue)
+{
+	m_nLimiterRelease = nValue;
+}
+
+void CPerformanceConfig::SetLimiterThresh (int nValue)
+{
+	m_nLimiterThresh = nValue;
+}
+
+void CPerformanceConfig::SetLimiterRatio (unsigned nValue)
+{
+	m_nLimiterRatio = nValue;
+}
+
+void CPerformanceConfig::SetLimiterHPFilterEnable (bool nValue)
+{
+	m_bLimiterHPFilterEnable = nValue;
+}
+
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)
 {

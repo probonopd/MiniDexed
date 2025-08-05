@@ -108,6 +108,7 @@ const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
+	{"Limiter",	MenuHandler,		s_LimiterMenu},
 #endif
 	{0}
 };
@@ -156,6 +157,18 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
 	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_LimiterMenu[] =
+{
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterEnable},
+	{"Pre Gain",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterPreGain},
+	{"Attack",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterAttack},
+	{"Release",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterRelease},
+	{"Threshold",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterThresh},
+	{"Ratio",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterRatio},
+	{"HPFilter",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterHPFilterEnable},
 	{0}
 };
 
@@ -239,7 +252,14 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
-	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
+	{0, NUM_PERFORMANCE_BANKS, 1},			// ParameterPerformanceBank
+	{0,	1,	1,	ToOnOff},		// ParameterLimiterEnable
+	{-20,	20,	1,	TodB},			// ParameterLimiterPreGain
+	{0,	1000,	5,	ToMillisec},		// ParameterLimiterAttack
+	{0,	1000,	5,	ToMillisec},		// ParameterLimiterRelease
+	{-60,	0,	1,	TodBFS},		// ParameterLimiterThresh
+	{1,	20,	1,	ToRatio},		// ParameterLimiterRatio
+	{0,	1,	1,	ToOnOff},		// ParameterLimiterHPFilterEnable
 };
 
 // must match CMiniDexed::TTGParameter

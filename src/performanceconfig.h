@@ -132,6 +132,22 @@ public:
 	void SetReverbDiffusion (unsigned nValue);
 	void SetReverbLevel (unsigned nValue);
 
+	bool GetLimiterEnable () const;
+	int GetLimiterPreGain () const;
+	unsigned GetLimiterAttack () const;
+	unsigned GetLimiterRelease () const;
+	int GetLimiterThresh () const;
+	unsigned GetLimiterRatio () const;
+	bool GetLimiterHPFilterEnable () const;
+
+	void SetLimiterEnable (bool nValue);
+	void SetLimiterPreGain (int nValue);
+	void SetLimiterAttack (unsigned nValue);
+	void SetLimiterRelease (unsigned nValue);	
+	void SetLimiterThresh (int nValue);
+	void SetLimiterRatio (unsigned nValue);
+	void SetLimiterHPFilterEnable (bool nValue);
+
 	bool VoiceDataFilled(unsigned nTG);
 	bool ListPerformances(); 
 	//std::string m_DirName;
@@ -222,6 +238,14 @@ private:
 	unsigned m_nReverbLowPass;
 	unsigned m_nReverbDiffusion;
 	unsigned m_nReverbLevel;
+
+	bool m_bLimiterEnable;
+	int m_nLimiterPreGain;
+	unsigned m_nLimiterAttack;
+	unsigned m_nLimiterRelease;
+	int m_nLimiterThresh;
+	unsigned m_nLimiterRatio;
+	bool m_bLimiterHPFilterEnable;
 };
 
 #endif

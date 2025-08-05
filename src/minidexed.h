@@ -50,6 +50,7 @@
 #include "effect_platervbstereo.h"
 #include "udpmididevice.h"
 #include "net/ftpdaemon.h"
+#include "../Synth_Dexed/src/compressor.h"
  
 class CMiniDexed
 #ifdef ARM_ALLOW_MULTI_CORE
@@ -174,6 +175,13 @@ public:
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
+		ParameterLimiterEnable,
+		ParameterLimiterPreGain,
+		ParameterLimiterAttack,
+		ParameterLimiterRelease,
+		ParameterLimiterThresh,
+		ParameterLimiterRatio,
+		ParameterLimiterHPFilterEnable,
 		ParameterUnknown
 	};
 
@@ -359,6 +367,9 @@ private:
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+
+	Compressor m_Limiter[2];
+	CSpinLock m_LimiterSpinLock;
 
 	// Network
 	CNetSubSystem* m_pNet;

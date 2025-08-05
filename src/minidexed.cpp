@@ -60,6 +60,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_GetChunkTimer ("GetChunk",
 			 1000000U * pConfig->GetChunkSize ()/2 / pConfig->GetSampleRate ()),
 	m_bProfileEnabled (m_pConfig->GetProfileEnabled ()),
+	m_Limiter {pConfig->GetSampleRate(), pConfig->GetSampleRate()},
 	m_pNet(nullptr),
 	m_pNetDevice(nullptr),
 	m_WLAN(nullptr),
@@ -260,6 +261,14 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	SetParameter (ParameterReverbDiffusion, 65);
 	SetParameter (ParameterReverbLevel, 99);
 	// END setup reverb
+
+	SetParameter (ParameterLimiterEnable, 1);
+	SetParameter (ParameterLimiterPreGain, 0);
+	SetParameter (ParameterLimiterAttack, 5);
+	SetParameter (ParameterLimiterRelease, 5);
+	SetParameter (ParameterLimiterThresh, -3);
+	SetParameter (ParameterLimiterRatio, 20);
+	SetParameter (ParameterLimiterHPFilterEnable, 0);
 
 	SetPerformanceSelectChannel(m_pConfig->GetPerformanceSelectChannel());
 		
@@ -1066,6 +1075,56 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 		BankSelectPerformance(nValue);
 		break;
 
+	case ParameterLimiterEnable:
+		break;
+
+	case ParameterLimiterPreGain:
+		nValue=constrain(nValue,-20,20);
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].setPreGain_dB(nValue);
+		m_LimiterSpinLock.Release ();
+		break;
+
+	case ParameterLimiterAttack:
+		nValue=constrain(nValue,0,1000);
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].setAttack_sec(nValue / 1000.0f, m_pConfig->GetSampleRate());
+		m_LimiterSpinLock.Release ();
+		break;
+
+	case ParameterLimiterRelease:
+		nValue=constrain(nValue,0,1000);
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].setRelease_sec(nValue / 1000.0f, m_pConfig->GetSampleRate());
+		m_LimiterSpinLock.Release ();
+		break;
+
+	case ParameterLimiterThresh:
+		nValue=constrain(nValue,-60,0);
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].setThresh_dBFS(nValue);
+		m_LimiterSpinLock.Release ();
+		break;
+
+	case ParameterLimiterRatio:
+		nValue=constrain(nValue,1,20);
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].setCompressionRatio(nValue);
+		m_LimiterSpinLock.Release ();
+		break;
+
+	case ParameterLimiterHPFilterEnable:
+		m_LimiterSpinLock.Acquire ();
+		for (int i=0; i<2; ++i)
+			m_Limiter[i].enableHPFilter(nValue);
+		m_LimiterSpinLock.Release ();
+		break;
+
 	default:
 		assert (0);
 		break;
@@ -1444,6 +1503,14 @@ void CMiniDexed::ProcessSound (void)
 			}
 			// END adding reverb
 
+			if (m_nParameter[ParameterLimiterEnable])
+			{
+				m_LimiterSpinLock.Acquire ();
+				m_Limiter[0].doCompression (SampleBuffer[0], nFrames);
+				m_Limiter[1].doCompression (SampleBuffer[1], nFrames);
+				m_LimiterSpinLock.Release ();
+			}
+
 			// swap stereo channels if needed prior to writing back out
 			if (m_bChannelsSwapped)
 			{
@@ -1573,6 +1640,14 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
+
+	m_PerformanceConfig.SetLimiterEnable (m_nParameter[ParameterLimiterEnable]);
+	m_PerformanceConfig.SetLimiterPreGain (m_nParameter[ParameterLimiterPreGain]);
+	m_PerformanceConfig.SetLimiterAttack (m_nParameter[ParameterLimiterAttack]);
+	m_PerformanceConfig.SetLimiterRelease (m_nParameter[ParameterLimiterRelease]);
+	m_PerformanceConfig.SetLimiterThresh (m_nParameter[ParameterLimiterThresh]);
+	m_PerformanceConfig.SetLimiterRatio (m_nParameter[ParameterLimiterRatio]);
+	m_PerformanceConfig.SetLimiterHPFilterEnable (m_nParameter[ParameterLimiterHPFilterEnable]);
 
 	if(m_bSaveAsDeault)
 	{
@@ -2141,6 +2216,14 @@ void CMiniDexed::LoadPerformanceParameters(void)
 		SetParameter (ParameterReverbLowPass, m_PerformanceConfig.GetReverbLowPass ());
 		SetParameter (ParameterReverbDiffusion, m_PerformanceConfig.GetReverbDiffusion ());
 		SetParameter (ParameterReverbLevel, m_PerformanceConfig.GetReverbLevel ());
+
+		SetParameter (ParameterLimiterEnable, m_PerformanceConfig.GetLimiterEnable ());
+		SetParameter (ParameterLimiterPreGain, m_PerformanceConfig.GetLimiterPreGain ());
+		SetParameter (ParameterLimiterAttack, m_PerformanceConfig.GetLimiterAttack ());
+		SetParameter (ParameterLimiterRelease, m_PerformanceConfig.GetLimiterRelease ());
+		SetParameter (ParameterLimiterThresh, m_PerformanceConfig.GetLimiterThresh ());
+		SetParameter (ParameterLimiterRatio, m_PerformanceConfig.GetLimiterRatio ());
+		SetParameter (ParameterLimiterHPFilterEnable, m_PerformanceConfig.GetLimiterHPFilterEnable ());
 
 		m_UI.DisplayChanged ();
 }
