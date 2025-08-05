@@ -36,34 +36,34 @@ jobs:
       - name: Install 64-bit toolchain
         run: |
           set -ex
-          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
-          tar xf gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf.tar.xz
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-elf.tar.xz
+          tar xf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-elf.tar.xz
 
       - name: Build for Raspberry Pi 5 (64-bit)
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           RPI=5 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
       - name: Build for Raspberry Pi 4 (64-bit)
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           RPI=4 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
       - name: Build for Raspberry Pi 3 (64-bit)
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           RPI=3 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
       - name: Prepare SD card content for 64-bit
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-aarch64-none-elf/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           cd ./circle-stdlib/libs/circle/boot
           make
           make armstub64
@@ -121,20 +121,20 @@ jobs:
       - name: Install 32-bit toolchain
         run: |
           set -ex
-          wget -q https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
-          tar xf gcc-arm-10.3-2021.07-x86_64-arm-none-eabi.tar.xz
+          wget -q https://developer.arm.com/-/media/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
+          tar xf arm-gnu-toolchain-13.3.rel1-x86_64-arm-none-eabi.tar.xz
 
       - name: Build for Raspberry Pi 2 (32-bit)
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           RPI=2 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 
       - name: Build for Raspberry Pi 1 (32-bit)
         run: |
           set -ex
-          export PATH=$(readlink -f ./gcc-arm-10.3-2021.07-x86_64-arm-none-eabi/bin):$PATH
+          export PATH=$(readlink -f ./arm-*/bin/):$PATH
           RPI=1 bash -ex build.sh
           cp ./src/kernel*.img ./sdcard/
 

@@ -13,14 +13,9 @@ OBJS = main.o kernel.o minidexed.o config.o userinterface.o uimenu.o \
        arm_float_to_q23.o arm_scale_zip_f32.o \
        net/ftpdaemon.o net/ftpworker.o net/applemidi.o net/udpmidi.o net/mdnspublisher.o udpmididevice.o
 
+EXTRACLEAN = $(OBJS) $(OBJS:.o=.d)
+
 OPTIMIZE = -O3
 
 include ./Synth_Dexed.mk
 include ./Rules.mk
-
-# Clean target
-.PHONY: clean
-
-clean:
-	@echo "Cleaning up..."
-	rm -f $(OBJS) *.o *.d *~ core

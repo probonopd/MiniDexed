@@ -953,13 +953,13 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	FRESULT Result = f_open (&File, nFileName.c_str(), FA_WRITE | FA_CREATE_ALWAYS);
 	if (Result != FR_OK)
 	{
-		m_PerformanceFileName[nNewPerformance]=nullptr;
+		m_PerformanceFileName[nNewPerformance].clear();
 		return false;
 	}
 
 	if (f_close (&File) != FR_OK)
 	{
-		m_PerformanceFileName[nNewPerformance]=nullptr;
+		m_PerformanceFileName[nNewPerformance].clear();
 		return false;
 	}
 	

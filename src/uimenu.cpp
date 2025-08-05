@@ -26,7 +26,7 @@
 #include "userinterface.h"
 #include "sysexfileloader.h"
 #include "config.h"
-#include <cmath>
+#include <math.h>
 #include <circle/sysconfig.h>
 #include <assert.h>
 #include <cstddef>
