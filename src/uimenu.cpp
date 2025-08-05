@@ -63,7 +63,9 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 	{"TG16",	MenuHandler,	s_TGMenu, 15},
 #endif
 #endif
+#ifdef ARM_ALLOW_MULTI_CORE
 	{"Effects",	MenuHandler,	s_EffectsMenu},
+#endif
 	{"Master Volume", EditMasterVolume, 0, 0},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
@@ -86,15 +88,27 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
 	{"Modulation",		MenuHandler,		s_ModulationMenu},
 	{"Channel",	EditTGParameter,	0,	CMiniDexed::TGParameterMIDIChannel},
+	{"Compressor",	MenuHandler,		s_EditCompressorMenu},
 	{"Edit Voice",	MenuHandler,		s_EditVoiceMenu},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_EditCompressorMenu[] =
+{
+	{"Enable",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorEnable},
+	{"Pre Gain",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorPreGain},
+	{"Attack",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorAttack},
+	{"Release",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorRelease},
+	{"Threshold",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorThresh},
+	{"Ratio",	EditTGParameter2,	0,	CMiniDexed::TGParameterCompressorRatio},
 	{0}
 };
 
 const CUIMenu::TMenuItem CUIMenu::s_EffectsMenu[] =
 {
-	{"Compress",	EditGlobalParameter,	0,	CMiniDexed::ParameterCompressorEnable},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"Reverb",	MenuHandler,		s_ReverbMenu},
+	{"Limiter",	MenuHandler,		s_LimiterMenu},
 #endif
 	{0}
 };
@@ -143,6 +157,18 @@ const CUIMenu::TMenuItem CUIMenu::s_ReverbMenu[] =
 	{"Low pass",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLowPass},
 	{"Diffusion",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbDiffusion},
 	{"Level",	EditGlobalParameter,	0,	CMiniDexed::ParameterReverbLevel},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_LimiterMenu[] =
+{
+	{"Enable",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterEnable},
+	{"Pre Gain",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterPreGain},
+	{"Attack",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterAttack},
+	{"Release",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterRelease},
+	{"Threshold",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterThresh},
+	{"Ratio",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterRatio},
+	{"HPFilter",	EditGlobalParameter,	0,	CMiniDexed::ParameterLimiterHPFilterEnable},
 	{0}
 };
 
@@ -218,7 +244,6 @@ const CUIMenu::TMenuItem CUIMenu::s_SaveMenu[] =
 // must match CMiniDexed::TParameter
 const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknown] =
 {
-	{0,	1,	1,	ToOnOff},		// ParameterCompessorEnable
 	{0,	1,	1,	ToOnOff},		// ParameterReverbEnable
 	{0,	99,	1},				// ParameterReverbSize
 	{0,	99,	1},				// ParameterReverbHighDamp
@@ -227,7 +252,14 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
-	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
+	{0, NUM_PERFORMANCE_BANKS, 1},			// ParameterPerformanceBank
+	{0,	1,	1,	ToOnOff},		// ParameterLimiterEnable
+	{-20,	20,	1,	TodB},			// ParameterLimiterPreGain
+	{0,	1000,	5,	ToMillisec},		// ParameterLimiterAttack
+	{0,	1000,	5,	ToMillisec},		// ParameterLimiterRelease
+	{-60,	0,	1,	TodBFS},		// ParameterLimiterThresh
+	{1,	20,	1,	ToRatio},		// ParameterLimiterRatio
+	{0,	1,	1,	ToOnOff},		// ParameterLimiterHPFilterEnable
 };
 
 // must match CMiniDexed::TTGParameter
@@ -265,7 +297,13 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias	
+	{0,	1,	1,	ToOnOff},	// TGParameterCompressorEnable
+	{-20,	20,	1,	TodB},		// TGParameterCompressorPreGain
+	{0,	1000,	5,	ToMillisec},	// TGParameterCompressorAttack
+	{0,	1000,	5,	ToMillisec},	// TGParameterCompressorRelease
+	{-60,	0,	1,	TodBFS},	// TGParameterCompressorThresh
+	{1,	20,	1,	ToRatio},	// TGParameterCompressorRatio
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1237,6 +1275,26 @@ string CUIMenu::ToPolyMono (int nValue)
 	case 1:		return "Mono";
 	default:	return to_string (nValue);
 	}
+}
+
+std::string CUIMenu::TodB (int nValue)
+{
+	return std::to_string (nValue) + " dB";
+}
+
+std::string CUIMenu::TodBFS (int nValue)
+{
+	return std::to_string (nValue) + " dBFS";
+}
+
+std::string CUIMenu::ToMillisec (int nValue)
+{
+	return std::to_string (nValue) + " ms";
+}
+
+std::string CUIMenu::ToRatio (int nValue)
+{
+	return std::to_string (nValue) + ":1";
 }
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)
