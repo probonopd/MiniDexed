@@ -158,7 +158,7 @@ AudioEffectPlateReverb::AudioEffectPlateReverb(float32_t samplerate)
 
 // #define sat16(n, rshift) signed_saturate_rshift((n), 16, (rshift))
 
-void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* rvbblockL, float32_t* rvbblockR, uint16_t len)
+void AudioEffectPlateReverb::addReverb(const float32_t* inblockL, const float32_t* inblockR, float32_t* addblockL, float32_t* addblockR, uint16_t len)
 {
     float32_t input, acc, temp1, temp2;
     uint16_t temp16;
@@ -405,7 +405,7 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = acc - master_lowpass_l;
         master_lowpass_l += temp1 * master_lowpass_f;
 
-	rvbblockL[i] = master_lowpass_l;
+	addblockL[i] += master_lowpass_l * reverb_level;
 
         // Channel R
         #ifdef TAP1_MODULATED
@@ -449,6 +449,6 @@ void AudioEffectPlateReverb::doReverb(const float32_t* inblockL, const float32_t
         temp1 = acc - master_lowpass_r;
         master_lowpass_r += temp1 * master_lowpass_f;
 
-	rvbblockR[i] = master_lowpass_r;
+	addblockR[i] += master_lowpass_r * reverb_level;
     }
 }
