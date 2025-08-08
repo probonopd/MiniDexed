@@ -764,22 +764,22 @@ const char *CConfig::GetNetworkHostname (void) const
 	return m_NetworkHostname.c_str();
 }
 
-CIPAddress CConfig::GetNetworkIPAddress (void) const
+const CIPAddress& CConfig::GetNetworkIPAddress (void) const
 {	
 	return m_INetworkIPAddress;
 }
 
-CIPAddress CConfig::GetNetworkSubnetMask (void) const
+const CIPAddress& CConfig::GetNetworkSubnetMask (void) const
 {
 	return m_INetworkSubnetMask;
 }
 
-CIPAddress CConfig::GetNetworkDefaultGateway (void) const
+const CIPAddress& CConfig::GetNetworkDefaultGateway (void) const
 {
 	return m_INetworkDefaultGateway;
 }
 
-CIPAddress CConfig::GetNetworkDNSServer (void) const
+const CIPAddress& CConfig::GetNetworkDNSServer (void) const
 {
 	return m_INetworkDNSServer;
 }
@@ -789,7 +789,7 @@ bool CConfig::GetSyslogEnabled (void) const
 	return m_bSyslogEnabled;
 }
 
-CIPAddress CConfig::GetNetworkSyslogServerIPAddress (void) const
+const CIPAddress& CConfig::GetNetworkSyslogServerIPAddress (void) const
 {
 	return m_INetworkSyslogServerIPAddress;
 }
