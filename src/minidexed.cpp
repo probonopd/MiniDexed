@@ -2319,7 +2319,7 @@ void CMiniDexed::UpdateNetwork()
 		if (m_pConfig->GetSyslogEnabled())
 		{
 			LOGNOTE ("Syslog server is enabled in configuration");
-			CIPAddress ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
+			const CIPAddress& ServerIP = m_pConfig->GetNetworkSyslogServerIPAddress();
 			if (ServerIP.IsSet () && !ServerIP.IsNull ())
 			{
 				static const u16 usServerPort = 8514;
@@ -2416,18 +2416,31 @@ bool CMiniDexed::InitNetwork()
 		
 		if (NetDeviceType != NetDeviceTypeUnknown)
 		{
-			LOGNOTE("CMiniDexed::InitNetwork: Creating CNetSubSystem");
 			if (m_pConfig->GetNetworkDHCP())
+			{
+				LOGNOTE("CMiniDexed::InitNetwork: Creating CNetSubSystem with DHCP (Hostname: %s)", m_pConfig->GetNetworkHostname());
 				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
-			else
+			}
+			else if (m_pConfig->GetNetworkIPAddress().IsSet() && m_pConfig->GetNetworkSubnetMask().IsSet())
+			{
+				CString IPString, SubnetString;
+				m_pConfig->GetNetworkIPAddress().Format (&IPString);
+				m_pConfig->GetNetworkSubnetMask().Format (&SubnetString);
+				LOGNOTE("CMiniDexed::InitNetwork: Creating CNetSubSystem with IP: %s / %s", (const char*)IPString, (const char*)SubnetString);
 				m_pNet = new CNetSubSystem(
 					m_pConfig->GetNetworkIPAddress().Get(),
 					m_pConfig->GetNetworkSubnetMask().Get(),
-					m_pConfig->GetNetworkDefaultGateway().Get(),
-					m_pConfig->GetNetworkDNSServer().Get(),
+					m_pConfig->GetNetworkDefaultGateway().IsSet() ? m_pConfig->GetNetworkDefaultGateway().Get() : 0,
+					m_pConfig->GetNetworkDNSServer().IsSet() ? m_pConfig->GetNetworkDNSServer().Get() : 0,
 					m_pConfig->GetNetworkHostname(),
-					NetDeviceType
-				);
+					NetDeviceType);
+			}
+			else
+			{
+				LOGNOTE ("CMiniDexed::InitNetwork: Neither DHCP nor IP address/subnet mask is set, using DHCP (Hostname: %s)", m_pConfig->GetNetworkHostname());
+				m_pNet = new CNetSubSystem(0, 0, 0, 0, m_pConfig->GetNetworkHostname(), NetDeviceType);
+			}
+
 			if (!m_pNet || !m_pNet->Initialize(false)) // Check if m_pNet allocation succeeded
 			{
 				LOGERR("CMiniDexed::InitNetwork: Failed to initialize network subsystem");
