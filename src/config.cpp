@@ -206,18 +206,13 @@ void CConfig::Load (void)
 	m_bNetworkDHCP  = m_Properties.GetNumber ("NetworkDHCP", 0) != 0;
 	m_NetworkType = m_Properties.GetString ("NetworkType", "wlan");
 	m_NetworkHostname = m_Properties.GetString ("NetworkHostname", "MiniDexed");
-	m_INetworkIPAddress = m_Properties.GetIPAddress("NetworkIPAddress") != 0;
-	m_INetworkSubnetMask = m_Properties.GetIPAddress("NetworkSubnetMask") != 0;
-	m_INetworkDefaultGateway = m_Properties.GetIPAddress("NetworkDefaultGateway") != 0;
+	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkIPAddress")) m_INetworkIPAddress.Set (pIP);
+	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkSubnetMask")) m_INetworkSubnetMask.Set (pIP);
+	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkDefaultGateway")) m_INetworkDefaultGateway.Set (pIP);
 	m_bSyslogEnabled  = m_Properties.GetNumber ("NetworkSyslogEnabled", 0) != 0;
-	m_INetworkDNSServer = m_Properties.GetIPAddress("NetworkDNSServer") != 0;
+	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkDNSServer")) m_INetworkDNSServer.Set (pIP);
 	m_bNetworkFTPEnabled = m_Properties.GetNumber("NetworkFTPEnabled", 0) != 0;
-
-	const u8 *pSyslogServerIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress");
-	if (pSyslogServerIP)
-	{
-		m_INetworkSyslogServerIPAddress.Set (pSyslogServerIP);
-	}
+	if (const u8 *pIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress")) m_INetworkSyslogServerIPAddress.Set (pIP);
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
 }
@@ -764,22 +759,22 @@ const char *CConfig::GetNetworkHostname (void) const
 	return m_NetworkHostname.c_str();
 }
 
-CIPAddress CConfig::GetNetworkIPAddress (void) const
+const CIPAddress& CConfig::GetNetworkIPAddress (void) const
 {	
 	return m_INetworkIPAddress;
 }
 
-CIPAddress CConfig::GetNetworkSubnetMask (void) const
+const CIPAddress& CConfig::GetNetworkSubnetMask (void) const
 {
 	return m_INetworkSubnetMask;
 }
 
-CIPAddress CConfig::GetNetworkDefaultGateway (void) const
+const CIPAddress& CConfig::GetNetworkDefaultGateway (void) const
 {
 	return m_INetworkDefaultGateway;
 }
 
-CIPAddress CConfig::GetNetworkDNSServer (void) const
+const CIPAddress& CConfig::GetNetworkDNSServer (void) const
 {
 	return m_INetworkDNSServer;
 }
@@ -789,7 +784,7 @@ bool CConfig::GetSyslogEnabled (void) const
 	return m_bSyslogEnabled;
 }
 
-CIPAddress CConfig::GetNetworkSyslogServerIPAddress (void) const
+const CIPAddress& CConfig::GetNetworkSyslogServerIPAddress (void) const
 {
 	return m_INetworkSyslogServerIPAddress;
 }

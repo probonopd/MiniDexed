@@ -247,12 +247,12 @@ public:
 	bool GetNetworkDHCP (void) const;
 	const char *GetNetworkType (void) const;
 	const char *GetNetworkHostname (void) const;
-	CIPAddress GetNetworkIPAddress (void) const;
-	CIPAddress GetNetworkSubnetMask (void) const;
-	CIPAddress GetNetworkDefaultGateway (void) const;
-	CIPAddress GetNetworkDNSServer (void) const;
+	const CIPAddress& GetNetworkIPAddress (void) const;
+	const CIPAddress& GetNetworkSubnetMask (void) const;
+	const CIPAddress& GetNetworkDefaultGateway (void) const;
+	const CIPAddress& GetNetworkDNSServer (void) const;
 	bool GetSyslogEnabled (void) const;
-	CIPAddress GetNetworkSyslogServerIPAddress (void) const;
+	const CIPAddress& GetNetworkSyslogServerIPAddress (void) const;
 	bool GetNetworkFTPEnabled (void) const;
 
 private:
