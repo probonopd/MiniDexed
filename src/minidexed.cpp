@@ -2298,7 +2298,7 @@ void CMiniDexed::UpdateNetwork()
 			LOGNOTE("FTP daemon not started (NetworkFTPEnabled=0)");
 		}
 
-		m_UI.DisplayWrite (IPString, "", "TG1", 0, 1);
+		m_UI.DisplayWrite (IPString, "", "Performance", 0, 1);
 
 		m_pmDNSPublisher = new CmDNSPublisher (m_pNet);
 		assert (m_pmDNSPublisher);

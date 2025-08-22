@@ -199,7 +199,7 @@ void CConfig::Load (void)
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
 	m_bPerformanceSelectToLoad = m_Properties.GetNumber ("PerformanceSelectToLoad", 0) != 0;
-	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 0);
+	m_bPerformanceSelectChannel = m_Properties.GetNumber ("PerformanceSelectChannel", 17);
 	
 	// Network
 	m_bNetworkEnabled  = m_Properties.GetNumber ("NetworkEnabled", 0) != 0;
