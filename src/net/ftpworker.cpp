@@ -1057,7 +1057,15 @@ bool CFTPWorker::RenameTo(const char* pArgs)
 
 bool CFTPWorker::Bye(const char* pArgs)
 {
-	SendStatus(TFTPStatus::ClosingControl, "Goodbye.");
+	if (!CheckLoggedIn())
+	{
+		SendStatus(TFTPStatus::ClosingControl, "Goodbye.");
+		delete m_pControlSocket;
+		m_pControlSocket = nullptr;
+		return true;
+	}
+
+	SendStatus(TFTPStatus::ClosingControl, "Goodbye. Rebooting");
 	delete m_pControlSocket;
 	m_pControlSocket = nullptr;
 
