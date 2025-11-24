@@ -78,7 +78,17 @@ void CMIDIKeyboard::Send (const u8 *pMessage, size_t nLength, unsigned nCable)
 	TSendQueueEntry Entry;
 	Entry.pMessage = new u8[nLength];
 	Entry.nLength = nLength;
-	Entry.nCable = nCable;
+	// If the midi message originated from udp, nCable is VIRTUALCABLE (24)
+	// This violates usb midi as its > 15 and will trigger an assert
+	// maybe make this configurable or use the 1st usb rx message nCable
+	if (nCable == 24)
+	{
+		Entry.nCable = 0;
+	}
+	else
+	{
+		Entry.nCable = nCable;
+	}
 
 	memcpy (Entry.pMessage, pMessage, nLength);
 
