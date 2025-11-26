@@ -28,7 +28,7 @@
 #include <circle/net/netsubsystem.h>
 #include <circle/net/in.h>
 
-#define VIRTUALCABLE 24
+#define VIRTUALCABLE 0
 
 LOGMODULE("udpmididevice");
 
