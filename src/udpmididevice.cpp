@@ -57,6 +57,7 @@ boolean CUDPMIDIDevice::Initialize (void)
 	}
 	else
 		LOGNOTE("RTP Listener initialized");
+
 	m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
 	if (!m_pUDPMIDIReceiver->Initialize())
 	{
@@ -72,6 +73,8 @@ boolean CUDPMIDIDevice::Initialize (void)
 	m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
 	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
 	m_UDPDestPort = 1999;
+	m_pUDPSendSocket->Connect(m_UDPDestAddress, m_UDPDestPort);
+	m_pUDPSendSocket->SetOptionBroadcast(TRUE);
 
 	return true;
 }
@@ -103,14 +106,21 @@ void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
     bool sentRTP = false;
     if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
         sentRTP = true;
-        LOGNOTE("Sent %zu bytes to RTP-MIDI host", nLength);
+//        LOGDBG("Sent %u bytes to RTP-MIDI host", nLength);
     }
     if (!sentRTP && m_pUDPSendSocket) {
         int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
         if (res < 0) {
-            LOGERR("Failed to send %zu bytes to UDP MIDI host", nLength);
+#if 0
+            LOGERR("Failed to send %u bytes to UDP MIDI host", nLength);
+#else
+CString IPAddressString;
+m_UDPDestAddress.Format(&IPAddressString);
+LOGERR("Failed %d to send %u bytes to UDP MIDI host %s:%d", res, nLength, static_cast<const char*>(IPAddressString), m_UDPDestPort);
+#endif
+
         } else {
-            LOGNOTE("Sent %zu bytes to UDP MIDI host (broadcast)", nLength);
+//            LOGDBG("Sent %u bytes to UDP MIDI host (broadcast)", nLength);
         }
     }
 }
