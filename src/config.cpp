@@ -103,6 +103,26 @@ void CConfig::Load (void)
 		}
 	}
 	
+	const char *pMIDIThru2 = m_Properties.GetString ("MIDIThru2");
+	if (pMIDIThru2)
+	{
+		std::string Arg (pMIDIThru2);
+
+		size_t nPos = Arg.find (',');
+		if (nPos != std::string::npos)
+		{
+			m_MIDIThru2In = Arg.substr (0, nPos);
+			m_MIDIThru2Out = Arg.substr (nPos+1);
+
+			if (   m_MIDIThru2In.empty ()
+			    || m_MIDIThru2Out.empty ())
+			{
+				m_MIDIThru2In.clear ();
+				m_MIDIThru2Out.clear ();
+			}
+		}
+	}
+
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
 	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
 	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 0) != 0;
@@ -327,6 +347,16 @@ const char *CConfig::GetMIDIThruIn (void) const
 const char *CConfig::GetMIDIThruOut (void) const
 {
 	return m_MIDIThruOut.c_str ();
+}
+
+const char *CConfig::GetMIDIThru2In (void) const
+{
+	return m_MIDIThru2In.c_str ();
+}
+
+const char *CConfig::GetMIDIThru2Out (void) const
+{
+	return m_MIDIThru2Out.c_str ();
 }
 
 bool CConfig::GetMIDIRXProgramChange (void) const
