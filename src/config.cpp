@@ -123,6 +123,8 @@ void CConfig::Load (void)
 		}
 	}
 
+	m_bMIDIThruBlockSpam = m_Properties.GetNumber ("MIDIThruBlockSpam", 0) != 0;
+
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
 	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
 	m_bMIDIAutoVoiceDumpOnPC = m_Properties.GetNumber ("MIDIAutoVoiceDumpOnPC", 0) != 0;
@@ -359,6 +361,11 @@ const char *CConfig::GetMIDIThru2In (void) const
 const char *CConfig::GetMIDIThru2Out (void) const
 {
 	return m_MIDIThru2Out.c_str ();
+}
+
+bool CConfig::GetMIDIThruBlockSpam (void) const
+{
+	return m_bMIDIThruBlockSpam;
 }
 
 bool CConfig::GetMIDIRXProgramChange (void) const
