@@ -80,6 +80,7 @@ boolean CUDPMIDIDevice::Initialize (void)
 		CString IPAddressString;
 		m_UDPDestAddress.Format(&IPAddressString);
 
+		// address 0.0.0.0 disables transmit
 		if (!m_UDPDestAddress.IsNull())
 		{
 			CNetSubSystem* pNet = CNetSubSystem::Get();
@@ -125,22 +126,19 @@ void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 
 void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
 {
-    bool sentRTP = false;
-    if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
-        sentRTP = true;
-//        LOGDBG("Sent %u bytes to RTP-MIDI host", nLength);
+    if (m_pAppleMIDIParticipant) {
+	int res = m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength);
+        if (res < 0) {
+            LOGERR("Failed to send %u bytes to RTP-MIDI host", nLength);
+	} else {
+//		LOGDBG("Sent %u bytes to RTP-MIDI host", nLength);
+	}
     }
-    if (!sentRTP && m_pUDPSendSocket) {
+
+    if (m_pUDPSendSocket) {
         int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
         if (res < 0) {
-#if 0
             LOGERR("Failed to send %u bytes to UDP MIDI host", nLength);
-#else
-CString IPAddressString;
-m_UDPDestAddress.Format(&IPAddressString);
-LOGERR("Failed %d to send %u bytes to UDP MIDI host %s:%d", res, nLength, static_cast<const char*>(IPAddressString), m_UDPDestPort);
-#endif
-
         } else {
 //            LOGDBG("Sent %u bytes to UDP MIDI host (broadcast)", nLength);
         }
