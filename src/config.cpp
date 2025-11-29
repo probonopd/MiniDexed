@@ -233,6 +233,8 @@ void CConfig::Load (void)
 	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkDNSServer")) m_INetworkDNSServer.Set (pIP);
 	m_bNetworkFTPEnabled = m_Properties.GetNumber("NetworkFTPEnabled", 0) != 0;
 	if (const u8 *pIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress")) m_INetworkSyslogServerIPAddress.Set (pIP);
+	m_bUdpMidiEnabled = m_Properties.GetNumber("UdpMidiEnabled", 0) != 0;
+	if (const u8 *pIP = m_Properties.GetIPAddress("UdpMidiIPAddress")) m_IUdpMidiIPAddress.Set (pIP);
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
 }
@@ -822,4 +824,14 @@ const CIPAddress& CConfig::GetNetworkSyslogServerIPAddress (void) const
 bool CConfig::GetNetworkFTPEnabled (void) const
 {
 	return m_bNetworkFTPEnabled;
+}
+
+bool CConfig::GetUdpMidiEnabled (void) const
+{
+	return m_bUdpMidiEnabled;
+}
+
+const CIPAddress& CConfig::GetUdpMidiIPAddress (void) const
+{
+	return m_IUdpMidiIPAddress;
 }

@@ -58,23 +58,45 @@ boolean CUDPMIDIDevice::Initialize (void)
 	else
 		LOGNOTE("RTP Listener initialized");
 
-	m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
-	if (!m_pUDPMIDIReceiver->Initialize())
+	if (m_pConfig->GetUdpMidiEnabled())
 	{
-		LOGERR("Failed to init UDP MIDI receiver");
-		delete m_pUDPMIDIReceiver;
-		m_pUDPMIDIReceiver = nullptr;
+		m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
+		if (!m_pUDPMIDIReceiver->Initialize())
+		{
+			LOGERR("Failed to init UDP MIDI receiver");
+			delete m_pUDPMIDIReceiver;
+			m_pUDPMIDIReceiver = nullptr;
+		}
+		else
+			LOGNOTE("UDP MIDI receiver initialized");
+
+		// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
+		m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
+		m_UDPDestPort = 1999;
+		if (m_pConfig->GetUdpMidiIPAddress().IsSet())
+		{
+			m_UDPDestAddress.Set( m_pConfig->GetUdpMidiIPAddress() );
+		}
+		CString IPAddressString;
+		m_UDPDestAddress.Format(&IPAddressString);
+
+		if (!m_UDPDestAddress.IsNull())
+		{
+			CNetSubSystem* pNet = CNetSubSystem::Get();
+			m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
+			m_pUDPSendSocket->Connect(m_UDPDestAddress, m_UDPDestPort);
+			m_pUDPSendSocket->SetOptionBroadcast(TRUE);
+
+			LOGNOTE("UDP MIDI sender initialized. target is %s",
+					(const char*)IPAddressString);
+		}
+		else
+			LOGNOTE("UDP MIDI sender disabled. target was %s",
+					(const char*)IPAddressString);
+
 	}
 	else
-		LOGNOTE("UDP MIDI receiver initialized");
-
-	// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
-	CNetSubSystem* pNet = CNetSubSystem::Get();
-	m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
-	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
-	m_UDPDestPort = 1999;
-	m_pUDPSendSocket->Connect(m_UDPDestAddress, m_UDPDestPort);
-	m_pUDPSendSocket->SetOptionBroadcast(TRUE);
+		LOGNOTE("UDP MIDI is disabled in configuration");
 
 	return true;
 }

@@ -256,6 +256,8 @@ public:
 	bool GetSyslogEnabled (void) const;
 	const CIPAddress& GetNetworkSyslogServerIPAddress (void) const;
 	bool GetNetworkFTPEnabled (void) const;
+	bool GetUdpMidiEnabled (void) const;
+	const CIPAddress& GetUdpMidiIPAddress (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -388,6 +390,8 @@ private:
 	bool m_bSyslogEnabled;
 	CIPAddress m_INetworkSyslogServerIPAddress;
 	bool m_bNetworkFTPEnabled;
+	bool m_bUdpMidiEnabled;
+	CIPAddress m_IUdpMidiIPAddress;
 };
 
 #endif
