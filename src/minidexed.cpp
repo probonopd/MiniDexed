@@ -2339,6 +2339,9 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE ("Syslog server is not enabled in configuration");
 		}
+
+		m_UI.InitUDP ();
+
 		m_bNetworkReady = true;
 	}
 
