@@ -111,11 +111,13 @@ void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 
 void CUDPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
 {
+	m_bIsAppleMIDIConnected = true;
 	LOGNOTE("RTP Device connected");
 }
 
 void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName)
 {
+	m_bIsAppleMIDIConnected = false;
 	LOGNOTE("RTP Device disconnected");
 }
 
@@ -126,7 +128,7 @@ void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 
 void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
 {
-    if (m_pAppleMIDIParticipant) {
+    if (m_pAppleMIDIParticipant && m_bIsAppleMIDIConnected) {
 	bool res = m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength);
         if (!res) {
             LOGERR("Failed to send %u bytes to RTP-MIDI host", (unsigned long) nLength);
