@@ -189,10 +189,19 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	}
 */
 
-	bool blockSpamThru = m_pConfig->GetMIDIThruBlockSpam();
 	// Handle MIDI Thru
-	bool canThru = ( (nLength > 1) || !blockSpamThru
-		|| (pMessage[0] != MIDI_TIMING_CLOCK && pMessage[0] != MIDI_ACTIVE_SENSING) );
+	bool canThru = TRUE;
+	if (nLength == 1)
+	{
+		if ((pMessage[0] == MIDI_TIMING_CLOCK) && m_pConfig->GetMIDIThruIgnoreClock())
+		{
+			canThru = FALSE;
+		}
+		if ((pMessage[0] == MIDI_ACTIVE_SENSING) && m_pConfig->GetMIDIThruIgnoreActiveSensing())
+		{
+			canThru = FALSE;
+		}
+	}
 
 	if (canThru)
 	{

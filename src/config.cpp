@@ -123,7 +123,8 @@ void CConfig::Load (void)
 		}
 	}
 
-	m_bMIDIThruBlockSpam = m_Properties.GetNumber ("MIDIThruBlockSpam", 0) != 0;
+	m_bMIDIThruIgnoreClock = m_Properties.GetNumber ("MIDIThruIgnoreClock", 0) != 0;
+	m_bMIDIThruIgnoreActiveSensing = m_Properties.GetNumber ("MIDIThruIgnoreActiveSensing", 0) != 0;
 
 	m_bMIDIRXProgramChange = m_Properties.GetNumber ("MIDIRXProgramChange", 1) != 0;
 	m_bIgnoreAllNotesOff = m_Properties.GetNumber ("IgnoreAllNotesOff", 0) != 0;
@@ -235,8 +236,8 @@ void CConfig::Load (void)
 	if (const u8 *pIP = m_Properties.GetIPAddress("NetworkDNSServer")) m_INetworkDNSServer.Set (pIP);
 	m_bNetworkFTPEnabled = m_Properties.GetNumber("NetworkFTPEnabled", 0) != 0;
 	if (const u8 *pIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress")) m_INetworkSyslogServerIPAddress.Set (pIP);
-	m_bUdpMidiEnabled = m_Properties.GetNumber("UdpMidiEnabled", 0) != 0;
-	if (const u8 *pIP = m_Properties.GetIPAddress("UdpMidiIPAddress")) m_IUdpMidiIPAddress.Set (pIP);
+	m_bUDPMIDIEnabled = m_Properties.GetNumber("UDPMIDIEnabled", 0) != 0;
+	if (const u8 *pIP = m_Properties.GetIPAddress("UDPMIDIIPAddress")) m_IUDPMIDIIPAddress.Set (pIP);
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
 }
@@ -363,9 +364,14 @@ const char *CConfig::GetMIDIThru2Out (void) const
 	return m_MIDIThru2Out.c_str ();
 }
 
-bool CConfig::GetMIDIThruBlockSpam (void) const
+bool CConfig::GetMIDIThruIgnoreClock (void) const
 {
-	return m_bMIDIThruBlockSpam;
+	return m_bMIDIThruIgnoreClock;
+}
+
+bool CConfig::GetMIDIThruIgnoreActiveSensing (void) const
+{
+	return m_bMIDIThruIgnoreActiveSensing;
 }
 
 bool CConfig::GetMIDIRXProgramChange (void) const
@@ -833,12 +839,12 @@ bool CConfig::GetNetworkFTPEnabled (void) const
 	return m_bNetworkFTPEnabled;
 }
 
-bool CConfig::GetUdpMidiEnabled (void) const
+bool CConfig::GetUDPMIDIEnabled (void) const
 {
-	return m_bUdpMidiEnabled;
+	return m_bUDPMIDIEnabled;
 }
 
-const CIPAddress& CConfig::GetUdpMidiIPAddress (void) const
+const CIPAddress& CConfig::GetUDPMIDIIPAddress (void) const
 {
-	return m_IUdpMidiIPAddress;
+	return m_IUDPMIDIIPAddress;
 }
