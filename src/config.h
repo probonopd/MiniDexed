@@ -147,11 +147,16 @@ public:
 	unsigned GetLCDI2CAddress (void) const;
 	
 	// SSD1306 LCD
-	unsigned GetSSD1306LCDI2CAddress (void) const;
-	unsigned GetSSD1306LCDWidth (void) const;
-	unsigned GetSSD1306LCDHeight (void) const;
-	bool     GetSSD1306LCDRotate (void) const;
-	bool     GetSSD1306LCDMirror (void) const;
+        unsigned GetSSD1306LCDI2CAddress (void) const;
+        unsigned GetSSD1306LCDWidth (void) const;
+        unsigned GetSSD1306LCDHeight (void) const;
+        bool     GetSSD1306LCDRotate (void) const;
+        bool     GetSSD1306LCDMirror (void) const;
+        unsigned GetSH1106LCDI2CAddress (void) const;
+        unsigned GetSH1106LCDWidth (void) const;
+        unsigned GetSH1106LCDHeight (void) const;
+        bool     GetSH1106LCDRotate (void) const;
+        bool     GetSH1106LCDMirror (void) const;
 
 	// SPI support
 	unsigned GetSPIBus (void) const;
@@ -296,11 +301,16 @@ private:
 	unsigned m_nLCDPinData7;
 	unsigned m_nLCDI2CAddress;
 	
-	unsigned m_nSSD1306LCDI2CAddress;
-	unsigned m_nSSD1306LCDWidth;
-	unsigned m_nSSD1306LCDHeight;
-	bool     m_bSSD1306LCDRotate;
-	bool     m_bSSD1306LCDMirror;
+        unsigned m_nSSD1306LCDI2CAddress;
+        unsigned m_nSSD1306LCDWidth;
+        unsigned m_nSSD1306LCDHeight;
+        bool     m_bSSD1306LCDRotate;
+        bool     m_bSSD1306LCDMirror;
+        unsigned m_nSH1106LCDI2CAddress;
+        unsigned m_nSH1106LCDWidth;
+        unsigned m_nSH1106LCDHeight;
+        bool     m_bSH1106LCDRotate;
+        bool     m_bSH1106LCDMirror;
 
 	unsigned m_nSPIBus;
 	unsigned m_nSPIMode;

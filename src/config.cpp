@@ -124,11 +124,16 @@ void CConfig::Load (void)
 	m_nLCDPinData7 = m_Properties.GetNumber ("LCDPinData7", 25);
 	m_nLCDI2CAddress = m_Properties.GetNumber ("LCDI2CAddress", 0);
 
-	m_nSSD1306LCDI2CAddress = m_Properties.GetNumber ("SSD1306LCDI2CAddress", 0);
-	m_nSSD1306LCDWidth = m_Properties.GetNumber ("SSD1306LCDWidth", 128);
-	m_nSSD1306LCDHeight = m_Properties.GetNumber ("SSD1306LCDHeight", 32);
-	m_bSSD1306LCDRotate = m_Properties.GetNumber ("SSD1306LCDRotate", 0) != 0;
-	m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
+        m_nSSD1306LCDI2CAddress = m_Properties.GetNumber ("SSD1306LCDI2CAddress", 0);
+        m_nSSD1306LCDWidth = m_Properties.GetNumber ("SSD1306LCDWidth", 128);
+        m_nSSD1306LCDHeight = m_Properties.GetNumber ("SSD1306LCDHeight", 32);
+        m_bSSD1306LCDRotate = m_Properties.GetNumber ("SSD1306LCDRotate", 0) != 0;
+        m_bSSD1306LCDMirror = m_Properties.GetNumber ("SSD1306LCDMirror", 0) != 0;
+        m_nSH1106LCDI2CAddress = m_Properties.GetNumber ("SH1106LCDI2CAddress", 0);
+        m_nSH1106LCDWidth = m_Properties.GetNumber ("SH1106LCDWidth", 128);
+        m_nSH1106LCDHeight = m_Properties.GetNumber ("SH1106LCDHeight", 64);
+        m_bSH1106LCDRotate = m_Properties.GetNumber ("SH1106LCDRotate", 0) != 0;
+        m_bSH1106LCDMirror = m_Properties.GetNumber ("SH1106LCDMirror", 0) != 0;
 
 	m_nSPIBus = m_Properties.GetNumber ("SPIBus", SPI_INACTIVE);  // Disabled by default
 	m_nSPIMode = m_Properties.GetNumber ("SPIMode", SPI_DEF_MODE);
@@ -421,7 +426,7 @@ unsigned CConfig::GetLCDI2CAddress (void) const
 
 unsigned CConfig::GetSSD1306LCDI2CAddress (void) const
 {
-	return m_nSSD1306LCDI2CAddress;
+        return m_nSSD1306LCDI2CAddress;
 }
 
 unsigned CConfig::GetSSD1306LCDWidth (void) const
@@ -441,7 +446,32 @@ bool CConfig::GetSSD1306LCDRotate (void) const
 
 bool CConfig::GetSSD1306LCDMirror (void) const
 {
-	return m_bSSD1306LCDMirror;
+        return m_bSSD1306LCDMirror;
+}
+
+unsigned CConfig::GetSH1106LCDI2CAddress (void) const
+{
+        return m_nSH1106LCDI2CAddress;
+}
+
+unsigned CConfig::GetSH1106LCDWidth (void) const
+{
+        return m_nSH1106LCDWidth;
+}
+
+unsigned CConfig::GetSH1106LCDHeight (void) const
+{
+        return m_nSH1106LCDHeight;
+}
+
+bool CConfig::GetSH1106LCDRotate (void) const
+{
+        return m_bSH1106LCDRotate;
+}
+
+bool CConfig::GetSH1106LCDMirror (void) const
+{
+        return m_bSH1106LCDMirror;
 }
 
 unsigned CConfig::GetSPIBus (void) const
