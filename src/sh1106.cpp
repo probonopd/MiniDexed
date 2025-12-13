@@ -19,49 +19,258 @@
 //
 
 #include "sh1106.h"
+#include <circle/util.h>
+#include <assert.h>
 #include <string.h>
+
+// Prefix
+#define DATA    0x40
+#define CMD     0x80
+
+namespace
+{
+        constexpr u8 ColumnOffset = 2;
+}
 
 enum TSH1106Command : u8
 {
-        SetColumnAddressLow  = 0x00,
-        SetColumnAddressHigh = 0x10,
-        SetStartLine         = 0x40,
-        SetPageAddress       = 0xB0,
+        SetColumnAddressLow        = 0x00,
+        SetColumnAddressHigh       = 0x10,
+        SetStartLine               = 0x40,
+        SetContrast                = 0x81,
+        SetChargePump              = 0x8D,
+        EntireDisplayOnResume      = 0xA4,
+        SetNormalDisplay           = 0xA6,
+        SetMultiplexRatio          = 0xA8,
+        SetDisplayOff              = 0xAE,
+        SetDisplayOn               = 0xAF,
+        SetDisplayOffset           = 0xD3,
+        SetDisplayClockDivideRatio = 0xD5,
+        SetPrechargePeriod         = 0xD9,
+        SetCOMPins                 = 0xDA,
+        SetVCOMHDeselectLevel      = 0xDB,
+        SetPageAddress             = 0xB0
 };
 
-CSH1106::CSH1106 (CI2CMaster *pI2CMaster, u8 nAddress, u8 nWidth, u8 nHeight, TLCDRotation Rotation)
-:       CSSD1306 (pI2CMaster, nAddress, nWidth, nHeight, Rotation)
+CSH1106Display::CSH1106Display (CI2CMaster *pI2CMaster,
+                                unsigned nWidth, unsigned nHeight,
+                                u8 uchI2CAddress, unsigned nClockSpeed)
+:       CDisplay (I1),
+        m_pI2CMaster (pI2CMaster),
+        m_nWidth (nWidth),
+        m_nHeight (nHeight),
+        m_uchI2CAddress (uchI2CAddress),
+        m_nClockSpeed (nClockSpeed),
+        m_nRotation (0)
 {
 }
 
-void CSH1106::WriteFrameBuffer (bool bForceFullUpdate) const
+CSH1106Display::~CSH1106Display (void)
 {
-        // Reset start line
-        WriteCommand (SetStartLine | 0x00);
+        Off ();
+}
 
-        const size_t nPages = m_nHeight / 8;
-        constexpr size_t nPageSize = 128;
-
-        // Copy framebuffer one page at a time
-        for (u8 nPage = 0; nPage < nPages; ++nPage)
+boolean CSH1106Display::Initialize (void)
+{
+        if (   (   m_nHeight != 32
+                && m_nHeight != 64)
+            || m_nWidth != 128)
         {
-                const size_t nOffset = nPage * nPageSize;
-                const bool bNeedsUpdate = bForceFullUpdate || memcmp (&m_FrameBuffers[0].FrameBuffer[nOffset], &m_FrameBuffers[1].FrameBuffer[nOffset], nPageSize) != 0;
+                return FALSE;
+        }
 
-                if (bNeedsUpdate)
+        const u8 nMultiplexRatio  = m_nHeight - 1;
+        const u8 nCOMPins         = m_nHeight == 32 ? 0x02 : 0x12;
+        const u8 nSegRemap        = m_nRotation == 180 ? 0xA0 : 0xA1;
+        const u8 nCOMScanDir      = m_nRotation == 180 ? 0xC0 : 0xC8;
+
+        const u8 InitSequence[] =
+        {
+                SetDisplayOff,
+                SetDisplayClockDivideRatio,     0x80,           // Default value
+                SetMultiplexRatio,              nMultiplexRatio,// Screen height - 1
+                SetDisplayOffset,               0x00,           // None
+                SetStartLine | 0x00,                            // Set start line
+                SetChargePump,                  0x14,           // Enable charge pump
+                nSegRemap,
+                nCOMScanDir,                                    // COM output scan direction
+                SetCOMPins,                     nCOMPins,       // Alternate COM config and disable COM left/right
+                SetContrast,                    0x7F,           // 00-FF, default to half
+                SetPrechargePeriod,             0x22,           // Default value
+                SetVCOMHDeselectLevel,          0x20,           // Default value
+                EntireDisplayOnResume,                          // Resume to RAM content display
+                SetNormalDisplay,
+                SetDisplayOn
+        };
+
+        for (u8 nCommand : InitSequence)
+        {
+                if (!WriteCommand (nCommand))
                 {
-                        WriteCommand (SetPageAddress | nPage);
-
-                        // SH1106 displays have a 132x64 pixel memory, but most modules have a visible width of 128 centred on this buffer
-                        WriteCommand (SetColumnAddressLow | 0x02);
-                        WriteCommand (SetColumnAddressHigh | 0x00);
-
-                        // Prefix this page's pixel data with a data control byte
-                        u8 Buffer[nPageSize + 1] = { 0x40 };
-                        memcpy (Buffer + 1, &m_FrameBuffers[m_nCurrentFrameBuffer].FrameBuffer[nOffset], nPageSize);
-
-                        m_pI2CMaster->Write (m_nAddress, Buffer, sizeof (Buffer));
-
+                    return FALSE;
                 }
         }
+
+        Clear ();
+
+        return TRUE;
+}
+
+void CSH1106Display::On (void)
+{
+        WriteCommand (SetDisplayOn);
+}
+
+void CSH1106Display::Off (void)
+{
+        WriteCommand (SetDisplayOff);
+}
+
+void CSH1106Display::Clear (TRawColor nColor)
+{
+        size_t ulSize = m_nWidth * m_nHeight/8;
+
+        memset (m_Framebuffer, nColor ? 0xFF : 0x00, ulSize);
+
+        WriteMemory (0, m_nWidth-1, 0, m_nHeight/8-1, m_Framebuffer, ulSize);
+}
+
+void CSH1106Display::SetPixel (unsigned nPosX, unsigned nPosY, TRawColor nColor)
+{
+        if (   nPosX >= m_nWidth
+            || nPosY >= m_nHeight)
+        {
+                return;
+        }
+
+        u8 uchPage = nPosY / 8;
+        u8 uchMask = 1 << (nPosY & 7);
+
+        u8 *pBuffer = &m_Framebuffer[uchPage][nPosX];
+
+        if (nColor)
+        {
+                *pBuffer |= uchMask;
+        }
+        else
+        {
+                *pBuffer &= ~uchMask;
+        }
+
+        WriteMemory (nPosX, nPosX, uchPage, uchPage, pBuffer, sizeof *pBuffer);
+}
+
+void CSH1106Display::SetArea (const TArea &rArea, const void *pPixels,
+                              TAreaCompletionRoutine *pRoutine, void *pParam)
+{
+        assert (rArea.x1 <= rArea.x2);
+        assert (rArea.y1 <= rArea.y2);
+        unsigned nWidth = rArea.x2 - rArea.x1 + 1;
+        unsigned nBytesWidth = (nWidth + 7) / 8;
+
+        // First transfer the pixel data into the framebuffer
+        assert (pPixels);
+        const u8 *pFrom = (const u8 *) pPixels;
+        for (unsigned y = rArea.y1; y <= rArea.y2; y++)
+        {
+                unsigned y0 = y - rArea.y1;
+
+                for (unsigned x = rArea.x1; x <= rArea.x2; x++)
+                {
+                        unsigned x0 = x - rArea.x1;
+
+                        if (pFrom[x0/8 + y0 * nBytesWidth] & (0x80 >> (x0 & 7)))
+                        {
+                                m_Framebuffer[y/8][x] |= 1 << (y & 7);
+                        }
+                        else
+                        {
+                                m_Framebuffer[y/8][x] &= ~(1 << (y & 7));
+                        }
+                }
+        }
+
+        // Now transfer the updated area to the display
+        unsigned y1floor = rArea.y1 / 8 * 8;
+        unsigned y2ceil = (rArea.y2 + 7) / 8 * 8 - 1;
+        unsigned nHeight = y2ceil - y1floor + 1;
+
+        u8 Buffer[nWidth * nHeight/8];
+        for (unsigned y = y1floor; y <= y2ceil; y += 8)
+        {
+                unsigned y0 = y - y1floor;
+
+                for (unsigned x = rArea.x1; x <= rArea.x2; x++)
+                {
+                        unsigned x0 = x - rArea.x1;
+
+                        Buffer[x0 + y0/8 * nWidth] = m_Framebuffer[y/8][x];
+                }
+        }
+
+        WriteMemory (rArea.x1, rArea.x2, rArea.y1/8, rArea.y2/8, Buffer, sizeof Buffer);
+
+        if (pRoutine)
+        {
+                (*pRoutine) (pParam);
+        }
+}
+
+boolean CSH1106Display::WriteCommand (u8 uchCommand)
+{
+        assert (m_pI2CMaster);
+
+        if (m_nClockSpeed)
+        {
+                m_pI2CMaster->SetClock (m_nClockSpeed);
+        }
+
+        u8 Cmd[] = {CMD, uchCommand};
+        return m_pI2CMaster->Write (m_uchI2CAddress, Cmd, sizeof Cmd) == (int) sizeof Cmd;
+}
+
+boolean CSH1106Display::WriteMemory (unsigned nColumnStart, unsigned nColumnEnd,
+                                     unsigned nPageStart, unsigned nPageEnd,
+                                     const void *pData, size_t ulDataSize)
+{
+        assert (m_pI2CMaster);
+        assert (pData);
+        assert (nColumnStart <= nColumnEnd);
+        assert (nPageStart <= nPageEnd);
+
+        const unsigned nColumns = nColumnEnd - nColumnStart + 1;
+        const unsigned nPages = nPageEnd - nPageStart + 1;
+        assert (ulDataSize == nColumns * nPages);
+
+        if (m_nClockSpeed)
+        {
+                m_pI2CMaster->SetClock (m_nClockSpeed);
+        }
+
+        const u8 *pBytes = static_cast<const u8 *> (pData);
+
+        for (unsigned nPage = 0; nPage < nPages; ++nPage)
+        {
+                u8 uchPage = nPageStart + nPage;
+                u8 uchColumnStart = nColumnStart + ColumnOffset;
+
+                u8 Cmds[] = {CMD, (u8) (SetPageAddress | uchPage),
+                             CMD, (u8) (SetColumnAddressLow | (uchColumnStart & 0x0F)),
+                             CMD, (u8) (SetColumnAddressHigh | ((uchColumnStart >> 4) & 0x0F))};
+                if (m_pI2CMaster->Write (m_uchI2CAddress, Cmds, sizeof Cmds) != (int) sizeof Cmds)
+                {
+                        return FALSE;
+                }
+
+                u8 Buffer[nColumns + 1];
+                Buffer[0] = DATA;
+                memcpy (Buffer + 1, pBytes + nPage * nColumns, nColumns);
+
+                if (m_pI2CMaster->Write (m_uchI2CAddress, Buffer, sizeof Buffer) != (int) sizeof Buffer)
+                {
+                        return FALSE;
+                }
+        }
+
+        return TRUE;
 }
