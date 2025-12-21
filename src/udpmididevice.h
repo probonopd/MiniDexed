@@ -51,6 +51,7 @@ private:
 	CConfig *m_pConfig;
 	CBcmRandomNumberGenerator m_Random;
 	CAppleMIDIParticipant* m_pAppleMIDIParticipant; // AppleMIDI participant instance
+	bool m_bIsAppleMIDIConnected = false;
 	CUDPMIDIReceiver* m_pUDPMIDIReceiver;
 	CSocket* m_pUDPSendSocket = nullptr;
 	CIPAddress m_UDPDestAddress;

@@ -57,21 +57,47 @@ boolean CUDPMIDIDevice::Initialize (void)
 	}
 	else
 		LOGNOTE("RTP Listener initialized");
-	m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
-	if (!m_pUDPMIDIReceiver->Initialize())
+
+	if (m_pConfig->GetUDPMIDIEnabled())
 	{
-		LOGERR("Failed to init UDP MIDI receiver");
-		delete m_pUDPMIDIReceiver;
-		m_pUDPMIDIReceiver = nullptr;
+		m_pUDPMIDIReceiver = new CUDPMIDIReceiver(this);
+		if (!m_pUDPMIDIReceiver->Initialize())
+		{
+			LOGERR("Failed to init UDP MIDI receiver");
+			delete m_pUDPMIDIReceiver;
+			m_pUDPMIDIReceiver = nullptr;
+		}
+		else
+			LOGNOTE("UDP MIDI receiver initialized");
+
+		// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
+		m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
+		m_UDPDestPort = 1999;
+		if (m_pConfig->GetUDPMIDIIPAddress().IsSet())
+		{
+			m_UDPDestAddress.Set( m_pConfig->GetUDPMIDIIPAddress() );
+		}
+		CString IPAddressString;
+		m_UDPDestAddress.Format(&IPAddressString);
+
+		// address 0.0.0.0 disables transmit
+		if (!m_UDPDestAddress.IsNull())
+		{
+			CNetSubSystem* pNet = CNetSubSystem::Get();
+			m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
+			m_pUDPSendSocket->Connect(m_UDPDestAddress, m_UDPDestPort);
+			m_pUDPSendSocket->SetOptionBroadcast(TRUE);
+
+			LOGNOTE("UDP MIDI sender initialized. target is %s",
+					(const char*)IPAddressString);
+		}
+		else
+			LOGNOTE("UDP MIDI sender disabled. target was %s",
+					(const char*)IPAddressString);
+
 	}
 	else
-		LOGNOTE("UDP MIDI receiver initialized");
-
-	// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
-	CNetSubSystem* pNet = CNetSubSystem::Get();
-	m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
-	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
-	m_UDPDestPort = 1999;
+		LOGNOTE("UDP MIDI is disabled in configuration");
 
 	return true;
 }
@@ -85,11 +111,13 @@ void CUDPMIDIDevice::OnAppleMIDIDataReceived(const u8* pData, size_t nSize)
 
 void CUDPMIDIDevice::OnAppleMIDIConnect(const CIPAddress* pIPAddress, const char* pName)
 {
+	m_bIsAppleMIDIConnected = true;
 	LOGNOTE("RTP Device connected");
 }
 
 void CUDPMIDIDevice::OnAppleMIDIDisconnect(const CIPAddress* pIPAddress, const char* pName)
 {
+	m_bIsAppleMIDIConnected = false;
 	LOGNOTE("RTP Device disconnected");
 }
 
@@ -100,17 +128,21 @@ void CUDPMIDIDevice::OnUDPMIDIDataReceived(const u8* pData, size_t nSize)
 
 void CUDPMIDIDevice::Send(const u8 *pMessage, size_t nLength, unsigned nCable)
 {
-    bool sentRTP = false;
-    if (m_pAppleMIDIParticipant && m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength)) {
-        sentRTP = true;
-        LOGNOTE("Sent %zu bytes to RTP-MIDI host", nLength);
+    if (m_pAppleMIDIParticipant && m_bIsAppleMIDIConnected) {
+	bool res = m_pAppleMIDIParticipant->SendMIDIToHost(pMessage, nLength);
+        if (!res) {
+            LOGERR("Failed to send %u bytes to RTP-MIDI host", (unsigned long) nLength);
+	} else {
+//		LOGDBG("Sent %u bytes to RTP-MIDI host", (unsigned long) nLength);
+	}
     }
-    if (!sentRTP && m_pUDPSendSocket) {
+
+    if (m_pUDPSendSocket) {
         int res = m_pUDPSendSocket->SendTo(pMessage, nLength, 0, m_UDPDestAddress, m_UDPDestPort);
         if (res < 0) {
-            LOGERR("Failed to send %zu bytes to UDP MIDI host", nLength);
+            LOGERR("Failed to send %u bytes to UDP MIDI host", (unsigned long) nLength);
         } else {
-            LOGNOTE("Sent %zu bytes to UDP MIDI host (broadcast)", nLength);
+//            LOGDBG("Sent %u bytes to UDP MIDI host", (unsigned long) nLength);
         }
     }
 }

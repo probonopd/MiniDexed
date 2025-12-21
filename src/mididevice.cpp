@@ -190,14 +190,42 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 */
 
 	// Handle MIDI Thru
-	if (m_DeviceName.compare (m_pConfig->GetMIDIThruIn ()) == 0)
+	bool canThru = TRUE;
+	if (nLength == 1)
 	{
-		TDeviceMap::const_iterator Iterator;
-
-		Iterator = s_DeviceMap.find (m_pConfig->GetMIDIThruOut ());
-		if (Iterator != s_DeviceMap.end ())
+		if ((pMessage[0] == MIDI_TIMING_CLOCK) && m_pConfig->GetMIDIThruIgnoreClock())
 		{
-			Iterator->second->Send (pMessage, nLength, nCable);
+			canThru = FALSE;
+		}
+		if ((pMessage[0] == MIDI_ACTIVE_SENSING) && m_pConfig->GetMIDIThruIgnoreActiveSensing())
+		{
+			canThru = FALSE;
+		}
+	}
+
+	if (canThru)
+	{
+		if (m_DeviceName.compare (m_pConfig->GetMIDIThruIn ()) == 0)
+		{
+			TDeviceMap::const_iterator Iterator;
+
+			Iterator = s_DeviceMap.find (m_pConfig->GetMIDIThruOut ());
+			if (Iterator != s_DeviceMap.end ())
+			{
+				Iterator->second->Send (pMessage, nLength, nCable);
+			}
+		}
+
+		// Handle MIDI Thru 2
+		if (m_DeviceName.compare (m_pConfig->GetMIDIThru2In ()) == 0)
+		{
+			TDeviceMap::const_iterator Iterator;
+
+			Iterator = s_DeviceMap.find (m_pConfig->GetMIDIThru2Out ());
+			if (Iterator != s_DeviceMap.end ())
+			{
+				Iterator->second->Send (pMessage, nLength, nCable);
+			}
 		}
 	}
 

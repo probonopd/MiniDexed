@@ -124,6 +124,10 @@ public:
 	unsigned GetMIDIBaudRate (void) const;
 	const char *GetMIDIThruIn (void) const;	// "" if not specified
 	const char *GetMIDIThruOut (void) const;	// "" if not specified
+	const char *GetMIDIThru2In (void) const;	// "" if not specified
+	const char *GetMIDIThru2Out (void) const;	// "" if not specified
+	bool GetMIDIThruIgnoreClock (void) const;		// false if not specified
+	bool GetMIDIThruIgnoreActiveSensing (void) const;		// false if not specified
 	bool GetMIDIRXProgramChange (void) const;	// true if not specified
 	bool GetIgnoreAllNotesOff (void) const;
 	bool GetMIDIAutoVoiceDumpOnPC (void) const; // false if not specified
@@ -254,6 +258,8 @@ public:
 	bool GetSyslogEnabled (void) const;
 	const CIPAddress& GetNetworkSyslogServerIPAddress (void) const;
 	bool GetNetworkFTPEnabled (void) const;
+	bool GetUDPMIDIEnabled (void) const;
+	const CIPAddress& GetUDPMIDIIPAddress (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -276,6 +282,10 @@ private:
 	unsigned m_nMIDIBaudRate;
 	std::string m_MIDIThruIn;
 	std::string m_MIDIThruOut;
+	std::string m_MIDIThru2In;
+	std::string m_MIDIThru2Out;
+	bool m_bMIDIThruIgnoreClock;
+	bool m_bMIDIThruIgnoreActiveSensing;
 	bool m_bMIDIRXProgramChange;
 	bool m_bIgnoreAllNotesOff;
 	bool m_bMIDIAutoVoiceDumpOnPC;
@@ -384,6 +394,8 @@ private:
 	bool m_bSyslogEnabled;
 	CIPAddress m_INetworkSyslogServerIPAddress;
 	bool m_bNetworkFTPEnabled;
+	bool m_bUDPMIDIEnabled;
+	CIPAddress m_IUDPMIDIIPAddress;
 };
 
 #endif
