@@ -260,6 +260,8 @@ public:
 	bool GetNetworkFTPEnabled (void) const;
 	bool GetUDPMIDIEnabled (void) const;
 	const CIPAddress& GetUDPMIDIIPAddress (void) const;
+	bool GetUDPDisplayEnabled (void) const;
+	const CIPAddress& GetUDPDisplayIPAddress (void) const;
 
 private:
 	CPropertiesFatFsFile m_Properties;
@@ -396,6 +398,8 @@ private:
 	bool m_bNetworkFTPEnabled;
 	bool m_bUDPMIDIEnabled;
 	CIPAddress m_IUDPMIDIIPAddress;
+	bool m_bUDPDisplayEnabled;
+	CIPAddress m_IUDPDisplayIPAddress;
 };
 
 #endif

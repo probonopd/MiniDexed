@@ -238,6 +238,8 @@ void CConfig::Load (void)
 	if (const u8 *pIP = m_Properties.GetIPAddress ("NetworkSyslogServerIPAddress")) m_INetworkSyslogServerIPAddress.Set (pIP);
 	m_bUDPMIDIEnabled = m_Properties.GetNumber("UDPMIDIEnabled", 0) != 0;
 	if (const u8 *pIP = m_Properties.GetIPAddress("UDPMIDIIPAddress")) m_IUDPMIDIIPAddress.Set (pIP);
+	m_bUDPDisplayEnabled = m_Properties.GetNumber("UDPDisplayEnabled", 0) != 0;
+	if (const u8 *pIP = m_Properties.GetIPAddress("UDPDisplayIPAddress")) m_IUDPDisplayIPAddress.Set (pIP);
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
 }
@@ -847,4 +849,14 @@ bool CConfig::GetUDPMIDIEnabled (void) const
 const CIPAddress& CConfig::GetUDPMIDIIPAddress (void) const
 {
 	return m_IUDPMIDIIPAddress;
+}
+
+bool CConfig::GetUDPDisplayEnabled (void) const
+{
+	return m_bUDPDisplayEnabled;
+}
+
+const CIPAddress& CConfig::GetUDPDisplayIPAddress (void) const
+{
+	return m_IUDPDisplayIPAddress;
 }

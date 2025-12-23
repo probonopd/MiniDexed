@@ -54,19 +54,23 @@ CUserInterface::~CUserInterface (void)
 
 bool CUserInterface::InitUDP (void)
 {
-	// UDP MIDI send socket setup (default: broadcast 255.255.255.255:1999)
-	//m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
-	m_UDPDestAddress.Set(0x2c00000a); // 
-	m_UDPDestPort = 1306;
-#if 0
-	if (m_pConfig->GetUdpMidiIPAddress().IsSet())
+
+	if (!m_pConfig->GetUDPDisplayEnabled())
 	{
-		m_UDPDestAddress.Set( m_pConfig->GetUdpMidiIPAddress() );
+		LOGNOTE("UDP display disabled");
+		return TRUE;
 	}
-#endif
+
+	// UDP Display send socket setup (default: broadcast 255.255.255.255:1306)
+	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
+	m_UDPDestPort = 1306;
+	if (m_pConfig->GetUDPDisplayIPAddress().IsSet())
+	{
+		m_UDPDestAddress.Set( m_pConfig->GetUDPDisplayIPAddress() );
+	}
 	CString IPAddressString;
 	m_UDPDestAddress.Format(&IPAddressString);
-	// address 0.0.0.0 disables transmit
+	// address 0.0.0.0 also disables udp display
 	if (!m_UDPDestAddress.IsNull())
 	{
 		CNetSubSystem* pNet = CNetSubSystem::Get();
@@ -75,6 +79,9 @@ bool CUserInterface::InitUDP (void)
 		m_pUDPSendSocket->SetOptionBroadcast(TRUE);
 		LOGNOTE("UDP display initialized. target is %s",
 			(const char*)IPAddressString);
+		UDPWrite ("\x1B[H\x1B[J");		// cursor home and clear screen
+		UDPWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
+		UDPWrite ("MiniDexed\nLoading...");
 	}
 	else
 		LOGNOTE("UDP display disabled. target was %s",
@@ -263,7 +270,6 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	assert (pValue);
 
 	CString Msg  ("\x1B[H\E[?25l");		// cursor home and off
-	CString Msg2;
 
 	// first line
 	Msg.Append (pParam);
@@ -278,10 +284,9 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	}
 
 	Msg.Append (pMenu);
-	Msg2.Append (Msg);
-	Msg2.Append ("\n");
 
 	// second line
+	Msg.Append ("\x1B[2;1H");		// cursor to row 2 column 1
 	CString Value (" ");
 	if (bArrowDown)
 	{
@@ -304,16 +309,14 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	}
 
 	Msg.Append (Value);
-	Msg2.Append (Value);
 
 	if (Value.GetLength () < m_pConfig->GetLCDColumns ())
 	{
 		Msg.Append ("\x1B[K");		// clear end of line
-		Msg2.Append ("\x1B[K");		// clear end of line
 	}
 
 	LCDWrite (Msg);
-	UDPWrite (Msg2);
+	UDPWrite (Msg);
 }
 
 void CUserInterface::LCDWrite (const char *pString)
