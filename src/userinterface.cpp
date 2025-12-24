@@ -50,6 +50,7 @@ CUserInterface::~CUserInterface (void)
 	delete m_pUIButtons;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
+	if (m_pUDPSendSocket) delete m_pUDPSendSocket;
 }
 
 bool CUserInterface::InitUDP (void)
@@ -329,12 +330,13 @@ void CUserInterface::LCDWrite (const char *pString)
 
 void CUserInterface::UDPWrite (const char *pString)
 {
+	size_t len = strlen(pString);
 	if (m_pUDPSendSocket) {
-		int res = m_pUDPSendSocket->SendTo(pString, strlen(pString), 0, m_UDPDestAddress, m_UDPDestPort);
+		int res = m_pUDPSendSocket->SendTo(pString, len, 0, m_UDPDestAddress, m_UDPDestPort);
 		if (res < 0) {
-			LOGERR("Failed to send %u bytes to UDP display", strlen(pString));
+			LOGERR("Failed to send %u bytes to UDP display", (unsigned long) len);
 		} else {
-//            		LOGDBG("Sent %u bytes to UDP display", strlen(pString));
+//            		LOGDBG("Sent %u bytes to UDP display", (unsigned long) len);
 		}
 	}
 }
