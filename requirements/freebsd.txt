@@ -1,0 +1,3 @@
+# Build/runtime dependencies for the Display preference pane (gershwin-components)
+libXrandr
+xrandr
