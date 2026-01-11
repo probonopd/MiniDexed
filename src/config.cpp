@@ -220,16 +220,16 @@ void CConfig::Load (void)
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
 	
 	// Parse encoder resolution
-	const char *pResolution = m_Properties.GetString ("EncoderResolution", "full");
-	if (strcasecmp (pResolution, "full") == 0)
+	std::string EncoderResolution = m_Properties.GetString ("EncoderResolution", "full");
+	if (EncoderResolution == "full")
 	{
 		m_nEncoderDetents = 4;
 	}
-	else if (strcasecmp (pResolution, "half") == 0)
+	else if (EncoderResolution == "half")
 	{
 		m_nEncoderDetents = 2;
 	}
-	else if (strcasecmp (pResolution, "quarter") == 0)
+	else if (EncoderResolution == "quarter")
 	{
 		m_nEncoderDetents = 1;
 	}
