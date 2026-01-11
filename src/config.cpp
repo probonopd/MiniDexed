@@ -218,7 +218,26 @@ void CConfig::Load (void)
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
 	m_nEncoderPinData = m_Properties.GetNumber ("EncoderPinData", 9);
-	m_nEncoderDetents = m_Properties.GetNumber ("EncoderDetents", 4);
+	
+	// Parse encoder resolution
+	const char *pResolution = m_Properties.GetString ("EncoderResolution", "full");
+	if (strcasecmp (pResolution, "full") == 0)
+	{
+		m_nEncoderDetents = 4;
+	}
+	else if (strcasecmp (pResolution, "half") == 0)
+	{
+		m_nEncoderDetents = 2;
+	}
+	else if (strcasecmp (pResolution, "quarter") == 0)
+	{
+		m_nEncoderDetents = 1;
+	}
+	else
+	{
+		// Invalid value, use default
+		m_nEncoderDetents = 4;
+	}
 
 	m_bMIDIDumpEnabled  = m_Properties.GetNumber ("MIDIDumpEnabled", 0) != 0;
 	m_bProfileEnabled = m_Properties.GetNumber ("ProfileEnabled", 0) != 0;
