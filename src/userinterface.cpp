@@ -181,7 +181,8 @@ bool CUserInterface::Initialize (void)
 		m_pRotaryEncoder = new CKY040 (m_pConfig->GetEncoderPinClock (),
 					       m_pConfig->GetEncoderPinData (),
 					       m_pConfig->GetButtonPinShortcut (),
-					       m_pGPIOManager);
+					       m_pGPIOManager,
+					       m_pConfig->GetEncoderDetents ());
 		assert (m_pRotaryEncoder);
 
 		if (!m_pRotaryEncoder->Initialize ())
