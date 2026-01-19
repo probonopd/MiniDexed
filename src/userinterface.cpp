@@ -24,6 +24,8 @@
 #include <circle/startup.h>
 #include <string.h>
 #include <assert.h>
+#include <circle/net/netsubsystem.h>
+#include <circle/net/in.h>
 
 LOGMODULE ("ui");
 
@@ -48,6 +50,44 @@ CUserInterface::~CUserInterface (void)
 	delete m_pUIButtons;
 	delete m_pLCDBuffered;
 	delete m_pLCD;
+}
+
+bool CUserInterface::InitUDP (void)
+{
+
+	if (!m_pConfig->GetUDPDisplayEnabled())
+	{
+		LOGNOTE("UDP display disabled");
+		return TRUE;
+	}
+
+	// UDP Display send socket setup (default: broadcast 255.255.255.255:1306)
+	m_UDPDestAddress.Set(0xFFFFFFFF); // Broadcast by default
+	m_UDPDestPort = 1306;
+	if (m_pConfig->GetUDPDisplayIPAddress().IsSet())
+	{
+		m_UDPDestAddress.Set( m_pConfig->GetUDPDisplayIPAddress() );
+	}
+	CString IPAddressString;
+	m_UDPDestAddress.Format(&IPAddressString);
+	// address 0.0.0.0 also disables udp display
+	if (!m_UDPDestAddress.IsNull())
+	{
+		CNetSubSystem* pNet = CNetSubSystem::Get();
+		m_pUDPSendSocket = new CSocket(pNet, IPPROTO_UDP);
+		m_pUDPSendSocket->Connect(m_UDPDestAddress, m_UDPDestPort);
+		m_pUDPSendSocket->SetOptionBroadcast(TRUE);
+		LOGNOTE("UDP display initialized. target is %s",
+			(const char*)IPAddressString);
+		UDPWrite ("\x1B[H\x1B[J");		// cursor home and clear screen
+		UDPWrite ("\x1B[?25l\x1B""d+");		// cursor off, autopage mode
+		UDPWrite ("MiniDexed\nLoading...");
+	}
+	else
+		LOGNOTE("UDP display disabled. target was %s",
+			(const char*)IPAddressString);
+
+	return TRUE;
 }
 
 bool CUserInterface::Initialize (void)
@@ -152,6 +192,7 @@ bool CUserInterface::Initialize (void)
 		}
 		assert (m_pLCD);
 
+
 		m_pLCDBuffered = new CWriteBufferDevice (m_pLCD);
 		assert (m_pLCDBuffered);
 		// clear sceen and go to top left corner
@@ -229,7 +270,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	assert (pParam);
 	assert (pValue);
 
-	CString Msg ("\x1B[H\E[?25l");		// cursor home and off
+	CString Msg  ("\x1B[H\E[?25l");		// cursor home and off
 
 	// first line
 	Msg.Append (pParam);
@@ -246,6 +287,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	Msg.Append (pMenu);
 
 	// second line
+	Msg.Append ("\x1B[2;1H");		// cursor to row 2 column 1
 	CString Value (" ");
 	if (bArrowDown)
 	{
@@ -275,6 +317,7 @@ void CUserInterface::DisplayWrite (const char *pMenu, const char *pParam, const 
 	}
 
 	LCDWrite (Msg);
+	UDPWrite (Msg);
 }
 
 void CUserInterface::LCDWrite (const char *pString)
@@ -282,6 +325,18 @@ void CUserInterface::LCDWrite (const char *pString)
 	if (m_pLCDBuffered)
 	{
 		m_pLCDBuffered->Write (pString, strlen (pString));
+	}
+}
+
+void CUserInterface::UDPWrite (const char *pString)
+{
+	if (m_pUDPSendSocket) {
+		int res = m_pUDPSendSocket->SendTo(pString, strlen(pString), 0, m_UDPDestAddress, m_UDPDestPort);
+		if (res < 0) {
+			LOGERR("Failed to send %u bytes to UDP display", strlen(pString));
+		} else {
+//            		LOGDBG("Sent %u bytes to UDP display", strlen(pString));
+		}
 	}
 }
 
