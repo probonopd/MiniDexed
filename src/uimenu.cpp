@@ -43,7 +43,8 @@ const CUIMenu::TMenuItem CUIMenu::s_MenuRoot[] =
 // inserting menu items before "TG1" affect TGShortcutHandler()
 const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 {
-	{"TG1",		MenuHandler,	s_TGMenu, 0},
+		{"Performance",	MenuHandler, s_PerformanceMenu},
+		{"TG1",		MenuHandler,	s_TGMenu, 0},
 #ifdef ARM_ALLOW_MULTI_CORE
 	{"TG2",		MenuHandler,	s_TGMenu, 1},
 	{"TG3",		MenuHandler,	s_TGMenu, 2},
@@ -65,7 +66,6 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{"Master Volume", EditMasterVolume, 0, 0},
-	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
 
@@ -1241,11 +1241,12 @@ string CUIMenu::ToPolyMono (int nValue)
 
 void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 {
+	int nMenuItemsBeforeTG1 = 1; // Adjust for TG1 being the second menu item
 	assert (m_nCurrentMenuDepth >= 2);
 	assert (m_MenuStackMenu[0] = s_MainMenu);
-	unsigned nTG = m_nMenuStackSelection[0];
+	unsigned nTG = m_nMenuStackSelection[0] - nMenuItemsBeforeTG1;
 	assert (nTG < CConfig::AllToneGenerators);
-	assert (m_nMenuStackItem[1] == nTG);
+	assert (m_nMenuStackItem[1] == nTG + nMenuItemsBeforeTG1);
 	assert (m_nMenuStackParameter[1] == nTG);
 
 	assert (   Event == MenuEventPressAndStepDown
@@ -1261,10 +1262,9 @@ void CUIMenu::TGShortcutHandler (TMenuEvent Event)
 
 	if (nTG < m_nToneGenerators)
 	{
-		m_nMenuStackSelection[0] = nTG;
-		m_nMenuStackItem[1] = nTG;
+		m_nMenuStackSelection[0] = nTG + nMenuItemsBeforeTG1;
+		m_nMenuStackItem[1] = nTG + nMenuItemsBeforeTG1;
 		m_nMenuStackParameter[1] = nTG;
-
 		EventHandler (MenuEventUpdate);
 	}
 }
