@@ -311,10 +311,18 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					{
 						m_pSynthesizer->BankSelectLSBPerformance (pMessage[2]);
 					}
+					else if (pMessage[1] == MIDI_CC_VOLUME && nLength == 3) // CC 07 on PCCH: Master Volume
+					{
+							float fMasterVolume = (float)pMessage[2] / 127.0f;
+							m_pSynthesizer->setMasterVolume(fMasterVolume);
+							LOGNOTE("MIDI CC07 (Volume) on PCCH: Set Master Volume to %d (%.3f)", pMessage[2], fMasterVolume);
+							return; // Do not process further for TGs
+					}
 					else
 					{
 						// Ignore any other CC messages at this time
 						LOGNOTE("Ignoring CC %d (%d) on Performance Select Channel %d\n", pMessage[1], pMessage[2], nPerfCh);
+						break; // Already handled PCCH message
 					}
 				}
 			}
