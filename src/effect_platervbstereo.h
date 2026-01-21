@@ -113,6 +113,7 @@ private:
     bool bypass = false;
     float32_t reverb_level;
     float32_t input_attn;
+    float32_t m_samplerate; // store the sample rate
 
     float32_t in_allp_k;            // input allpass coeff 
     float32_t in_allp1_bufL[224];   // input allpass buffers
