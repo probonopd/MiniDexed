@@ -298,6 +298,8 @@ boolean CUIButtons::Initialize (void)
 	m_TGUpAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGUp ());
 	m_TGDownPin = m_pConfig->GetButtonPinTGDown ();
 	m_TGDownAction = CUIButton::triggerTypeFromString( m_pConfig->GetButtonActionTGDown ());
+	m_masterVolumeUpPin = m_pConfig->GetButtonPinMasterVolumeUp ();
+	m_masterVolumeDownPin = m_pConfig->GetButtonPinMasterVolumeDown ();
 	m_notesMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNotes ());
 	m_prevMidi = ccToMidiPin( m_pConfig->GetMIDIButtonPrev ());
 	m_nextMidi = ccToMidiPin( m_pConfig->GetMIDIButtonNext ());
@@ -331,13 +333,13 @@ boolean CUIButtons::Initialize (void)
 	// longpress. We may not initialise all of the buttons.
 	// MIDI buttons only support a single click.
 	unsigned pins[MAX_BUTTONS] = {
-		m_prevPin, m_nextPin, m_backPin, m_selectPin, m_homePin, m_pgmUpPin,  m_pgmDownPin,  m_BankUpPin,  m_BankDownPin, m_TGUpPin,  m_TGDownPin, 
+		m_prevPin, m_nextPin, m_backPin, m_selectPin, m_homePin, m_pgmUpPin,  m_pgmDownPin,  m_BankUpPin,  m_BankDownPin, m_TGUpPin,  m_TGDownPin, m_masterVolumeUpPin, m_masterVolumeDownPin,
 		m_prevMidi, m_nextMidi, m_backMidi, m_selectMidi, m_homeMidi, m_pgmUpMidi, m_pgmDownMidi, m_BankUpMidi, m_BankDownMidi, m_TGUpMidi, m_TGDownMidi
 	};
 	CUIButton::BtnTrigger triggers[MAX_BUTTONS] = {
 		// Normal buttons
 		m_prevAction, m_nextAction, m_backAction, m_selectAction, m_homeAction,
-		m_pgmUpAction, m_pgmDownAction, m_BankUpAction, m_BankDownAction, m_TGUpAction, m_TGDownAction, 
+		m_pgmUpAction, m_pgmDownAction, m_BankUpAction, m_BankDownAction, m_TGUpAction, m_TGDownAction, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick,
 		// MIDI Buttons only support a single click (at present)
 		CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick,
 		CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick, CUIButton::BtnTriggerClick
@@ -355,6 +357,8 @@ boolean CUIButtons::Initialize (void)
 		CUIButton::BtnEventBankDown,
 		CUIButton::BtnEventTGUp,
 		CUIButton::BtnEventTGDown,
+		CUIButton::BtnEventMasterVolumeUp,
+		CUIButton::BtnEventMasterVolumeDown,
 		// MIDI buttons
 		CUIButton::BtnEventPrev,
 		CUIButton::BtnEventNext,

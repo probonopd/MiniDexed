@@ -192,6 +192,8 @@ void CConfig::Load (void)
 	m_nButtonPinBankDown = m_Properties.GetNumber ("ButtonPinBankDown", 0);
 	m_nButtonPinTGUp = m_Properties.GetNumber ("ButtonPinTGUp", 0);
 	m_nButtonPinTGDown = m_Properties.GetNumber ("ButtonPinTGDown", 0);
+	m_nButtonPinMasterVolumeUp = m_Properties.GetNumber ("ButtonPinMasterVolumeUp", 0);
+	m_nButtonPinMasterVolumeDown = m_Properties.GetNumber ("ButtonPinMasterVolumeDown", 0);
 
 	m_ButtonActionPgmUp = m_Properties.GetString ("ButtonActionPgmUp", "");
 	m_ButtonActionPgmDown = m_Properties.GetString ("ButtonActionPgmDown", "");
@@ -671,6 +673,16 @@ unsigned CConfig::GetButtonPinTGUp (void) const
 unsigned CConfig::GetButtonPinTGDown (void) const
 {
 	return m_nButtonPinTGDown;
+}
+
+unsigned CConfig::GetButtonPinMasterVolumeUp (void) const
+{
+	return m_nButtonPinMasterVolumeUp;
+}
+
+unsigned CConfig::GetButtonPinMasterVolumeDown (void) const
+{
+	return m_nButtonPinMasterVolumeDown;
 }
 
 const char *CConfig::GetButtonActionPgmUp (void) const

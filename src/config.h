@@ -204,6 +204,8 @@ public:
 	unsigned GetButtonPinBankDown (void) const;
 	unsigned GetButtonPinTGUp (void) const;
 	unsigned GetButtonPinTGDown (void) const;
+	unsigned GetButtonPinMasterVolumeUp (void) const;
+	unsigned GetButtonPinMasterVolumeDown (void) const;
 
 	// Action type for buttons: "click", "doubleclick", "longpress", ""
 	const char *GetButtonActionPgmUp (void) const;
@@ -342,6 +344,8 @@ private:
 	unsigned m_nButtonPinBankDown;
 	unsigned m_nButtonPinTGUp;
 	unsigned m_nButtonPinTGDown;
+	unsigned m_nButtonPinMasterVolumeUp;
+	unsigned m_nButtonPinMasterVolumeDown;
 
 	std::string m_ButtonActionPrev;
 	std::string m_ButtonActionNext;

@@ -65,6 +65,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{"Master Volume", EditMasterVolume, 0, 0},
+	{"Master Tune", EditMasterTuneAll, 0, 0},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -441,6 +442,14 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 	case MenuEventTGUp:
 	case MenuEventTGDown:
 		TGUpDownHandler(Event);
+		break;
+
+	case MenuEventMasterVolumeUp:
+		EditMasterVolume(this, MenuEventStepUp);
+		break;
+
+	case MenuEventMasterVolumeDown:
+		EditMasterVolume(this, MenuEventStepDown);
 		break;
 
 	default:
@@ -2097,4 +2106,54 @@ void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
     }
     // Do NOT add < or > here; let DisplayWrite handle it
     pUIMenu->m_pUI->DisplayWrite("Master Volume", "", valueStr.c_str(), true, true);
+}
+
+void CUIMenu::EditMasterTuneAll (CUIMenu *pUIMenu, TMenuEvent Event)
+{
+	const TParameter &rParam = s_TGParameter[CMiniDexed::TGParameterMasterTune];
+	int nValue = 0;
+	if (pUIMenu->m_nToneGenerators > 0)
+	{
+		nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
+	}
+
+	switch (Event)
+	{
+	case MenuEventUpdate:
+	case MenuEventUpdateParameter:
+		break;
+
+	case MenuEventStepDown:
+		nValue -= rParam.Increment;
+		if (nValue < rParam.Minimum)
+		{
+			nValue = rParam.Minimum;
+		}
+		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
+		{
+			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
+		}
+		break;
+
+	case MenuEventStepUp:
+		nValue += rParam.Increment;
+		if (nValue > rParam.Maximum)
+		{
+			nValue = rParam.Maximum;
+		}
+		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
+		{
+			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
+		}
+		break;
+
+	default:
+		return;
+	}
+
+	string Value = GetTGValueString (CMiniDexed::TGParameterMasterTune, nValue);
+	pUIMenu->m_pUI->DisplayWrite ("Master Tune",
+				      "",
+				      Value.c_str (),
+				      nValue > rParam.Minimum, nValue < rParam.Maximum);
 }
