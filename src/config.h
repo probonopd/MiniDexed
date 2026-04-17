@@ -214,6 +214,8 @@ public:
 	const char *GetButtonActionBankDown (void) const;
 	const char *GetButtonActionTGUp (void) const;
 	const char *GetButtonActionTGDown (void) const;
+	const char *GetButtonActionMasterVolumeUp (void) const;
+	const char *GetButtonActionMasterVolumeDown (void) const;
 
 	// MIDI Button Navigation
 	unsigned GetMIDIButtonCh   (void) const;
@@ -231,6 +233,8 @@ public:
 	unsigned GetMIDIButtonBankDown (void) const;
 	unsigned GetMIDIButtonTGUp (void) const;
 	unsigned GetMIDIButtonTGDown (void) const;
+	unsigned GetMIDIButtonMasterVolumeUp (void) const;
+	unsigned GetMIDIButtonMasterVolumeDown (void) const;
 	
 	// KY-040 Rotary Encoder
 	// GPIO pin numbers are chip numbers, not header positions
@@ -358,6 +362,8 @@ private:
 	std::string m_ButtonActionBankDown;
 	std::string m_ButtonActionTGUp;
 	std::string m_ButtonActionTGDown;
+	std::string m_ButtonActionMasterVolumeUp;
+	std::string m_ButtonActionMasterVolumeDown;
 	
 	unsigned m_nDoubleClickTimeout;
 	unsigned m_nLongPressTimeout;
@@ -375,6 +381,8 @@ private:
 	unsigned m_nMIDIButtonBankDown;
 	unsigned m_nMIDIButtonTGUp;
 	unsigned m_nMIDIButtonTGDown;
+	unsigned m_nMIDIButtonMasterVolumeUp;
+	unsigned m_nMIDIButtonMasterVolumeDown;
 
 	bool m_bEncoderEnabled;
 	unsigned m_nEncoderPinClock;

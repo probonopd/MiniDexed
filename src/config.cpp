@@ -201,6 +201,8 @@ void CConfig::Load (void)
 	m_ButtonActionBankDown = m_Properties.GetString ("ButtonActionBankDown", "");
 	m_ButtonActionTGUp = m_Properties.GetString ("ButtonActionTGUp", "");
 	m_ButtonActionTGDown = m_Properties.GetString ("ButtonActionTGDown", "");
+	m_ButtonActionMasterVolumeUp = m_Properties.GetString ("ButtonActionMasterVolumeUp", "");
+	m_ButtonActionMasterVolumeDown = m_Properties.GetString ("ButtonActionMasterVolumeDown", "");
 
 	m_nMIDIButtonCh = m_Properties.GetNumber ("MIDIButtonCh", 0);
 	m_nMIDIButtonNotes = m_Properties.GetNumber ("MIDIButtonNotes", 0);
@@ -216,6 +218,8 @@ void CConfig::Load (void)
 	m_nMIDIButtonBankDown = m_Properties.GetNumber ("MIDIButtonBankDown", 0);
 	m_nMIDIButtonTGUp = m_Properties.GetNumber ("MIDIButtonTGUp", 0);
 	m_nMIDIButtonTGDown = m_Properties.GetNumber ("MIDIButtonTGDown", 0);
+	m_nMIDIButtonMasterVolumeUp = m_Properties.GetNumber ("MIDIButtonMasterVolumeUp", 0);
+	m_nMIDIButtonMasterVolumeDown = m_Properties.GetNumber ("MIDIButtonMasterVolumeDown", 0);
 	
 	m_bEncoderEnabled = m_Properties.GetNumber ("EncoderEnabled", 0) != 0;
 	m_nEncoderPinClock = m_Properties.GetNumber ("EncoderPinClock", 10);
@@ -715,6 +719,16 @@ const char *CConfig::GetButtonActionTGDown (void) const
 	return m_ButtonActionTGDown.c_str();
 }
 
+const char *CConfig::GetButtonActionMasterVolumeUp (void) const
+{
+	return m_ButtonActionMasterVolumeUp.c_str();
+}
+
+const char *CConfig::GetButtonActionMasterVolumeDown (void) const
+{
+	return m_ButtonActionMasterVolumeDown.c_str();
+}
+
 unsigned CConfig::GetMIDIButtonCh (void) const
 {
 	return m_nMIDIButtonCh;
@@ -778,6 +792,16 @@ unsigned CConfig::GetMIDIButtonTGUp (void) const
 unsigned CConfig::GetMIDIButtonTGDown (void) const
 {
 	return m_nMIDIButtonTGDown;
+}
+
+unsigned CConfig::GetMIDIButtonMasterVolumeUp (void) const
+{
+	return m_nMIDIButtonMasterVolumeUp;
+}
+
+unsigned CConfig::GetMIDIButtonMasterVolumeDown (void) const
+{
+	return m_nMIDIButtonMasterVolumeDown;
 }
 
 bool CConfig::GetEncoderEnabled (void) const
