@@ -758,7 +758,8 @@ void CMiniDexed::SetMasterTune (int nMasterTune, unsigned nTG)
 	m_nMasterTune[nTG] = nMasterTune;
 
 	assert (m_pTG[nTG]);
-	m_pTG[nTG]->setMasterTune ((int8_t) nMasterTune);
+	int nCombined = constrain (m_nParameter[ParameterMasterPitch] + nMasterTune, -99, 99);
+	m_pTG[nTG]->setMasterTune ((int8_t) nCombined);
 
 	m_UI.ParameterChanged ();
 }
@@ -1067,6 +1068,17 @@ void CMiniDexed::SetParameter (TParameter Parameter, int nValue)
 
 	case ParameterPerformanceBank:
 		BankSelectPerformance(nValue);
+		break;
+
+	case ParameterMasterPitch:
+		nValue = constrain ((int) nValue, -99, 99);
+		m_nParameter[ParameterMasterPitch] = nValue;
+		for (unsigned nTG = 0; nTG < m_nToneGenerators; nTG++)
+		{
+			assert (m_pTG[nTG]);
+			int nCombined = constrain (nValue + m_nMasterTune[nTG], -99, 99);
+			m_pTG[nTG]->setMasterTune ((int8_t) nCombined);
+		}
 		break;
 
 	default:
@@ -1557,6 +1569,7 @@ bool CMiniDexed::DoSavePerformance (void)
 	m_PerformanceConfig.SetReverbLowPass (m_nParameter[ParameterReverbLowPass]);
 	m_PerformanceConfig.SetReverbDiffusion (m_nParameter[ParameterReverbDiffusion]);
 	m_PerformanceConfig.SetReverbLevel (m_nParameter[ParameterReverbLevel]);
+	m_PerformanceConfig.SetMasterPitch (m_nParameter[ParameterMasterPitch]);
 
 	if(m_bSaveAsDeault)
 	{
@@ -1999,6 +2012,10 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 
 void CMiniDexed::LoadPerformanceParameters(void)
 {
+	// Load master pitch first so that it is applied correctly when
+	// per-TG SetMasterTune is called in the loop below.
+	SetParameter (ParameterMasterPitch, m_PerformanceConfig.GetMasterPitch ());
+
 	for (unsigned nTG = 0; nTG < CConfig::AllToneGenerators; nTG++)
 		{
 			

@@ -65,7 +65,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{"Master Volume", EditMasterVolume, 0, 0},
-	{"Master Tune", EditMasterTuneAll, 0, 0},
+	{"Tune Master Pitch", EditGlobalParameter, 0, CMiniDexed::ParameterMasterPitch},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -228,7 +228,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
-	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
+	{0, NUM_PERFORMANCE_BANKS, 1},	// ParameterPerformanceBank
+	{-99,	99,	1}			// ParameterMasterPitch
 };
 
 // must match CMiniDexed::TTGParameter
@@ -2106,62 +2107,4 @@ void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
     }
     // Do NOT add < or > here; let DisplayWrite handle it
     pUIMenu->m_pUI->DisplayWrite("Master Volume", "", valueStr.c_str(), true, true);
-}
-
-void CUIMenu::EditMasterTuneAll (CUIMenu *pUIMenu, TMenuEvent Event)
-{
-	const TParameter &rParam = s_TGParameter[CMiniDexed::TGParameterMasterTune];
-
-	// Use TG0's current value as the display reference
-	int nTG0Value = 0;
-	if (pUIMenu->m_nToneGenerators > 0)
-	{
-		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
-	}
-
-	switch (Event)
-	{
-	case MenuEventUpdate:
-	case MenuEventUpdateParameter:
-		break;
-
-	case MenuEventStepDown:
-		// Apply the delta to each TG independently so that deliberate
-		// per-TG detuning offsets are preserved.
-		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
-		{
-			int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, nTG);
-			nValue -= rParam.Increment;
-			if (nValue < rParam.Minimum)
-			{
-				nValue = rParam.Minimum;
-			}
-			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
-		}
-		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
-		break;
-
-	case MenuEventStepUp:
-		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
-		{
-			int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, nTG);
-			nValue += rParam.Increment;
-			if (nValue > rParam.Maximum)
-			{
-				nValue = rParam.Maximum;
-			}
-			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
-		}
-		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
-		break;
-
-	default:
-		return;
-	}
-
-	string Value = GetTGValueString (CMiniDexed::TGParameterMasterTune, nTG0Value);
-	pUIMenu->m_pUI->DisplayWrite ("Master Tune",
-				      "",
-				      Value.c_str (),
-				      nTG0Value > rParam.Minimum, nTG0Value < rParam.Maximum);
 }
