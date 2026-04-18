@@ -65,6 +65,7 @@ const CUIMenu::TMenuItem CUIMenu::s_MainMenu[] =
 #endif
 	{"Effects",	MenuHandler,	s_EffectsMenu},
 	{"Master Volume", EditMasterVolume, 0, 0},
+	{"Tune Master Pitch", EditGlobalParameter, 0, CMiniDexed::ParameterMasterPitch},
 	{"Performance",	MenuHandler, s_PerformanceMenu}, 
 	{0}
 };
@@ -227,7 +228,8 @@ const CUIMenu::TParameter CUIMenu::s_GlobalParameter[CMiniDexed::ParameterUnknow
 	{0,	99,	1},				// ParameterReverbDiffusion
 	{0,	99,	1},				// ParameterReverbLevel
 	{0,	CMIDIDevice::ChannelUnknown-1,		1, ToMIDIChannel}, 	// ParameterPerformanceSelectChannel
-	{0, NUM_PERFORMANCE_BANKS, 1}	// ParameterPerformanceBank
+	{0, NUM_PERFORMANCE_BANKS, 1},	// ParameterPerformanceBank
+	{-99,	99,	1}			// ParameterMasterPitch
 };
 
 // must match CMiniDexed::TTGParameter
@@ -441,6 +443,14 @@ void CUIMenu::EventHandler (TMenuEvent Event)
 	case MenuEventTGUp:
 	case MenuEventTGDown:
 		TGUpDownHandler(Event);
+		break;
+
+	case MenuEventMasterVolumeUp:
+		EditMasterVolume(this, MenuEventStepUp);
+		break;
+
+	case MenuEventMasterVolumeDown:
+		EditMasterVolume(this, MenuEventStepDown);
 		break;
 
 	default:

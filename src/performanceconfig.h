@@ -111,6 +111,9 @@ public:
 	unsigned GetReverbDiffusion (void) const;		// 0 .. 99
 	unsigned GetReverbLevel (void) const;			// 0 .. 99
 
+	int GetMasterPitch (void) const;			// -99 .. 99
+
+	void SetMasterPitch (int nValue);
 	void SetCompressorEnable (bool bValue);
 	void SetReverbEnable (bool bValue);
 	void SetReverbSize (unsigned nValue);
@@ -196,6 +199,7 @@ private:
 
 	std::string NewPerformanceName="";
 	
+	int m_nMasterPitch;
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
 	unsigned m_nReverbSize;

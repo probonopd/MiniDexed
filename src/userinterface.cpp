@@ -390,6 +390,14 @@ void CUserInterface::UIButtonsEventHandler (CUIButton::BtnEvent Event)
 		m_Menu.EventHandler (CUIMenu::MenuEventTGDown);
 		break;
 
+	case CUIButton::BtnEventMasterVolumeUp:
+		m_Menu.EventHandler (CUIMenu::MenuEventMasterVolumeUp);
+		break;
+
+	case CUIButton::BtnEventMasterVolumeDown:
+		m_Menu.EventHandler (CUIMenu::MenuEventMasterVolumeDown);
+		break;
+
 	default:
 		break;
 	}

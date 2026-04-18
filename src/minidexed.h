@@ -168,6 +168,7 @@ public:
 		ParameterReverbLevel,
 		ParameterPerformanceSelectChannel,
 		ParameterPerformanceBank,
+		ParameterMasterPitch,
 		ParameterUnknown
 	};
 
