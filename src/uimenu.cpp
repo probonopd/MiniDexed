@@ -2111,10 +2111,12 @@ void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
 void CUIMenu::EditMasterTuneAll (CUIMenu *pUIMenu, TMenuEvent Event)
 {
 	const TParameter &rParam = s_TGParameter[CMiniDexed::TGParameterMasterTune];
-	int nValue = 0;
+
+	// Use TG0's current value as the display reference
+	int nTG0Value = 0;
 	if (pUIMenu->m_nToneGenerators > 0)
 	{
-		nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
+		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
 	}
 
 	switch (Event)
@@ -2124,36 +2126,42 @@ void CUIMenu::EditMasterTuneAll (CUIMenu *pUIMenu, TMenuEvent Event)
 		break;
 
 	case MenuEventStepDown:
-		nValue -= rParam.Increment;
-		if (nValue < rParam.Minimum)
-		{
-			nValue = rParam.Minimum;
-		}
+		// Apply the delta to each TG independently so that deliberate
+		// per-TG detuning offsets are preserved.
 		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
 		{
+			int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, nTG);
+			nValue -= rParam.Increment;
+			if (nValue < rParam.Minimum)
+			{
+				nValue = rParam.Minimum;
+			}
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
 		}
+		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
 		break;
 
 	case MenuEventStepUp:
-		nValue += rParam.Increment;
-		if (nValue > rParam.Maximum)
-		{
-			nValue = rParam.Maximum;
-		}
 		for (unsigned nTG = 0; nTG < pUIMenu->m_nToneGenerators; nTG++)
 		{
+			int nValue = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, nTG);
+			nValue += rParam.Increment;
+			if (nValue > rParam.Maximum)
+			{
+				nValue = rParam.Maximum;
+			}
 			pUIMenu->m_pMiniDexed->SetTGParameter (CMiniDexed::TGParameterMasterTune, nValue, nTG);
 		}
+		nTG0Value = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterMasterTune, 0);
 		break;
 
 	default:
 		return;
 	}
 
-	string Value = GetTGValueString (CMiniDexed::TGParameterMasterTune, nValue);
+	string Value = GetTGValueString (CMiniDexed::TGParameterMasterTune, nTG0Value);
 	pUIMenu->m_pUI->DisplayWrite ("Master Tune",
 				      "",
 				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				      nTG0Value > rParam.Minimum, nTG0Value < rParam.Maximum);
 }
