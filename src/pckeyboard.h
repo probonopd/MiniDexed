@@ -25,6 +25,7 @@
 #include <circle/usb/usbkeyboard.h>
 #include <circle/device.h>
 #include <circle/types.h>
+#include "usb_hid_keys.h"
 
 class CMiniDexed;
 
@@ -39,7 +40,9 @@ public:
 private:
 	static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
 
-	static u8 GetKeyNumber (u8 ucKeyCode);
+	static u8 KeyCodeToNote (u8 ucKeyCode);
+
+	static u8 KeyCodeToCC (u8 ucKeyCode);
 
 	static boolean FindByte (const u8 *pBuffer, u8 ucByte, unsigned nLength);
 
@@ -49,6 +52,8 @@ private:
 	CUSBKeyboardDevice * volatile m_pKeyboard;
 
 	u8 m_LastKeys[6];
+
+	u8 octave = 2;
 
 	static CPCKeyboard *s_pThis;
 };
