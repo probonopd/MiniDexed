@@ -74,7 +74,6 @@ static TKeyInfo KeyTable[] =
 	{KEY_SLASH, 40}
 };
 
-// selected octave gets added to these
 static TKeyInfo CCTable[] =
 {
 	{KEY_LEFT, 46}, // MIDIButtonPrev=46
@@ -187,9 +186,10 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 			}
 			else if (ucKeyCode == KEY_ESC)
 			{
+				u8 NoteOff[] = {0x80, 60, 0};
 				for (u8 i=0; i<128; i++)
 				{
-					u8 NoteOff[] = {0x80, i, 0};
+					NoteOff[1] = i;
 					s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
 				}
 
