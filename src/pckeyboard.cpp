@@ -93,6 +93,7 @@ CPCKeyboard *CPCKeyboard::s_pThis = 0;
 
 CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
+	m_pConfig (pConfig),
 	m_pKeyboard (0)
 {
 	s_pThis = this;
@@ -127,6 +128,9 @@ void CPCKeyboard::Process (boolean bPlugAndPlayUpdated)
 	}
 }
 
+#define CC_OCTAVE_UP	128
+#define CC_OCTAVE_DOWN	129
+#define CC_NOTES_OFF	130
 void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6])
 {
 	assert (s_pThis != 0);
@@ -138,16 +142,16 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 		if (   ucKeyCode != 0
 		    && !FindByte (RawKeys, ucKeyCode, 6))
 		{
-			u8 ucKeyNumber = KeyCodeToNote (ucKeyCode);
-			u8 ucKeyCC = KeyCodeToCC (ucKeyCode);
+			u8 ucKeyNumber = s_pThis->KeyCodeToNote (ucKeyCode);
+			u8 ucKeyCC = s_pThis->KeyCodeToCC (ucKeyCode);
 			// first see if this key should send a note on
-			if ( (ucKeyNumber != 0) && (ucKeyNumber <= 127) )
+			if ( (ucKeyNumber > 0) && (ucKeyNumber <= 127) )
 			{
 				u8 NoteOff[] = {0x80, ucKeyNumber, 0};
 				s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
 			}
 			// then check if it should send a CC
-			else if (ucKeyCC != 0)
+			else if ( (ucKeyCC > 0) && (ucKeyCC <= 127) )
 			{
 				u8 ButtonOn[] = {0xb0, ucKeyCC, 0};
 				s_pThis->MIDIMessageHandler (ButtonOn, sizeof ButtonOn);
@@ -162,29 +166,29 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 		if (   ucKeyCode != 0
 		    && !FindByte (s_pThis->m_LastKeys, ucKeyCode, 6))
 		{
-			u8 ucKeyNumber = KeyCodeToNote (ucKeyCode);
-			u8 ucKeyCC = KeyCodeToCC (ucKeyCode);
+			u8 ucKeyNumber = s_pThis->KeyCodeToNote (ucKeyCode);
+			u8 ucKeyCC = s_pThis->KeyCodeToCC (ucKeyCode);
 			// first see if this key should send a note on
-			if (ucKeyNumber != 0)
+			if ( (ucKeyNumber > 0) && (ucKeyNumber <= 127) )
 			{
 				u8 NoteOn[] = {0x90, ucKeyNumber, 100};
 				s_pThis->MIDIMessageHandler (NoteOn, sizeof NoteOn);
 			}
 			// then check if it should send a CC
-			else if (ucKeyCC != 0)
+			else if ( (ucKeyCC > 0) && (ucKeyCC <= 127) )
 			{
 				u8 ButtonOn[] = {0xb0, ucKeyCC, 100};
 				s_pThis->MIDIMessageHandler (ButtonOn, sizeof ButtonOn);
 			}
-			else if (ucKeyCode == KEY_PAGEUP)
+			else if (ucKeyCC == CC_OCTAVE_UP)
 			{
 				if (++s_pThis->octave > 5) s_pThis->octave = 5;
 			}
-			else if (ucKeyCode == KEY_PAGEDOWN)
+			else if (ucKeyCC == CC_OCTAVE_DOWN)
 			{
 				if (s_pThis->octave > 0) s_pThis->octave--;
 			}
-			else if (ucKeyCode == KEY_ESC)
+			else if (ucKeyCC == CC_NOTES_OFF)
 			{
 				u8 NoteOff[] = {0x80, 60, 0};
 				for (u8 i=0; i<128; i++)
@@ -192,7 +196,6 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 					NoteOff[1] = i;
 					s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
 				}
-
 			}
 			else if (ucKeyCode == KEY_DELETE)
 			{
@@ -211,6 +214,7 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 
 u8 CPCKeyboard::KeyCodeToCC (u8 ucKeyCode)
 {
+	return(m_pConfig->GetPCKeyCC(ucKeyCode));
 	for (unsigned i = 0; i < sizeof CCTable / sizeof CCTable[0]; i++)
 	{
 		if (CCTable[i].KeyCode == ucKeyCode)
@@ -223,14 +227,22 @@ u8 CPCKeyboard::KeyCodeToCC (u8 ucKeyCode)
 
 u8 CPCKeyboard::KeyCodeToNote (u8 ucKeyCode)
 {
-	for (unsigned i = 0; i < sizeof KeyTable / sizeof KeyTable[0]; i++)
+	u8 baseNote = 0;
+	if (m_pConfig->GetPCKeyUseDefaultNotes() )
 	{
-		if (KeyTable[i].KeyCode == ucKeyCode)
+		for (unsigned i = 0; i < sizeof KeyTable / sizeof KeyTable[0]; i++)
 		{
-			return KeyTable[i].KeyNumber + (s_pThis->octave * 12);
+			if (KeyTable[i].KeyCode == ucKeyCode)
+			{
+				baseNote = KeyTable[i].KeyNumber;
+			}
 		}
+	} else {
+		baseNote = m_pConfig->GetPCKeyNote(ucKeyCode);
 	}
-	return 0;
+
+	if (baseNote) baseNote += (s_pThis->octave*12);
+	return baseNote;
 }
 
 boolean CPCKeyboard::FindByte (const u8 *pBuffer, u8 ucByte, unsigned nLength)

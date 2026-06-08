@@ -38,11 +38,13 @@ public:
 	void Process (boolean bPlugAndPlayUpdated);
 
 private:
+	CConfig *m_pConfig;
+
 	static void KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6]);
 
-	static u8 KeyCodeToNote (u8 ucKeyCode);
+	u8 KeyCodeToNote (u8 ucKeyCode);
 
-	static u8 KeyCodeToCC (u8 ucKeyCode);
+	u8 KeyCodeToCC (u8 ucKeyCode);
 
 	static boolean FindByte (const u8 *pBuffer, u8 ucByte, unsigned nLength);
 
