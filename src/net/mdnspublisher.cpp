@@ -84,7 +84,7 @@ boolean CmDNSPublisher::PublishService (const char *pServiceName, const char *pS
 		m_ServiceList.InsertAfter (nullptr, pService);
 	}
 	m_Mutex.Release ();
-	LOGDBG ("Publish service %s", (const char *) pService->ServiceName);
+	LOGDBG ("Publish service %s %s:%d", pServiceType, (const char *) pService->ServiceName, usServicePort);
 	m_Event.Set ();		// Trigger resent for everything
 	return TRUE;
 }
