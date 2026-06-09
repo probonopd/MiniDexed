@@ -58,6 +58,10 @@ boolean CSerialMIDIDevice::Initialize (void)
 	// Ensure CR->CRLF translation is disabled for MIDI links
 	ser_options &= ~(SERIAL_OPTION_ONLCR);
 	m_Serial.SetOptions(ser_options);
+	// initial dummy read to suppress SERIAL_ERROR_BREAK
+	CTimer::Get()->MsDelay(5);	// short delay for hardware to awaken
+	char dummy;
+	m_Serial.Read (&dummy, 1);
 	return res;
 }
 
@@ -71,7 +75,7 @@ void CSerialMIDIDevice::Process (void)
 	if (nResult <= 0)
 	{
 		if(nResult!=0)
-			LOGERR("Serial.Read() error: %d\n",nResult);
+			LOGERR("Serial.Read() error: %d",nResult);
 		return;
 	}
 
