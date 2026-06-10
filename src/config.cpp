@@ -20,8 +20,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
+#include <circle/logger.h>
 #include "config.h"
 #include "../Synth_Dexed/src/dexed.h"
+
+LOGMODULE("config");
 
 CConfig::CConfig (FATFS *pFileSystem)
 :	m_Properties ("minidexed.ini", pFileSystem)
@@ -260,6 +263,26 @@ void CConfig::Load (void)
 	if (const u8 *pIP = m_Properties.GetIPAddress("UDPMIDIIPAddress")) m_IUDPMIDIIPAddress.Set (pIP);
 
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
+
+	// PC Keyboard
+
+	CString PropertyName;
+	m_bPCKeyUseDefaultNotes = 1;
+	for (unsigned i = 0; i < 256; i++)
+	{
+		PropertyName.Format("PCKeyNote%d", i);
+		unsigned temp = m_Properties.GetNumber((const char *)PropertyName, 0);
+		SetPCKeyNote(i, temp);
+		if (temp)
+			m_bPCKeyUseDefaultNotes = 0;
+
+		PropertyName.Format("PCKeyCC%d", i);
+		SetPCKeyCC(i,m_Properties.GetNumber(PropertyName, 0));
+	}
+	if (m_bPCKeyUseDefaultNotes == 0) {
+		LOGNOTE("PC Keyboard using custom Note mapping");
+		CTimer::SimpleMsDelay(500);
+	}
 }
 
 unsigned CConfig::GetToneGenerators (void) const
@@ -873,3 +896,29 @@ const CIPAddress& CConfig::GetUDPMIDIIPAddress (void) const
 {
 	return m_IUDPMIDIIPAddress;
 }
+
+const bool CConfig::GetPCKeyUseDefaultNotes (void) const
+{
+	return m_bPCKeyUseDefaultNotes;
+}
+
+const u8 CConfig::GetPCKeyNote (u8 usbkey) const
+{
+	return m_nPCKeyNoteMap[usbkey];
+}
+
+const u8 CConfig::GetPCKeyCC (u8 usbkey) const
+{
+	return m_nPCKeyCCMap[usbkey];
+}
+
+void CConfig::SetPCKeyNote (u8 usbkey, u8 note )
+{
+	m_nPCKeyNoteMap[usbkey] = note;
+}
+
+void CConfig::SetPCKeyCC (u8 usbkey, u8 cc )
+{
+	m_nPCKeyCCMap[usbkey] = cc;
+}
+
