@@ -265,16 +265,23 @@ void CConfig::Load (void)
 	m_nMasterVolume = m_Properties.GetNumber ("MasterVolume", 64);
 
 	// PC Keyboard
-	m_bPCKeyUseDefaultNotes = m_Properties.GetNumber("PCKeyUseDefaultNotes", 1) != 0;
 
 	CString PropertyName;
+	m_bPCKeyUseDefaultNotes = 1;
 	for (unsigned i = 0; i < 256; i++)
 	{
 		PropertyName.Format("PCKeyNote%d", i);
-		SetPCKeyNote(i, m_Properties.GetNumber((const char *)PropertyName, 0));
+		unsigned temp = m_Properties.GetNumber((const char *)PropertyName, 0);
+		SetPCKeyNote(i, temp);
+		if (temp)
+			m_bPCKeyUseDefaultNotes = 0;
 
 		PropertyName.Format("PCKeyCC%d", i);
 		SetPCKeyCC(i,m_Properties.GetNumber(PropertyName, 0));
+	}
+	if (m_bPCKeyUseDefaultNotes == 0) {
+		LOGNOTE("PC Keyboard using custom Note mapping");
+		CTimer::SimpleMsDelay(500);
 	}
 }
 

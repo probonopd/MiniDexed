@@ -31,6 +31,8 @@ struct TKeyInfo
 
 // KeyCode is valid for standard QWERTY keyboard
 // selected octave gets added to these
+// This is the default.
+// Any PCKeyNote<x> entries in minidexed.ini invalidate the entire table
 static TKeyInfo KeyTable[] =
 {
 	{KEY_Q, 36}, // C1
@@ -72,21 +74,6 @@ static TKeyInfo KeyTable[] =
 	{KEY_DOT, 38},
 	{KEY_SEMICOLON, 39},
 	{KEY_SLASH, 40}
-};
-
-static TKeyInfo CCTable[] =
-{
-	{KEY_LEFT, 46}, // MIDIButtonPrev=46
-	{KEY_RIGHT, 47}, // MIDIButtonNext=47
-	{KEY_UP, 48}, // MIDIButtonBack=48
-	{KEY_DOWN, 49}, // MIDIButtonSelect=49
-	{KEY_HOME, 50}, // MIDIButtonHome=50
-	{KEY_F1, 51}, // MIDIButtonPgmUp=51
-	{KEY_F2, 52}, // MIDIButtonPgmDown=52
-	{KEY_F3, 53}, // MIDIButtonBankUp=53
-	{KEY_F4, 54}, // MIDIButtonBankDown=54
-	{KEY_F5, 55}, // MIDIButtonTGUp=55
-	{KEY_F6, 56} // MIDIButtonTGDown=56
 };
 
 CPCKeyboard *CPCKeyboard::s_pThis = 0;
@@ -215,14 +202,6 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 u8 CPCKeyboard::KeyCodeToCC (u8 ucKeyCode)
 {
 	return(m_pConfig->GetPCKeyCC(ucKeyCode));
-	for (unsigned i = 0; i < sizeof CCTable / sizeof CCTable[0]; i++)
-	{
-		if (CCTable[i].KeyCode == ucKeyCode)
-		{
-			return CCTable[i].KeyNumber;
-		}
-	}
-	return 0;
 }
 
 u8 CPCKeyboard::KeyCodeToNote (u8 ucKeyCode)
