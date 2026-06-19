@@ -135,10 +135,10 @@ bool CKernel::Initialize (void)
 	}
 	m_Config.SetUSBGadgetMode(bUSBGadgetMode);
 
-    if (!m_pUSB->Initialize ())
-    {
+	if (!m_pUSB->Initialize ())
+	{
 		return FALSE;
-    }
+	}
 	
 	m_pDexed = new CMiniDexed (&m_Config, &mInterrupt, &m_GPIOManager, &m_I2CMaster, m_pSPIMaster,
 				   &mFileSystem);
