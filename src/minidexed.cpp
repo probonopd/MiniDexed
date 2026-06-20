@@ -2271,10 +2271,8 @@ void CMiniDexed::UpdateNetwork()
 	}
 
 	bool bNetIsRunning = m_pNet->IsRunning();
-	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
-		bNetIsRunning &= m_pNetDevice->IsLinkUp();
 
-	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
+	if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= (m_WPASupplicant && m_WPASupplicant->IsConnected());
 	
 	if (!m_bNetworkInit && bNetIsRunning)
