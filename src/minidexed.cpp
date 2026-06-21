@@ -66,6 +66,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_WPASupplicant(nullptr),
 	m_bNetworkReady(false),
 	m_bNetworkInit(false),
+	m_lastNetworkUpdate(0),
 	m_UDPMIDI(nullptr),
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
@@ -395,7 +396,6 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_pMIDIKeyboard[i]->Process (bPlugAndPlayUpdated);
 		pScheduler->Yield();
 	}
-
 	m_PCKeyboard.Process (bPlugAndPlayUpdated);
 
 	if (m_bUseSerial)
@@ -461,9 +461,16 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 		m_GetChunkTimer.Dump ();
 		pScheduler->Yield();
 	}
+#define NETWORK_UPDATE_NUM_TICKS 1000000
 	if (m_pNet) {
-		UpdateNetwork();
+		unsigned currentTick = CTimer::GetClockTicks();
+		if (currentTick - m_lastNetworkUpdate > NETWORK_UPDATE_NUM_TICKS)
+		{
+			m_lastNetworkUpdate = currentTick;
+			UpdateNetwork();
+		}
 	}
+
 	// Allow other tasks to run
 	pScheduler->Yield();
 }
@@ -2264,9 +2271,8 @@ void CMiniDexed::UpdateNetwork()
 	}
 
 	bool bNetIsRunning = m_pNet->IsRunning();
-	if (m_pNetDevice->GetType() == NetDeviceTypeEthernet)
-		bNetIsRunning &= m_pNetDevice->IsLinkUp();
-	else if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
+
+	if (m_pNetDevice->GetType() == NetDeviceTypeWLAN)
 		bNetIsRunning &= (m_WPASupplicant && m_WPASupplicant->IsConnected());
 	
 	if (!m_bNetworkInit && bNetIsRunning)

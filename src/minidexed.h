@@ -347,6 +347,7 @@ private:
 	CWPASupplicant* m_WPASupplicant; // Changed to pointer
 	bool m_bNetworkReady;
 	bool m_bNetworkInit;
+	unsigned m_lastNetworkUpdate;
 	CUDPMIDIDevice* m_UDPMIDI; // Changed to pointer
 	CFTPDaemon* m_pFTPDaemon;
 	CmDNSPublisher *m_pmDNSPublisher;
