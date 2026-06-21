@@ -472,6 +472,10 @@ void CUIButtons::Update (void)
 	}
 
 	m_interval = (currentTick - m_lastTick)/BUTTONS_UPDATE_NUM_TICKS;
+	if (m_interval == 0) {
+		m_interval = 1;
+	}
+
 	m_lastTick = currentTick;
 
 	for (unsigned i=0; i<MAX_BUTTONS; i++) {
