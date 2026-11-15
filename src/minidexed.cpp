@@ -106,7 +106,11 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nNoteShift[i] = 0;
 		for (unsigned nNote = 0; nNote < 128; nNote++)
 		{
-			m_nMappedNote[i][nNote] = -1;
+			for (unsigned nSlot = 0; nSlot < MaxMappedNotes; nSlot++)
+			{
+				m_nMappedNote[i][nNote][nSlot] = -1;
+			}
+			m_nMappedNoteHead[i][nNote] = 0;
 			m_nNoteHeldCount[i][nNote] = 0;
 		}
 		
@@ -924,13 +928,12 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	{
 		if (m_nNoteHeldCount[nTG][pitch] > 0)
 		{
+			unsigned nSlot = m_nMappedNoteHead[nTG][pitch];
+			int16_t nMapped = m_nMappedNote[nTG][pitch][nSlot];
+			m_nMappedNote[nTG][pitch][nSlot] = -1;
+			m_nMappedNoteHead[nTG][pitch] = (nSlot + 1) % MaxMappedNotes;
 			m_nNoteHeldCount[nTG][pitch]--;
-		}
 
-		if (m_nNoteHeldCount[nTG][pitch] == 0)
-		{
-			int16_t nMapped = m_nMappedNote[nTG][pitch];
-			m_nMappedNote[nTG][pitch] = -1;
 			if (nMapped >= 0)
 			{
 				m_pTG[nTG]->keyup (nMapped);
@@ -951,11 +954,19 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	if ((pitch >= 0) && (pitch < 128))
 	{
 		int16_t nMapped = ApplyNoteLimits (pitch, nTG);
-		if (m_nNoteHeldCount[nTG][pitch] < 255)
+		if (m_nNoteHeldCount[nTG][pitch] < MaxMappedNotes)
 		{
+			unsigned nSlot = (m_nMappedNoteHead[nTG][pitch] + m_nNoteHeldCount[nTG][pitch]) % MaxMappedNotes;
+			m_nMappedNote[nTG][pitch][nSlot] = nMapped;
 			m_nNoteHeldCount[nTG][pitch]++;
 		}
-		m_nMappedNote[nTG][pitch] = nMapped;
+		else
+		{
+			// Queue is full: replace the oldest mapping.
+			unsigned nSlot = m_nMappedNoteHead[nTG][pitch];
+			m_nMappedNote[nTG][pitch][nSlot] = nMapped;
+			m_nMappedNoteHead[nTG][pitch] = (nSlot + 1) % MaxMappedNotes;
+		}
 		if (nMapped >= 0)
 		{
 			m_pTG[nTG]->keydown (nMapped, velocity);
@@ -993,7 +1004,11 @@ void CMiniDexed::ClearMappedNotes (unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	for (unsigned nNote = 0; nNote < 128; nNote++)
 	{
-		m_nMappedNote[nTG][nNote] = -1;
+		for (unsigned nSlot = 0; nSlot < MaxMappedNotes; nSlot++)
+		{
+			m_nMappedNote[nTG][nNote][nSlot] = -1;
+		}
+		m_nMappedNoteHead[nTG][nNote] = 0;
 		m_nNoteHeldCount[nTG][nNote] = 0;
 	}
 }

@@ -310,7 +310,9 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
-	int16_t m_nMappedNote[CConfig::AllToneGenerators][128];
+	static const unsigned MaxMappedNotes = 8;
+	int16_t m_nMappedNote[CConfig::AllToneGenerators][128][MaxMappedNotes];
+	uint8_t m_nMappedNoteHead[CConfig::AllToneGenerators][128];
 	uint8_t m_nNoteHeldCount[CConfig::AllToneGenerators][128];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
