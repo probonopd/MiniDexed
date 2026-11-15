@@ -239,6 +239,7 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
+	void ChangeMasterVolume (int nDelta);
 	int GetMasterVolume127() const { float32_t fVolume = nMasterVolume.load (std::memory_order_relaxed); return (int)(fVolume >= 1.0f ? 127 : (fVolume <= 0.0f ? 0 : sqrtf (fVolume) * 127.0f)); }
 
 	bool InitNetwork();
