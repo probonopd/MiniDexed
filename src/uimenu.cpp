@@ -81,6 +81,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
+	{"Note Limits",	MenuHandler,		s_NoteLimitsMenu},
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
@@ -111,6 +112,14 @@ const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
 	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
 	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_NoteLimitsMenu[] =
+{
+	{"Low",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteLimitLow},
+	{"High",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteLimitHigh},
+	{"Shift",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteShift},
 	{0}
 };
 
@@ -265,7 +274,10 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias
+	{0, 127, 1, ToNoteName}, //NoteLimitLow
+	{0, 127, 1, ToNoteName}, //NoteLimitHigh
+	{-24, 24, 1} //NoteShift
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -1171,6 +1183,16 @@ string CUIMenu::ToBreakpointNote (int nValue)
 	assert ((unsigned) nValue < sizeof s_NoteName / sizeof s_NoteName[0]);
 
 	return s_NoteName[nValue];
+}
+
+string CUIMenu::ToNoteName (int nValue)
+{
+	static const char *NoteName[] = {"C", "C#", "D", "D#", "E", "F",
+					 "F#", "G", "G#", "A", "A#", "B"};
+
+	assert ((unsigned) nValue <= 127);
+
+	return string (NoteName[nValue % 12]) + to_string (nValue / 12 - 2);
 }
 
 string CUIMenu::ToKeyboardCurve (int nValue)

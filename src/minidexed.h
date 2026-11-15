@@ -86,6 +86,9 @@ public:
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
 	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
+	void SetNoteLimitLow (unsigned nNote, unsigned nTG);		// 0 .. 127
+	void SetNoteLimitHigh (unsigned nNote, unsigned nTG);		// 0 .. 127
+	void SetNoteShift (int nShift, unsigned nTG);			// -24 .. 24
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
@@ -221,6 +224,10 @@ public:
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
 		
+		TGParameterNoteLimitLow,
+		TGParameterNoteLimitHigh,
+		TGParameterNoteShift,
+
 		TGParameterUnknown
 	};
 

@@ -112,6 +112,7 @@ private:
 	static std::string ToLFOWaveform (int nValue);
 	static std::string ToTransposeNote (int nValue);
 	static std::string ToBreakpointNote (int nValue);
+	static std::string ToNoteName (int nValue);
 	static std::string ToKeyboardCurve (int nValue);
 	static std::string ToOscillatorMode (int nValue);
 	static std::string ToOscillatorDetune (int nValue);
@@ -161,6 +162,7 @@ private:
 	static const TMenuItem s_SaveMenu[];
 	static const TMenuItem s_EditPitchBendMenu[];
 	static const TMenuItem s_EditPortamentoMenu[];
+	static const TMenuItem s_NoteLimitsMenu[];
 	static const TMenuItem s_PerformanceMenu[];
 	
 	static const TMenuItem s_ModulationMenu[];

@@ -795,6 +795,42 @@ void CMiniDexed::SetResonance (int nResonance, unsigned nTG)
 
 
 
+void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
+{
+	nNote = constrain ((int) nNote, 0, 127);
+
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;	// Not an active TG
+
+	m_nNoteLimitLow[nTG] = nNote;
+
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
+{
+	nNote = constrain ((int) nNote, 0, 127);
+
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;	// Not an active TG
+
+	m_nNoteLimitHigh[nTG] = nNote;
+
+	m_UI.ParameterChanged ();
+}
+
+void CMiniDexed::SetNoteShift (int nShift, unsigned nTG)
+{
+	nShift = constrain (nShift, -24, 24);
+
+	assert (nTG < CConfig::AllToneGenerators);
+	if (nTG >= m_nToneGenerators) return;	// Not an active TG
+
+	m_nNoteShift[nTG] = nShift;
+
+	m_UI.ParameterChanged ();
+}
+
 void CMiniDexed::SetMIDIChannel (uint8_t uchChannel, unsigned nTG)
 {
 	assert (nTG < CConfig::AllToneGenerators);
@@ -1103,6 +1139,9 @@ void CMiniDexed::SetTGParameter (TTGParameter Parameter, int nValue, unsigned nT
 	case TGParameterPortamentoGlissando:	setPortamentoGlissando (nValue, nTG);	break;
 	case TGParameterPortamentoTime:		setPortamentoTime (nValue, nTG);	break;
 	case TGParameterMonoMode:		setMonoMode (nValue , nTG);	break; 
+	case TGParameterNoteLimitLow:		SetNoteLimitLow (nValue, nTG);	break;
+	case TGParameterNoteLimitHigh:		SetNoteLimitHigh (nValue, nTG);	break;
+	case TGParameterNoteShift:		SetNoteShift (nValue, nTG);	break;
 	
 	case TGParameterMWRange:					setModController(0, 0, nValue, nTG); break;
 	case TGParameterMWPitch:					setModController(0, 1, nValue, nTG); break;
@@ -1161,6 +1200,9 @@ int CMiniDexed::GetTGParameter (TTGParameter Parameter, unsigned nTG)
 	case TGParameterPortamentoGlissando:	return m_nPortamentoGlissando[nTG];
 	case TGParameterPortamentoTime:		return m_nPortamentoTime[nTG];
 	case TGParameterMonoMode:		return m_bMonoMode[nTG] ? 1 : 0; 
+	case TGParameterNoteLimitLow:		return m_nNoteLimitLow[nTG];
+	case TGParameterNoteLimitHigh:		return m_nNoteLimitHigh[nTG];
+	case TGParameterNoteShift:		return m_nNoteShift[nTG];
 	
 	case TGParameterMWRange:					return getModController(0, 0, nTG);
 	case TGParameterMWPitch:					return getModController(0, 1, nTG);
