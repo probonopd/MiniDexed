@@ -1281,6 +1281,12 @@ void CMiniDexed::ProcessSound (void)
 		float32_t SampleBuffer[nFrames];
 		m_pTG[0]->getSamples (SampleBuffer, nFrames);
 
+		float32_t fMasterVolume = nMasterVolume.load (std::memory_order_relaxed);
+		for (unsigned i = 0; i < nFrames; i++)
+		{
+			SampleBuffer[i] *= fMasterVolume;
+		}
+
 		// Convert single float array (mono) to int16 array
 		int32_t tmp_int[nFrames];
 		arm_float_to_q23(SampleBuffer,tmp_int,nFrames);
@@ -1864,6 +1870,24 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     vol = powf(vol, 2.0f);
 
     nMasterVolume.store (vol, std::memory_order_relaxed);
+}
+
+void CMiniDexed::ChangeMasterVolume (int nDelta)
+{
+    // Atomic read-modify-write so a UI step cannot drop a concurrent
+    // CC 7 or SysEx master-volume update.
+    float32_t fOld = nMasterVolume.load (std::memory_order_relaxed);
+    for (;;)
+    {
+        int nOld = (int)(fOld >= 1.0f ? 127 : (fOld <= 0.0f ? 0 : sqrtf (fOld) * 127.0f));
+        int nNew = constrain (nOld + nDelta, 0, 127);
+        float32_t fNew = powf ((float32_t) nNew / 127.0f, 2.0f);
+
+        if (nMasterVolume.compare_exchange_weak (fOld, fNew, std::memory_order_relaxed))
+        {
+            break;
+        }
+    }
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)

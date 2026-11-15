@@ -2074,14 +2074,12 @@ void CUIMenu::EditMasterVolume(CUIMenu *pUIMenu, TMenuEvent Event)
     case MenuEventUpdateParameter:
         break;
     case MenuEventStepDown:
-        nValue -= rParam.Increment;
-        if (nValue < rParam.Minimum) nValue = rParam.Minimum;
-        pUIMenu->m_pMiniDexed->setMasterVolume(nValue / 127.0f);
+        pUIMenu->m_pMiniDexed->ChangeMasterVolume (-rParam.Increment);
+        nValue = pUIMenu->m_pMiniDexed->GetMasterVolume127();
         break;
     case MenuEventStepUp:
-        nValue += rParam.Increment;
-        if (nValue > rParam.Maximum) nValue = rParam.Maximum;
-        pUIMenu->m_pMiniDexed->setMasterVolume(nValue / 127.0f);
+        pUIMenu->m_pMiniDexed->ChangeMasterVolume (rParam.Increment);
+        nValue = pUIMenu->m_pMiniDexed->GetMasterVolume127();
         break;
     default:
         return;
