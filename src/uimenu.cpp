@@ -117,9 +117,9 @@ const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 
 const CUIMenu::TMenuItem CUIMenu::s_NoteLimitsMenu[] =
 {
-	{"Low",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteLimitLow},
-	{"High",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteLimitHigh},
-	{"Shift",		EditTGParameter,	0,	CMiniDexed::TGParameterNoteShift},
+	{"Low",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteLimitLow},
+	{"High",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteLimitHigh},
+	{"Shift",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteShift},
 	{0}
 };
 
