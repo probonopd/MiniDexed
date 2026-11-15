@@ -295,6 +295,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 	{
 		// Perform any MiniDexed level MIDI handling before specific Tone Generators
 		unsigned nPerfCh = m_pSynthesizer->GetPerformanceSelectChannel();
+		bool bMiniDexedCCHandled = false;
 		switch (ucType)
 		{
 		case MIDI_CONTROL_CHANGE:
@@ -310,6 +311,14 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					else if (pMessage[1] == MIDI_CC_BANK_SELECT_LSB)
 					{
 						m_pSynthesizer->BankSelectLSBPerformance (pMessage[2]);
+					}
+					else if ((nLength >= 3) && (pMessage[1] == MIDI_CC_VOLUME))
+					{
+						// CC 7 on the Performance Select Channel controls the
+						// synth-wide master volume. Swallow it here so it is not
+						// also applied as a per-TG volume.
+						m_pSynthesizer->setMasterVolume (pMessage[2] / 127.0f);
+						bMiniDexedCCHandled = true;
 					}
 					else
 					{
@@ -486,7 +495,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 				}
 			}
 		} else {
-			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled; nTG++) {
+			for (unsigned nTG = 0; nTG < m_pConfig->GetToneGenerators() && !bSystemCCHandled && !bMiniDexedCCHandled; nTG++) {
 				if (   m_ChannelMap[nTG] == ucChannel
 				    || m_ChannelMap[nTG] == OmniMode) {
 					switch (ucType)
