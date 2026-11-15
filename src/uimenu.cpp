@@ -1029,14 +1029,15 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 	const char *pParamName =
 		pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name;
 
-	// Show the target name before the save is requested, then show the
-	// result together with the name again.
+	// Show the target name before the save is requested, then show that the
+	// request was accepted. Do not report success before the deferred write
+	// in CMiniDexed::Process() has actually completed.
 	pUIMenu->m_pUI->DisplayWrite (pMenuName, pParamName, Name.c_str (), false, false);
 
 	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
 
-	pUIMenu->m_pUI->DisplayWrite ("Saved", Name.c_str (),
-				      bOK ? "OK" : "Error", false, false);
+	pUIMenu->m_pUI->DisplayWrite (bOK ? "Saving" : "Error", "", Name.c_str (),
+				      false, false);
 
 	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 }
