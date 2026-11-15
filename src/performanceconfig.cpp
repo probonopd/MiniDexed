@@ -962,6 +962,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 	if (f_close (&File) != FR_OK)
 	{
+		f_unlink (nFileName.c_str ());
 		m_PerformanceFileName[nNewPerformance].clear();
 		return false;
 	}
@@ -1015,7 +1016,7 @@ bool CPerformanceConfig::RollbackNewPerformanceFile(void)
 	m_nActualPerformance = m_nRollbackActualPerformance;
 	new (&m_Properties) CPropertiesFatFsFile (m_nRollbackPropertiesPath.c_str (), m_pFileSystem);
 
-	m_bNewPerformanceFileCreated = false;
+	m_bNewPerformanceFileCreated = !bRemoved;
 	return bRemoved;
 }
 
