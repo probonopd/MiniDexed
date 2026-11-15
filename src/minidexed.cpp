@@ -911,11 +911,13 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 
+	m_NoteLimitSpinLock.Acquire ();
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
 		m_pTG[nTG]->keyup (pitch);
 	}
+	m_NoteLimitSpinLock.Release ();
 }
 
 void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
@@ -925,11 +927,13 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 
+	m_NoteLimitSpinLock.Acquire ();
 	pitch = ApplyNoteLimits (pitch, nTG);
 	if (pitch >= 0)
 	{
 		m_pTG[nTG]->keydown (pitch, velocity);
 	}
+	m_NoteLimitSpinLock.Release ();
 }
 
 int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
@@ -937,19 +941,15 @@ int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return -1;  // Not an active TG
 
-	m_NoteLimitSpinLock.Acquire ();
-	unsigned nNoteLimitLow = m_nNoteLimitLow[nTG];
-	unsigned nNoteLimitHigh = m_nNoteLimitHigh[nTG];
-	int nNoteShift = m_nNoteShift[nTG];
-	m_NoteLimitSpinLock.Release ();
-
-	if (   pitch < (int16_t) nNoteLimitLow
-	    || pitch > (int16_t) nNoteLimitHigh)
+	// The caller holds m_NoteLimitSpinLock, so a note edit cannot change
+	// the mapping between this check and the keydown/keyup dispatch.
+	if (   pitch < (int16_t) m_nNoteLimitLow[nTG]
+	    || pitch > (int16_t) m_nNoteLimitHigh[nTG])
 	{
 		return -1;
 	}
 
-	pitch += nNoteShift;
+	pitch += m_nNoteShift[nTG];
 
 	if (   pitch < 0
 	    || pitch > 127)
