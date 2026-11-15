@@ -346,6 +346,7 @@ private:
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+	CSpinLock m_NoteLimitSpinLock;
 
 	// Network
 	CNetSubSystem* m_pNet;
