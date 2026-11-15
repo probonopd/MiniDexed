@@ -32,6 +32,7 @@
 #include <fatfs/ff.h>
 #include <stdint.h>
 #include <string>
+#include <atomic>
 #include <circle/types.h>
 #include <circle/interrupt.h>
 #include <circle/gpiomanager.h>
@@ -238,7 +239,7 @@ public:
 	bool DoSavePerformance (void);
 
 	void setMasterVolume (float32_t vol);
-	int GetMasterVolume127() const { return (int)(nMasterVolume >= 1.0f ? 127 : (nMasterVolume <= 0.0f ? 0 : sqrtf(nMasterVolume) * 127.0f)); }
+	int GetMasterVolume127() const { float32_t fVolume = nMasterVolume.load (std::memory_order_relaxed); return (int)(fVolume >= 1.0f ? 127 : (fVolume <= 0.0f ? 0 : sqrtf (fVolume) * 127.0f)); }
 
 	bool InitNetwork();
 	void UpdateNetwork();
@@ -308,7 +309,7 @@ private:
 	uint8_t m_nRawVoiceData[156]; 
 	
 	
-	float32_t nMasterVolume;
+	std::atomic<float32_t> nMasterVolume;
 
 	CUserInterface m_UI;
 	CSysExFileLoader m_SysExFileLoader;

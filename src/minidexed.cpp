@@ -46,6 +46,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	CMultiCoreSupport (CMemorySystem::Get ()),
 #endif
 	m_pConfig (pConfig),
+	nMasterVolume (1.0f),
 	m_UI (this, pGPIOManager, pI2CMaster, pSPIMaster, pConfig),
 	m_PerformanceConfig (pFileSystem),
 	m_PCKeyboard (this, pConfig, &m_UI),
@@ -1345,6 +1346,8 @@ void CMiniDexed::ProcessSound (void)
 		// Audio signal path after tone generators starts here
 		//
 
+		float32_t fMasterVolume = nMasterVolume.load (std::memory_order_relaxed);
+
 		if (m_bQuadDAC8Chan) {
 			// This is only supported when there are 8 TGs
 			assert (m_nToneGenerators == 8);
@@ -1363,7 +1366,7 @@ void CMiniDexed::ProcessSound (void)
 				// no additional processing.
 				for (uint8_t tg = 0; tg < Channels; tg++)
 				{
-					tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * nMasterVolume;
+					tmp_float[(i*Channels)+tg]=m_OutputLevel[tg][i] * fMasterVolume;
 				}
 			}
 
@@ -1442,7 +1445,7 @@ void CMiniDexed::ProcessSound (void)
 			}
 
 			// Convert dual float array (left, right) to single int16 array (left/right)
-			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], nMasterVolume, tmp_float, nFrames);
+			arm_scale_zip_f32(SampleBuffer[indexL], SampleBuffer[indexR], fMasterVolume, tmp_float, nFrames);
 
 			arm_float_to_q23(tmp_float,tmp_int,nFrames*2);
 
@@ -1860,7 +1863,7 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     // Apply logarithmic scaling to match perceived loudness
     vol = powf(vol, 2.0f);
 
-    nMasterVolume = vol;
+    nMasterVolume.store (vol, std::memory_order_relaxed);
 }
 
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
