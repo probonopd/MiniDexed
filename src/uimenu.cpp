@@ -1039,7 +1039,15 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 	pUIMenu->m_pUI->DisplayWrite (bOK ? "Saving" : "Error", "", Name.c_str (),
 				      false, false);
 
-	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+	pUIMenu->m_SavedPerformanceName = Name;
+	if (bOK)
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pUIMenu);
+	}
+	else
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+	}
 }
 
 string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
@@ -1572,6 +1580,23 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 	pThis->EventHandler (MenuEventBack);
 }
 
+void CUIMenu::TimerHandlerSaveResult (TKernelTimerHandle hTimer, void *pParam, void *pContext)
+{
+	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
+	assert (pThis);
+
+	bool bOK;
+	if (!pThis->m_pMiniDexed->GetSavePerformanceResult (bOK))
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pThis);
+		return;
+	}
+
+	pThis->m_pUI->DisplayWrite (bOK ? "Saved" : "Error", "",
+				    pThis->m_SavedPerformanceName.c_str (), false, false);
+	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pThis);
+}
+
 void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext)
 {
 	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
@@ -1980,9 +2005,17 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			}
 			pUIMenu->m_pMiniDexed->SetNewPerformanceName(NewName);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
-			MsgOk = bOK ? NewName : "Error";
+			pUIMenu->m_SavedPerformanceName = NewName;
+			MsgOk = bOK ? "Saving" : "Error";
 			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
-			CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+			if (bOK)
+			{
+				CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pUIMenu);
+			}
+			else
+			{
+				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+			}
 			return;
 		}
 		else

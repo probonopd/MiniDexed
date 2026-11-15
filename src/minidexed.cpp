@@ -69,6 +69,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_UDPMIDI(nullptr),
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
+	m_bSavePerformanceResultReady (false),
+	m_bSavePerformanceResultOK (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
 	m_bSetNewPerformanceBank (false),
@@ -408,7 +410,8 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 
 	if (m_bSavePerformance)
 	{
-		DoSavePerformance ();
+		m_bSavePerformanceResultOK.store (DoSavePerformance (), std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_relaxed);
 
 		m_bSavePerformance = false;
 		pScheduler->Yield();
@@ -416,7 +419,8 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 
 	if (m_bSavePerformanceNewFile)
 	{
-		DoSavePerformanceNewFile ();
+		m_bSavePerformanceResultOK.store (DoSavePerformanceNewFile (), std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_relaxed);
 		m_bSavePerformanceNewFile = false;
 		pScheduler->Yield();
 	}
@@ -1495,6 +1499,7 @@ bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
 	if (m_PerformanceConfig.GetInternalFolderOk())
 	{
+		m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
 		m_bSavePerformance = true;
 		m_bSaveAsDeault=bSaveAsDeault;
 
@@ -1863,6 +1868,18 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     nMasterVolume = vol;
 }
 
+bool CMiniDexed::GetSavePerformanceResult (bool &bOK)
+{
+	if (!m_bSavePerformanceResultReady.load (std::memory_order_relaxed))
+	{
+		return false;
+	}
+
+	bOK = m_bSavePerformanceResultOK.load (std::memory_order_relaxed);
+	m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
+	return true;
+}
+
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
 {
 	return m_PerformanceConfig.GetPerformanceFileName(nID);
@@ -1972,6 +1989,7 @@ void CMiniDexed::DoSetFirstPerformance(void)
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
+	m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
 	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk() && m_PerformanceConfig.CheckFreePerformanceSlot();
 	return m_bSavePerformanceNewFile;
 }
@@ -1980,20 +1998,13 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
 	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
-		if(SavePerformance(false))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		m_bSaveAsDeault = false;
+		return DoSavePerformance ();
 	}
 	else
 	{
 		return false;
 	}
-	
 }
 
 
