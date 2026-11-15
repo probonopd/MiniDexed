@@ -112,6 +112,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 			}
 			m_nMappedNoteHead[i][nNote] = 0;
 			m_nNoteHeldCount[i][nNote] = 0;
+			m_nIgnoredReleaseCount[i][nNote] = 0;
 		}
 		
 		m_nModulationWheelRange[i]=99;
@@ -926,6 +927,13 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	m_NoteLimitSpinLock.Acquire ();
 	if ((pitch >= 0) && (pitch < 128))
 	{
+		if (m_nIgnoredReleaseCount[nTG][pitch] > 0)
+		{
+			m_nIgnoredReleaseCount[nTG][pitch]--;
+			m_NoteLimitSpinLock.Release ();
+			return;
+		}
+
 		if (m_nNoteHeldCount[nTG][pitch] > 0)
 		{
 			unsigned nSlot = m_nMappedNoteHead[nTG][pitch];
@@ -962,8 +970,13 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 		}
 		else
 		{
-			// Queue is full: replace the oldest mapping.
+			// Queue is full: release the oldest mapping before replacing it.
 			unsigned nSlot = m_nMappedNoteHead[nTG][pitch];
+			int16_t nOldMapped = m_nMappedNote[nTG][pitch][nSlot];
+			if (nOldMapped >= 0)
+			{
+				m_pTG[nTG]->keyup (nOldMapped);
+			}
 			m_nMappedNote[nTG][pitch][nSlot] = nMapped;
 			m_nMappedNoteHead[nTG][pitch] = (nSlot + 1) % MaxMappedNotes;
 		}
@@ -1004,6 +1017,9 @@ void CMiniDexed::ClearMappedNotes (unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	for (unsigned nNote = 0; nNote < 128; nNote++)
 	{
+		unsigned nIgnored = m_nIgnoredReleaseCount[nTG][nNote] + m_nNoteHeldCount[nTG][nNote];
+		m_nIgnoredReleaseCount[nTG][nNote] = (nIgnored > 255) ? 255 : nIgnored;
+
 		for (unsigned nSlot = 0; nSlot < MaxMappedNotes; nSlot++)
 		{
 			m_nMappedNote[nTG][nNote][nSlot] = -1;
