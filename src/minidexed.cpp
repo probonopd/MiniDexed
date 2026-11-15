@@ -107,6 +107,7 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		for (unsigned nNote = 0; nNote < 128; nNote++)
 		{
 			m_nMappedNote[i][nNote] = -1;
+			m_nNoteHeldCount[i][nNote] = 0;
 		}
 		
 		m_nModulationWheelRange[i]=99;
@@ -921,11 +922,19 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	m_NoteLimitSpinLock.Acquire ();
 	if ((pitch >= 0) && (pitch < 128))
 	{
-		int16_t nMapped = m_nMappedNote[nTG][pitch];
-		m_nMappedNote[nTG][pitch] = -1;
-		if (nMapped >= 0)
+		if (m_nNoteHeldCount[nTG][pitch] > 0)
 		{
-			m_pTG[nTG]->keyup (nMapped);
+			m_nNoteHeldCount[nTG][pitch]--;
+		}
+
+		if (m_nNoteHeldCount[nTG][pitch] == 0)
+		{
+			int16_t nMapped = m_nMappedNote[nTG][pitch];
+			m_nMappedNote[nTG][pitch] = -1;
+			if (nMapped >= 0)
+			{
+				m_pTG[nTG]->keyup (nMapped);
+			}
 		}
 	}
 	m_NoteLimitSpinLock.Release ();
@@ -942,6 +951,10 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	if ((pitch >= 0) && (pitch < 128))
 	{
 		int16_t nMapped = ApplyNoteLimits (pitch, nTG);
+		if (m_nNoteHeldCount[nTG][pitch] < 255)
+		{
+			m_nNoteHeldCount[nTG][pitch]++;
+		}
 		m_nMappedNote[nTG][pitch] = nMapped;
 		if (nMapped >= 0)
 		{
@@ -981,6 +994,7 @@ void CMiniDexed::ClearMappedNotes (unsigned nTG)
 	for (unsigned nNote = 0; nNote < 128; nNote++)
 	{
 		m_nMappedNote[nTG][nNote] = -1;
+		m_nNoteHeldCount[nTG][nNote] = 0;
 	}
 }
 

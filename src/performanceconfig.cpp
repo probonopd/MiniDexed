@@ -153,10 +153,12 @@ bool CPerformanceConfig::Load (void)
 		m_nResonance[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("NoteLimitLow%u", nTG+1);
-		unsigned nNoteLimitLow = std::min (m_Properties.GetNumber (PropertyName, 0), 127u);
+		int nNoteLimitLowSigned = m_Properties.GetSignedNumber (PropertyName, 0);
+		unsigned nNoteLimitLow = (unsigned) std::max (0, std::min (nNoteLimitLowSigned, 127));
 
 		PropertyName.Format ("NoteLimitHigh%u", nTG+1);
-		unsigned nNoteLimitHigh = std::min (m_Properties.GetNumber (PropertyName, 127), 127u);
+		int nNoteLimitHighSigned = m_Properties.GetSignedNumber (PropertyName, 127);
+		unsigned nNoteLimitHigh = (unsigned) std::max (0, std::min (nNoteLimitHighSigned, 127));
 
 		if (nNoteLimitLow > nNoteLimitHigh)
 		{
