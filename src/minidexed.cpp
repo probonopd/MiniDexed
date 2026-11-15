@@ -806,6 +806,7 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 	{
 		nNote = m_nNoteLimitHigh[nTG];
 	}
+	nNote = constrain ((int) nNote, 0, 127);
 
 	m_nNoteLimitLow[nTG] = nNote;
 
@@ -826,6 +827,7 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 	{
 		nNote = m_nNoteLimitLow[nTG];
 	}
+	nNote = constrain ((int) nNote, 0, 127);
 
 	m_nNoteLimitHigh[nTG] = nNote;
 

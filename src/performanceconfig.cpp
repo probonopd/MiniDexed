@@ -153,13 +153,21 @@ bool CPerformanceConfig::Load (void)
 		m_nResonance[nTG] = m_Properties.GetNumber (PropertyName, 0);
 
 		PropertyName.Format ("NoteLimitLow%u", nTG+1);
-		m_nNoteLimitLow[nTG] = m_Properties.GetNumber (PropertyName, 0);
+		unsigned nNoteLimitLow = std::min (m_Properties.GetNumber (PropertyName, 0), 127u);
 
 		PropertyName.Format ("NoteLimitHigh%u", nTG+1);
-		m_nNoteLimitHigh[nTG] = m_Properties.GetNumber (PropertyName, 127);
+		unsigned nNoteLimitHigh = std::min (m_Properties.GetNumber (PropertyName, 127), 127u);
+
+		if (nNoteLimitLow > nNoteLimitHigh)
+		{
+			std::swap (nNoteLimitLow, nNoteLimitHigh);
+		}
+
+		m_nNoteLimitLow[nTG] = nNoteLimitLow;
+		m_nNoteLimitHigh[nTG] = nNoteLimitHigh;
 
 		PropertyName.Format ("NoteShift%u", nTG+1);
-		m_nNoteShift[nTG] = m_Properties.GetSignedNumber (PropertyName, 0);
+		m_nNoteShift[nTG] = std::max (-24, std::min (m_Properties.GetSignedNumber (PropertyName, 0), 24));
 
 		PropertyName.Format ("ReverbSend%u", nTG+1);
 		m_nReverbSend[nTG] = m_Properties.GetNumber (PropertyName, 50);
