@@ -1291,6 +1291,12 @@ void CMiniDexed::ProcessSound (void)
 		int32_t tmp_int[nFrames];
 		arm_float_to_q23(SampleBuffer,tmp_int,nFrames);
 
+		// Prevent PCM510x analog mute from kicking in
+		if (tmp_int[nFrames - 1] == 0)
+		{
+			tmp_int[nFrames - 1]++;
+		}
+
 		if (m_pSoundDevice->Write (tmp_int, sizeof(tmp_int)) != (int) sizeof(tmp_int))
 		{
 			LOGERR ("Sound data dropped");
