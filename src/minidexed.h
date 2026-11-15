@@ -252,6 +252,7 @@ public:
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
+	void ClearMappedNotes (unsigned nTG);
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
@@ -309,6 +310,7 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
+	int16_t m_nMappedNote[CConfig::AllToneGenerators][128];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
   

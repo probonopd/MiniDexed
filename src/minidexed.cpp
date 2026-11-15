@@ -104,6 +104,10 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 		m_nNoteLimitLow[i] = 0;
 		m_nNoteLimitHigh[i] = 127;
 		m_nNoteShift[i] = 0;
+		for (unsigned nNote = 0; nNote < 128; nNote++)
+		{
+			m_nMappedNote[i][nNote] = -1;
+		}
 		
 		m_nModulationWheelRange[i]=99;
 		m_nModulationWheelTarget[i]=7;
@@ -813,6 +817,7 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	ClearMappedNotes (nTG);
 	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
@@ -836,6 +841,7 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	ClearMappedNotes (nTG);
 	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
@@ -853,6 +859,7 @@ void CMiniDexed::SetNoteShift (int nShift, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	ClearMappedNotes (nTG);
 	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
@@ -912,10 +919,14 @@ void CMiniDexed::keyup (int16_t pitch, unsigned nTG)
 	assert (m_pTG[nTG]);
 
 	m_NoteLimitSpinLock.Acquire ();
-	pitch = ApplyNoteLimits (pitch, nTG);
-	if (pitch >= 0)
+	if ((pitch >= 0) && (pitch < 128))
 	{
-		m_pTG[nTG]->keyup (pitch);
+		int16_t nMapped = m_nMappedNote[nTG][pitch];
+		m_nMappedNote[nTG][pitch] = -1;
+		if (nMapped >= 0)
+		{
+			m_pTG[nTG]->keyup (nMapped);
+		}
 	}
 	m_NoteLimitSpinLock.Release ();
 }
@@ -928,10 +939,14 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 	assert (m_pTG[nTG]);
 
 	m_NoteLimitSpinLock.Acquire ();
-	pitch = ApplyNoteLimits (pitch, nTG);
-	if (pitch >= 0)
+	if ((pitch >= 0) && (pitch < 128))
 	{
-		m_pTG[nTG]->keydown (pitch, velocity);
+		int16_t nMapped = ApplyNoteLimits (pitch, nTG);
+		m_nMappedNote[nTG][pitch] = nMapped;
+		if (nMapped >= 0)
+		{
+			m_pTG[nTG]->keydown (nMapped, velocity);
+		}
 	}
 	m_NoteLimitSpinLock.Release ();
 }
@@ -958,6 +973,15 @@ int16_t CMiniDexed::ApplyNoteLimits (int16_t pitch, unsigned nTG)
 	}
 
 	return pitch;
+}
+
+void CMiniDexed::ClearMappedNotes (unsigned nTG)
+{
+	assert (nTG < CConfig::AllToneGenerators);
+	for (unsigned nNote = 0; nNote < 128; nNote++)
+	{
+		m_nMappedNote[nTG][nNote] = -1;
+	}
 }
 
 void CMiniDexed::setSustain(bool sustain, unsigned nTG)
@@ -994,7 +1018,10 @@ void CMiniDexed::panic(uint8_t value, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	if (value == 0) {
+		m_NoteLimitSpinLock.Acquire ();
 		m_pTG[nTG]->panic ();
+		ClearMappedNotes (nTG);
+		m_NoteLimitSpinLock.Release ();
 	}
 }
 
@@ -1005,7 +1032,10 @@ void CMiniDexed::notesOff(uint8_t value, unsigned nTG)
 
 	assert (m_pTG[nTG]);
 	if (value == 0) {
+		m_NoteLimitSpinLock.Acquire ();
 		m_pTG[nTG]->notesOff ();
+		ClearMappedNotes (nTG);
+		m_NoteLimitSpinLock.Release ();
 	}
 }
 
@@ -2119,6 +2149,7 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			{
 				assert (m_pTG[nTG]);
 				m_pTG[nTG]->notesOff ();
+				ClearMappedNotes (nTG);
 			}
 			m_NoteLimitSpinLock.Release ();
 			
