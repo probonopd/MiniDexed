@@ -1968,7 +1968,10 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 		{	
 			pUIMenu->m_pMiniDexed->SetNewPerformanceName(pUIMenu->m_InputText);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
-			MsgOk=bOK ? "Completed" : "Error";
+			std::string NewName = pUIMenu->m_InputText;
+			size_t nEnd = NewName.find_last_not_of (' ');
+			NewName.erase (nEnd == std::string::npos ? 0 : nEnd + 1);
+			MsgOk = bOK ? (NewName.empty () ? "New Performance" : NewName) : "Error";
 			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
 			CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
 			return;
