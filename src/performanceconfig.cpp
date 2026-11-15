@@ -973,6 +973,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	m_nRollbackLastPerformance = nPreviousLastPerformance;
 	m_nRollbackActualPerformance = nPreviousActualPerformance;
 	m_nRollbackPropertiesPath = nPreviousPropertiesPath;
+	m_nRollbackNewFilePath = nFileName;
 	m_bNewPerformanceFileCreated = true;
 
 	return true;
@@ -985,8 +986,13 @@ bool CPerformanceConfig::RollbackNewPerformanceFile(void)
 		return false;
 	}
 
-	std::string NewFilePath = GetPerformanceFullFilePath (m_nActualPerformance);
-	f_unlink (NewFilePath.c_str ());
+	FRESULT Result = f_unlink (m_nRollbackNewFilePath.c_str ());
+	if ((Result != FR_OK) && (Result != FR_NO_FILE))
+	{
+		LOGWARN ("RollbackNewPerformanceFile: Cannot remove %s (%d)", m_nRollbackNewFilePath.c_str (), Result);
+		return false;
+	}
+
 	m_PerformanceFileName[m_nActualPerformance].clear ();
 
 	m_nLastPerformance = m_nRollbackLastPerformance;

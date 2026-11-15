@@ -200,6 +200,7 @@ private:
 	unsigned m_nRollbackLastPerformance = 0;
 	unsigned m_nRollbackActualPerformance = 0;
 	std::string m_nRollbackPropertiesPath;
+	std::string m_nRollbackNewFilePath;
 	
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;
