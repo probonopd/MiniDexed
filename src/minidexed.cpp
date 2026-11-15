@@ -802,7 +802,15 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
+	if (nNote > m_nNoteLimitHigh[nTG])
+	{
+		nNote = m_nNoteLimitHigh[nTG];
+	}
+
 	m_nNoteLimitLow[nTG] = nNote;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->notesOff ();
 
 	m_UI.ParameterChanged ();
 }
@@ -814,7 +822,15 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 	assert (nTG < CConfig::AllToneGenerators);
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
+	if (nNote < m_nNoteLimitLow[nTG])
+	{
+		nNote = m_nNoteLimitLow[nTG];
+	}
+
 	m_nNoteLimitHigh[nTG] = nNote;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->notesOff ();
 
 	m_UI.ParameterChanged ();
 }
@@ -827,6 +843,9 @@ void CMiniDexed::SetNoteShift (int nShift, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_nNoteShift[nTG] = nShift;
+
+	assert (m_pTG[nTG]);
+	m_pTG[nTG]->notesOff ();
 
 	m_UI.ParameterChanged ();
 }

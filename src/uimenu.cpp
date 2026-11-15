@@ -1190,7 +1190,16 @@ string CUIMenu::ToNoteName (int nValue)
 	static const char *NoteName[] = {"C", "C#", "D", "D#", "E", "F",
 					 "F#", "G", "G#", "A", "A#", "B"};
 
-	assert ((unsigned) nValue <= 127);
+	// Values loaded from a performance file are not validated elsewhere.
+	// Keep malformed values from producing an invalid note name.
+	if (nValue < 0)
+	{
+		nValue = 0;
+	}
+	else if (nValue > 127)
+	{
+		nValue = 127;
+	}
 
 	return string (NoteName[nValue % 12]) + to_string (nValue / 12 - 2);
 }
