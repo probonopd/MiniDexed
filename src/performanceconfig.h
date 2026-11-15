@@ -135,6 +135,7 @@ public:
 	void SetActualPerformanceBankID(unsigned nBankID);
 	unsigned GetActualPerformanceBankID();
 	bool CreateNewPerformanceFile(void);
+	bool RollbackNewPerformanceFile(void);
 	bool GetInternalFolderOk(); 
 	std::string GetNewPerformanceDefaultName(void);
 	void SetNewPerformanceName(const std::string &Name);
@@ -195,6 +196,10 @@ private:
 	FATFS *m_pFileSystem; 
 
 	std::string NewPerformanceName="";
+	bool m_bNewPerformanceFileCreated = false;
+	unsigned m_nRollbackLastPerformance = 0;
+	unsigned m_nRollbackActualPerformance = 0;
+	std::string m_nRollbackPropertiesPath;
 	
 	bool m_bCompressorEnable;
 	bool m_bReverbEnable;

@@ -1591,6 +1591,7 @@ void CUIMenu::TimerHandlerSaveResult (TKernelTimerHandle hTimer, void *pParam, v
 	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
 	assert (pThis);
 
+	std::string Name = pThis->m_SavedPerformanceName;
 	bool bOK;
 	if (!pThis->m_pMiniDexed->GetSavePerformanceResult (bOK))
 	{
@@ -1598,8 +1599,7 @@ void CUIMenu::TimerHandlerSaveResult (TKernelTimerHandle hTimer, void *pParam, v
 		return;
 	}
 
-	pThis->m_pUI->DisplayWrite (bOK ? "Saved" : "Error", "",
-				    pThis->m_SavedPerformanceName.c_str (), false, false);
+	pThis->m_pUI->DisplayWrite (bOK ? "Saved" : "Error", "", Name.c_str (), false, false);
 	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pThis);
 }
 

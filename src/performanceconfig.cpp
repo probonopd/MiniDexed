@@ -921,6 +921,9 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
+	unsigned nPreviousLastPerformance = m_nLastPerformance;
+	unsigned nPreviousActualPerformance = m_nActualPerformance;
+	std::string nPreviousPropertiesPath = GetPerformanceFullFilePath (nPreviousActualPerformance);
 	unsigned nNewPerformance = m_nLastPerformance + 1;
 	std::string nFileName;
 	std::string nPath;
@@ -966,7 +969,31 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	m_nLastPerformance = nNewPerformance;
 	m_nActualPerformance = nNewPerformance;
 	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
-	
+
+	m_nRollbackLastPerformance = nPreviousLastPerformance;
+	m_nRollbackActualPerformance = nPreviousActualPerformance;
+	m_nRollbackPropertiesPath = nPreviousPropertiesPath;
+	m_bNewPerformanceFileCreated = true;
+
+	return true;
+}
+
+bool CPerformanceConfig::RollbackNewPerformanceFile(void)
+{
+	if (!m_bNewPerformanceFileCreated)
+	{
+		return false;
+	}
+
+	std::string NewFilePath = GetPerformanceFullFilePath (m_nActualPerformance);
+	f_unlink (NewFilePath.c_str ());
+	m_PerformanceFileName[m_nActualPerformance].clear ();
+
+	m_nLastPerformance = m_nRollbackLastPerformance;
+	m_nActualPerformance = m_nRollbackActualPerformance;
+	new (&m_Properties) CPropertiesFatFsFile (m_nRollbackPropertiesPath.c_str (), m_pFileSystem);
+
+	m_bNewPerformanceFileCreated = false;
 	return true;
 }
 

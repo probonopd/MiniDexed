@@ -2016,7 +2016,13 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
 		m_bSaveAsDeault = false;
-		return DoSavePerformance ();
+		if (DoSavePerformance ())
+		{
+			return true;
+		}
+
+		m_PerformanceConfig.RollbackNewPerformanceFile ();
+		return false;
 	}
 	else
 	{
