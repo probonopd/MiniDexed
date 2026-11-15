@@ -1006,18 +1006,54 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
-	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
+	// Show which performance is being written. "Save as default" always
+	// writes the default performance, so do not use the current name there.
+	std::string Name;
+	if (pUIMenu->m_nCurrentParameter == 1)
+	{
+		Name = "Default";
+	}
+	else
+	{
+		Name = pUIMenu->m_pMiniDexed->GetPerformanceName (
+			pUIMenu->m_pMiniDexed->GetActualPerformanceID ());
+		if (Name.empty ())
+		{
+			Name = "Performance";
+		}
+	}
+
+	if (pUIMenu->m_pMiniDexed->IsSavePerformancePending ())
+	{
+		pUIMenu->m_pUI->DisplayWrite ("Busy", "", Name.c_str (), false, false);
+		return;
+	}
 
 	const char *pMenuName =
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
 			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
+	const char *pParamName =
+		pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name;
 
-	pUIMenu->m_pUI->DisplayWrite (pMenuName,
-				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      bOK ? "Completed" : "Error",
+	// Show the target name before the save is requested, then show that the
+	// request was accepted. Do not report success before the deferred write
+	// in CMiniDexed::Process() has actually completed.
+	pUIMenu->m_pUI->DisplayWrite (pMenuName, pParamName, Name.c_str (), false, false);
+
+	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
+
+	pUIMenu->m_pUI->DisplayWrite (bOK ? "Saving" : "Error", "", Name.c_str (),
 				      false, false);
 
-	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+	pUIMenu->m_SavedPerformanceName = Name;
+	if (bOK)
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pUIMenu);
+	}
+	else
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+	}
 }
 
 string CUIMenu::GetGlobalValueString (unsigned nParameter, int nValue)
@@ -1550,6 +1586,23 @@ void CUIMenu::TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pCont
 	pThis->EventHandler (MenuEventBack);
 }
 
+void CUIMenu::TimerHandlerSaveResult (TKernelTimerHandle hTimer, void *pParam, void *pContext)
+{
+	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
+	assert (pThis);
+
+	std::string Name = pThis->m_SavedPerformanceName;
+	bool bOK;
+	if (!pThis->m_pMiniDexed->GetSavePerformanceResult (bOK))
+	{
+		CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pThis);
+		return;
+	}
+
+	pThis->m_pUI->DisplayWrite (bOK ? "Saved" : "Error", "", Name.c_str (), false, false);
+	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pThis);
+}
+
 void CUIMenu::TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext)
 {
 	CUIMenu *pThis = static_cast<CUIMenu *> (pContext);
@@ -1949,11 +2002,34 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 	case MenuEventSelect:	
 		if(pUIMenu->m_nCurrentParameter == 1)
 		{	
-			pUIMenu->m_pMiniDexed->SetNewPerformanceName(pUIMenu->m_InputText);
+			std::string NewName = pUIMenu->m_InputText;
+			size_t nEnd = NewName.find_last_not_of (' ');
+			NewName.erase (nEnd == std::string::npos ? 0 : nEnd + 1);
+			if (NewName.empty ())
+			{
+				NewName = pUIMenu->m_pMiniDexed->GetNewPerformanceDefaultName ();
+			}
+
+			if (pUIMenu->m_pMiniDexed->IsSavePerformancePending ())
+			{
+				pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), "Busy", NewName.c_str (), false, false);
+				// The pending save's result timer owns the menu return.
+				return;
+			}
+
+			pUIMenu->m_pMiniDexed->SetNewPerformanceName(NewName);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
-			MsgOk=bOK ? "Completed" : "Error";
-			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
-			CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+			pUIMenu->m_SavedPerformanceName = NewName;
+			MsgOk = bOK ? "Saving" : "Error";
+			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), MsgOk.c_str(), NewName.c_str (), false, false);
+			if (bOK)
+			{
+				CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pUIMenu);
+			}
+			else
+			{
+				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+			}
 			return;
 		}
 		else

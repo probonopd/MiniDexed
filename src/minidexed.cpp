@@ -70,6 +70,8 @@ CMiniDexed::CMiniDexed (CConfig *pConfig, CInterruptSystem *pInterrupt,
 	m_UDPMIDI(nullptr),
 	m_pmDNSPublisher (nullptr),
 	m_bSavePerformance (false),
+	m_bSavePerformanceResultReady (false),
+	m_bSavePerformanceResultOK (false),
 	m_bSavePerformanceNewFile (false),
 	m_bSetNewPerformance (false),
 	m_bSetNewPerformanceBank (false),
@@ -409,7 +411,8 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 
 	if (m_bSavePerformance)
 	{
-		DoSavePerformance ();
+		m_bSavePerformanceResultOK.store (DoSavePerformance (), std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_release);
 
 		m_bSavePerformance = false;
 		pScheduler->Yield();
@@ -417,7 +420,8 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 
 	if (m_bSavePerformanceNewFile)
 	{
-		DoSavePerformanceNewFile ();
+		m_bSavePerformanceResultOK.store (DoSavePerformanceNewFile (), std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_release);
 		m_bSavePerformanceNewFile = false;
 		pScheduler->Yield();
 	}
@@ -1508,8 +1512,14 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
+	if (IsSavePerformancePending ())
+	{
+		return false;
+	}
+
 	if (m_PerformanceConfig.GetInternalFolderOk())
 	{
+		m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
 		m_bSavePerformance = true;
 		m_bSaveAsDeault=bSaveAsDeault;
 
@@ -1896,6 +1906,25 @@ void CMiniDexed::ChangeMasterVolume (int nDelta)
     }
 }
 
+bool CMiniDexed::IsSavePerformancePending (void) const
+{
+	return m_bSavePerformance
+	    || m_bSavePerformanceNewFile
+	    || m_bSavePerformanceResultReady.load (std::memory_order_acquire);
+}
+
+bool CMiniDexed::GetSavePerformanceResult (bool &bOK)
+{
+	if (!m_bSavePerformanceResultReady.load (std::memory_order_acquire))
+	{
+		return false;
+	}
+
+	bOK = m_bSavePerformanceResultOK.load (std::memory_order_relaxed);
+	m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
+	return true;
+}
+
 std::string CMiniDexed::GetPerformanceFileName(unsigned nID)
 {
 	return m_PerformanceConfig.GetPerformanceFileName(nID);
@@ -2005,6 +2034,12 @@ void CMiniDexed::DoSetFirstPerformance(void)
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
+	if (IsSavePerformancePending ())
+	{
+		return false;
+	}
+
+	m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
 	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk() && m_PerformanceConfig.CheckFreePerformanceSlot();
 	return m_bSavePerformanceNewFile;
 }
@@ -2013,20 +2048,22 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 {
 	if (m_PerformanceConfig.CreateNewPerformanceFile())
 	{
-		if(SavePerformance(false))
+		m_bSaveAsDeault = false;
+		if (DoSavePerformance ())
 		{
 			return true;
 		}
-		else
+
+		if (!m_PerformanceConfig.RollbackNewPerformanceFile ())
 		{
-			return false;
+			LOGWARN ("DoSavePerformanceNewFile: rollback could not remove the new performance file");
 		}
+		return false;
 	}
 	else
 	{
 		return false;
 	}
-	
 }
 
 

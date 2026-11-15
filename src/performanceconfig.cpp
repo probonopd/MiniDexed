@@ -921,6 +921,9 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 	std::string sPerformanceName = NewPerformanceName;
 	NewPerformanceName=""; 
+	unsigned nPreviousLastPerformance = m_nLastPerformance;
+	unsigned nPreviousActualPerformance = m_nActualPerformance;
+	std::string nPreviousPropertiesPath = GetPerformanceFullFilePath (nPreviousActualPerformance);
 	unsigned nNewPerformance = m_nLastPerformance + 1;
 	std::string nFileName;
 	std::string nPath;
@@ -959,6 +962,7 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 
 	if (f_close (&File) != FR_OK)
 	{
+		f_unlink (nFileName.c_str ());
 		m_PerformanceFileName[nNewPerformance].clear();
 		return false;
 	}
@@ -966,8 +970,54 @@ bool CPerformanceConfig::CreateNewPerformanceFile(void)
 	m_nLastPerformance = nNewPerformance;
 	m_nActualPerformance = nNewPerformance;
 	new (&m_Properties) CPropertiesFatFsFile(nFileName.c_str(), m_pFileSystem);
-	
+
+	m_nRollbackLastPerformance = nPreviousLastPerformance;
+	m_nRollbackActualPerformance = nPreviousActualPerformance;
+	m_nRollbackPropertiesPath = nPreviousPropertiesPath;
+	m_nRollbackNewFilePath = nFileName;
+	m_bNewPerformanceFileCreated = true;
+
 	return true;
+}
+
+bool CPerformanceConfig::RollbackNewPerformanceFile(void)
+{
+	if (!m_bNewPerformanceFileCreated)
+	{
+		return false;
+	}
+
+	bool bRemoved = false;
+	FRESULT Result = f_unlink (m_nRollbackNewFilePath.c_str ());
+	if ((Result == FR_OK) || (Result == FR_NO_FILE))
+	{
+		bRemoved = true;
+	}
+	else
+	{
+		// If the file cannot be removed, at least move it out of the *.ini
+		// namespace so a directory scan does not register the partial save.
+		std::string RejectedPath = m_nRollbackNewFilePath + ".rej";
+		FRESULT RenameResult = f_rename (m_nRollbackNewFilePath.c_str (), RejectedPath.c_str ());
+		if ((RenameResult == FR_OK) || (RenameResult == FR_NO_FILE))
+		{
+			bRemoved = true;
+		}
+		else
+		{
+			LOGWARN ("RollbackNewPerformanceFile: Cannot remove or rename %s (%d/%d)",
+				 m_nRollbackNewFilePath.c_str (), Result, RenameResult);
+		}
+	}
+
+	m_PerformanceFileName[m_nActualPerformance].clear ();
+
+	m_nLastPerformance = m_nRollbackLastPerformance;
+	m_nActualPerformance = m_nRollbackActualPerformance;
+	new (&m_Properties) CPropertiesFatFsFile (m_nRollbackPropertiesPath.c_str (), m_pFileSystem);
+
+	m_bNewPerformanceFileCreated = !bRemoved;
+	return bRemoved;
 }
 
 bool CPerformanceConfig::ListPerformances()

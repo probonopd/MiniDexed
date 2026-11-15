@@ -151,6 +151,8 @@ public:
 	bool DoSetNewPerformanceBank (void);
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
+	bool GetSavePerformanceResult (bool &bOK);
+	bool IsSavePerformancePending (void) const;
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
 	bool IsValidPerformance(unsigned nID);
@@ -354,6 +356,8 @@ private:
 	CmDNSPublisher *m_pmDNSPublisher;
 
 	bool m_bSavePerformance;
+	std::atomic<bool> m_bSavePerformanceResultReady;
+	std::atomic<bool> m_bSavePerformanceResultOK;
 	bool m_bSavePerformanceNewFile;
 	bool m_bSetNewPerformance;
 	unsigned m_nSetNewPerformanceID;	

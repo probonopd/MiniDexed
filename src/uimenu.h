@@ -127,6 +127,7 @@ private:
 	void TGUpDownHandler (TMenuEvent Event);
 
 	static void TimerHandler (TKernelTimerHandle hTimer, void *pParam, void *pContext);
+	static void TimerHandlerSaveResult (TKernelTimerHandle hTimer, void *pParam, void *pContext);
 
 	static void InputTxt (CUIMenu *pUIMenu, TMenuEvent Event);
 	static void TimerHandlerNoBack (TKernelTimerHandle hTimer, void *pParam, void *pContext);
@@ -174,6 +175,7 @@ private:
 	static const char s_NoteName[100][5];
 
 	std::string m_InputText="1234567890ABCD";
+	std::string m_SavedPerformanceName;
 	unsigned m_InputTextPosition=0;
 	unsigned m_InputTextChar=32;
 	bool m_bPerformanceDeleteMode=false;
