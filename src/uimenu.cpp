@@ -2013,7 +2013,7 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			if (pUIMenu->m_pMiniDexed->IsSavePerformancePending ())
 			{
 				pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), "Busy", NewName.c_str (), false, false);
-				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+				// The pending save's result timer owns the menu return.
 				return;
 			}
 

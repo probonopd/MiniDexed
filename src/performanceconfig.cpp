@@ -986,11 +986,27 @@ bool CPerformanceConfig::RollbackNewPerformanceFile(void)
 		return false;
 	}
 
+	bool bRemoved = false;
 	FRESULT Result = f_unlink (m_nRollbackNewFilePath.c_str ());
-	if ((Result != FR_OK) && (Result != FR_NO_FILE))
+	if ((Result == FR_OK) || (Result == FR_NO_FILE))
 	{
-		LOGWARN ("RollbackNewPerformanceFile: Cannot remove %s (%d)", m_nRollbackNewFilePath.c_str (), Result);
-		return false;
+		bRemoved = true;
+	}
+	else
+	{
+		// If the file cannot be removed, at least move it out of the *.ini
+		// namespace so a directory scan does not register the partial save.
+		std::string RejectedPath = m_nRollbackNewFilePath + ".rej";
+		FRESULT RenameResult = f_rename (m_nRollbackNewFilePath.c_str (), RejectedPath.c_str ());
+		if ((RenameResult == FR_OK) || (RenameResult == FR_NO_FILE))
+		{
+			bRemoved = true;
+		}
+		else
+		{
+			LOGWARN ("RollbackNewPerformanceFile: Cannot remove or rename %s (%d/%d)",
+				 m_nRollbackNewFilePath.c_str (), Result, RenameResult);
+		}
 	}
 
 	m_PerformanceFileName[m_nActualPerformance].clear ();
@@ -1000,7 +1016,7 @@ bool CPerformanceConfig::RollbackNewPerformanceFile(void)
 	new (&m_Properties) CPropertiesFatFsFile (m_nRollbackPropertiesPath.c_str (), m_pFileSystem);
 
 	m_bNewPerformanceFileCreated = false;
-	return true;
+	return bRemoved;
 }
 
 bool CPerformanceConfig::ListPerformances()

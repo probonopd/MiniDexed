@@ -2021,7 +2021,10 @@ bool CMiniDexed::DoSavePerformanceNewFile (void)
 			return true;
 		}
 
-		m_PerformanceConfig.RollbackNewPerformanceFile ();
+		if (!m_PerformanceConfig.RollbackNewPerformanceFile ())
+		{
+			LOGWARN ("DoSavePerformanceNewFile: rollback could not remove the new performance file");
+		}
 		return false;
 	}
 	else
