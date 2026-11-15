@@ -112,7 +112,6 @@ private:
 	static std::string ToLFOWaveform (int nValue);
 	static std::string ToTransposeNote (int nValue);
 	static std::string ToBreakpointNote (int nValue);
-	static std::string ToNoteName (int nValue);
 	static std::string ToKeyboardCurve (int nValue);
 	static std::string ToOscillatorMode (int nValue);
 	static std::string ToOscillatorDetune (int nValue);

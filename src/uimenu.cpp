@@ -275,8 +275,8 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
 	{0, 1, 1, ToOnOff}, //AT EGBias
-	{0, 127, 1, ToNoteName}, //NoteLimitLow
-	{0, 127, 1, ToNoteName}, //NoteLimitHigh
+	{0, 127, 1}, //NoteLimitLow
+	{0, 127, 1}, //NoteLimitHigh
 	{-24, 24, 1} //NoteShift
 };
 
@@ -1206,25 +1206,6 @@ string CUIMenu::ToBreakpointNote (int nValue)
 	assert ((unsigned) nValue < sizeof s_NoteName / sizeof s_NoteName[0]);
 
 	return s_NoteName[nValue];
-}
-
-string CUIMenu::ToNoteName (int nValue)
-{
-	static const char *NoteName[] = {"C", "C#", "D", "D#", "E", "F",
-					 "F#", "G", "G#", "A", "A#", "B"};
-
-	// Values loaded from a performance file are not validated elsewhere.
-	// Keep malformed values from producing an invalid note name.
-	if (nValue < 0)
-	{
-		nValue = 0;
-	}
-	else if (nValue > 127)
-	{
-		nValue = 127;
-	}
-
-	return string (NoteName[nValue % 12]) + to_string (nValue / 12 - 2);
 }
 
 string CUIMenu::ToKeyboardCurve (int nValue)

@@ -810,10 +810,10 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 	nNote = constrain ((int) nNote, 0, 127);
 
 	m_nNoteLimitLow[nTG] = nNote;
-	m_NoteLimitSpinLock.Release ();
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
 }
@@ -833,10 +833,10 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 	nNote = constrain ((int) nNote, 0, 127);
 
 	m_nNoteLimitHigh[nTG] = nNote;
-	m_NoteLimitSpinLock.Release ();
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
 }
@@ -850,10 +850,10 @@ void CMiniDexed::SetNoteShift (int nShift, unsigned nTG)
 
 	m_NoteLimitSpinLock.Acquire ();
 	m_nNoteShift[nTG] = nShift;
-	m_NoteLimitSpinLock.Release ();
 
 	assert (m_pTG[nTG]);
 	m_pTG[nTG]->notesOff ();
+	m_NoteLimitSpinLock.Release ();
 
 	m_UI.ParameterChanged ();
 }
@@ -2115,6 +2115,11 @@ void CMiniDexed::LoadPerformanceParameters(void)
 			m_nNoteLimitLow[nTG] = m_PerformanceConfig.GetNoteLimitLow (nTG);
 			m_nNoteLimitHigh[nTG] = m_PerformanceConfig.GetNoteLimitHigh (nTG);
 			m_nNoteShift[nTG] = m_PerformanceConfig.GetNoteShift (nTG);
+			if (nTG < m_nToneGenerators)
+			{
+				assert (m_pTG[nTG]);
+				m_pTG[nTG]->notesOff ();
+			}
 			m_NoteLimitSpinLock.Release ();
 			
 			if(m_PerformanceConfig.VoiceDataFilled(nTG)) 

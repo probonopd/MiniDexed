@@ -72,6 +72,13 @@ public:
 		Dexed::ControllersRefresh ();
 		m_SpinLock.Release ();
 	}
+	void notesOff (void)
+	{
+		m_SpinLock.Acquire ();
+		Dexed::notesOff ();
+		m_SpinLock.Release ();
+	}
+
 
 	void setSustain (bool sustain)
 	{
