@@ -327,7 +327,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					}
 				}
 			}
-			if (m_nMIDIGlobalExpression != Disabled)
+			if (!bMiniDexedCCHandled && m_nMIDIGlobalExpression != Disabled)
 			{
 				// Expression is global so check for expression MIDI channel
 				// NB: OMNI not supported
@@ -338,7 +338,7 @@ void CMIDIDevice::MIDIMessageHandler (const u8 *pMessage, size_t nLength, unsign
 					}
 				}
 			}
-			if (nLength == 3)
+			if (!bMiniDexedCCHandled && nLength == 3)
 			{
 				m_pUI->UIMIDICmdHandler (ucChannel, ucType, pMessage[1], pMessage[2]);
 			}
