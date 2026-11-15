@@ -81,6 +81,7 @@ const CUIMenu::TMenuItem CUIMenu::s_TGMenu[] =
 	{"Detune",	EditTGParameter,	0,	CMiniDexed::TGParameterMasterTune},
 	{"Cutoff",	EditTGParameter,	0,	CMiniDexed::TGParameterCutoff},
 	{"Resonance",	EditTGParameter,	0,	CMiniDexed::TGParameterResonance},
+	{"Note Limits",	MenuHandler,		s_NoteLimitsMenu},
 	{"Pitch Bend",	MenuHandler,		s_EditPitchBendMenu},
 	{"Portamento",		MenuHandler,		s_EditPortamentoMenu},
 	{"Poly/Mono",		EditTGParameter,	0,	CMiniDexed::TGParameterMonoMode}, 
@@ -111,6 +112,14 @@ const CUIMenu::TMenuItem CUIMenu::s_EditPortamentoMenu[] =
 	{"Mode",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoMode},
 	{"Glissando",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoGlissando},
 	{"Time",		EditTGParameter2,	0,	CMiniDexed::TGParameterPortamentoTime},
+	{0}
+};
+
+const CUIMenu::TMenuItem CUIMenu::s_NoteLimitsMenu[] =
+{
+	{"Low",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteLimitLow},
+	{"High",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteLimitHigh},
+	{"Shift",		EditTGParameter2,	0,	CMiniDexed::TGParameterNoteShift},
 	{0}
 };
 
@@ -265,7 +274,10 @@ const CUIMenu::TParameter CUIMenu::s_TGParameter[CMiniDexed::TGParameterUnknown]
 	{0, 99, 1}, //AT Range
 	{0, 1, 1, ToOnOff}, //AT Pitch
 	{0, 1, 1, ToOnOff}, //AT Amp
-	{0, 1, 1, ToOnOff} //AT EGBias	
+	{0, 1, 1, ToOnOff}, //AT EGBias
+	{0, 127, 1}, //NoteLimitLow
+	{0, 127, 1}, //NoteLimitHigh
+	{-24, 24, 1} //NoteShift
 };
 
 // must match DexedVoiceParameters in Synth_Dexed
@@ -776,6 +788,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
+	// Re-read the stored value because some setters clamp it (for example
+	// note limits cannot cross each other). The arrow indicators must
+	// reflect what was actually stored, not the requested value.
+	nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
@@ -830,15 +847,33 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 		return;
 	}
 
+	// Re-read the stored value because some setters clamp it (for example
+	// note limits cannot cross each other). The arrow indicators must
+	// reflect what was actually stored, not the requested value.
+	nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
 	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
+	bool bCanDecrease = nValue > rParam.Minimum;
+	bool bCanIncrease = nValue < rParam.Maximum;
+	if (Param == CMiniDexed::TGParameterNoteLimitLow)
+	{
+		int nHigh = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterNoteLimitHigh, nTG);
+		bCanIncrease = bCanIncrease && (nValue + rParam.Increment <= nHigh);
+	}
+	else if (Param == CMiniDexed::TGParameterNoteLimitHigh)
+	{
+		int nLow = pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterNoteLimitLow, nTG);
+		bCanDecrease = bCanDecrease && (nValue - rParam.Increment >= nLow);
+	}
+
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				      bCanDecrease, bCanIncrease);
 				   
 }
 

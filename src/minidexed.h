@@ -87,6 +87,9 @@ public:
 	void SetMasterTune (int nMasterTune, unsigned nTG);		// -99 .. 99
 	void SetCutoff (int nCutoff, unsigned nTG);			// 0 .. 99
 	void SetResonance (int nResonance, unsigned nTG);		// 0 .. 99
+	void SetNoteLimitLow (unsigned nNote, unsigned nTG);		// 0 .. 127
+	void SetNoteLimitHigh (unsigned nNote, unsigned nTG);		// 0 .. 127
+	void SetNoteShift (int nShift, unsigned nTG);			// -24 .. 24
 	void SetMIDIChannel (uint8_t uchChannel, unsigned nTG);
 
 	void keyup (int16_t pitch, unsigned nTG);
@@ -222,6 +225,10 @@ public:
 		TGParameterATAmplitude,
 		TGParameterATEGBias,
 		
+		TGParameterNoteLimitLow,
+		TGParameterNoteLimitHigh,
+		TGParameterNoteShift,
+
 		TGParameterUnknown
 	};
 
@@ -247,6 +254,7 @@ public:
 
 private:
 	int16_t ApplyNoteLimits (int16_t pitch, unsigned nTG);	// returns < 0 to ignore note
+	void ClearMappedNotes (unsigned nTG);
 	uint8_t m_uchOPMask[CConfig::AllToneGenerators];
 	void LoadPerformanceParameters(void); 
 	void ProcessSound (void);
@@ -304,6 +312,11 @@ private:
 	unsigned m_nNoteLimitLow[CConfig::AllToneGenerators];
 	unsigned m_nNoteLimitHigh[CConfig::AllToneGenerators];
 	int m_nNoteShift[CConfig::AllToneGenerators];
+	static const unsigned MaxMappedNotes = 8;
+	int16_t m_nMappedNote[CConfig::AllToneGenerators][128][MaxMappedNotes];
+	uint8_t m_nMappedNoteHead[CConfig::AllToneGenerators][128];
+	uint8_t m_nNoteHeldCount[CConfig::AllToneGenerators][128];
+	uint16_t m_nIgnoredReleaseCount[CConfig::AllToneGenerators][128];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
   
@@ -341,6 +354,7 @@ private:
 	AudioStereoMixer<CConfig::AllToneGenerators>* reverb_send_mixer;
 
 	CSpinLock m_ReverbSpinLock;
+	CSpinLock m_NoteLimitSpinLock;
 
 	// Network
 	CNetSubSystem* m_pNet;

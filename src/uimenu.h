@@ -161,6 +161,7 @@ private:
 	static const TMenuItem s_SaveMenu[];
 	static const TMenuItem s_EditPitchBendMenu[];
 	static const TMenuItem s_EditPortamentoMenu[];
+	static const TMenuItem s_NoteLimitsMenu[];
 	static const TMenuItem s_PerformanceMenu[];
 	
 	static const TMenuItem s_ModulationMenu[];
