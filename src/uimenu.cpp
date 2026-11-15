@@ -1008,13 +1008,30 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 
 	bool bOK = pUIMenu->m_pMiniDexed->SavePerformance (pUIMenu->m_nCurrentParameter == 1);
 
+	// Show which performance is being written. "Save as default" always
+	// writes the default performance, so do not use the current name there.
+	std::string Name;
+	if (pUIMenu->m_nCurrentParameter == 1)
+	{
+		Name = "Default";
+	}
+	else
+	{
+		Name = pUIMenu->m_pMiniDexed->GetPerformanceName (
+			pUIMenu->m_pMiniDexed->GetActualPerformanceID ());
+		if (Name.empty ())
+		{
+			Name = "Performance";
+		}
+	}
+
 	const char *pMenuName =
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
 			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
 
 	pUIMenu->m_pUI->DisplayWrite (pMenuName,
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
-				      bOK ? "Completed" : "Error",
+				      bOK ? Name.c_str () : "Error",
 				      false, false);
 
 	CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
