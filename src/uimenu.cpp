@@ -857,10 +857,21 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 
 	string Value = GetTGValueString (Param, pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG));
 
+	bool bCanDecrease = nValue > rParam.Minimum;
+	bool bCanIncrease = nValue < rParam.Maximum;
+	if (Param == CMiniDexed::TGParameterNoteLimitLow)
+	{
+		bCanIncrease = bCanIncrease && nValue < pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterNoteLimitHigh, nTG);
+	}
+	else if (Param == CMiniDexed::TGParameterNoteLimitHigh)
+	{
+		bCanDecrease = bCanDecrease && nValue > pUIMenu->m_pMiniDexed->GetTGParameter (CMiniDexed::TGParameterNoteLimitLow, nTG);
+	}
+
 	pUIMenu->m_pUI->DisplayWrite (TG.c_str (),
 				      pUIMenu->m_pParentMenu[pUIMenu->m_nCurrentMenuItem].Name,
 				      Value.c_str (),
-				      nValue > rParam.Minimum, nValue < rParam.Maximum);
+				      bCanDecrease, bCanIncrease);
 				   
 }
 
