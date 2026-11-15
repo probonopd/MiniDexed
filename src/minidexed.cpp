@@ -813,17 +813,17 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_NoteLimitSpinLock.Acquire ();
-	if (nNote == m_nNoteLimitLow[nTG])
-	{
-		m_NoteLimitSpinLock.Release ();
-		return;
-	}
-
 	if (nNote > m_nNoteLimitHigh[nTG])
 	{
 		nNote = m_nNoteLimitHigh[nTG];
 	}
 	nNote = constrain ((int) nNote, 0, 127);
+
+	if (nNote == m_nNoteLimitLow[nTG])
+	{
+		m_NoteLimitSpinLock.Release ();
+		return;
+	}
 
 	m_nNoteLimitLow[nTG] = nNote;
 
@@ -843,17 +843,17 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_NoteLimitSpinLock.Acquire ();
-	if (nNote == m_nNoteLimitHigh[nTG])
-	{
-		m_NoteLimitSpinLock.Release ();
-		return;
-	}
-
 	if (nNote < m_nNoteLimitLow[nTG])
 	{
 		nNote = m_nNoteLimitLow[nTG];
 	}
 	nNote = constrain ((int) nNote, 0, 127);
+
+	if (nNote == m_nNoteLimitHigh[nTG])
+	{
+		m_NoteLimitSpinLock.Release ();
+		return;
+	}
 
 	m_nNoteLimitHigh[nTG] = nNote;
 
