@@ -314,7 +314,7 @@ private:
 	int16_t m_nMappedNote[CConfig::AllToneGenerators][128][MaxMappedNotes];
 	uint8_t m_nMappedNoteHead[CConfig::AllToneGenerators][128];
 	uint8_t m_nNoteHeldCount[CConfig::AllToneGenerators][128];
-	uint8_t m_nIgnoredReleaseCount[CConfig::AllToneGenerators][128];
+	uint16_t m_nIgnoredReleaseCount[CConfig::AllToneGenerators][128];
 
 	unsigned m_nReverbSend[CConfig::AllToneGenerators];
   

@@ -813,6 +813,12 @@ void CMiniDexed::SetNoteLimitLow (unsigned nNote, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_NoteLimitSpinLock.Acquire ();
+	if (nNote == m_nNoteLimitLow[nTG])
+	{
+		m_NoteLimitSpinLock.Release ();
+		return;
+	}
+
 	if (nNote > m_nNoteLimitHigh[nTG])
 	{
 		nNote = m_nNoteLimitHigh[nTG];
@@ -837,6 +843,12 @@ void CMiniDexed::SetNoteLimitHigh (unsigned nNote, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_NoteLimitSpinLock.Acquire ();
+	if (nNote == m_nNoteLimitHigh[nTG])
+	{
+		m_NoteLimitSpinLock.Release ();
+		return;
+	}
+
 	if (nNote < m_nNoteLimitLow[nTG])
 	{
 		nNote = m_nNoteLimitLow[nTG];
@@ -861,6 +873,12 @@ void CMiniDexed::SetNoteShift (int nShift, unsigned nTG)
 	if (nTG >= m_nToneGenerators) return;	// Not an active TG
 
 	m_NoteLimitSpinLock.Acquire ();
+	if (nShift == m_nNoteShift[nTG])
+	{
+		m_NoteLimitSpinLock.Release ();
+		return;
+	}
+
 	m_nNoteShift[nTG] = nShift;
 
 	assert (m_pTG[nTG]);
@@ -977,6 +995,10 @@ void CMiniDexed::keydown (int16_t pitch, uint8_t velocity, unsigned nTG)
 			{
 				m_pTG[nTG]->keyup (nOldMapped);
 			}
+			if (m_nIgnoredReleaseCount[nTG][pitch] < 65535)
+			{
+				m_nIgnoredReleaseCount[nTG][pitch]++;
+			}
 			m_nMappedNote[nTG][pitch][nSlot] = nMapped;
 			m_nMappedNoteHead[nTG][pitch] = (nSlot + 1) % MaxMappedNotes;
 		}
@@ -1018,7 +1040,7 @@ void CMiniDexed::ClearMappedNotes (unsigned nTG)
 	for (unsigned nNote = 0; nNote < 128; nNote++)
 	{
 		unsigned nIgnored = m_nIgnoredReleaseCount[nTG][nNote] + m_nNoteHeldCount[nTG][nNote];
-		m_nIgnoredReleaseCount[nTG][nNote] = (nIgnored > 255) ? 255 : nIgnored;
+		m_nIgnoredReleaseCount[nTG][nNote] = (nIgnored > 65535) ? 65535 : nIgnored;
 
 		for (unsigned nSlot = 0; nSlot < MaxMappedNotes; nSlot++)
 		{
