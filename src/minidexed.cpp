@@ -411,7 +411,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bSavePerformance)
 	{
 		m_bSavePerformanceResultOK.store (DoSavePerformance (), std::memory_order_relaxed);
-		m_bSavePerformanceResultReady.store (true, std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_release);
 
 		m_bSavePerformance = false;
 		pScheduler->Yield();
@@ -420,7 +420,7 @@ void CMiniDexed::Process (bool bPlugAndPlayUpdated)
 	if (m_bSavePerformanceNewFile)
 	{
 		m_bSavePerformanceResultOK.store (DoSavePerformanceNewFile (), std::memory_order_relaxed);
-		m_bSavePerformanceResultReady.store (true, std::memory_order_relaxed);
+		m_bSavePerformanceResultReady.store (true, std::memory_order_release);
 		m_bSavePerformanceNewFile = false;
 		pScheduler->Yield();
 	}
@@ -1497,6 +1497,11 @@ void CMiniDexed::SetPerformanceSelectChannel (unsigned uCh)
 
 bool CMiniDexed::SavePerformance (bool bSaveAsDeault)
 {
+	if (IsSavePerformancePending ())
+	{
+		return false;
+	}
+
 	if (m_PerformanceConfig.GetInternalFolderOk())
 	{
 		m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
@@ -1868,9 +1873,16 @@ void CMiniDexed::setMasterVolume(float32_t vol)
     nMasterVolume = vol;
 }
 
+bool CMiniDexed::IsSavePerformancePending (void) const
+{
+	return m_bSavePerformance
+	    || m_bSavePerformanceNewFile
+	    || m_bSavePerformanceResultReady.load (std::memory_order_acquire);
+}
+
 bool CMiniDexed::GetSavePerformanceResult (bool &bOK)
 {
-	if (!m_bSavePerformanceResultReady.load (std::memory_order_relaxed))
+	if (!m_bSavePerformanceResultReady.load (std::memory_order_acquire))
 	{
 		return false;
 	}
@@ -1989,6 +2001,11 @@ void CMiniDexed::DoSetFirstPerformance(void)
 
 bool CMiniDexed::SavePerformanceNewFile ()
 {
+	if (IsSavePerformancePending ())
+	{
+		return false;
+	}
+
 	m_bSavePerformanceResultReady.store (false, std::memory_order_relaxed);
 	m_bSavePerformanceNewFile = m_PerformanceConfig.GetInternalFolderOk() && m_PerformanceConfig.CheckFreePerformanceSlot();
 	return m_bSavePerformanceNewFile;

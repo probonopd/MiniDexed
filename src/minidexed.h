@@ -152,6 +152,7 @@ public:
 	bool GetPerformanceSelectToLoad(void);
 	bool SavePerformance (bool bSaveAsDeault);
 	bool GetSavePerformanceResult (bool &bOK);
+	bool IsSavePerformancePending (void) const;
 	unsigned GetPerformanceSelectChannel (void);
 	void SetPerformanceSelectChannel (unsigned uCh);
 	bool IsValidPerformance(unsigned nID);

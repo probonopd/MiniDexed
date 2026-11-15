@@ -1023,6 +1023,12 @@ void CUIMenu::SavePerformance (CUIMenu *pUIMenu, TMenuEvent Event)
 		}
 	}
 
+	if (pUIMenu->m_pMiniDexed->IsSavePerformancePending ())
+	{
+		pUIMenu->m_pUI->DisplayWrite ("Busy", "", Name.c_str (), false, false);
+		return;
+	}
+
 	const char *pMenuName =
 		pUIMenu->m_MenuStackParent[pUIMenu->m_nCurrentMenuDepth-1]
 			[pUIMenu->m_nMenuStackItem[pUIMenu->m_nCurrentMenuDepth-1]].Name;
@@ -2003,11 +2009,19 @@ void CUIMenu::InputTxt (CUIMenu *pUIMenu, TMenuEvent Event)
 			{
 				NewName = pUIMenu->m_pMiniDexed->GetNewPerformanceDefaultName ();
 			}
+
+			if (pUIMenu->m_pMiniDexed->IsSavePerformancePending ())
+			{
+				pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), "Busy", NewName.c_str (), false, false);
+				CTimer::Get ()->StartKernelTimer (MSEC2HZ (1500), TimerHandler, 0, pUIMenu);
+				return;
+			}
+
 			pUIMenu->m_pMiniDexed->SetNewPerformanceName(NewName);
 			bOK = pUIMenu->m_pMiniDexed->SavePerformanceNewFile ();
 			pUIMenu->m_SavedPerformanceName = NewName;
 			MsgOk = bOK ? "Saving" : "Error";
-			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), OkTitleL.c_str(), MsgOk.c_str(), false, false);
+			pUIMenu->m_pUI->DisplayWrite (OkTitleR.c_str(), MsgOk.c_str(), NewName.c_str (), false, false);
 			if (bOK)
 			{
 				CTimer::Get ()->StartKernelTimer (MSEC2HZ (100), TimerHandlerSaveResult, 0, pUIMenu);
