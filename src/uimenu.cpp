@@ -788,6 +788,11 @@ void CUIMenu::EditTGParameter (CUIMenu *pUIMenu, TMenuEvent Event)
 		return;
 	}
 
+	// Re-read the stored value because some setters clamp it (for example
+	// note limits cannot cross each other). The arrow indicators must
+	// reflect what was actually stored, not the requested value.
+	nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
+
 	string TG ("TG");
 	TG += to_string (nTG+1);
 
@@ -841,6 +846,11 @@ void CUIMenu::EditTGParameter2 (CUIMenu *pUIMenu, TMenuEvent Event) // second me
 	default:
 		return;
 	}
+
+	// Re-read the stored value because some setters clamp it (for example
+	// note limits cannot cross each other). The arrow indicators must
+	// reflect what was actually stored, not the requested value.
+	nValue = pUIMenu->m_pMiniDexed->GetTGParameter (Param, nTG);
 
 	string TG ("TG");
 	TG += to_string (nTG+1);
