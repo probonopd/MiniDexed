@@ -53,6 +53,8 @@ public:
 		MenuEventBankDown,
 		MenuEventTGUp,
 		MenuEventTGDown,
+		MenuEventMasterVolumeUp,
+		MenuEventMasterVolumeDown,
 		MenuEventUnknown
 	};
 

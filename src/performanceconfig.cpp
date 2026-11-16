@@ -220,6 +220,7 @@ bool CPerformanceConfig::Load (void)
 	m_nReverbLowPass = m_Properties.GetNumber ("ReverbLowPass", 30);
 	m_nReverbDiffusion = m_Properties.GetNumber ("ReverbDiffusion", 65);
 	m_nReverbLevel = m_Properties.GetNumber ("ReverbLevel", 99);
+	m_nMasterPitch = m_Properties.GetSignedNumber ("MasterPitch", 0);
 
 	return bResult;
 }
@@ -338,6 +339,7 @@ bool CPerformanceConfig::Save (void)
 	m_Properties.SetNumber ("ReverbLowPass", m_nReverbLowPass);
 	m_Properties.SetNumber ("ReverbDiffusion", m_nReverbDiffusion);
 	m_Properties.SetNumber ("ReverbLevel", m_nReverbLevel);
+	m_Properties.SetSignedNumber ("MasterPitch", m_nMasterPitch);
 
 	return m_Properties.Save ();
 }
@@ -564,6 +566,16 @@ void CPerformanceConfig::SetReverbDiffusion (unsigned nValue)
 void CPerformanceConfig::SetReverbLevel (unsigned nValue)
 {
 	m_nReverbLevel = nValue;
+}
+
+int CPerformanceConfig::GetMasterPitch (void) const
+{
+	return m_nMasterPitch;
+}
+
+void CPerformanceConfig::SetMasterPitch (int nValue)
+{
+	m_nMasterPitch = nValue;
 }
 // Pitch bender and portamento:
 void CPerformanceConfig::SetPitchBendRange (unsigned nValue, unsigned nTG)

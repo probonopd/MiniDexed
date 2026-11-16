@@ -27,8 +27,8 @@
 
 #define BUTTONS_UPDATE_NUM_TICKS 100
 #define DEBOUNCE_TIME 20
-#define MAX_GPIO_BUTTONS 11  // 5 UI buttons, 6 Program/Bank/TG Select buttons
-#define MAX_MIDI_BUTTONS 11
+#define MAX_GPIO_BUTTONS 13  // 5 UI buttons, 6 Program/Bank/TG Select buttons, 2 Master Volume buttons
+#define MAX_MIDI_BUTTONS 13
 #define MAX_BUTTONS (MAX_GPIO_BUTTONS+MAX_MIDI_BUTTONS)
 
 class CUIButtons;
@@ -58,7 +58,9 @@ public:
 		BtnEventBankDown = 9,
 		BtnEventTGUp = 10,
 		BtnEventTGDown = 11,
-		BtnEventUnknown = 12
+		BtnEventMasterVolumeUp = 12,
+		BtnEventMasterVolumeDown = 13,
+		BtnEventUnknown = 14
 	};
 	
 	CUIButton (void);
@@ -162,6 +164,10 @@ private:
 	CUIButton::BtnTrigger m_TGUpAction;
 	unsigned m_TGDownPin;
 	CUIButton::BtnTrigger m_TGDownAction;
+	unsigned m_masterVolumeUpPin;
+	CUIButton::BtnTrigger m_masterVolumeUpAction;
+	unsigned m_masterVolumeDownPin;
+	CUIButton::BtnTrigger m_masterVolumeDownAction;
 	
 	// MIDI button configuration
 	unsigned m_notesMidi;
@@ -177,6 +183,8 @@ private:
 	unsigned m_BankDownMidi;
 	unsigned m_TGUpMidi;
 	unsigned m_TGDownMidi;
+	unsigned m_masterVolumeUpMidi;
+	unsigned m_masterVolumeDownMidi;
 
 	BtnEventHandler *m_eventHandler;
 	void *m_eventParam;
