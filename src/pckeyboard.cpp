@@ -21,6 +21,7 @@
 #include <circle/devicenameservice.h>
 #include <circle/util.h>
 #include <assert.h>
+#include <circle/startup.h>
 
 struct TKeyInfo
 {
@@ -29,39 +30,57 @@ struct TKeyInfo
 };
 
 // KeyCode is valid for standard QWERTY keyboard
+// selected octave gets added to these
+// This is the default.
+// Any PCKeyNote<x> entries in minidexed.ini invalidate the entire table
 static TKeyInfo KeyTable[] =
 {
-	{',', 72}, // C4
-	{'M', 71}, // B4
-	{'J', 70}, // A#4
-	{'N', 69}, // A4
-	{'H', 68}, // G#3
-	{'B', 67}, // G3
-	{'G', 66}, // F#3
-	{'V', 65}, // F3
-	{'C', 64}, // E3
-	{'D', 63}, // D#3
-	{'X', 62}, // D3
-	{'S', 61}, // C#3
-	{'Z', 60}, // C3
-	{'U', 59}, // B3
-	{'7', 58}, // A#3
-	{'Y', 57}, // A3
-	{'6', 56}, // G#2
-	{'T', 55}, // G2
-	{'5', 54}, // F#2
-	{'R', 53}, // F2
-	{'E', 52}, // E2
-	{'3', 51}, // D#2
-	{'W', 50}, // D2
-	{'2', 49}, // C#2
-	{'Q', 48}  // C2
+	{KEY_Q, 36}, // C1
+	{KEY_2, 37},
+	{KEY_W, 38},
+	{KEY_3, 39},
+	{KEY_E, 40},
+	{KEY_R, 41}, // F1
+	{KEY_5, 42},
+	{KEY_T, 43},
+	{KEY_6, 44},
+	{KEY_Y, 45},
+	{KEY_7, 46},
+	{KEY_U, 47},
+	{KEY_I, 48}, // C2
+	{KEY_9, 49},
+	{KEY_O, 50},
+	{KEY_0, 51},
+	{KEY_P, 52},
+	{KEY_LEFTBRACE, 53},
+	{KEY_EQUAL, 54},
+	{KEY_RIGHTBRACE, 55}, // G2
+	{KEY_BACKSLASH, 57}, // A2
+
+	{KEY_Z, 24},  // C0
+	{KEY_S, 25},
+	{KEY_X, 26},
+	{KEY_D, 27},
+	{KEY_C, 28},
+	{KEY_V, 29},  // F0
+	{KEY_G, 30},
+	{KEY_B, 31},
+	{KEY_H, 32},
+	{KEY_N, 33},
+	{KEY_J, 34},
+	{KEY_M, 35},
+	{KEY_COMMA, 36},  // C1
+	{KEY_L, 37},
+	{KEY_DOT, 38},
+	{KEY_SEMICOLON, 39},
+	{KEY_SLASH, 40}
 };
 
 CPCKeyboard *CPCKeyboard::s_pThis = 0;
 
 CPCKeyboard::CPCKeyboard (CMiniDexed *pSynthesizer, CConfig *pConfig, CUserInterface *pUI)
 :	CMIDIDevice (pSynthesizer, pConfig, pUI),
+	m_pConfig (pConfig),
 	m_pKeyboard (0)
 {
 	s_pThis = this;
@@ -96,6 +115,9 @@ void CPCKeyboard::Process (boolean bPlugAndPlayUpdated)
 	}
 }
 
+#define CC_OCTAVE_UP	128
+#define CC_OCTAVE_DOWN	129
+#define CC_NOTES_OFF	130
 void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned char RawKeys[6])
 {
 	assert (s_pThis != 0);
@@ -107,11 +129,19 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 		if (   ucKeyCode != 0
 		    && !FindByte (RawKeys, ucKeyCode, 6))
 		{
-			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
-			if (ucKeyNumber != 0)
+			u8 ucKeyNumber = s_pThis->KeyCodeToNote (ucKeyCode);
+			u8 ucKeyCC = s_pThis->KeyCodeToCC (ucKeyCode);
+			// first see if this key should send a note on
+			if ( (ucKeyNumber > 0) && (ucKeyNumber <= 127) )
 			{
 				u8 NoteOff[] = {0x80, ucKeyNumber, 0};
 				s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
+			}
+			// then check if it should send a CC
+			else if ( (ucKeyCC > 0) && (ucKeyCC <= 127) )
+			{
+				u8 ButtonOn[] = {0xb0, ucKeyCC, 0};
+				s_pThis->MIDIMessageHandler (ButtonOn, sizeof ButtonOn);
 			}
 		}
 	}
@@ -123,11 +153,45 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 		if (   ucKeyCode != 0
 		    && !FindByte (s_pThis->m_LastKeys, ucKeyCode, 6))
 		{
-			u8 ucKeyNumber = GetKeyNumber (ucKeyCode);
-			if (ucKeyNumber != 0)
+			u8 ucKeyNumber = s_pThis->KeyCodeToNote (ucKeyCode);
+			u8 ucKeyCC = s_pThis->KeyCodeToCC (ucKeyCode);
+			// first see if this key should send a note on
+			if ( (ucKeyNumber > 0) && (ucKeyNumber <= 127) )
 			{
 				u8 NoteOn[] = {0x90, ucKeyNumber, 100};
 				s_pThis->MIDIMessageHandler (NoteOn, sizeof NoteOn);
+			}
+			// then check if it should send a CC
+			else if ( (ucKeyCC > 0) && (ucKeyCC <= 127) )
+			{
+				u8 ButtonOn[] = {0xb0, ucKeyCC, 100};
+				s_pThis->MIDIMessageHandler (ButtonOn, sizeof ButtonOn);
+			}
+			else if (ucKeyCC == CC_OCTAVE_UP)
+			{
+				if (++s_pThis->octave > 5) s_pThis->octave = 5;
+			}
+			else if (ucKeyCC == CC_OCTAVE_DOWN)
+			{
+				if (s_pThis->octave > 0) s_pThis->octave--;
+			}
+			else if (ucKeyCC == CC_NOTES_OFF)
+			{
+				u8 NoteOff[] = {0x80, 60, 0};
+				for (u8 i=0; i<128; i++)
+				{
+					NoteOff[1] = i;
+					s_pThis->MIDIMessageHandler (NoteOff, sizeof NoteOff);
+				}
+			}
+			else if (ucKeyCode == KEY_DELETE)
+			{
+				if ((ucModifiers & KEY_MOD_LCTRL) && (ucModifiers & KEY_MOD_LALT))
+				{
+					CLogger::Get ()->Write("keyboard", LogNotice, "Ctrl+Alt+Del detected! Rebooting system...");
+					// Safely request Circle to trigger a hardware reset
+					reboot();
+				}
 			}
 		}
 	}
@@ -135,35 +199,29 @@ void CPCKeyboard::KeyStatusHandlerRaw (unsigned char ucModifiers, const unsigned
 	memcpy (s_pThis->m_LastKeys, RawKeys, sizeof s_pThis->m_LastKeys);
 }
 
-u8 CPCKeyboard::GetKeyNumber (u8 ucKeyCode)
+u8 CPCKeyboard::KeyCodeToCC (u8 ucKeyCode)
 {
-	char chKey;
-	if (0x04 <= ucKeyCode && ucKeyCode <= 0x1D)
-	{
-		chKey = ucKeyCode-'\x04'+'A';	// key code of 'A' is 0x04
-	}
-	else if (0x1E <= ucKeyCode && ucKeyCode <= 0x26)
-	{
-		chKey = ucKeyCode-'\x1E'+'1';	// key code of '1' is 0x1E
-	}
-	else if (ucKeyCode == 0x36)
-	{
-		chKey = ',';			// key code of ',' is 0x36
-	}
-	else
-	{
-		return 0;
-	}
+	return(m_pConfig->GetPCKeyCC(ucKeyCode));
+}
 
-	for (unsigned i = 0; i < sizeof KeyTable / sizeof KeyTable[0]; i++)
+u8 CPCKeyboard::KeyCodeToNote (u8 ucKeyCode)
+{
+	u8 baseNote = 0;
+	if (m_pConfig->GetPCKeyUseDefaultNotes() )
 	{
-		if (KeyTable[i].KeyCode == chKey)
+		for (unsigned i = 0; i < sizeof KeyTable / sizeof KeyTable[0]; i++)
 		{
-			return KeyTable[i].KeyNumber;
+			if (KeyTable[i].KeyCode == ucKeyCode)
+			{
+				baseNote = KeyTable[i].KeyNumber;
+			}
 		}
+	} else {
+		baseNote = m_pConfig->GetPCKeyNote(ucKeyCode);
 	}
 
-	return 0;
+	if (baseNote) baseNote += (s_pThis->octave*12);
+	return baseNote;
 }
 
 boolean CPCKeyboard::FindByte (const u8 *pBuffer, u8 ucByte, unsigned nLength)

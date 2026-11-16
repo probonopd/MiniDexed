@@ -262,6 +262,13 @@ public:
 	bool GetUDPMIDIEnabled (void) const;
 	const CIPAddress& GetUDPMIDIIPAddress (void) const;
 
+	// PC Keyboard mapping - USB HID key to note and CC
+	const bool GetPCKeyUseDefaultNotes () const;
+	const u8 GetPCKeyNote (u8 usbkey) const;
+	const u8 GetPCKeyCC (u8 usbkey) const;
+	void SetPCKeyNote (u8 usbkey, u8 note );
+	void SetPCKeyCC (u8 usbkey, u8 cc );
+
 private:
 	CPropertiesFatFsFile m_Properties;
 	
@@ -398,6 +405,11 @@ private:
 	bool m_bNetworkFTPEnabled;
 	bool m_bUDPMIDIEnabled;
 	CIPAddress m_IUDPMIDIIPAddress;
+
+	// PC Keyboard mapping - USB HID key to note and CC
+	bool m_bPCKeyUseDefaultNotes;
+	u8 m_nPCKeyNoteMap[256];
+	u8 m_nPCKeyCCMap[256];
 };
 
 #endif
