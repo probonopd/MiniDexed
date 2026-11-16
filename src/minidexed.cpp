@@ -2309,6 +2309,8 @@ void CMiniDexed::UpdateNetwork()
 		CString IPString;
 		m_pNet->GetConfig()->GetIPAddress()->Format(&IPString);
 
+		m_UI.InitUDP ();
+
 		if (m_UDPMIDI)
 		{
 			m_UDPMIDI->Initialize();
@@ -2372,6 +2374,7 @@ void CMiniDexed::UpdateNetwork()
 		{
 			LOGNOTE ("Syslog server is not enabled in configuration");
 		}
+
 		m_bNetworkReady = true;
 	}
 
