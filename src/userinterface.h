@@ -23,6 +23,7 @@
 #include "config.h"
 #include "uimenu.h"
 #include "uibuttons.h"
+#include "sh1106device.h"
 #include <sensor/ky040.h>
 #include <display/hd44780device.h>
 #include <display/ssd1306device.h>
@@ -74,11 +75,12 @@ private:
 	CSPIMaster *m_pSPIMaster;
 	CConfig *m_pConfig;
 
-	CCharDevice    *m_pLCD;
-	CHD44780Device *m_pHD44780;
-	CSSD1306Device *m_pSSD1306;
-	CST7789Display *m_pST7789Display;
-	CST7789Device  *m_pST7789;
+        CCharDevice    *m_pLCD;
+        CHD44780Device *m_pHD44780;
+        CSH1106Device *m_pSH1106;
+        CSSD1306Device *m_pSSD1306;
+        CST7789Display *m_pST7789Display;
+        CST7789Device  *m_pST7789;
 	CWriteBufferDevice *m_pLCDBuffered;
 	
 	CUIButtons *m_pUIButtons;

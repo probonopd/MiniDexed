@@ -30,24 +30,25 @@ LOGMODULE ("ui");
 CUserInterface::CUserInterface (CMiniDexed *pMiniDexed, CGPIOManager *pGPIOManager, CI2CMaster *pI2CMaster, CSPIMaster *pSPIMaster, CConfig *pConfig)
 :	m_pMiniDexed (pMiniDexed),
 	m_pGPIOManager (pGPIOManager),
-	m_pI2CMaster (pI2CMaster),
-	m_pSPIMaster (pSPIMaster),
-	m_pConfig (pConfig),
-	m_pLCD (0),
-	m_pLCDBuffered (0),
-	m_pUIButtons (0),
-	m_pRotaryEncoder (0),
-	m_bSwitchPressed (false),
-	m_Menu (this, pMiniDexed, pConfig)
+        m_pI2CMaster (pI2CMaster),
+        m_pSPIMaster (pSPIMaster),
+        m_pConfig (pConfig),
+        m_pLCD (0),
+        m_pSH1106 (0),
+        m_pLCDBuffered (0),
+        m_pUIButtons (0),
+        m_pRotaryEncoder (0),
+        m_bSwitchPressed (false),
+        m_Menu (this, pMiniDexed, pConfig)
 {
 }
 
 CUserInterface::~CUserInterface (void)
 {
-	delete m_pRotaryEncoder;
-	delete m_pUIButtons;
-	delete m_pLCDBuffered;
-	delete m_pLCD;
+        delete m_pRotaryEncoder;
+        delete m_pUIButtons;
+        delete m_pLCDBuffered;
+        delete m_pLCD;
 }
 
 bool CUserInterface::Initialize (void)
@@ -56,13 +57,26 @@ bool CUserInterface::Initialize (void)
 
 	if (m_pConfig->GetLCDEnabled ())
 	{
-		unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
-		unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
-		bool st7789 = m_pConfig->GetST7789Enabled ();
-		if (ssd1306addr != 0) {
-			m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (),
-											 m_pI2CMaster, ssd1306addr,
-											 m_pConfig->GetSSD1306LCDRotate (), m_pConfig->GetSSD1306LCDMirror ());
+                unsigned i2caddr = m_pConfig->GetLCDI2CAddress ();
+                unsigned ssd1306addr = m_pConfig->GetSSD1306LCDI2CAddress ();
+                unsigned sh1106addr = m_pConfig->GetSH1106LCDI2CAddress ();
+                bool st7789 = m_pConfig->GetST7789Enabled ();
+                if (sh1106addr != 0) {
+                        m_pSH1106 = new CSH1106Device (m_pConfig->GetSH1106LCDWidth (), m_pConfig->GetSH1106LCDHeight (),
+                                                       m_pI2CMaster, sh1106addr,
+                                                       m_pConfig->GetSH1106LCDRotate (), m_pConfig->GetSH1106LCDMirror ());
+                        if (!m_pSH1106->Initialize ())
+                        {
+                                LOGDBG("LCD: SH1106 initialization failed");
+                                return false;
+                        }
+                        LOGDBG ("LCD: SH1106");
+                        m_pLCD = m_pSH1106;
+                }
+                else if (ssd1306addr != 0) {
+                        m_pSSD1306 = new CSSD1306Device (m_pConfig->GetSSD1306LCDWidth (), m_pConfig->GetSSD1306LCDHeight (),
+                                                                                         m_pI2CMaster, ssd1306addr,
+                                                                                         m_pConfig->GetSSD1306LCDRotate (), m_pConfig->GetSSD1306LCDMirror ());
 			if (!m_pSSD1306->Initialize ())
 			{
 				LOGDBG("LCD: SSD1306 initialization failed");
