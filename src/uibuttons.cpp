@@ -107,7 +107,7 @@ unsigned CUIButton::getPinNumber(void)
 	return m_pinNumber;
 }
 	
-CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
+CUIButton::BtnTrigger CUIButton::ReadTrigger (unsigned interval)
 {
 	unsigned value;
 	if (isMidiPin(m_pinNumber))
@@ -130,15 +130,15 @@ CUIButton::BtnTrigger CUIButton::ReadTrigger (void)
 	}
 
 	if (m_timer < m_longPressTimeout) {
-		m_timer++;
+		m_timer+=interval;
 
-		if (m_timer == m_doubleClickTimeout && m_lastValue == 1 && m_numClicks == 1) {
+		if (m_timer >= m_doubleClickTimeout && m_lastValue == 1 && m_numClicks == 1) {
 			// The user has clicked and released the button once within the
 			// timeout - this must be a single click
 			reset();
 			return BtnTriggerClick;
 		}
-		if (m_timer == m_longPressTimeout) {
+		if (m_timer >= m_longPressTimeout) {
 			if (m_lastValue == 0 && m_numClicks == 1) {
 				// Single long press
 				reset();
@@ -219,8 +219,8 @@ void CUIButton::Write (unsigned nValue) {
 	}
 }
 
-CUIButton::BtnEvent CUIButton::Read (void) {
-	BtnTrigger trigger = ReadTrigger();
+CUIButton::BtnEvent CUIButton::Read (unsigned interval) {
+	BtnTrigger trigger = ReadTrigger(interval);
 
 	if (trigger == BtnTriggerClick) {
 		return m_clickEvent;
@@ -471,10 +471,15 @@ void CUIButtons::Update (void)
 		return;
 	}
 
+	m_interval = (currentTick - m_lastTick)/BUTTONS_UPDATE_NUM_TICKS;
+	if (m_interval == 0) {
+		m_interval = 1;
+	}
+
 	m_lastTick = currentTick;
 
 	for (unsigned i=0; i<MAX_BUTTONS; i++) {
-		CUIButton::BtnEvent event = m_buttons[i].Read();
+		CUIButton::BtnEvent event = m_buttons[i].Read(m_interval);
 		if (event != CUIButton::BtnEventNone) {
 //			LOGDBG("Event: %u", event);
 			(*m_eventHandler) (event, m_eventParam);

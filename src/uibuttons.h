@@ -73,8 +73,8 @@ public:
 
 	unsigned getPinNumber(void);
 	
-	BtnTrigger ReadTrigger (void);
-	BtnEvent Read (void);
+	BtnTrigger ReadTrigger (unsigned interval);
+	BtnEvent Read (unsigned interval);
 	void Write (unsigned nValue); // MIDI buttons only!
 
 	static BtnTrigger triggerTypeFromString(const char* triggerString);
@@ -182,6 +182,7 @@ private:
 	void *m_eventParam;
 
 	unsigned m_lastTick;
+	unsigned m_interval;
 
 	void bindButton(unsigned pinNumber, CUIButton::BtnTrigger trigger, CUIButton::BtnEvent event);
 };
